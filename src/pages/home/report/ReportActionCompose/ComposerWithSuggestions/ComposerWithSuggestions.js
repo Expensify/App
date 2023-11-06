@@ -25,6 +25,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
+import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
@@ -35,8 +37,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
-import SilentCommentUpdater from './SilentCommentUpdater';
-import Suggestions from './Suggestions';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -104,6 +104,8 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
+    // For testing
+    children,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -117,6 +119,7 @@ function ComposerWithSuggestions({
         return draft;
     });
     const commentRef = useRef(value);
+    const lastTextRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -196,6 +199,50 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    /**
+     * Find the newly added characters between the previous text and the new text based on the selection.
+     *
+     * @param {string} prevText - The previous text.
+     * @param {string} newText - The new text.
+     * @returns {object} An object containing information about the newly added characters.
+     * @property {number} startIndex - The start index of the newly added characters in the new text.
+     * @property {number} endIndex - The end index of the newly added characters in the new text.
+     * @property {string} diff - The newly added characters.
+     */
+    const findNewlyAddedChars = useCallback(
+        (prevText, newText) => {
+            let startIndex = -1;
+            let endIndex = -1;
+            let currentIndex = 0;
+
+            // Find the first character mismatch with newText
+            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
+                currentIndex++;
+            }
+
+            if (currentIndex < newText.length) {
+                startIndex = currentIndex;
+
+                // if text is getting pasted over find length of common suffix and subtract it from new text length
+                if (selection.end - selection.start > 0) {
+                    const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
+                    endIndex = newText.length - commonSuffixLength;
+                } else {
+                    endIndex = currentIndex + (newText.length - prevText.length);
+                }
+            }
+
+            return {
+                startIndex,
+                endIndex,
+                diff: newText.substring(startIndex, endIndex),
+            };
+        },
+        [selection.end, selection.start],
+    );
+
+    const insertWhiteSpace = (text, index) => `${text.slice(0, index)} ${text.slice(index)}`;
+
     const debouncedSaveReportComment = useMemo(
         () =>
             _.debounce((selectedReportID, newComment) => {
@@ -213,7 +260,14 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
+            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
+                isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
+                preferredSkinTone,
+                preferredLocale,
+            );
+
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -226,14 +280,8 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
             emojisPresentBefore.current = emojis;
+            setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
@@ -264,13 +312,14 @@ function ComposerWithSuggestions({
             }
         },
         [
-            debouncedUpdateFrequentlyUsedEmojis,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
+            findNewlyAddedChars,
+            preferredSkinTone,
+            preferredLocale,
+            setIsCommentEmpty,
+            debouncedUpdateFrequentlyUsedEmojis,
+            suggestionsRef,
+            reportID,
             debouncedSaveReportComment,
         ],
     );
@@ -321,14 +370,8 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -452,7 +495,12 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            replaceSelectionWithText(e.key, false);
+            // Reset cursor to last known location
+            setSelection((prevSelection) => ({
+                start: prevSelection.start + 1,
+                end: prevSelection.end + 1,
+            }));
+            replaceSelectionWithText(e.key);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
@@ -510,9 +558,15 @@ function ComposerWithSuggestions({
         if (value.length === 0) {
             return;
         }
+
         Report.setReportWithDraft(reportID, true);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        lastTextRef.current = value;
+    }, [value]);
 
     useImperativeHandle(
         forwardedRef,
@@ -593,6 +647,9 @@ function ComposerWithSuggestions({
                 updateComment={updateComment}
                 commentRef={commentRef}
             />
+
+            {/* Only used for testing so far */}
+            {children}
         </>
     );
 }
