@@ -43,13 +43,7 @@ function Modal(props) {
             onModalShow={showModal}
             avoidKeyboard={false}
         >
-            <FocusTrapView
-                enabled={props.shouldEnableFocusTrap}
-                active
-                style={[styles.noSelect]}
-            >
-                {props.children}
-            </FocusTrapView>
+            {props.children}
         </BaseModal>
     );
 }

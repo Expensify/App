@@ -143,9 +143,9 @@ function ScreenWrapper({
                                 >
                                     <FocusTrapView
                                         style={[styles.flex1, styles.noSelect]}
-                                        enabled={!shouldDisableFocusTrap}
+                                        isEnabled={!shouldDisableFocusTrap}
                                         shouldEnableAutoFocus={shouldEnableAutoFocus}
-                                        active={isFocused}
+                                        isActive={isFocused}
                                     >
                                         <HeaderGap styles={headerGapStyles} />
                                         {isDevelopment && <TestToolsModal />}
