@@ -3,6 +3,8 @@
 # Adds new routes to the Cloudflare Bulk Redirects list for communityDot to helpDot
 # pages. Does some basic sanity checking.
 
+set -e
+
 source scripts/shellUtils.sh
 
 info "Adding any new redirects from communityDot to helpDot"
