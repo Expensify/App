@@ -166,8 +166,13 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         Boolean(searchOptions.userToInvite),
         searchValue,
     );
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={SearchPage.displayName}
+            onEntryTransitionEnd={updateOptions}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton title={translate('common.search')} />
