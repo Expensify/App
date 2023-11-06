@@ -194,9 +194,6 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (textInputRef.current) {
-            textInputRef.current.focus();
-        }
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [prevDraftMessage, props.draftMessage]);
 
