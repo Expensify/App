@@ -411,6 +411,7 @@ function InitialSettingsPage(props) {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
+InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
