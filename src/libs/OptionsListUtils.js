@@ -87,7 +87,6 @@ Onyx.connect({
 const policyExpenseReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (report, key) => {
         if (!ReportUtils.isPolicyExpenseChat(report)) {
             return;
