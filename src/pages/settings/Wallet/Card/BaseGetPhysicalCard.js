@@ -162,7 +162,7 @@ function BaseGetPhysicalCard({
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
             <Text style={[styles.textHeadline, styles.mh5]}>{headline}</Text>
             {renderContent(onSubmit, submitButtonText, children, onValidate)}
