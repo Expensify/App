@@ -99,7 +99,7 @@ You can update Category rules en masse by exporting them to CSV, editing the spr
 This allows you to quickly add new categories and set GL codes, payroll codes, and description hints. This feature is only available for indirect integration setups. 
 
 ## Category approvers
-Policy Admins can add additional approvers who must approve any expenses categorized with a particular category.
+Workspace admins can add additional approvers who must approve any expenses categorized with a particular category.
 
 To configure category approvers:
 
