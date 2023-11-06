@@ -107,7 +107,6 @@ function LHNOptionsList({
                     // eslint-disable-next-line no-param-reassign
                     finalPersonalDetails[accountID] = {
                         ...personalData,
-                        accountID: Number(accountID),
                         avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
                     };
                     return finalPersonalDetails;
