@@ -94,5 +94,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
 LHNOptionsList.propTypes = propTypes;
 LHNOptionsList.defaultProps = defaultProps;
+LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default LHNOptionsList;
