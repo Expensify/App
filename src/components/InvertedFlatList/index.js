@@ -1,10 +1,10 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
@@ -114,11 +114,13 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            inverted
             ref={listRef}
             shouldMeasureItems
             contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
             onScroll={handleScroll}
+            // We need to keep batch size to one to workaround a bug in react-native-web.
+            // This can be removed once https://github.com/Expensify/App/pull/24482 is merged.
+            maxToRenderPerBatch={1}
         />
     );
 }
@@ -129,10 +131,14 @@ InvertedFlatList.defaultProps = {
     onScroll: () => {},
 };
 
-export default forwardRef((props, ref) => (
+const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+InvertedFlatListWithRef.displayName = 'InvertedFlatListWithRef';
+
+export default InvertedFlatListWithRef;

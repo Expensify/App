@@ -1,25 +1,29 @@
-import React, {useState, useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as Expensicons from './Icon/Expensicons';
-import participantPropTypes from './participantPropTypes';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import * as IOU from '../libs/actions/IOU';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ConfirmModal from './ConfirmModal';
-import useLocalize from '../hooks/useLocalize';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
+import participantPropTypes from './participantPropTypes';
 import transactionPropTypes from './transactionPropTypes';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -29,7 +33,7 @@ const propTypes = {
     policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -58,6 +62,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    policy: {},
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
@@ -65,6 +70,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -76,21 +82,42 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
+
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+
+    useEffect(() => {
+        if (canModifyRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canModifyRequest]);
+    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
+    if (canModifyRequest) {
+        if (!TransactionUtils.hasReceipt(transaction)) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Receipt,
+                text: translate('receipt.addReceipt'),
+                onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+            });
+        }
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        });
+    }
 
     return (
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
+                    shouldShowBorderBottom={!isScanning && !isPending}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                            onSelected: () => setIsDeleteModalVisible(true),
-                        },
-                    ]}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
                         ...report,
@@ -102,7 +129,20 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 />
-                {isScanning && <MoneyRequestHeaderStatusBar />}
+                {isPending && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.pending')}
+                        description={translate('iou.transactionPendingText')}
+                        shouldShowBorderBottom={!isScanning}
+                    />
+                )}
+                {isScanning && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.receiptStatusTitle')}
+                        description={translate('iou.receiptStatusText')}
+                        shouldShowBorderBottom
+                    />
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
@@ -122,19 +162,26 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-    },
-    parentReportAction: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
-        selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
-        canEvict: false,
-    },
-    transaction: {
-        key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`,
-    },
-})(MoneyRequestHeader);
+export default compose(
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
+        },
+    }),
+)(MoneyRequestHeader);

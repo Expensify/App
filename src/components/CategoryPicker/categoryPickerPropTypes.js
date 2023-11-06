@@ -1,15 +1,12 @@
 import PropTypes from 'prop-types';
-import categoryPropTypes from '../categoryPropTypes';
+import categoryPropTypes from '@components/categoryPropTypes';
 
 const propTypes = {
-    /** The report ID of the IOU */
-    reportID: PropTypes.string.isRequired,
-
     /** The policyID we are getting categories for */
     policyID: PropTypes.string,
 
-    /** The type of IOU report, i.e. bill, request, send */
-    iouType: PropTypes.string.isRequired,
+    /** The selected category of an expense */
+    selectedCategory: PropTypes.string,
 
     /* Onyx Props */
     /** Collection of categories attached to a policy */
@@ -19,18 +16,15 @@ const propTypes = {
     /** Collection of recently used categories attached to a policy */
     policyRecentlyUsedCategories: PropTypes.arrayOf(PropTypes.string),
 
-    /* Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        category: PropTypes.string.isRequired,
-    }),
+    /** Callback to fire when a category is pressed */
+    onSubmit: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     policyID: '',
+    selectedCategory: '',
     policyCategories: {},
     policyRecentlyUsedCategories: [],
-    iou: {},
 };
 
 export {propTypes, defaultProps};

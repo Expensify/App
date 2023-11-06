@@ -70,12 +70,12 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
-    - [ ] Android / native
-    - [ ] Android / Chrome
-    - [ ] iOS / native
-    - [ ] iOS / Safari
-    - [ ] MacOS / Chrome / Safari
-    - [ ] MacOS / Desktop
+    - [ ] Android: Native
+    - [ ] Android: mWeb Chrome
+    - [ ] iOS: Native
+    - [ ] iOS: mWeb Safari
+    - [ ] MacOS: Chrome / Safari
+    - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
@@ -120,42 +120,42 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 
 ### Screenshots/Videos
 <details>
-<summary>Web</summary>
+<summary>Android: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Safari</summary>
+<summary>iOS: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Desktop</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS</summary>
+<summary>MacOS: Chrome / Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Android</summary>
+<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

@@ -1,7 +1,7 @@
-import CONST from '../CONST';
-import * as TransactionUtils from './TransactionUtils';
+import CONST from '@src/CONST';
+import {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
-import {Report, Transaction} from '../types/onyx';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -77,7 +77,7 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
  * Checks if the iou type is one of request, send, or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND];
     return moneyRequestType.includes(iouType);
 }
 

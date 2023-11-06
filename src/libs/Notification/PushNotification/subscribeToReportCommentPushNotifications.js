@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import PushNotification from '.';
-import ROUTES from '../../../ROUTES';
-import Log from '../../Log';
-import Navigation from '../../Navigation/Navigation';
-import Visibility from '../../Visibility';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import Visibility from '@libs/Visibility';
+import ROUTES from '@src/ROUTES';
 import backgroundRefresh from './backgroundRefresh';
+import PushNotification from './index';
 
 /**
  * Setup reportComment push notification callbacks.
@@ -31,7 +31,7 @@ export default function subscribeToReportCommentPushNotifications() {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             } catch (error) {
                 Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
             }

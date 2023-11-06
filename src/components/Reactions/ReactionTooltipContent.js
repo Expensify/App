@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import Text from '../Text';
-import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import withLocalize from '../withLocalize';
+import Text from '@components/Text';
+import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import styles from '@styles/styles';
 
 const propTypes = {
     /**

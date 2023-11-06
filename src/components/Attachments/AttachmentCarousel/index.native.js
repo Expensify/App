@@ -1,22 +1,22 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Keyboard, PixelRatio} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentCarouselPager from './Pager';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import useCarouselArrows from './useCarouselArrows';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
-import compose from '../../../libs/compose';
-import withLocalize from '../../withLocalize';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselPager from './Pager';
+import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
@@ -27,17 +27,18 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+    const [isReceipt, setIsReceipt] = useState(false);
 
     const compareImage = useCallback(
         (attachment) => {
-            if (attachment.isReceipt) {
+            if (attachment.isReceipt && isReceipt) {
                 const action = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
                 return attachment.transactionID === transactionID;
             }
             return attachment.source === source;
         },
-        [source, report],
+        [source, report, isReceipt],
     );
 
     useEffect(() => {
@@ -56,7 +57,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+                onNavigate(attachmentsFromReport[initialPage]);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
@@ -74,6 +77,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
+            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
 
             onNavigate(item);
@@ -102,10 +106,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, isActive}) => (
             <CarouselItem
                 item={item}
-                isFocused={activeSource === item.source}
+                isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
@@ -148,7 +152,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
                             onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                             onPinchGestureChange={(newIsPinchGestureRunning) => {
                                 setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) setShouldShowArrows(true);
+                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                    setShouldShowArrows(true);
+                                }
                             }}
                             onSwipeDown={onClose}
                             containerWidth={containerDimensions.width}

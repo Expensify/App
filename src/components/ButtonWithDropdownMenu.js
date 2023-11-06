@@ -1,16 +1,16 @@
-import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Button from './Button';
-import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
+import PopoverMenu from './PopoverMenu';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -18,6 +18,9 @@ const propTypes = {
 
     /** Callback to execute when the main button is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
 
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
@@ -57,6 +60,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     menuHeaderText: '',
     style: [],
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
@@ -101,6 +105,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        pressOnEnter={props.pressOnEnter}
                         ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
@@ -138,6 +143,8 @@ function ButtonWithDropdownMenu(props) {
             ) : (
                 <Button
                     success
+                    ref={props.buttonRef}
+                    pressOnEnter={props.pressOnEnter}
                     isDisabled={props.isDisabled}
                     style={[styles.w100, ...props.style]}
                     isLoading={props.isLoading}

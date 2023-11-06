@@ -1,22 +1,22 @@
-import _ from 'underscore';
+import {isBefore} from 'date-fns';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as Pusher from '../Pusher/pusher';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherUtils from '@libs/PusherUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Link from './Link';
-import * as SequentialQueue from '../Network/SequentialQueue';
-import PusherUtils from '../PusherUtils';
-import * as Report from './Report';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as Session from './Session';
-import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import * as PersonalDetails from './PersonalDetails';
+import * as Report from './Report';
+import * as Session from './Session';
 import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
@@ -460,7 +460,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
+    return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -471,8 +471,10 @@ function triggerNotifications(onyxUpdates) {
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = _.values(update.value);
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
-        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const notifiableActions = _.filter(reportActions, (action) => ReportActionsUtils.isNotifiableReportAction(action));
+        _.each(notifiableActions, (action) => Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -539,7 +541,7 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
- * @param {String} skinTone
+ * @param {Number} skinTone
  */
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [

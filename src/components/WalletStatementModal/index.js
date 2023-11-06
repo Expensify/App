@@ -1,17 +1,18 @@
-import React, {useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import withLocalize from '../withLocalize';
-import ONYXKEYS from '../../ONYXKEYS';
-import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
-import styles from '../../styles/styles';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as Report from '../../libs/actions/Report';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 function WalletStatementModal({statementPageURL, session}) {
     const [isLoading, setIsLoading] = useState(true);
@@ -23,15 +24,15 @@ function WalletStatementModal({statementPageURL, session}) {
      * @param {MessageEvent} event
      */
     const navigate = (event) => {
-        if (!event.data || !event.data.type || (event.data.type !== 'STATEMENT_NAVIGATE' && event.data.type !== 'CONCIERGE_NAVIGATE')) {
+        if (!event.data || !event.data.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
             return;
         }
 
-        if (event.data.type === 'CONCIERGE_NAVIGATE') {
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
             Report.navigateToConciergeChat();
         }
 
-        if (event.data.type === 'STATEMENT_NAVIGATE' && event.data.url) {
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
             const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {

@@ -1,9 +1,9 @@
-import React from 'react';
 import appleAuth from '@invertase/react-native-apple-authentication';
-import Log from '../../../libs/Log';
-import IconButton from '../IconButton';
-import * as Session from '../../../libs/actions/Session';
-import CONST from '../../../CONST';
+import React from 'react';
+import IconButton from '@components/SignInButtons/IconButton';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 /**
  * Apple Sign In method for iOS that returns identityToken.
@@ -37,7 +37,9 @@ function AppleSignIn() {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
-                if (e.code === appleAuth.Error.CANCELED) return null;
+                if (e.code === appleAuth.Error.CANCELED) {
+                    return null;
+                }
                 Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };

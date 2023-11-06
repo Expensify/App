@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import reportActionPropTypes from '../reportActionPropTypes';
-import CONST from '../../../../CONST';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Details about any modals being used */
@@ -72,10 +72,7 @@ const propTypes = {
     setIsCommentEmpty: PropTypes.func.isRequired,
 
     /** A method to call when the form is submitted */
-    submitForm: PropTypes.func.isRequired,
-
-    /** Whether the recipient local time is shown or not */
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
+    handleSendMessage: PropTypes.func.isRequired,
 
     /** Whether the compose input is shown or not */
     shouldShowComposeInput: PropTypes.bool.isRequired,

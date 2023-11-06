@@ -1,5 +1,5 @@
 import React from 'react';
-import ButtonWithDropdownMenu from '../components/ButtonWithDropdownMenu';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -21,9 +21,13 @@ function Template(args) {
 const Default = Template.bind({});
 Default.args = {
     buttonText: 'Pay using Expensify',
+    onPress: (e, item) => {
+        alert(`Button ${item} is pressed.`);
+    },
+    pressOnEnter: true,
     options: [
-        {value: 1, text: 'One'},
-        {value: 2, text: 'Two'},
+        {value: 'One', text: 'One'},
+        {value: 'Two', text: 'Two'},
     ],
 };
 

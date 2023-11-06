@@ -107,3 +107,10 @@ tsconfig.tsbuildinfo
 
 # Workflow test logs
 /workflow_tests/logs/
+
+# Yalc
+.yalc
+yalc.lock
+
+# Local https certificate/key
+config/webpack/*.pem

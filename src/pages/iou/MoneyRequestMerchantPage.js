@@ -1,21 +1,21 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import TextInput from '../../components/TextInput';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as IOU from '../../libs/actions/IOU';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
@@ -58,13 +58,13 @@ function MoneyRequestMerchantPage({iou, route}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+        if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     const validate = useCallback((value) => {
@@ -93,6 +93,7 @@ function MoneyRequestMerchantPage({iou, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            testID={MoneyRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
@@ -125,6 +126,7 @@ function MoneyRequestMerchantPage({iou, route}) {
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.displayName = 'MoneyRequestMerchantPage';
 
 export default withOnyx({
     iou: {

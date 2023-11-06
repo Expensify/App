@@ -1,7 +1,7 @@
-import {useState, useEffect, useContext} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Appearance} from 'react-native';
-import CONST from '../../CONST';
-import {PreferredThemeContext} from '../../components/OnyxProvider';
+import {PreferredThemeContext} from '@components/OnyxProvider';
+import CONST from '@src/CONST';
 
 function useThemePreference() {
     const [themePreference, setThemePreference] = useState(CONST.THEME.DEFAULT);
@@ -18,8 +18,11 @@ function useThemePreference() {
         const theme = preferredThemeContext || CONST.THEME.DEFAULT;
 
         // If the user chooses to use the device theme settings, we need to set the theme preference to the system theme
-        if (theme === CONST.THEME.SYSTEM) setThemePreference(systemTheme);
-        else setThemePreference(theme);
+        if (theme === CONST.THEME.SYSTEM) {
+            setThemePreference(systemTheme);
+        } else {
+            setThemePreference(theme);
+        }
     }, [preferredThemeContext, systemTheme]);
 
     return themePreference;

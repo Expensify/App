@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import Airship, {EventType} from '@ua/react-native-airship';
 import lodashGet from 'lodash/get';
-import Log from '../../Log';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import * as PushNotification from '@userActions/PushNotification';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ForegroundNotifications from './ForegroundNotifications';
 import NotificationType from './NotificationType';
-import * as PushNotification from '../../actions/PushNotification';
-import ONYXKEYS from '../../../ONYXKEYS';
-import configureForegroundNotifications from './configureForegroundNotifications';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -96,7 +96,7 @@ function init() {
     // Keep track of which users have enabled push notifications via an NVP.
     Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
-    configureForegroundNotifications();
+    ForegroundNotifications.configureForegroundNotifications();
 }
 
 /**
@@ -136,6 +136,7 @@ function deregister() {
     Airship.contact.reset();
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
+    ForegroundNotifications.disableForegroundNotifications();
 }
 
 /**
