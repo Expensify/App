@@ -2,26 +2,26 @@ import {useEffect} from 'react';
 import {dismissLink, LinkEvent, openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import {plaidLinkDefaultProps, plaidLinkPropTypes} from './plaidLinkPropTypes';
 import PlaidLinkProps from './types';
 
 function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
     useDeepLinkRedirector();
     usePlaidEmitter((event: LinkEvent) => {
-        Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
+        Log.info('[PlaidLink] Handled Plaid Event: ', false, event.eventName);
         onEvent?.(event.eventName, event.metadata);
     });
     useEffect(() => {
-        onEvent?.(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN, {});
+        onEvent?.(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
         openLink({
             tokenConfig: {
                 token,
+                noLoadingState: false,
             },
             onSuccess: ({publicToken, metadata}) => {
                 onSuccess({publicToken, metadata});
             },
-            onExit: (exitError, metadata) => {
-                Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
+            onExit: ({error, metadata}) => {
+                Log.info('[PlaidLink] Exit: ', false, {error, metadata});
                 onExit();
             },
         });
@@ -36,8 +36,6 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
     return null;
 }
 
-PlaidLink.propTypes = plaidLinkPropTypes;
-PlaidLink.defaultProps = plaidLinkDefaultProps;
 PlaidLink.displayName = 'PlaidLink';
 
 export default PlaidLink;
