@@ -187,7 +187,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
     }
     return {
         optimisticData: [
-            ...(defaultData?.optimisticData ?? []),
+            ...(defaultData.optimisticData ?? []),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_APP,
