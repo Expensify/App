@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useContext, useEffect, useRef, useState, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
@@ -15,7 +15,7 @@ import Animated, {
     withDecay,
     withSpring,
 } from 'react-native-reanimated';
-import styles from '../../../../styles/styles';
+import styles from '@styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
@@ -574,5 +574,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 }
 ImageTransformer.propTypes = imageTransformerPropTypes;
 ImageTransformer.defaultProps = imageTransformerDefaultProps;
+ImageTransformer.displayName = 'ImageTransformer';
 
 export default ImageTransformer;

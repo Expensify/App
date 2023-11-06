@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import Collapsible from './Collapsible';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Title of the Collapsible section */

@@ -61,6 +61,9 @@ type PersonalDetails = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
+    /** Status of the current user from their personal details */
+
+    status?: string;
 };
 
 export default PersonalDetails;

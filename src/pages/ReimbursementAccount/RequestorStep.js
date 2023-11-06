@@ -1,29 +1,27 @@
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import styles from '../../styles/styles';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CONST from '../../CONST';
-import TextLink from '../../components/TextLink';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import RequestorOnfidoStep from './RequestorOnfidoStep';
-import Form from '../../components/Form';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import useLocalize from '../../hooks/useLocalize';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
-import ReimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import RequestorOnfidoStep from './RequestorOnfidoStep';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
     getDefaultStateForField: PropTypes.func.isRequired,
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    reimbursementAccountDraft: ReimbursementAccountDraftPropTypes.isRequired,
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
@@ -72,7 +70,7 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}) {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -111,9 +109,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
         return (
             <RequestorOnfidoStep
                 reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={onBackButtonPress}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }

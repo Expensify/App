@@ -1,10 +1,10 @@
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
+import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import CONST from '@src/CONST';
+import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
-import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import Login from '../types/onyx/Login';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 

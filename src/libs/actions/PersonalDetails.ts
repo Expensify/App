@@ -1,15 +1,15 @@
 import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
-import {PersonalDetails, PrivatePersonalDetails, DateOfBirthForm} from '../../types/onyx';
-import {Timezone} from '../../types/onyx/PersonalDetails';
-import * as API from '../API';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
-import Navigation from '../Navigation/Navigation';
-import * as UserUtils from '../UserUtils';
-import {CustomRNImageManipulatorResult, FileWithUri} from '../cropOrRotateImage/types';
+import * as API from '@libs/API';
+import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import {Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
     firstName: string;

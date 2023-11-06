@@ -1,24 +1,25 @@
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
-import RNTextInput from '../RNTextInput';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import themeColors from '../../styles/themes/default';
-import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as ComposerUtils from '../../libs/ComposerUtils';
-import * as Browser from '../../libs/Browser';
-import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import CONST from '../../CONST';
-import withNavigation from '../withNavigation';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import {StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import RNTextInput from '@components/RNTextInput';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigation from '@components/withNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -87,8 +88,6 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -140,6 +139,8 @@ const getNextChars = (str, cursorPos) => {
     return substr.substring(0, spaceIndex);
 };
 
+const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
+
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({
@@ -168,6 +169,7 @@ function Composer({
     isComposerFullSize,
     ...props
 }) {
+    const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
     const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
@@ -339,7 +341,6 @@ function Composer({
         }
 
         textInput.current.scrollTop += event.deltaY;
-        event.preventDefault();
         event.stopPropagation();
     }, []);
 
@@ -366,7 +367,7 @@ function Composer({
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
     useEffect(() => {
         updateNumberOfLines();
@@ -384,7 +385,7 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel);
+            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -445,6 +446,7 @@ function Composer({
 
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
         [style, maxLines, numberOfLines, isComposerFullSize],
     );
@@ -488,17 +490,16 @@ function Composer({
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
+Composer.displayName = 'Composer';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default compose(withLocalize, withNavigation)(ComposerWithRef);
