@@ -1,16 +1,34 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import lodashGet from 'lodash/get';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
+import {CanSetHtml, SetHtml, SetString} from './types';
 
-const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
+type ComposerSelection = {
+    start: number;
+    end: number;
+    direction: 'forward' | 'backward' | 'none';
+};
+
+type AnchorSelection = {
+    anchorOffset: number;
+    focusOffset: number;
+    anchorNode: Node;
+    focusNode: Node;
+};
+
+type NullableObject<T> = {[K in keyof T]: T[K] | null};
+
+type OriginalSelection = ComposerSelection | NullableObject<AnchorSelection>;
+
+const canSetHtml: CanSetHtml =
+    () =>
+    (...args: ClipboardItems) =>
+        navigator?.clipboard?.write([...args]);
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
- * @param {String} html HTML representation
- * @param {String} text Plain text representation
  */
-function setHTMLSync(html, text) {
+function setHTMLSync(html: string, text: string) {
     const node = document.createElement('span');
     node.textContent = html;
     node.style.all = 'unset';
@@ -21,16 +39,21 @@ function setHTMLSync(html, text) {
     node.addEventListener('copy', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        e.clipboardData.clearData();
-        e.clipboardData.setData('text/html', html);
-        e.clipboardData.setData('text/plain', text);
+        e.clipboardData?.clearData();
+        e.clipboardData?.setData('text/html', html);
+        e.clipboardData?.setData('text/plain', text);
     });
     document.body.appendChild(node);
 
-    const selection = window.getSelection();
-    const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
+    const selection = window?.getSelection();
+
+    if (selection === null) {
+        return;
+    }
+
+    const firstAnchorChild = selection.anchorNode?.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
-    let originalSelection = null;
+    let originalSelection: OriginalSelection | null = null;
     if (isComposer) {
         originalSelection = {
             start: firstAnchorChild.selectionStart,
@@ -60,12 +83,14 @@ function setHTMLSync(html, text) {
 
     selection.removeAllRanges();
 
-    if (isComposer) {
+    const anchorSelection = originalSelection as AnchorSelection;
+
+    if (isComposer && 'start' in originalSelection) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    } else if (originalSelection.anchorNode && originalSelection.focusNode) {
+    } else if (anchorSelection.anchorNode && anchorSelection.focusNode) {
         // When copying to the clipboard here, the original values of anchorNode and focusNode will be null since there will be no user selection.
         // We are adding a check to prevent null values from being passed to setBaseAndExtent, in accordance with the standards of the Selection API as outlined here: https://w3c.github.io/selection-api/#dom-selection-setbaseandextent.
-        selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
+        selection.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
     }
 
     document.body.removeChild(node);
@@ -73,10 +98,8 @@ function setHTMLSync(html, text) {
 
 /**
  * Writes the content as HTML if the web client supports it.
- * @param {String} html HTML representation
- * @param {String} text Plain text representation
  */
-const setHtml = (html, text) => {
+const setHtml: SetHtml = (html: string, text: string) => {
     if (!html || !text) {
         return;
     }
@@ -93,8 +116,8 @@ const setHtml = (html, text) => {
         setHTMLSync(html, text);
     } else {
         navigator.clipboard.write([
-            // eslint-disable-next-line no-undef
             new ClipboardItem({
+                /* eslint-disable @typescript-eslint/naming-convention */
                 'text/html': new Blob([html], {type: 'text/html'}),
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
@@ -104,10 +127,8 @@ const setHtml = (html, text) => {
 
 /**
  * Sets a string on the Clipboard object via react-native-web
- *
- * @param {String} text
  */
-const setString = (text) => {
+const setString: SetString = (text) => {
     Clipboard.setString(text);
 };
 
