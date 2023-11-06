@@ -21,6 +21,7 @@ import WebsiteBusiness from './substeps/WebsiteBusiness';
 import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
 import AddressBusiness from './substeps/AddressBusiness';
 import TypeBusiness from './substeps/TypeBusiness';
+import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -31,7 +32,7 @@ const STEPS_HEADER_HEIGHT = 40;
 // TODO Will most likely come from different place
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
-const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness, AddressBusiness, TypeBusiness];
+const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness, AddressBusiness, TypeBusiness, IncorporationDateBusiness];
 
 const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 

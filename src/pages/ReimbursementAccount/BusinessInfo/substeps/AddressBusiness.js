@@ -80,7 +80,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
 }
 
 AddressBusiness.propTypes = propTypes;
-AddressBusiness.displayName = 'NameBusiness';
+AddressBusiness.displayName = 'AddressBusiness';
 
 export default withOnyx({
     reimbursementAccount: {

@@ -1391,6 +1391,9 @@ export default {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
+        selectYourCompanysIncorporationDate: 'Select your company’s incorporation date.',
+        incorporationDate: 'Incorporation date',
+        incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',

@@ -1,19 +1,18 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import _ from 'underscore';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import CONST from '../../../../CONST';
-import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import Picker from '../../../../components/Picker';
+import NewDatePicker from '../../../../components/NewDatePicker';
+import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -22,25 +21,25 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-const companyIncorporationTypeKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_TYPE;
+const companyIncorporationDateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_DATE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationTypeKey]);
+const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
 
-function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
+function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultIncorporationType = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationTypeKey, defaultValue: ''});
+    const defaultCompanyIncorporationDate = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: new Date()});
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({
-            [companyIncorporationTypeKey]: values[companyIncorporationTypeKey],
+            [companyIncorporationDateKey]: values[companyIncorporationDateKey],
         });
 
         onNext();
     };
 
     return (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
@@ -49,25 +48,25 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
-                <Picker
-                    inputID={companyIncorporationTypeKey}
-                    label={translate('businessInfoStep.companyType')}
-                    items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
-                    placeholder={{value: '', label: '-'}}
-                    defaultValue={defaultIncorporationType}
+                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
+                <NewDatePicker
+                    inputID={companyIncorporationDateKey}
+                    label={translate('businessInfoStep.incorporationDate')}
+                    containerStyles={[styles.mt6]}
+                    placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
+                    defaultValue={defaultCompanyIncorporationDate}
                     shouldSaveDraft
                 />
             </View>
-        </Form>
+        </FormProvider>
     );
 }
 
-TypeBusiness.propTypes = propTypes;
-TypeBusiness.displayName = 'TypeBusiness';
+IncorporationDateBusiness.propTypes = propTypes;
+IncorporationDateBusiness.displayName = 'IncorporationDateBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-})(TypeBusiness);
+})(IncorporationDateBusiness);

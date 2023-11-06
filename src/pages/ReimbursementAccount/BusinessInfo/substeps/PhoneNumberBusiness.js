@@ -66,7 +66,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
 }
 
 PhoneNumberBusiness.propTypes = propTypes;
-PhoneNumberBusiness.displayName = 'NameBusiness';
+PhoneNumberBusiness.displayName = 'PhoneNumberBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
