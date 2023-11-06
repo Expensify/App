@@ -976,7 +976,7 @@ function generateCustomUnitID() {
 /**
  * @returns {Object}
  */
-function buildOptimisticCustomUnits() {
+function buildOptimisticCustomUnits(currency) {
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
     const customUnits = {
@@ -991,6 +991,7 @@ function buildOptimisticCustomUnits() {
                     customUnitRateID,
                     name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                    currency,
                 },
             },
         },
@@ -1013,7 +1014,8 @@ function buildOptimisticCustomUnits() {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits} = buildOptimisticCustomUnits();
+    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD)
+    const {customUnits} = buildOptimisticCustomUnits(outputCurrency);
 
     const optimisticData = [
         {
@@ -1026,7 +1028,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 isPolicyExpenseChatEnabled: true,
-                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
@@ -1059,7 +1061,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits(outputCurrency);
 
     const {
         announceChatReportID,
@@ -1105,7 +1108,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
                         isPolicyExpenseChatEnabled: true,
-                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
                     },
