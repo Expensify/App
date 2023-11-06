@@ -52,7 +52,7 @@ function isInsideComment(tnode) {
  */
 function isInsideH1(tnode) {
     let currentNode = tnode;
-    while (currentNode) {
+    while (currentNode.parent) {
         if (currentNode.domNode.name === 'h1') {
             return true;
         }
