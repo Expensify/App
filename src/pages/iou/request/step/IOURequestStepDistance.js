@@ -6,11 +6,13 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -53,6 +55,7 @@ function IOURequestStepDistance({
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
+    const [hasError, setHasError] = useState(false);
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
@@ -81,6 +84,20 @@ function IOURequestStepDistance({
     }, []);
 
     useEffect(() => {
+        const transactionWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+        if (!lodashGet(transaction, 'transactionID') || !_.isEmpty(transactionWaypoints)) {
+            return;
+        }
+
+        // Create the initial start and stop waypoints
+        Transaction.createInitialWaypoints(transactionID);
+        return () => {
+            // Whenever we reset the transaction, we need to set errors as empty/false.
+            setHasError(false);
+        };
+    }, [transaction, transactionID]);
+
+    useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
         }
@@ -95,9 +112,9 @@ function IOURequestStepDistance({
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
-    const navigateToConfirmationStep = () => {
+    const navigateToConfirmationStep = useCallback(() => {
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
-    };
+    }, [iouType, reportID, transactionID]);
 
     const navigateBack = () => {
         if (isUserComingFromConfirmationStep) {
@@ -117,7 +134,7 @@ function IOURequestStepDistance({
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.WAYPOINT, transactionID, reportID, index));
     };
 
-    const navigateToNextStep = () => {
+    const navigateToNextStep = useCallback(() => {
         if (isUserComingFromConfirmationStep) {
             // Take the user back to the confirmation step
             navigateToConfirmationStep();
@@ -136,6 +153,22 @@ function IOURequestStepDistance({
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+    }, [isUserComingFromConfirmationStep, navigateToConfirmationStep, report, iouType, reportID, transactionID]);
+
+    const getError = () => {
+        // Get route error if available else show the invalid number of waypoints error.
+        if (hasRouteError) {
+            return ErrorUtils.getLatestErrorField(transaction, 'route');
+        }
+
+        // Initially, both waypoints will be null, and if we give fallback value as empty string that will result in true condition, that's why different default values.
+        if (_.keys(waypoints).length === 2 && lodashGet(waypoints, 'waypoint0.address', 'address1') === lodashGet(waypoints, 'waypoint1.address', 'address2')) {
+            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+        }
+
+        if (_.size(validatedWaypoints) < 2) {
+            return {0: translate('iou.error.emptyWaypointsErrorMessage')};
+        }
     };
 
     const updateWaypoints = useCallback(
@@ -158,6 +191,15 @@ function IOURequestStepDistance({
         },
         [transactionID, waypoints, waypointsList],
     );
+
+    const submitWaypoints = useCallback(() => {
+        // If there is any error or loading state, don't let user go to next page.
+        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+            setHasError(true);
+            return;
+        }
+        navigateToNextStep();
+    }, [setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
@@ -197,13 +239,20 @@ function IOURequestStepDistance({
                     />
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
+                    {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
+                    {((hasError && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                        <DotIndicatorMessage
+                            style={[styles.mh4, styles.mv3]}
+                            messages={getError()}
+                            type="error"
+                        />
+                    )}
                     <Button
                         success
                         allowBubble
                         pressOnEnter
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                        onPress={navigateToNextStep}
-                        isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
+                        onPress={submitWaypoints}
                         text={translate('common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
