@@ -38,6 +38,7 @@ Onyx.connect({
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -156,6 +157,18 @@ function getOrderedReportIDs(
         }
     }
 
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
+    });
+
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
@@ -169,17 +182,7 @@ function getOrderedReportIDs(
     const draftReports: Report[] = [];
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
-
     reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-
         const isPinned = report.isPinned ?? false;
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
@@ -450,7 +453,7 @@ function getOptionData(
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
