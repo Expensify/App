@@ -322,6 +322,7 @@ function BaseTextInput(props) {
                                 onPressOut={props.onPress}
                                 showSoftInputOnFocus={!props.disableKeyboard}
                                 keyboardType={getSecureEntryKeyboardType(props.keyboardType, props.secureTextEntry, passwordHidden)}
+                                inputMode={!props.disableKeyboard ? props.inputMode : CONST.INPUT_MODE.NONE}
                                 value={props.value}
                                 selection={props.selection}
                                 readOnly={isReadOnly}
