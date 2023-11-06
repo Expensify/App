@@ -1,12 +1,11 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as UserUtils from '@libs/UserUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
@@ -98,23 +97,6 @@ function LHNOptionsList({
     transactions,
     comments,
 }) {
-    const itemPersonalDetails = useMemo(
-        () =>
-            _.reduce(
-                personalDetails,
-                (finalPersonalDetails, personalData, accountID) => {
-                    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-                    // eslint-disable-next-line no-param-reassign
-                    finalPersonalDetails[accountID] = {
-                        ...personalData,
-                        avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-                    };
-                    return finalPersonalDetails;
-                },
-                {},
-            ),
-        [personalDetails],
-    );
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -157,7 +139,7 @@ function LHNOptionsList({
                 '',
             )}`;
             const itemComment = comments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, itemPersonalDetails));
+            const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails));
             return (
                 <OptionRowLHNDataWithFocus
                     reportID={reportID}
@@ -176,7 +158,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [comments, itemPersonalDetails, onSelectRow, optionMode, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [comments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
