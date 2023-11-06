@@ -233,10 +233,12 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
     }
 
-    // The first time we open this page, props.reimbursementAccount is either not available in Onyx
-    // or only partial data loaded where props.reimbursementAccount.achData.currentStep is not available
-    // Calculating shouldShowContinueSetupButton on first page open doesn't make sense, and we should recalculate
-    // it once we get the response from the server the first time in componentDidUpdate.
+    // When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
+    // or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
+    // Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
+    // it relies on complete data. Thus, we should wait to calculate it until we have received
+    // the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
+    // which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes. 
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
         reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(reimbursementAccount, 'achData.currentStep'),
     );
