@@ -10,6 +10,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNDataWithFocus from '@src/components/LHNOptionsList/OptionRowLHNDataWithFocus';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import OptionRowLHNDataWithFocus from '@components/LHNOptionsList/OptionRowLHNDataWithFocus';
+import participantPropTypes from '@components/participantPropTypes';
+import * as UserUtils from '@libs/User';
 
 const propTypes = {
     /** Wrapper style for the section list */
@@ -50,6 +53,20 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
+    /** List of users' personal details */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** The transaction from the parent report action */
+    transactions: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The ID of the transaction */
+            transactionID: PropTypes.string,
+        }),
+    ),
 };
 
 const defaultProps = {
@@ -59,9 +76,26 @@ const defaultProps = {
     reports: {},
     parentReportActions: {},
     policy: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
+    personalDetails: {},
+    transactions: [],
 };
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, reports, reportActions, parentReportActions, policy}) {
+function LHNOptionsList({
+    style,
+    contentContainerStyles,
+    data,
+    onSelectRow,
+    optionMode,
+    shouldDisableFocusOptions,
+    reports,
+    reportActions,
+    parentReportActions,
+    policy,
+    preferredLocale,
+    personalDetails,
+    transactions,
+}) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -95,6 +129,21 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item}`];
             const itemParentReportActions = parentReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
+            const itemTransaction = itemParentReportActions ? itemParentReportActions[itemFullReport.parentReportActionID].originalMessage.IOUTransactionID : undefined;
+            const itemPersonalDetails = _.reduce(
+                personalDetails,
+                (finalPersonalDetails, personalData, accountID) => {
+                    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+                    // eslint-disable-next-line no-param-reassign
+                    finalPersonalDetails[accountID] = {
+                        ...personalData,
+                        accountID: Number(accountID),
+                        avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                    };
+                    return finalPersonalDetails;
+                },
+                {},
+            );
 
             return (
                 <OptionRowLHNDataWithFocus
@@ -103,13 +152,17 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportActions={itemReportActions}
                     parentReportActions={itemParentReportActions}
                     policy={itemPolicy}
+                    personalDetails={itemPersonalDetails}
+                    transaction={itemTransaction}
+                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     shouldDisableFocusOptions={shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
+                    preferredLocale={preferredLocale}
                 />
             );
         },
-        [onSelectRow, optionMode, parentReportActions, policy, reportActions, reports, shouldDisableFocusOptions],
+        [onSelectRow, optionMode, parentReportActions, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -149,5 +202,14 @@ export default withOnyx({
     },
     policy: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    transactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
     },
 })(LHNOptionsList);
