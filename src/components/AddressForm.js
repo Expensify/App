@@ -135,7 +135,6 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <TextInput
                 inputID="addressLine2"
                 label={translate('common.addressLine', {lineNumber: 2})}
-                accessibilityLabel={translate('common.addressLine')}
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={street2 || ''}
@@ -165,7 +164,6 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 <TextInput
                     inputID="state"
                     label={translate('common.stateOrProvince')}
-                    accessibilityLabel={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={state || ''}
@@ -179,10 +177,9 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <TextInput
                 inputID="city"
                 label={translate('common.city')}
-                accessibilityLabel={translate('common.city')}
                 aria-label={translate('common.city')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                value={city || ''}
+                defaultValue={city || ''}
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 onValueChange={onAddressChanged}
@@ -192,11 +189,10 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <TextInput
                 inputID="zipPostCode"
                 label={translate('common.zipPostCode')}
-                accessibilityLabel={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="characters"
-                value={zip || ''}
+                defaultValue={zip || ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={zipFormat}
                 onValueChange={onAddressChanged}

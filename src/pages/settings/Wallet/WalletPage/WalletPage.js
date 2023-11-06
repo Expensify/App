@@ -259,6 +259,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     // TODO: REMOVE THIS AFTER TESTING
     useEffect(() => {
+        if (cardList[234523452345]) {
+            return;
+        }
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(`cardList`, {
             234523452345: {

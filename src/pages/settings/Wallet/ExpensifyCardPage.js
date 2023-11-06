@@ -15,9 +15,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import styles from '@styles/styles';
 import theme from '@styles/themes/default';
@@ -35,6 +35,18 @@ const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
+    /** Draft values used by the get physical card form */
+    draftValues: PropTypes.shape({
+        addressLine1: PropTypes.string,
+        addressLine2: PropTypes.string,
+        city: PropTypes.string,
+        state: PropTypes.string,
+        country: PropTypes.string,
+        zipPostCode: PropTypes.string,
+        phoneNumber: PropTypes.string,
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+    }),
     loginList: PropTypes.shape({
         /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
         partnerName: PropTypes.string,
@@ -77,6 +89,17 @@ const propTypes = {
 
 const defaultProps = {
     cardList: {},
+    draftValues: {
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        country: '',
+        zipPostCode: '',
+        phoneNumber: '',
+        legalFirstName: '',
+        legalLastName: '',
+    },
     loginList: {},
     privatePersonalDetails: {
         legalFirstName: '',
@@ -94,6 +117,7 @@ const defaultProps = {
 
 function ExpensifyCardPage({
     cardList,
+    draftValues,
     loginList,
     privatePersonalDetails,
     route: {
@@ -132,26 +156,11 @@ function ExpensifyCardPage({
     };
 
     const goToGetPhysicalCardFlow = () => {
-        const {
-            address: {city, country, state, street = '', zip},
-            legalFirstName,
-            legalLastName,
-            phoneNumber,
-        } = privatePersonalDetails;
+        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
         // Form draft data needs to be initialized with the private personal details
-        // so that the form doesn't modify this data during the get physical card flow
-        FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, {
-            legalFirstName,
-            legalLastName,
-            addressLine1: street.split('\n')[0],
-            addressLine2: street.split('\n')[1],
-            city,
-            country,
-            phoneNumber: phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
-            state,
-            zipPostCode: zip,
-        });
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, privatePersonalDetails, loginList);
+        // If no draft data exists
+        FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails({...draftValues, ...updatedDraftValues}), loginList);
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -308,5 +317,8 @@ export default withOnyx({
     },
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    draftValues: {
+        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
     },
 })(ExpensifyCardPage);

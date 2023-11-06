@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -12,7 +12,6 @@ import * as CardUtils from '@libs/CardUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
 import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,17 +92,7 @@ const defaultProps = {
     cardList: {},
     children: null,
     domain: '',
-    draftValues: {
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        country: '',
-        phoneNumber: '',
-        legalFirstName: '',
-        legalLastName: '',
-        state: '',
-        zipPostCode: '',
-    },
+    draftValues: null,
     session: {},
     loginList: {},
     isConfirmation: false,
@@ -137,19 +126,16 @@ function BaseGetPhysicalCard({
     title,
     onValidate,
 }) {
-    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
-    const updatedPrivatePersonalDetails = {
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
-    };
-
+    const isRouteSet = useRef(false);
+    const updatedPrivatePersonalDetails = draftValues && GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
     useEffect(() => {
+        if (!draftValues || isRouteSet.current) {
+            return;
+        }
         // Redirect user to previous steps of the flow if he hasn't finished them yet
         GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, updatedPrivatePersonalDetails, loginList);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        isRouteSet.current = true;
+    }, [currentRoute, domain, draftValues, loginList, updatedPrivatePersonalDetails]);
 
     const onSubmit = () => {
         // If the current step of the get physical card flow is the confirmation page

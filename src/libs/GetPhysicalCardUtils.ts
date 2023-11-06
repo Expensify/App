@@ -2,7 +2,20 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {Login} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
+
+type DraftValues = {
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    country: string;
+    legalFirstName: string;
+    legalLastName: string;
+    phoneNumber: string;
+    state: string;
+    zipPostCode: string;
+};
 
 type PrivatePersonalDetails = {
     address: {street: string; city: string; state: string; country: string; zip: string};
@@ -72,4 +85,46 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
     Navigation.navigate(expectedRoute, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
 }
 
-export {goToNextPhysicalCardRoute, setCurrentRoute};
+/**
+ *
+ * @param draftValues
+ * @param privatePersonalDetails
+ * @returns
+ */
+function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
+    const {
+        address: {city, country, state, street = '', zip},
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+    } = privatePersonalDetails;
+
+    return {
+        ...(draftValues.legalFirstName ? {} : {legalFirstName}),
+        ...(draftValues.legalLastName ? {} : {legalLastName}),
+        ...(draftValues.addressLine1 ? {} : {addressLine1: street.split('\n')[0]}),
+        ...(draftValues.addressLine2 ? {} : {addressLine2: street.split('\n')[1]}),
+        ...(draftValues.city ? {} : {city}),
+        ...(draftValues.country ? {} : {country}),
+        ...(draftValues.phoneNumber ? {} : {phoneNumber: phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? ''}),
+        ...(draftValues.state ? {} : {state}),
+        ...(draftValues.zipPostCode ? {} : {zipPostCode: zip}),
+    };
+}
+
+/**
+ *
+ * @param draftValues
+ * @returns
+ */
+function getUpdatedPrivatePersonalDetails(draftValues: DraftValues) {
+    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
+    return {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
+    };
+}
+
+export {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute};
