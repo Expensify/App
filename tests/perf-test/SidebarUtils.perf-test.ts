@@ -1,12 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import _ from 'underscore';
 import SidebarUtils from '@libs/SidebarUtils';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction from '@src/types/onyx/ReportAction';
-import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -26,7 +25,7 @@ afterEach(() => {
 });
 
 const getMockedReportsMap = (length = 100) => {
-    const mockReports = Array.from({length}, (__, i) => {
+    const mockReports = Array.from({length}, (v, i) => {
         const reportID = i + 1;
         const participants = [1, 2];
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
@@ -35,11 +34,11 @@ const getMockedReportsMap = (length = 100) => {
         return {[reportKey]: report};
     });
 
-    return _.assign({}, ...mockReports);
+    return Object.assign({}, ...mockReports) as Record<string, Report>;
 };
 
 const getMockedPoliciesMap = (length = 100) => {
-    const mockPolicies = Array.from({length}, (__, i) => {
+    const mockPolicies = Array.from({length}, (v, i) => {
         const policyID = i + 1;
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
         const policy = LHNTestUtils.getFakePolicy();
@@ -47,7 +46,7 @@ const getMockedPoliciesMap = (length = 100) => {
         return {[policyKey]: policy};
     });
 
-    return _.assign({}, ...mockPolicies);
+    return Object.assign({}, ...mockPolicies) as Record<string, Policy>;
 };
 
 const mockedResponseMap = getMockedReportsMap(1000);
