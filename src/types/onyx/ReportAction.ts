@@ -81,11 +81,21 @@ type ReportActionBase = {
     whisperedToAccountIDs?: number[];
 
     avatar?: string | React.FC<SvgProps>;
+
+    /** Whether timezone is automatically set */
     automatic?: boolean;
+
     shouldShow?: boolean;
+
+    /** The ID of childReport */
     childReportID?: string;
+
+    /** Name of child report */
     childReportName?: string;
+
+    /** Type of child report  */
     childType?: string;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -93,13 +103,21 @@ type ReportActionBase = {
     childVisibleActionCount?: number;
     parentReportID?: string;
     childManagerAccountID?: number;
+
+    /** The status of the child report */
     childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+
+    /** The state of the child report */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
     childMoneyRequestCount?: number;
     isFirstItem?: boolean;
+
+    /** Informations about attachments of report action */
     attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+
+    /** Receipt tied to report action */
     receipt?: Receipt;
 
     /** ISO-formatted datetime */
