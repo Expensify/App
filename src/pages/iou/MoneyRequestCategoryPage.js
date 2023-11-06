@@ -1,20 +1,20 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../../libs/compose';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import useLocalize from '../../hooks/useLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CategoryPicker from '../../components/CategoryPicker';
-import ONYXKEYS from '../../ONYXKEYS';
-import reportPropTypes from '../reportPropTypes';
-import * as IOU from '../../libs/actions/IOU';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
+import CategoryPicker from '@components/CategoryPicker';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

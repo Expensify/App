@@ -187,8 +187,19 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
-            'react-content-loader/native': 'react-content-loader',
-            'lottie-react-native': 'react-native-web-lottie',
+
+            // Module alias for web & desktop
+            // https://webpack.js.org/configuration/resolve/#resolvealias
+            '@assets': path.resolve(__dirname, '../../assets'),
+            '@components': path.resolve(__dirname, '../../src/components/'),
+            '@hooks': path.resolve(__dirname, '../../src/hooks/'),
+            '@libs': path.resolve(__dirname, '../../src/libs/'),
+            '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
+            '@pages': path.resolve(__dirname, '../../src/pages/'),
+            '@styles': path.resolve(__dirname, '../../src/styles/'),
+            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+            '@src': path.resolve(__dirname, '../../src/'),
+            '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

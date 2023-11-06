@@ -1,6 +1,6 @@
-import React, {useEffect, forwardRef, useState, ComponentType, RefAttributes, ForwardedRef} from 'react';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import addViewportResizeListener from '../libs/VisualViewport';
+import React, {ComponentType, ForwardedRef, forwardRef, RefAttributes, useEffect, useState} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import addViewportResizeListener from '@libs/VisualViewport';
 
 type ViewportOffsetTopProps = {
     // viewportOffsetTop returns the offset of the top edge of the visual viewport from the

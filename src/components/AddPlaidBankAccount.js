@@ -1,26 +1,26 @@
-import _ from 'underscore';
-import React, {useEffect, useRef, useCallback} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Log from '../libs/Log';
-import PlaidLink from './PlaidLink';
-import * as App from '../libs/actions/App';
-import * as BankAccounts from '../libs/actions/BankAccounts';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Picker from './Picker';
-import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
-import Text from './Text';
-import getBankIcon from './Icon/BankIcons';
-import Icon from './Icon';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
+import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as App from '@userActions/App';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import CONST from '../CONST';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from '../hooks/useNetwork';
+import Icon from './Icon';
+import getBankIcon from './Icon/BankIcons';
+import Picker from './Picker';
+import PlaidLink from './PlaidLink';
+import Text from './Text';
 
 const propTypes = {
     /** If the user has been throttled from Plaid */
@@ -166,7 +166,7 @@ function AddPlaidBankAccount({
         value: account.plaidAccountID,
         label: `${account.addressName} ${account.mask}`,
     }));
-    const {icon, iconSize} = getBankIcon();
+    const {icon, iconSize, iconStyles} = getBankIcon();
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
@@ -203,6 +203,7 @@ function AddPlaidBankAccount({
                             Log.hmmm('[PlaidLink] Error: ', error.message);
                         }}
                         onEvent={(event, metadata) => {
+                            BankAccounts.setPlaidEvent(event);
                             // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                             if (event === 'ERROR') {
                                 Log.hmmm('[PlaidLink] Error: ', metadata);
@@ -235,10 +236,11 @@ function AddPlaidBankAccount({
                     src={icon}
                     height={iconSize}
                     width={iconSize}
+                    additionalStyles={iconStyles}
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View>
                 <Picker
                     label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
                     onInputChange={onSelect}

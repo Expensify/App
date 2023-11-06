@@ -1,11 +1,11 @@
 import React from 'react';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import * as NumberUtils from '../../../libs/NumberUtils';
-import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import variables from '../../../styles/variables';
-import CONST from '../../../CONST';
+import EmptyStateBackgroundImage from '@assets/images/empty-state_background-fade.png';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const IMAGE_OFFSET_Y = 75;
 

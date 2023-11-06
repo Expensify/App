@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import React, {useRef, useEffect, forwardRef, memo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import OptionRow from '../OptionRow';
-import SectionList from '../SectionList';
-import Text from '../Text';
-import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
-import OptionsListSkeletonView from '../OptionsListSkeletonView';
-import usePrevious from '../../hooks/usePrevious';
+import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import OptionRow from '@components/OptionRow';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import SectionList from '@components/SectionList';
+import Text from '@components/Text';
+import usePrevious from '@hooks/usePrevious';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -51,6 +51,7 @@ function BaseOptionsList({
     showTitleTooltip,
     optionHoveredStyle,
     contentContainerStyles,
+    sectionHeaderStyle,
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
@@ -227,13 +228,17 @@ function BaseOptionsList({
      * @return {Component}
      */
     const renderSectionHeader = ({section: {title, shouldShow}}) => {
+        if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
+            return <View style={sectionHeaderStyle} />;
+        }
+
         if (title && shouldShow && !hideSectionHeaders) {
             return (
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
                 </View>
             );

@@ -1,12 +1,12 @@
+import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'lodash';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 import {PendingMapViewProps} from './MapViewTypes';
-import BlockingView from '../BlockingViews/BlockingView';
-import * as Expensicons from '../Icon/Expensicons';
 
 function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps) {
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
@@ -32,5 +32,7 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
         </View>
     );
 }
+
+PendingMapView.displayName = 'PendingMapView';
 
 export default PendingMapView;
