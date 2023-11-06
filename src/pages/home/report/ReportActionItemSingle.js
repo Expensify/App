@@ -85,7 +85,7 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    let {displayName} = personalDetails[actorAccountID] || {};
+    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
@@ -113,7 +113,7 @@ function ReportActionItemSingle(props) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
         const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
-        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
