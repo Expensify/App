@@ -1,5 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import {subYears} from 'date-fns';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
@@ -12,14 +13,23 @@ import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes
 import HelpLinks from '../HelpLinks';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import FormProvider from '../../../../components/Form/FormProvider';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
+import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
 };
 
 const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
@@ -38,29 +48,27 @@ const validate = (values) => {
     return errors;
 };
 
-function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
+function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const dobDefaultValue = getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.DOB, defaultValue: ''});
+    const dobDefaultValue =
+        getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.DOB, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, personalInfoStepKey.DOB, '');
+
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
-
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData(values);
-        onNext();
-    };
 
     return (
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <NewDatePicker
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={personalInfoStepKey.DOB}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
@@ -68,6 +76,7 @@ function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}
+                shouldSaveDraft
             />
             <HelpLinks
                 translate={translate}
@@ -78,10 +87,14 @@ function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
 }
 
 DateOfBirth.propTypes = propTypes;
+DateOfBirth.defaultProps = defaultProps;
 DateOfBirth.displayName = 'DateOfBirth';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(DateOfBirth);

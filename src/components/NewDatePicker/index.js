@@ -11,6 +11,7 @@ import {defaultProps as defaultBaseTextInputPropTypes, propTypes as baseTextInpu
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import CalendarPicker from './CalendarPicker';
 import InputWrapper from '../Form/InputWrapper';
+import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     /**
@@ -33,6 +34,12 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** ID of the wrapping form */
+    formID: PropTypes.string,
+
     ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
@@ -42,17 +49,42 @@ const datePickerDefaultProps = {
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
     value: undefined,
+    shouldSaveDraft: false,
+    formID: '',
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function NewDatePicker({
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    isSmallScreenWidth,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    translate,
+    value,
+    shouldSaveDraft,
+    formID,
+}) {
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {
+        // Value is provided to input via props and onChange never fires. We have to save draft manually.
+        if (shouldSaveDraft && formID !== '') {
+            FormActions.setDraftValues(formID, {[inputID]: selectedDate});
+        }
+
         if (selectedDate === value || _.isUndefined(value)) {
             return;
         }
+
         setSelectedDate(value);
-    }, [selectedDate, value]);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
     useEffect(() => {
         if (_.isFunction(onTouched)) {

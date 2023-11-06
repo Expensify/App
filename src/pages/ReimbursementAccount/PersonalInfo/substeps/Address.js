@@ -12,14 +12,18 @@ import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes
 import HelpLinks from '../HelpLinks';
 import AddressForm from '../../AddressForm';
 import CONST from '../../../../CONST';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
@@ -57,22 +61,12 @@ function Address({reimbursementAccount, onNext, isEditing}) {
         zipCode: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.ZIP_CODE, defaultValue: ''}),
     };
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [personalInfoStepKey.STREET]: values[personalInfoStepKey.STREET],
-            [personalInfoStepKey.CITY]: values[personalInfoStepKey.CITY],
-            [personalInfoStepKey.STATE]: values[personalInfoStepKey.STATE],
-            [personalInfoStepKey.ZIP_CODE]: values[personalInfoStepKey.ZIP_CODE],
-        });
-        onNext();
-    };
-
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
@@ -96,6 +90,7 @@ function Address({reimbursementAccount, onNext, isEditing}) {
 }
 
 Address.propTypes = propTypes;
+Address.defaultProps = defaultProps;
 Address.displayName = 'Address';
 
 export default withOnyx({

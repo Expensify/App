@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import FullName from './substeps/FullName';
 import DateOfBirth from './substeps/DateOfBirth';
 import SocialSecurityNumber from './substeps/SocialSecurityNumber';
@@ -14,16 +13,27 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '../../../components/InteractiveStepSubHeader';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
 import getDefaultStateForField from '../utils/getDefaultStateForField';
+import reimbursementAccountDraftPropTypes from '../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../reimbursementAccountPropTypes';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import getPersonalInfoValues from '../utils/getPersonalInfoValues';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
 };
 
 const STEPS_HEADER_HEIGHT = 40;
@@ -32,22 +42,11 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
-
-function PersonalInfo({reimbursementAccount}) {
+function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
     const submit = useCallback(() => {
-        const values = {
-            [personalInfoStepKey.FIRST_NAME]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.FIRST_NAME, defaultValue: ''}),
-            [personalInfoStepKey.LAST_NAME]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.LAST_NAME, defaultValue: ''}),
-            [personalInfoStepKey.DOB]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.DOB, defaultValue: ''}),
-            [personalInfoStepKey.SSN_LAST_4]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.SSN_LAST_4, defaultValue: ''}),
-            [personalInfoStepKey.STREET]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.STREET, defaultValue: ''}),
-            [personalInfoStepKey.CITY]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.CITY, defaultValue: ''}),
-            [personalInfoStepKey.STATE]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.STATE, defaultValue: ''}),
-            [personalInfoStepKey.ZIP_CODE]: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.ZIP_CODE, defaultValue: ''}),
-        };
+        const values = getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount);
 
         const payload = {
             bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
@@ -55,8 +54,8 @@ function PersonalInfo({reimbursementAccount}) {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }, [reimbursementAccount]);
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
+    }, [reimbursementAccount, reimbursementAccountDraft]);
+    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -69,7 +68,12 @@ function PersonalInfo({reimbursementAccount}) {
     };
 
     return (
-        <>
+        <ScreenWrapper
+            testID={PersonalInfo.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('personalInfoStep.personalInfo')}
@@ -87,15 +91,19 @@ function PersonalInfo({reimbursementAccount}) {
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </>
+        </ScreenWrapper>
     );
 }
 
 PersonalInfo.propTypes = propTypes;
+PersonalInfo.defaultProps = defaultProps;
 PersonalInfo.displayName = 'PersonalInfo';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(PersonalInfo);
