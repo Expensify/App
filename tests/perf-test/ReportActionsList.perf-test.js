@@ -1,32 +1,41 @@
-import {measurePerformance} from 'reassure';
+import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {screen, fireEvent} from '@testing-library/react-native';
-import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
+import {measurePerformance} from 'reassure';
 import ComposeProviders from '../../src/components/ComposeProviders';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
+import OnyxProvider from '../../src/components/OnyxProvider';
+import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
+import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
+import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
+import variables from '../../src/styles/variables';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import PusherHelper from '../utils/PusherHelper';
+import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import PusherHelper from '../utils/PusherHelper';
-import variables from '../../src/styles/variables';
-import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import * as Localize from '../../src/libs/Localize';
 
 jest.setTimeout(60000);
 
 const mockedNavigate = jest.fn();
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isFocused={false}
-    />
-));
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
+    function WithNavigationFocus(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
+        );
+    }
+
+    WithNavigationFocus.displayName = 'WithNavigationFocus';
+
+    return WithNavigationFocus;
+});
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
@@ -50,7 +59,7 @@ afterAll(() => {
 
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
-const mockLoadMoreChats = jest.fn();
+const mockLoadChats = jest.fn();
 const mockRef = {current: null};
 
 // Initialize the network key for OfflineWithFeedback
@@ -66,49 +75,6 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-const getFakeReportAction = (index) => ({
-    actionName: 'ADDCOMMENT',
-    actorAccountID: index,
-    automatic: false,
-    avatar: '',
-    created: '2023-09-12 16:27:35.124',
-    isAttachment: true,
-    isFirstItem: false,
-    lastModified: '2021-07-14T15:00:00Z',
-    message: [
-        {
-            html: 'hey',
-            isDelatedParentAction: false,
-            isEdited: false,
-            reactions: [],
-            text: 'test',
-            type: 'TEXT',
-            whisperedTo: [],
-        },
-    ],
-    originalMessage: {
-        html: 'hey',
-        lastModified: '2021-07-14T15:00:00Z',
-    },
-    pendingAction: null,
-    person: [
-        {
-            type: 'TEXT',
-            style: 'strong',
-            text: 'email@test.com',
-        },
-    ],
-    previousReportActionID: '1',
-    reportActionID: index.toString(),
-    reportActionTimestamp: 1696243169753,
-    sequenceNumber: 2,
-    shouldShow: true,
-    timestamp: 1696243169,
-    whisperedToAccountIDs: [],
-});
-
-const getMockedSortedReportActions = (length = 100) => Array.from({length}, (__, i) => getFakeReportAction(i));
-
 const currentUserAccountID = 5;
 
 function ReportActionsListWrapper() {
@@ -117,11 +83,13 @@ function ReportActionsListWrapper() {
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
-                        sortedReportActions={getMockedSortedReportActions(500)}
+                        sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtils.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
-                        loadMoreChats={mockLoadMoreChats}
+                        loadMoreChats={mockLoadChats}
+                        loadOlderChats={mockLoadChats}
+                        loadNewerChats={mockLoadChats}
                         currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
                     />
                 </ActionListContext.Provider>

@@ -1,11 +1,11 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {propTypes, defaultProps} from './popoverPropTypes';
-import CONST from '../../CONST';
-import Modal from '../Modal';
-import withWindowDimensions from '../withWindowDimensions';
-import PopoverWithoutOverlay from '../PopoverWithoutOverlay';
-import {PopoverContext} from '../PopoverProvider';
+import Modal from '@components/Modal';
+import {PopoverContext} from '@components/PopoverProvider';
+import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
+import withWindowDimensions from '@components/withWindowDimensions';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './popoverPropTypes';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.

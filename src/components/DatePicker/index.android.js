@@ -1,11 +1,11 @@
+import RNDatePicker from '@react-native-community/datetimepicker';
+import {format, parseISO} from 'date-fns';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import styles from '../../styles/styles';
+import TextInput from '@components/TextInput';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {
     const ref = useRef();
@@ -20,8 +20,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         setIsPickerVisible(false);
 
         if (event.type === 'set') {
-            const asMoment = moment(selectedDate, true);
-            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
         }
     };
 
@@ -39,7 +38,8 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         [showPicker],
     );
 
-    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const date = value || defaultValue;
+    const dateAsText = date ? format(parseISO(date), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -61,7 +61,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
             />
             {isPickerVisible && (
                 <RNDatePicker
-                    value={value || defaultValue ? moment(value || defaultValue).toDate() : new Date()}
+                    value={date ? new Date(date) : new Date()}
                     mode="date"
                     onChange={setDate}
                     maximumDate={maxDate}

@@ -1,15 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import Lottie from './Lottie';
 import * as LottieAnimations from './LottieAnimations';
-import styles from '../styles/styles';
-import useLocalize from '../hooks/useLocalize';
-import Text from './Text';
-import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
-import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
-import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import Text from './Text';
 
 const propTypes = {
     /** Whether the user is submitting verifications data */
@@ -39,6 +39,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             autoPlay
                             loop
                             style={styles.loadingVBAAnimation}
+                            webStyle={styles.loadingVBAAnimationWeb}
                         />
                         <View style={[styles.ph6]}>
                             <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>

@@ -1,6 +1,6 @@
+import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
-import {fireEvent} from '@testing-library/react-native';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
@@ -13,13 +13,19 @@ jest.mock('../../src/hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('../../src/hooks/useNetwork', () =>
     jest.fn(() => ({
@@ -27,13 +33,19 @@ jest.mock('../../src/hooks/useNetwork', () =>
     })),
 );
 
-jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isKeyboardShown={false}
-    />
-));
+jest.mock('../../src/components/withKeyboardState', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isKeyboardShown={false}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
