@@ -55,6 +55,7 @@ const defaultProps = {
         width: 0,
     },
     withoutOverlay: false,
+    shouldUseTargetLocation: false
 };
 
 /**
