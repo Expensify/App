@@ -10,7 +10,10 @@ const propTypes = {
     /** Children to wrap with FocusTrap */
     children: PropTypes.node.isRequired,
 
-    /** Whether to enable the FocusTrap */
+    /**
+     *  Whether to enable the FocusTrap.
+     *  If the FocusTrap is disabled, we just pass the children through.
+     */
     isEnabled: PropTypes.bool,
 
     /**
@@ -19,7 +22,7 @@ const propTypes = {
      */
     shouldEnableAutoFocus: PropTypes.bool,
 
-    /** Whether the FocusTrap is active */
+    /** Whether the FocusTrap is active (listening for events) */
     isActive: PropTypes.bool,
 };
 

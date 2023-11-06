@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -13,28 +13,20 @@ import TwoFactorAuthContext from './TwoFactorAuthContext';
 import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
-    const calculateCurrentStep = useMemo(() => {
+    const currentStep = useMemo(() => {
         if (account.twoFactorAuthStep) {
             return account.twoFactorAuthStep;
         }
         return account.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
     }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
-    const [currentStep, setCurrentStep] = useState(calculateCurrentStep);
-
     const {setAnimationDirection} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
-
-    useEffect(() => {
-        setCurrentStep(calculateCurrentStep);
-    }, [calculateCurrentStep]);
-
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
             setAnimationDirection(animationDirection);
             TwoFactorAuthActions.setTwoFactorAuthStep(step);
-            setCurrentStep(step);
         },
         [setAnimationDirection],
     );
