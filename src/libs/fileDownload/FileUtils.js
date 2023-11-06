@@ -164,7 +164,7 @@ function appendTimeToFileName(fileName) {
  *
  * @returns {Promise}
  */
-const readFileAsync = (path, fileName, onSuccess, onFailure) =>
+const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -190,7 +190,7 @@ const readFileAsync = (path, fileName, onSuccess, onFailure) =>
             })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
-                onFailure();
+                onFailure(e);
             });
     });
 

@@ -227,7 +227,7 @@ function MoneyRequestConfirmPage(props) {
                         existingSplitChatReportID,
                     );
                 };
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess, () => {});
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess);
                 return;
             }
 

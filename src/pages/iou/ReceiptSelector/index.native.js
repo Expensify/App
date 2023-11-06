@@ -143,7 +143,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 };
 
                 if (transactionID) {
-                    FileUtils.readFileAsync(filePath, photo.path, onSuccess, () => {});
+                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
                     Navigation.dismissModal();
                     return;
                 }
