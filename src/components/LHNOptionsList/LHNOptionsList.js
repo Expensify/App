@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {FlatList, View} from 'react-native';
 import React, {useCallback, useMemo} from 'react';
+import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
+import participantPropTypes from '@components/participantPropTypes';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
-import OptionRowLHNDataWithFocus from '@components/LHNOptionsList/OptionRowLHNDataWithFocus';
-import participantPropTypes from '@components/participantPropTypes';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as UserUtils from '@libs/UserUtils';
+import OptionRowLHNDataWithFocus from './OptionRowLHNDataWithFocus';
 
 const propTypes = {
     /** Wrapper style for the section list */
@@ -65,6 +65,8 @@ const propTypes = {
             transactionID: PropTypes.string,
         }),
     ),
+    /** List of draft comments */
+    comments: PropTypes.objectOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -76,6 +78,7 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
     transactions: {},
+    comments: {},
 };
 
 const keyExtractor = (item) => item;
@@ -93,6 +96,7 @@ function LHNOptionsList({
     preferredLocale,
     personalDetails,
     transactions,
+    comments,
 }) {
     const itemPersonalDetails = useMemo(
         () =>
@@ -143,9 +147,9 @@ function LHNOptionsList({
      * @return {Component}
      */
     const renderItem = useCallback(
-        ({item}) => {
-            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${item}`];
-            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item}`];
+        ({item: reportID}) => {
+            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
             const itemTransaction = `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(
@@ -153,10 +157,11 @@ function LHNOptionsList({
                 [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
                 '',
             )}`;
+            const itemComment = comments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, itemPersonalDetails));
             return (
                 <OptionRowLHNDataWithFocus
-                    reportID={item}
+                    reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
                     parentReportActions={itemParentReportActions}
@@ -168,10 +173,11 @@ function LHNOptionsList({
                     shouldDisableFocusOptions={shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
+                    comment={itemComment}
                 />
             );
         },
-        [itemPersonalDetails, onSelectRow, optionMode, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [comments, itemPersonalDetails, onSelectRow, optionMode, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -217,5 +223,8 @@ export default withOnyx({
     },
     transactions: {
         key: ONYXKEYS.COLLECTION.TRANSACTION,
+    },
+    comments: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     },
 })(LHNOptionsList);

@@ -1,5 +1,4 @@
 import {deepEqual} from 'fast-equals';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
@@ -10,8 +9,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {withReportCommentDrafts} from '@components/OnyxProvider';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
@@ -131,12 +128,4 @@ OptionRowLHNData.displayName = 'OptionRowLHNData';
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default React.memo(
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    })(OptionRowLHNData),
-);
+export default React.memo(OptionRowLHNData);
