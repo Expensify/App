@@ -257,6 +257,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
     },
 })(IOURequestStepDistance);

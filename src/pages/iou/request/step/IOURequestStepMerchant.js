@@ -121,6 +121,6 @@ IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
 export default withOnyx({
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
     },
 })(IOURequestStepMerchant);

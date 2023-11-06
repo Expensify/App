@@ -156,6 +156,6 @@ export default withOnyx({
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
     },
 })(IOURequestStartPage);

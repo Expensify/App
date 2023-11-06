@@ -139,7 +139,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${newTransactionID}`, {
         amount: 0,
         comment,
         created,
@@ -156,7 +156,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
  * @param {String} currency
  */
 function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount, currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {amount, currency});
 }
 
 /**
@@ -164,7 +164,7 @@ function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, curre
  * @param {String} created
  */
 function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {created});
 }
 
 /**
@@ -172,7 +172,7 @@ function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
  * @param {String} currency
  */
 function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {currency});
 }
 
 /**
@@ -180,7 +180,7 @@ function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
  * @param {String} comment
  */
 function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
 /**
@@ -188,7 +188,7 @@ function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment)
  * @param {String} merchant
  */
 function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: merchant.trim()});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {merchant: merchant.trim()});
 }
 
 /**
@@ -196,7 +196,7 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
  * @param {String} category
  */
 function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {category});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {category});
 }
 
 /*
@@ -204,7 +204,7 @@ function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
  * @param {String} tag
  */
 function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {tag});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {tag});
 }
 
 /**
@@ -212,7 +212,7 @@ function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
  * @param {Boolean} billable
  */
 function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {billable});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {billable});
 }
 
 /**
@@ -220,7 +220,7 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {participants});
 }
 
 /**
@@ -229,7 +229,7 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID, partici
  * @param {String} filename
  */
 function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: {source}, filename});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${transactionID}`, {receipt: {source}, filename});
 }
 
 /**
@@ -375,7 +375,7 @@ function buildOnyxDataForMoneyRequest(
         // Remove the temporary transaction used during the creation flow
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
+            key: `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
         {
@@ -456,7 +456,7 @@ function buildOnyxDataForMoneyRequest(
         // Remove the temporary transaction used during the creation flow
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
+            key: `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
         {
@@ -1128,7 +1128,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
+            key: `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
     ];
@@ -1151,7 +1151,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
+            key: `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
     ];

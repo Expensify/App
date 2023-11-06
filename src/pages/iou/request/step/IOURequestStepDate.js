@@ -83,6 +83,6 @@ IOURequestStepDate.displayName = 'IOURequestStepDate';
 
 export default withOnyx({
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID')}`,
     },
 })(IOURequestStepDate);

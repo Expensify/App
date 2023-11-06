@@ -251,7 +251,7 @@ IOURequestStepWaypoint.propTypes = propTypes;
 IOURequestStepWaypoint.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID')}`,
     },
     recentWaypoints: {
         key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
