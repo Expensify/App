@@ -81,6 +81,8 @@ const defaultProps = {
     transactions: [],
 };
 
+const keyExtractor = (item) => item;
+
 function LHNOptionsList({
     style,
     contentContainerStyles,
@@ -124,14 +126,17 @@ function LHNOptionsList({
      *
      * @returns {Object}
      */
-    const getItemLayout = (itemData, index) => {
-        const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-        return {
-            length: optionHeight,
-            offset: index * optionHeight,
-            index,
-        };
-    };
+    const getItemLayout = useCallback(
+        (itemData, index) => {
+            const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+            return {
+                length: optionHeight,
+                offset: index * optionHeight,
+                index,
+            };
+        },
+        [optionMode],
+    );
 
     /**
      * Function which renders a row in the list
@@ -178,7 +183,7 @@ function LHNOptionsList({
                 showsVerticalScrollIndicator={false}
                 data={data}
                 testID="lhn-options-list"
-                keyExtractor={(item) => item}
+                keyExtractor={keyExtractor}
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
