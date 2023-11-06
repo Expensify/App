@@ -83,6 +83,7 @@ function AppleSignInDiv({isDesktopFlow}) {
     }, []);
 
     return isDesktopFlow ? (
+        /* eslint-disable-next-line jsx-a11y/no-static-element-interactions */
         <div
             id="appleid-signin"
             data-mode="center-align"
@@ -96,6 +97,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             onMouseDown={(event) => event.preventDefault()}
         />
     ) : (
+        /* eslint-disable-next-line jsx-a11y/no-static-element-interactions */
         <div
             id="appleid-signin"
             data-mode="logo-only"
