@@ -1,24 +1,24 @@
-import React, {useState, useMemo, useCallback, useRef, useEffect} from 'react';
-import {Keyboard} from 'react-native';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {withNetwork} from '../../components/OnyxProvider';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import ROUTES from '../../ROUTES';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
-import SelectionList from '../../components/SelectionList';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 /**
  * IOU Currency selection for selecting currency
@@ -126,8 +126,12 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim().replace(CONST.REGEX.ANY_SPACE, ' ')), 'i');
+        const filteredCurrencies = _.filter(
+            currencyOptions,
+            (currencyOption) =>
+                searchRegex.test(currencyOption.text.replace(CONST.REGEX.ANY_SPACE, ' ')) || searchRegex.test(currencyOption.currencyName.replace(CONST.REGEX.ANY_SPACE, ' ')),
+        );
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
@@ -154,7 +158,7 @@ function IOUCurrencySelection(props) {
             testID={IOUCurrencySelection.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iOUCurrencySelection.selectCurrency')}
+                title={translate('common.selectCurrency')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
             />
             <SelectionList

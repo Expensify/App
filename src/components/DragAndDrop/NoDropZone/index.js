@@ -1,8 +1,8 @@
+import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import useDragAndDrop from '../../../hooks/useDragAndDrop';
+import useDragAndDrop from '@hooks/useDragAndDrop';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Content */

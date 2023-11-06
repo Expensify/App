@@ -1,27 +1,29 @@
-import {Keyboard, View, PanResponder} from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {PickerAvoidingView} from 'react-native-picker-select';
 import {useNavigation} from '@react-navigation/native';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import HeaderGap from '../HeaderGap';
-import OfflineIndicator from '../OfflineIndicator';
-import {propTypes, defaultProps} from './propTypes';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import TestToolsModal from '../TestToolsModal';
-import toggleTestToolsModal from '../../libs/actions/TestTool';
-import CustomDevMenu from '../CustomDevMenu';
-import * as Browser from '../../libs/Browser';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useKeyboardState from '../../hooks/useKeyboardState';
-import useEnvironment from '../../hooks/useEnvironment';
-import useNetwork from '../../hooks/useNetwork';
+import lodashGet from 'lodash/get';
+import React, {useEffect, useRef, useState} from 'react';
+import {Keyboard, PanResponder, View} from 'react-native';
+import {PickerAvoidingView} from 'react-native-picker-select';
+import _ from 'underscore';
+import CustomDevMenu from '@components/CustomDevMenu';
+import HeaderGap from '@components/HeaderGap';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import TestToolsModal from '@components/TestToolsModal';
+import useEnvironment from '@hooks/useEnvironment';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import styles from '@styles/styles';
+import toggleTestToolsModal from '@userActions/TestTool';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './propTypes';
 
 function ScreenWrapper({
     shouldEnableMaxHeight,
+    shouldEnableMinHeight,
     includePaddingTop,
     keyboardAvoidingViewBehavior,
     includeSafeAreaPaddingBottom,
@@ -37,12 +39,14 @@ function ScreenWrapper({
     testID,
 }) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {initialHeight} = useInitialDimensions();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+    const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
     const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
     const panResponder = useRef(
@@ -108,7 +112,7 @@ function ScreenWrapper({
                 }
 
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (includeSafeAreaPaddingBottom || isOffline) {
+                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
                     paddingStyle.paddingBottom = paddingBottom;
                 }
 
@@ -125,7 +129,7 @@ function ScreenWrapper({
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                style={[styles.w100, styles.h100, {maxHeight, minHeight}]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >

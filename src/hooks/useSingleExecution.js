@@ -1,5 +1,5 @@
+import {useCallback, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {useCallback, useState, useRef} from 'react';
 
 /**
  * With any action passed in, it will only allow 1 such action to occur at a time.

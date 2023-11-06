@@ -1,38 +1,38 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import * as Session from '../../../libs/actions/Session';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextInput from '../../../components/TextInput';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as LoginUtils from '../../../libs/LoginUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
-import * as CloseAccount from '../../../libs/actions/CloseAccount';
-import CONST from '../../../CONST';
-import CONFIG from '../../../CONFIG';
-import AppleSignIn from '../../../components/SignInButtons/AppleSignIn';
-import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
-import isInputAutoFilled from '../../../libs/isInputAutoFilled';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import Log from '../../../libs/Log';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
-import usePrevious from '../../../hooks/usePrevious';
-import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import AppleSignIn from '@components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as CloseAccount from '@userActions/CloseAccount';
+import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -60,23 +60,33 @@ const propTypes = {
         success: PropTypes.string,
     }),
 
+    /** The credentials of the logged in person */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    isVisible: PropTypes.bool.isRequired,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
-
-    ...toggleVisibilityViewPropTypes,
-
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     account: {},
+    credentials: {
+        login: '',
+    },
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
@@ -85,7 +95,7 @@ const defaultProps = {
 
 function LoginForm(props) {
     const input = useRef();
-    const [login, setLogin] = useState('');
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
 
@@ -284,22 +294,25 @@ LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
+const LoginFormWithRef = forwardRef((props, ref) => (
+    <LoginForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+LoginFormWithRef.displayName = 'LoginFormWithRef';
+
 export default compose(
     withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(
-    forwardRef((props, ref) => (
-        <LoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(LoginFormWithRef);
