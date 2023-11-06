@@ -1,9 +1,9 @@
-import React, { FC, ForwardedRef, KeyboardEventHandler, MouseEventHandler, ReactElement } from 'react';
-import Text from './Text';
+import React, {FC, ForwardedRef, KeyboardEventHandler, MouseEventHandler, ReactElement} from 'react';
+import {GestureResponderEvent, Text as RNText, TextStyle} from 'react-native';
 import styles from '@styles/styles';
-import CONST from '@src/CONST';
 import * as Link from '@userActions/Link';
-import { TextStyle, Text as RNText, GestureResponderEvent } from 'react-native';
+import CONST from '@src/CONST';
+import Text from './Text';
 
 type TextLinkProps = {
     /** Link to open in new tab */
@@ -22,8 +22,8 @@ type TextLinkProps = {
     onMouseDown?: MouseEventHandler;
 
     /** A ref to forward to text */
-    forwardedRef: ForwardedRef<RNText>,
-}
+    forwardedRef: ForwardedRef<RNText>;
+};
 
 function TextLink({href, children, style, onPress, onMouseDown = (event) => event.preventDefault(), forwardedRef, ...props}: TextLinkProps) {
     const openLink = (event: GestureResponderEvent) => {
@@ -59,6 +59,7 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
             onKeyDown={openLinkIfEnterKeyPressed}
             ref={forwardedRef}
             suppressHighlighting
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}
@@ -70,6 +71,7 @@ TextLink.displayName = 'TextLink';
 
 const TextLinkWithRef: FC<TextLinkProps> = React.forwardRef<RNText, TextLinkProps>((props, ref) => (
     <TextLink
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
