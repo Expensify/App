@@ -14,6 +14,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 import getDefaultStateForField from '../utils/getDefaultStateForField';
 import NameBusiness from './substeps/NameBusiness';
 import TaxIdBusiness from './substeps/TaxIdBusiness';
@@ -22,6 +23,7 @@ import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
 import AddressBusiness from './substeps/AddressBusiness';
 import TypeBusiness from './substeps/TypeBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
+import IncorporationStateBusiness from './substeps/IncorporationStateBusiness';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -32,7 +34,7 @@ const STEPS_HEADER_HEIGHT = 40;
 // TODO Will most likely come from different place
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
-const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness, AddressBusiness, TypeBusiness, IncorporationDateBusiness];
+const bodyContent = [NameBusiness, IncorporationStateBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness, AddressBusiness, TypeBusiness, IncorporationDateBusiness];
 
 const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
@@ -65,7 +67,12 @@ function BusinessInfo({reimbursementAccount}) {
     };
 
     return (
-        <>
+        <ScreenWrapper
+            testID={BusinessInfo.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={translate('businessInfoStep.businessInfo')}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
@@ -84,7 +91,7 @@ function BusinessInfo({reimbursementAccount}) {
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </>
+        </ScreenWrapper>
     );
 }
 

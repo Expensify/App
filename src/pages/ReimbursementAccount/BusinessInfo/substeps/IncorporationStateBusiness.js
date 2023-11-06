@@ -5,14 +5,14 @@ import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import CONST from '../../../../CONST';
+import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import NewDatePicker from '../../../../components/NewDatePicker';
-import FormProvider from '../../../../components/Form/FormProvider';
+import StatePicker from '../../../../components/StatePicker';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -21,25 +21,25 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-const companyIncorporationDateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_DATE;
+const companyIncorporationStateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
+const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationStateKey]);
 
-function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
+function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyIncorporationDate = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: ''});
+    const defaultCompanyIncorporationState = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationStateKey, defaultValue: ''});
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({
-            [companyIncorporationDateKey]: values[companyIncorporationDateKey],
+            [companyIncorporationStateKey]: values[companyIncorporationStateKey],
         });
 
         onNext();
     };
 
     return (
-        <FormProvider
+        <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
@@ -48,25 +48,23 @@ function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
-                <NewDatePicker
-                    inputID={companyIncorporationDateKey}
-                    label={translate('businessInfoStep.incorporationDate')}
-                    containerStyles={[styles.mt6]}
-                    placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
-                    defaultValue={defaultCompanyIncorporationDate}
+                <Text style={styles.textHeadline}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
+                <StatePicker
+                    inputID={companyIncorporationStateKey}
+                    label={translate('businessInfoStep.incorporationState')}
+                    defaultValue={defaultCompanyIncorporationState}
                     shouldSaveDraft
                 />
             </View>
-        </FormProvider>
+        </Form>
     );
 }
 
-IncorporationDateBusiness.propTypes = propTypes;
-IncorporationDateBusiness.displayName = 'IncorporationDateBusiness';
+IncorporationStateBusiness.propTypes = propTypes;
+IncorporationStateBusiness.displayName = 'IncorporationStateBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-})(IncorporationDateBusiness);
+})(IncorporationStateBusiness);

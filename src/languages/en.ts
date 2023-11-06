@@ -1394,6 +1394,8 @@ export default {
         selectYourCompanysIncorporationDate: 'Select your company’s incorporation date.',
         incorporationDate: 'Incorporation date',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
+        incorporationState: 'Incorporation state',
+        pleaseSelectTheStateYourCompanyWasIncorporatedIn: 'Please select the state your company was incorporated in.',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',
