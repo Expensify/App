@@ -75,7 +75,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={`${values[businessInfoStepKeys.STREET]}, ${values[businessInfoStepKeys.CITY]}, ${values[businessInfoStepKeys.STATE]} ${values[businessInfoStepKeys.ZIP_CODE]}`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(2);
+                        onMove(4);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -91,7 +91,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[businessInfoStepKeys.COMPANY_WEBSITE]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(4);
+                        onMove(2);
                     }}
                 />
                 <MenuItemWithTopDescription

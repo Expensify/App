@@ -9,7 +9,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import FormProvider from '../../../../components/Form/FormProvider';
@@ -30,20 +29,12 @@ function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
 
     const defaultCompanyIncorporationDate = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: ''});
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [companyIncorporationDateKey]: values[companyIncorporationDateKey],
-        });
-
-        onNext();
-    };
-
     return (
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >

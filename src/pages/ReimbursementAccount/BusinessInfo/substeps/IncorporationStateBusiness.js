@@ -10,7 +10,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import StatePicker from '../../../../components/StatePicker';
 
@@ -30,20 +29,12 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}) {
 
     const defaultCompanyIncorporationState = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationStateKey, defaultValue: ''});
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [companyIncorporationStateKey]: values[companyIncorporationStateKey],
-        });
-
-        onNext();
-    };
-
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >

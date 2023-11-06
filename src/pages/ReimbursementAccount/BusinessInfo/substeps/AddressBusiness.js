@@ -10,7 +10,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import AddressForm from '../../AddressForm';
 
@@ -44,23 +43,12 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
         zipCode: getDefaultStateForField({reimbursementAccount, fieldName: companyBusinessInfoKey.ZIP_CODE, defaultValue: ''}),
     };
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [companyBusinessInfoKey.STREET]: values[companyBusinessInfoKey.STREET],
-            [companyBusinessInfoKey.CITY]: values[companyBusinessInfoKey.CITY],
-            [companyBusinessInfoKey.STATE]: values[companyBusinessInfoKey.STATE],
-            [companyBusinessInfoKey.ZIP_CODE]: values[companyBusinessInfoKey.ZIP_CODE],
-        });
-
-        onNext();
-    };
-
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
