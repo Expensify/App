@@ -1,18 +1,18 @@
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OptionRowLHNDataWithFocus from '@src/components/LHNOptionsList/OptionRowLHNDataWithFocus';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import OptionRowLHNDataWithFocus from '@components/LHNOptionsList/OptionRowLHNDataWithFocus';
 import participantPropTypes from '@components/participantPropTypes';
-import * as UserUtils from '@libs/User';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as UserUtils from '@libs/UserUtils';
 
 const propTypes = {
     /** Wrapper style for the section list */
@@ -96,6 +96,24 @@ function LHNOptionsList({
     personalDetails,
     transactions,
 }) {
+    const itemPersonalDetails = useMemo(
+        () =>
+            _.reduce(
+                personalDetails,
+                (finalPersonalDetails, personalData, accountID) => {
+                    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+                    // eslint-disable-next-line no-param-reassign
+                    finalPersonalDetails[accountID] = {
+                        ...personalData,
+                        accountID: Number(accountID),
+                        avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                    };
+                    return finalPersonalDetails;
+                },
+                {},
+            ),
+        [personalDetails],
+    );
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -130,21 +148,7 @@ function LHNOptionsList({
             const itemParentReportActions = parentReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
             const itemTransaction = itemParentReportActions ? itemParentReportActions[itemFullReport.parentReportActionID].originalMessage.IOUTransactionID : undefined;
-            const itemPersonalDetails = _.reduce(
-                personalDetails,
-                (finalPersonalDetails, personalData, accountID) => {
-                    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-                    // eslint-disable-next-line no-param-reassign
-                    finalPersonalDetails[accountID] = {
-                        ...personalData,
-                        accountID: Number(accountID),
-                        avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-                    };
-                    return finalPersonalDetails;
-                },
-                {},
-            );
-
+            const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, itemPersonalDetails));
             return (
                 <OptionRowLHNDataWithFocus
                     reportID={item}
@@ -152,7 +156,7 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportActions={itemParentReportActions}
                     policy={itemPolicy}
-                    personalDetails={itemPersonalDetails}
+                    personalDetails={participantPersonalDetailList}
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
@@ -162,7 +166,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [onSelectRow, optionMode, parentReportActions, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [itemPersonalDetails, onSelectRow, optionMode, parentReportActions, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
