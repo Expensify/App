@@ -72,6 +72,7 @@ If you need to update your categories in Expensify, you will first need to updat
 Alternatively, if you update the category details in your accounting integration, be sure to sync the policy connection so that the updated information is available on the workspace. 
 
 # Deep Dive
+
 ## Category-specific rules and description hints
 If you're an admin using a workspace on a Control plan, you have the ability to enable specific rules for each category.
 
