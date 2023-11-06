@@ -43,6 +43,7 @@ Expensify supports the following file formats for uploading Categories in bulk:
 Once the spreadsheet is formatted, you can upload it to the workspace under **Settings > Workspace > Group >** *[Workspace Name]* **> Categories**.
 
 From there, the updated Category list will show as available on all expenses submitted on the corresponding workspace. 
+
 ## Manually add Categories
 If you need to add Categories to your workspace manually, you can follow the steps below. 
 
