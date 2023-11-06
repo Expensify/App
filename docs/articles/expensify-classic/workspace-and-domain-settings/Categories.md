@@ -52,7 +52,7 @@ On web:
 2. Add new categories under **Add a Category**.
    
 On mobile:
-1. Tap the **three-bar menu icon** at the top left corner of the app
+1. Tap the **three-bar menu icon** at the top left corner of the app.
 2. Tap on **Settings** in the menu on the left side
 3. Scroll to the Workspace subhead and click on Categories listed underneath the default Workspace.
 4. Add new categories by tapping the **+** button in the upper right corner. To delete a category, on iOS swipe left, on Android press and hold. Tap a category name to edit it.
