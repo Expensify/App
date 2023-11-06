@@ -2422,6 +2422,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -2461,6 +2462,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3132,6 +3134,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
