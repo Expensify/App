@@ -132,12 +132,10 @@ describe('DateUtils', () => {
 
     describe('Date Comparison Functions', () => {
         const today = new Date();
-        const tomorrow = addDays(today, 1);
-        const yesterday = subDays(today, 1);
 
         const todayInTimezone = utcToZonedTime(today, timezone);
-        const tomorrowInTimezone = utcToZonedTime(tomorrow, timezone);
-        const yesterdayInTimezone = utcToZonedTime(yesterday, timezone);
+        const tomorrowInTimezone = addDays(todayInTimezone, 1);
+        const yesterdayInTimezone = subDays(todayInTimezone, 1);
 
         it('isToday should correctly identify today', () => {
             expect(DateUtils.isToday(todayInTimezone, timezone)).toBe(true);

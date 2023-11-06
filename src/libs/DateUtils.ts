@@ -94,8 +94,7 @@ function getLocalDateFromDatetime(locale: string, datetime: string, currentSelec
  * @returns True if the date is today; otherwise, false.
  */
 function isToday(date: Date, timeZone: string): boolean {
-    const currentDate = new Date();
-    const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
+    const currentDateInTimeZone = utcToZonedTime(new Date(), timeZone);
     return isSameDay(date, currentDateInTimeZone);
 }
 
@@ -107,10 +106,9 @@ function isToday(date: Date, timeZone: string): boolean {
  * @returns True if the date is tomorrow; otherwise, false.
  */
 function isTomorrow(date: Date, timeZone: string): boolean {
-    const currentDate = new Date();
-    const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
-    const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
-    return isSameDay(date, tomorrowInTimeZone);
+    const todayInTimeZone = utcToZonedTime(new Date(), timeZone);
+    const tomorrow = addDays(todayInTimeZone, 1); // Get the date for tomorrow in the current time zone
+    return isSameDay(date, tomorrow);
 }
 
 /**
@@ -121,10 +119,9 @@ function isTomorrow(date: Date, timeZone: string): boolean {
  * @returns True if the date is yesterday; otherwise, false.
  */
 function isYesterday(date: Date, timeZone: string): boolean {
-    const currentDate = new Date();
-    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
-    const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
-    return isSameDay(date, yesterdayInTimeZone);
+    const todayInTimeZone = utcToZonedTime(new Date(), timeZone);
+    const yesterday = subDays(todayInTimeZone, 1); // Get the date for yesterday in the current time zone
+    return isSameDay(date, yesterday);
 }
 
 /**
