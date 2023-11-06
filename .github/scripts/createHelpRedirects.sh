@@ -96,7 +96,7 @@ OPERATION_ID=$(echo "$PUT_RESULT" | jq -r .result.operation_id)
 
 DONE=false
 
-# Poll for completition
+# Poll for completion
 while [[ $DONE == false ]]; do
     CHECK_RESULT=$(curl -s --request GET --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/bulk_operations/$OPERATION_ID" \
         --header 'Content-Type: application/json' \
