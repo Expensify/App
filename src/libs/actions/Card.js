@@ -160,7 +160,7 @@ function clearCardListErrors(cardID) {
 function revealVirtualCardDetails(cardID) {
     return new Promise((resolve, reject) => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealVirtualCardDetails', {cardID})
+        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', {cardID})
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     reject();
