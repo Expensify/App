@@ -131,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
           name: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-          path: android/app/build/outputs/apk/e2e/release/app-e2edelta-release.apk
+          path: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
 
   runTestsInAWS:
     runs-on: ubuntu-latest
