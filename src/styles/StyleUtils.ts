@@ -606,6 +606,16 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
 
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
+/**
+ * Returns the font size for the HTML code tag renderer.
+ */
+function getCodeFontSize(isInsideH1:Boolean, textStyle :TextStyle) {
+    if (isInsideH1) {
+      return 15;
+    } else {
+      return textStyle.fontSize;
+    }
+  }
 
 /**
  * Gives the width for Emoji picker Widget
@@ -1377,6 +1387,7 @@ export {
     getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
+    getCodeFontSize,
     getFontSizeStyle,
     getGoogleListViewStyle,
     getHeightOfMagicCodeInput,
