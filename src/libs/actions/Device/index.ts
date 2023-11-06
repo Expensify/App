@@ -17,7 +17,7 @@ function getDeviceID(): Promise<string | null> {
 
         const connectionID = Onyx.connect({
             key: ONYXKEYS.DEVICE_ID,
-            callback: (id: OnyxEntry<string>) => {
+            callback: (id) => {
                 Onyx.disconnect(connectionID);
                 deviceID = id;
                 return resolve(id);
