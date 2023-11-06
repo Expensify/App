@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
+import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -89,7 +90,7 @@ function ReportActionsView(props) {
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
     const prevNetworkRef = useRef(props.network);
-    const prevAuthTokenType = useRef(props.session.authTokenType);
+    const prevAuthTokenType = usePrevious(props.session.authTokenType);
 
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
@@ -134,8 +135,7 @@ function ReportActionsView(props) {
     }, [props.network, props.report, isReportFullyVisible]);
 
     useEffect(() => {
-        const prevTokenType = prevAuthTokenType.current;
-        const wasLoginChangedDetected = prevTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
@@ -143,7 +143,6 @@ function ReportActionsView(props) {
                 Report.reconnect(reportID);
             }
         }
-        prevAuthTokenType.current = props.session.authTokenType;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.session, props.report, isReportFullyVisible]);
 
