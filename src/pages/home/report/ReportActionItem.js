@@ -58,6 +58,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
@@ -576,23 +577,31 @@ function ReportActionItem(props) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
                     <>
-                        <ReportActionItemSingle
-                            action={parentReportAction}
-                            showHeader={!props.draftMessage}
-                            wrapperStyles={[styles.chatItem]}
-                            report={props.report}
-                        >
-                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                        </ReportActionItemSingle>
-                        <View style={styles.reportHorizontalRule} />
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={!props.draftMessage}
+                                wrapperStyles={[styles.chatItem]}
+                                report={props.report}
+                            >
+                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.reportHorizontalRule} />
+                        </View>
                     </>
                 );
             } else {
                 content = (
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
+                    <>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <TaskView
+                                report={props.report}
+                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                            />
+                        </View>
+                    </>
                 );
             }
         }
