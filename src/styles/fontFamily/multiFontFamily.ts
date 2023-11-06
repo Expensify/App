@@ -1,7 +1,7 @@
-import {multiBold} from './bold';
-import FontFamilyStyles from './types';
 import CONST from'@src/CONST'
 import getOperatingSystem from '@libs/getOperatingSystem'
+import FontFamilyStyles from './types';
+import {multiBold} from './bold';
 
 // In windows and ubuntu, we need some extra system fonts for emojis to work properly
 // otherwise few of them will appear as black and white
