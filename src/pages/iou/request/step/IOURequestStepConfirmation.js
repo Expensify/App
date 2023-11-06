@@ -66,18 +66,18 @@ function IOURequestStepConfirmation({
         params: {iouType, reportID, transactionID},
     },
     transaction,
-    transaction: {
-        filename: receiptFilename,
-        receipt: {source: receiptPath},
-    },
 }) {
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
+    const [receiptFile, setReceiptFile] = useState();
+
+    const receiptFilename = lodashGet(transaction, 'filename');
+    const receiptPath = lodashGet(transaction, 'receipt.source');
 
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitle(transaction));
-    const [receiptFile, setReceiptFile] = useState();
+
     const participants = useMemo(
         () =>
             _.chain(transaction.participants)
@@ -331,8 +331,8 @@ function IOURequestStepConfirmation({
                         onConfirm={createTransaction}
                         onSendMoney={sendMoney}
                         onSelectParticipant={addNewParticipant}
-                        receiptPath={lodashGet(transaction, 'receipt.source')}
-                        receiptFilename={lodashGet(transaction, 'filename')}
+                        receiptPath={receiptPath}
+                        receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}

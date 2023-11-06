@@ -132,8 +132,8 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
     // Add initial empty waypoints when starting a distance request
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         comment.waypoints = {
-            waypoint0: null,
-            waypoint1: null,
+            waypoint0: {},
+            waypoint1: {},
         };
     }
 

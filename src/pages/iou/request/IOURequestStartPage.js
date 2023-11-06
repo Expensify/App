@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -92,13 +92,16 @@ function IOURequestStartPage({
         Navigation.dismissModal();
     };
 
-    const resetIouTypeIfChanged = (newIouType) => {
-        if (newIouType === previousIOURequestType) {
-            return;
-        }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, newIouType);
-        transactionRequestType.current = newIouType;
-    };
+    const resetIouTypeIfChanged = useCallback(
+        (newIouType) => {
+            if (newIouType === previousIOURequestType) {
+                return;
+            }
+            IOU.startMoneyRequest_temporaryForRefactor(reportID, newIouType);
+            transactionRequestType.current = newIouType;
+        },
+        [previousIOURequestType, reportID],
+    );
 
     return (
         <ScreenWrapper
