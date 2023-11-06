@@ -38,7 +38,7 @@
     "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
-    "prettier": "prettier --write .",
+    "prettier": "prettier --write . --loglevel warn",
     "prettier-watch": "onchange \"**/*.{js,ts,tsx}\" -- prettier --write --ignore-unknown {{changed}}",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
