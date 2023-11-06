@@ -89,6 +89,11 @@ export default function linkTo(navigation, path, type) {
             if (type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
                 minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             }
+            // There are situations when the user is trying to access a route which he has no access to
+            // So we want to redirect him to the right one and replace the one he tried to access
+            if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+            }
             root.dispatch(minimalAction);
             return;
         }
