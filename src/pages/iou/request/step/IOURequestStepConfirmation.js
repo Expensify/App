@@ -187,7 +187,6 @@ function IOURequestStepConfirmation({
                 selectedParticipants[0],
                 trimmedComment,
                 transaction.created,
-                transaction.transactionID,
                 transaction.category,
                 transaction.tag,
                 transaction.amount,
