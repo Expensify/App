@@ -74,6 +74,7 @@ function GetPhysicalCardConfirm({
 
     return (
         <BaseGetPhysicalCard
+            currentRoute={ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain)}
             domain={domain}
             headline={translate('getPhysicalCard.confirmMessage')}
             isConfirmation

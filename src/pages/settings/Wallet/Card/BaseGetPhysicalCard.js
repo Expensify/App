@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -67,6 +67,9 @@ const propTypes = {
     /** Children components that will be rendered by renderContent */
     children: PropTypes.node,
 
+    /** Current route from ROUTES */
+    currentRoute: PropTypes.string.isRequired,
+
     /** Expensify card domain */
     domain: PropTypes.string,
 
@@ -122,8 +125,9 @@ const defaultProps = {
 function BaseGetPhysicalCard({
     cardList,
     children,
+    currentRoute,
     domain,
-    draftValues: {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode},
+    draftValues,
     headline,
     isConfirmation,
     loginList,
@@ -133,13 +137,21 @@ function BaseGetPhysicalCard({
     title,
     onValidate,
 }) {
+    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
+    const updatedPrivatePersonalDetails = {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
+    };
+
+    useEffect(() => {
+        // Redirect user to previous steps of the flow if he hasn't finished them yet
+        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, updatedPrivatePersonalDetails, loginList);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const onSubmit = () => {
-        const updatedPrivatePersonalDetails = {
-            legalFirstName,
-            legalLastName,
-            phoneNumber,
-            address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
-        };
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];

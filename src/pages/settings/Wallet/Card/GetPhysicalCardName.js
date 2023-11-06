@@ -9,6 +9,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const propTypes = {
@@ -18,6 +19,15 @@ const propTypes = {
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
     }),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** domain passed via route /settings/wallet/card/:domain */
+            domain: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -27,7 +37,12 @@ const defaultProps = {
     },
 };
 
-function GetPhysicalCardName({draftValues: {legalFirstName, legalLastName}}) {
+function GetPhysicalCardName({
+    draftValues: {legalFirstName, legalLastName},
+    route: {
+        params: {domain},
+    },
+}) {
     const {translate} = useLocalize();
     const onValidate = (values) => {
         const errors = {};
@@ -49,6 +64,8 @@ function GetPhysicalCardName({draftValues: {legalFirstName, legalLastName}}) {
 
     return (
         <BaseGetPhysicalCard
+            currentRoute={ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain)}
+            domain={domain}
             headline={translate('getPhysicalCard.nameMessage')}
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
 import FormUtils from '@libs/FormUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const propTypes = {
@@ -27,6 +28,8 @@ const propTypes = {
         params: PropTypes.shape({
             /** Currently selected country */
             country: PropTypes.string,
+            /** domain passed via route /settings/wallet/card/:domain */
+            domain: PropTypes.string,
         }),
     }).isRequired,
 };
@@ -45,7 +48,7 @@ const defaultProps = {
 function GetPhysicalCardAddress({
     draftValues: {addressLine1, addressLine2, city, state, zipPostCode, country},
     route: {
-        params: {country: countryFromUrl},
+        params: {country: countryFromUrl, domain},
     },
 }) {
     const {translate} = useLocalize();
@@ -77,6 +80,8 @@ function GetPhysicalCardAddress({
 
     return (
         <BaseGetPhysicalCard
+            currentRoute={ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain)}
+            domain={domain}
             headline={translate('getPhysicalCard.addressMessage')}
             renderContent={renderContent}
             submitButtonText={translate('getPhysicalCard.next')}
