@@ -181,7 +181,9 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
         </>
     );
 }
+
 AttachmentCarouselPage.propTypes = pagePropTypes;
 AttachmentCarouselPage.defaultProps = defaultProps;
+AttachmentCarouselPage.displayName = 'AttachmentCarouselPage';
 
 export default AttachmentCarouselPage;
