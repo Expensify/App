@@ -52,7 +52,7 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
