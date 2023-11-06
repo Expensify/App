@@ -44,9 +44,9 @@ function Modal(props) {
             avoidKeyboard={false}
         >
             <FocusTrapView
-                enabled={props.shouldEnableFocusTrap}
-                active
-                style={[styles.noSelect]}
+                isEnabled={props.shouldEnableFocusTrap}
+                isActive
+                style={styles.noSelect}
             >
                 {props.children}
             </FocusTrapView>
