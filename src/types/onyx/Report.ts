@@ -9,6 +9,9 @@ type Report = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU?: boolean;
 
+    /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
+
     /** List of icons for report participants */
     icons?: OnyxCommon.Icon[];
 

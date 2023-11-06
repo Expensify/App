@@ -82,11 +82,7 @@ function ReportWelcomeText(props) {
                 {isPolicyExpenseChat && (
                     <>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
-                        <Text style={[styles.textStrong]}>
-                            {/* Use the policyExpenseChat owner's first name or their display name if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) ||
-                                lodashGet(props.personalDetails, [props.report.ownerAccountID, 'displayName'], '')}
-                        </Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID)}</Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>

@@ -2134,7 +2134,7 @@ const openApp = (): Response => ({
                 report_2543745284790730: {
                     reportID: '2543745284790730',
                     ownerAccountID: 17,
-                    managerEmail: 'fake6@gmail.com',
+                    managerID: 16,
                     currency: 'USD',
                     chatReportID: '98817646',
                     state: 'SUBMITTED',
@@ -2146,7 +2146,7 @@ const openApp = (): Response => ({
                 report_4249286573496381: {
                     reportID: '4249286573496381',
                     ownerAccountID: 17,
-                    managerEmail: 'christoph+hightraffic@margelo.io',
+                    managerID: 21,
                     currency: 'USD',
                     chatReportID: '4867098979334014',
                     state: 'SUBMITTED',
