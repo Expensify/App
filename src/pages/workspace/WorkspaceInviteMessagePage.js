@@ -76,7 +76,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getDefaultWelcomeNote(),
+            welcomeNote: this.props.savedWelcomeMessage || this.getDefaultWelcomeNote(),
         };
     }
 
@@ -228,6 +228,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
+                                shouldSaveDraft
                             />
                         </View>
                     </Form>
@@ -250,6 +251,10 @@ export default compose(
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+        },
+        savedWelcomeMessage: {
+            key: `${ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}Draft`,
+            selector: (draft) => (draft ? draft.welcomeMessage : ''),
         },
     }),
     withNavigationFocus,

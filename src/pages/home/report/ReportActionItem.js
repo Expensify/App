@@ -773,6 +773,7 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.iouReport, nextProps.iouReport) &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
