@@ -10,10 +10,10 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
-import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
-import AttachmentCommentFragment from '@pages/home/report/comment/AttachmentCommentFragment';
-import TextCommentFragment from '@pages/home/report/comment/TextCommentFragment';
 import * as ReportUtils from '@libs/ReportUtils';
+import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
+import TextCommentFragment from './comment/TextCommentFragment';
+import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 const propTypes = {
     /** Users accountID */

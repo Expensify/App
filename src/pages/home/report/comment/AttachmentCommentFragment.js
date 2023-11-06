@@ -3,7 +3,7 @@ import React from 'react';
 import styles from '@styles/styles';
 import reportActionSourcePropType from "@pages/home/report/reportActionSourcePropType";
 import {View} from "react-native";
-import RenderCommentHTML from "@pages/home/report/comment/RenderCommentHTML";
+import RenderCommentHTML from "./RenderCommentHTML";
 
 const propTypes = {
     /** The reportAction's source */
