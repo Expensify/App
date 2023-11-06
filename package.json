@@ -149,7 +149,7 @@
     "react-native-pdf": "^6.7.1",
     "react-native-performance": "^5.1.0",
     "react-native-permissions": "^3.9.3",
-    "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#83c7f0ea8ee90932b57a7d9beb85ecb93d5ef03c",
+    "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#0d15d4618f58e99c1261921111e68ee85bb3c2a8",
     "react-native-plaid-link-sdk": "^10.0.0",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-quick-sqlite": "^8.0.0-beta.2",

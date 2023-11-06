@@ -1,4 +1,3 @@
-import {Picker} from '@react-native-picker/picker';
 import lodashDefer from 'lodash/defer';
 import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -43,7 +42,7 @@ function BasePicker({
     const root = useRef<View>(null);
 
     // reference to @react-native-picker/picker
-    const picker = useRef<Picker<BasePickerProps>>(null);
+    const picker = useRef<RNPickerSelect>(null);
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
@@ -162,9 +161,6 @@ function BasePicker({
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
                     value={value}
-                    // TODO: update the icon type in the lib to escape ts error
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     Icon={() => icon(size)}
                     disabled={isDisabled}
                     fixAndroidTouchableBug
@@ -174,8 +170,7 @@ function BasePicker({
                         allowFontScaling: false,
                     }}
                     pickerProps={{
-                        // TODO: resolve 'ref does not exist in type CustomPickerProps' ts error
-                        // ref: picker,
+                        ref: picker,
                         tabIndex: -1,
                         onFocus: enableHighlight,
                         onBlur: () => {
