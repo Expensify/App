@@ -51,6 +51,7 @@ function BaseOptionsList({
     showTitleTooltip,
     optionHoveredStyle,
     contentContainerStyles,
+    sectionHeaderStyle,
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
@@ -227,13 +228,17 @@ function BaseOptionsList({
      * @return {Component}
      */
     const renderSectionHeader = ({section: {title, shouldShow}}) => {
+        if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
+            return <View style={sectionHeaderStyle} />;
+        }
+
         if (title && shouldShow && !hideSectionHeaders) {
             return (
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
                 </View>
             );

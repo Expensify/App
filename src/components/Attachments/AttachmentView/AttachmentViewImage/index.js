@@ -39,5 +39,6 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, o
 
 AttachmentViewImage.propTypes = propTypes;
 AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
+AttachmentViewImage.displayName = 'AttachmentViewImage';
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

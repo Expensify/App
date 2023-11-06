@@ -346,6 +346,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
             },
@@ -556,8 +557,9 @@ function getMoneyRequestInformation(
         iouReport.parentReportActionID = reportPreviewAction.reportActionID;
     }
 
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
     // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = isNewChatReport
+    const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
@@ -1801,7 +1803,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedMoneyRequestReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
         });
         updatedChatReport.lastMessageText = messageText;
@@ -2046,7 +2048,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         updatedReportPreviewAction = {...reportPreviewAction};
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedIOUReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
         });
         updatedReportPreviewAction.message[0].text = messageText;
@@ -2692,7 +2694,6 @@ function submitReport(expenseReport) {
         'SubmitReport',
         {
             reportID: expenseReport.reportID,
-            managerEmail: expenseReport.managerEmail,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
         },

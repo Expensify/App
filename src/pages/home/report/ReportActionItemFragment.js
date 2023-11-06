@@ -61,6 +61,12 @@ const propTypes = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
 
+    /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
+    isApprovedOrSubmittedReportAction: PropTypes.bool,
+
+    /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
+    isFragmentContainingDisplayName: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -81,6 +87,8 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
+    isApprovedOrSubmittedReportAction: false,
+    isFragmentContainingDisplayName: false,
 };
 
 function ReportActionItemFragment(props) {
@@ -122,8 +130,15 @@ function ReportActionItemFragment(props) {
                 />
             );
         }
-        case 'TEXT':
-            return (
+        case 'TEXT': {
+            return props.isApprovedOrSubmittedReportAction ? (
+                <Text
+                    numberOfLines={props.isSingleLine ? 1 : undefined}
+                    style={[styles.chatItemMessage, styles.colorMuted]}
+                >
+                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                </Text>
+            ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
@@ -137,6 +152,7 @@ function ReportActionItemFragment(props) {
                     </Text>
                 </UserDetailsTooltip>
             );
+        }
         case 'LINK':
             return <Text>LINK</Text>;
         case 'INTEGRATION_COMMENT':

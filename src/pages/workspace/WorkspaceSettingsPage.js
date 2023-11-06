@@ -101,8 +101,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
-                    style={styles.flexGrow1}
-                    submitButtonStyles={[styles.mh5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
@@ -145,12 +144,12 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4, styles.mh5]}
+                            containerStyles={[styles.mt4]}
                             defaultValue={policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             spellCheck={false}
                         />
-                        <View style={[styles.mt4]}>
+                        <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}
