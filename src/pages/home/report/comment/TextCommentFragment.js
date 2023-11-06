@@ -14,9 +14,9 @@ import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import reportActionFragmentPropTypes from '../reportActionFragmentPropTypes';
+import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
 import reportActionSourcePropType from "@pages/home/report/reportActionSourcePropType";
-import RenderCommentHTML from "@pages/home/report/comment/RenderCommentHTML";
+import RenderCommentHTML from "./RenderCommentHTML";
 
 const propTypes = {
     /** The reportAction's source */
