@@ -138,7 +138,7 @@ This built-in feature will only use the categories from the currently active wor
 ## Category violations
 Category violations can happen for the following reasons:
 
-- An employee categorized an expense with a category not included in the workspace's categories. This would throw a "category out of workspace" violation
+- An employee categorized an expense with a category not included in the workspace's categories. This would throw a "category out of workspace" violation.
 - If you change your categories importing from an accounting integration, this can cause an old category to still be in use on an open report which would throw a violation on submission. Simply reselect a proper category to clear violation.
 
 
