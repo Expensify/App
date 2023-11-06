@@ -19,7 +19,15 @@ const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
 };
 
-function ReimbursementAccountLoadingIndicator(props) {
+type ReimbursementAccountLoadingIndicatorProps = {
+    /** Whether the user is submitting verifications data */
+    isSubmittingVerificationsData: boolean;
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: () => void;
+};
+
+function ReimbursementAccountLoadingIndicator({isSubmittingVerificationsData, onBackButtonPress}: ReimbursementAccountLoadingIndicatorProps) {
     const {translate} = useLocalize();
     return (
         <ScreenWrapper
@@ -29,10 +37,10 @@ function ReimbursementAccountLoadingIndicator(props) {
         >
             <HeaderWithBackButton
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
             />
             <FullPageOfflineBlockingView>
-                {props.isSubmittingVerificationsData ? (
+                {isSubmittingVerificationsData ? (
                     <View style={[styles.pageWrapper]}>
                         <Lottie
                             source={LottieAnimations.ReviewingBankInfo}
