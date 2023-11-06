@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Report = {
@@ -8,6 +8,9 @@ type Report = {
 
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU?: boolean;
+
+    /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
 
     /** List of icons for report participants */
     icons?: OnyxCommon.Icon[];
@@ -72,7 +75,25 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** Whether the last message was deleted */
+    isLastMessageDeletedParentAction?: boolean;
+
+    /** The ID of the IOU report */
+    iouReportID?: string;
+
+    /** Total amount of money owed for IOU report */
+    iouReportAmount?: number;
+
+    /** Pending fields for the report */
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
+
+    /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
+
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
 };
