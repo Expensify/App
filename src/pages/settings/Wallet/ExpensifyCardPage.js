@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -150,7 +151,7 @@ function ExpensifyCardPage({
             state,
             zipPostCode: zip,
         });
-        Navigation.goToNextPhysicalCardRoute(privatePersonalDetails, loginList);
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, privatePersonalDetails, loginList);
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);

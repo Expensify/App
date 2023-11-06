@@ -3,7 +3,6 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import Log from '@libs/Log';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -112,7 +111,6 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
     linkTo(navigationRef.current, route, type);
 }
 
@@ -306,36 +304,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-/**
- * @param {{address: Object, legalFirstName: String, legalLastName: String, phoneNumber: String}} privatePersonalDetails
- * @param {Array<String>} loginList
- */
-function goToNextPhysicalCardRoute(privatePersonalDetails, loginList) {
-    const {
-        address: {street, city, state, country, zip},
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-    } = privatePersonalDetails;
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const {domain} = (currentRoute && currentRoute.params) || {domain: ''};
-
-    if (!legalFirstName && !legalLastName) {
-        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));
-        return;
-    }
-    if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
-        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain));
-        return;
-    }
-    if (!(street && city && state && country && zip)) {
-        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain));
-        return;
-    }
-
-    navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain));
-}
-
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -351,7 +319,6 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
-    goToNextPhysicalCardRoute,
 };
 
 export {navigationRef};

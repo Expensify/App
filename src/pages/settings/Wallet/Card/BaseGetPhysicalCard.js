@@ -10,6 +10,7 @@ import * as FormActions from '@libs/actions/FormActions';
 import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
 import FormUtils from '@libs/FormUtils';
+import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
@@ -151,7 +152,7 @@ function BaseGetPhysicalCard({
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
             return;
         }
-        Navigation.goToNextPhysicalCardRoute(updatedPrivatePersonalDetails, loginList);
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails, loginList);
     };
     return (
         <ScreenWrapper
