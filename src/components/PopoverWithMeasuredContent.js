@@ -55,7 +55,7 @@ const defaultProps = {
         width: 0,
     },
     withoutOverlay: false,
-    shouldUseTargetLocation: false
+    shouldUseTargetLocation: false,
 };
 
 /**
@@ -119,7 +119,7 @@ function PopoverWithMeasuredContent(props) {
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                if(!anchorLocationVertical) {
+                if (!anchorLocationVertical) {
                     break;
                 }
                 verticalConstraint = {top: anchorLocationVertical - popoverHeight};
