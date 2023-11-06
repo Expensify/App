@@ -1,4 +1,4 @@
-import {addMonths, endOfMonth, format, getYear, isSameDay, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -205,8 +205,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(new Date(this.props.value), new Date(currentYearView, currentMonthView, day));
-
+                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}

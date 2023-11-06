@@ -64,6 +64,8 @@ Before completing the steps below, you will need Workday Report Writer access to
     - Note: _if there is field data you want to import that is not listed above, or you have any special requests, let your Expensify Account Manager know and we will work with you to accommodate the request._
 4. Rename the columns so they match Expensify's API key names (The full list of names are found here):
     - employeeID
+    - customField1
+    - customField2
     - firstName
     - lastName
     - employeeEmail

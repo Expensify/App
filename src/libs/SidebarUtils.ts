@@ -38,6 +38,7 @@ Onyx.connect({
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -452,7 +453,7 @@ function getOptionData(
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
