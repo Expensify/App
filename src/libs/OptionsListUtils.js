@@ -363,7 +363,7 @@ function getAllReportErrors(report, reportActions) {
         }
 
         if (ReportUtils.hasRouteError(report.reportID)) {
-            _.extend(reportActionErrors, {waypoint: ErrorUtils.getMicroSecondOnyxError('iou.error.genericWaypointFailureMessage')});
+            _.extend(reportActionErrors, {waypoint: ErrorUtils.getMicroSecondOnyxError('bankAccount.error.address')});
         }
     }
 
