@@ -1855,13 +1855,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
  * @param {String} oldValue
  * @param {String} valueName
  * @param {Boolean} valueInQuotes
+ * @param {Boolean} shouldConvertToLowercase
  * @returns {String}
  */
 
-function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
+function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes, shouldConvertToLowercase = true) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
-    const displayValueName = valueName.toLowerCase();
+    const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
 
     if (!oldValue) {
         return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
@@ -1961,7 +1962,13 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, policyTagListName, true);
+        return getProperSchemaForModifiedExpenseMessage(
+            reportActionOriginalMessage.tag,
+            reportActionOriginalMessage.oldTag,
+            policyTagListName,
+            true,
+            policyTagListName === Localize.translateLocal('common.tag'),
+        );
     }
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
