@@ -92,6 +92,7 @@ Then, click **Edit Rules** next to the category name for which you'd like to def
 
 ## Make categories required
 This means all expenses must be coded with a Category. If they do not have a category, there will be a violation on the expense which can prevent submission. 
+
 ## Update Category rules via spreadsheet
 You can update Category rules en masse by exporting them to CSV, editing the spreadsheet, and then importing them back to the categories page.
 
