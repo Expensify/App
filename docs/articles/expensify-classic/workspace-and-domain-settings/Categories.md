@@ -144,6 +144,7 @@ Category violations can happen for the following reasons:
 If Scheduled Submit is enabled on a workspace, expenses with category violations will not be auto-submitted unless the expense has a comment added.
 
 # FAQ
+
 ## The correct category list isn't showing when one of my employees is categorizing their expenses. Why is this happening?
 Its possible the employee is defaulted to their personal workspace so the expenses are not pulling the correct categories to choose from. Check to be sure the report is listed under the correct workspace by looking under the Details section on top right of report. 
 ## Will the account numbers from our accounting system (QuickBooks Online, Sage Intacct, etc.) show in the Category list when employees are choosing what chart of accounts category to code their expense to?
