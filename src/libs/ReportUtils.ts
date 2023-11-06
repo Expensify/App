@@ -802,7 +802,7 @@ function findLastAccessedReport(
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxEntry<Report>): boolean {
+function isArchivedRoom(report: OnyxEntry<Report> | Record<string, never>): boolean {
     return report?.statusNum === CONST.REPORT.STATUS.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
@@ -952,16 +952,8 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Get the report given a reportID
  */
 function getReport(reportID: string | undefined): OnyxEntry<Report> | Record<string, never> {
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    if (!allReports) {
-        return {};
-    }
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
 }
 
 /**
@@ -1501,8 +1493,12 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
     if (!option) {
         return false;
     }
-    const report = getReport(option.parentReportID);
-    if (isNotEmptyObject(report) && isArchivedRoom(report)) {
+
+    if (isArchivedRoom(option)) {
+        return false;
+    }
+
+    if (isArchivedRoom(getReport(option.parentReportID))) {
         return false;
     }
 
@@ -1565,15 +1561,18 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
     }
     if (moneyRequestReport) {
         let nonReimbursableSpend = moneyRequestReport.nonReimbursableTotal ?? 0;
-        let reimbursableSpend = moneyRequestReport.total ?? 0;
+        let totalSpend = moneyRequestReport.total ?? 0;
 
-        if (nonReimbursableSpend + reimbursableSpend !== 0) {
+        if (nonReimbursableSpend + totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
-            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
+            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+
+            const totalDisplaySpend = totalSpend;
+            const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
+
             return {
                 nonReimbursableSpend,
                 reimbursableSpend,
@@ -1592,26 +1591,16 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  */
 function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string | undefined {
-    const ownerAccountID = report?.ownerAccountID;
-    const personalDetails = allPersonalDetails?.[ownerAccountID ?? -1];
-    const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report?.ownerAccountID) || login || report?.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report?.ownerAccountID) || allPersonalDetails?.[report?.ownerAccountID ?? -1]?.login || report?.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report?.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    let policyExpenseChatRole = 'user';
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    const policyItem = allPolicies?.[ONYXKEYS.COLLECTION.POLICY + report?.policyID];
-    if (policyItem) {
-        policyExpenseChatRole = policyItem.role || 'user';
-    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyExpenseChatRole = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role || 'user';
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
