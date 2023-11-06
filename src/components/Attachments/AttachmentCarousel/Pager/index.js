@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
 import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -168,8 +167,10 @@ function AttachmentCarouselPager({
         </GestureHandlerRootView>
     );
 }
+
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
+AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
 const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager

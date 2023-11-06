@@ -1536,8 +1536,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(updatedChatReport).toEqual(
                                         expect.objectContaining({
-                                            lastMessageHtml: 'undefined owes $200.00',
-                                            lastMessageText: 'undefined owes $200.00',
+                                            lastMessageHtml: `${CARLOS_EMAIL} owes $200.00`,
+                                            lastMessageText: `${CARLOS_EMAIL} owes $200.00`,
                                         }),
                                     );
                                     resolve();
