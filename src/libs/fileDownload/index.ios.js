@@ -68,14 +68,14 @@ function downloadVideo(fileUrl, fileName) {
 /**
  * Download the file based on type(image, video, other file types)for iOS
  * @param {String} fileUrl
- * @param {String} [fileName]
+ * @param {String} fileName
  * @returns {Promise<Void>}
  */
 export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
         let fileDownloadPromise = null;
         const fileType = FileUtils.getFileType(fileUrl);
-        const attachmentName = fileName ? FileUtils.appendTimeToFileName(fileName) : FileUtils.getAttachmentName(fileUrl);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:

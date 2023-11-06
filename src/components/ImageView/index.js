@@ -5,7 +5,6 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
@@ -22,7 +21,7 @@ const propTypes = {
     url: PropTypes.string.isRequired,
 
     /** image file name */
-    fileName: PropTypes.string,
+    fileName: PropTypes.string.isRequired,
 
     onError: PropTypes.func,
 };
@@ -30,7 +29,6 @@ const propTypes = {
 const defaultProps = {
     isAuthTokenRequired: false,
     onError: () => {},
-    fileName: '',
 };
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
@@ -51,7 +49,6 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
 
     const scrollableRef = useRef(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-    const accessibilityLabel = fileName || FileUtils.getAttachmentName(url);
 
     /**
      * @param {Number} newContainerWidth
@@ -266,7 +263,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGE}
-                accessibilityLabel={accessibilityLabel}
+                accessibilityLabel={fileName}
             >
                 <Image
                     source={{uri: url}}
