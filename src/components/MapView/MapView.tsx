@@ -2,140 +2,139 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import setUserLocation from '@libs/actions/UserLocation';
+import compose from '@libs/compose';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
-import { withOnyx } from 'react-native-onyx';
-import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
-import PendingMapView from './PendingMapView';
 import Direction from './Direction';
 import {MapViewHandle} from './MapViewTypes';
+import PendingMapView from './PendingMapView';
 import responder from './responder';
+import {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
-import { ComponentProps, MapViewOnyxProps } from './types';
-import getCurrentPosition from '@libs/getCurrentPosition';
-import setUserLocation from '@libs/actions/UserLocation';
-import Text from '@components/Text';
 
-const MapView = forwardRef<MapViewHandle, ComponentProps>(({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
-    const navigation = useNavigation();
-    const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+const MapView = forwardRef<MapViewHandle, ComponentProps>(
+    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
+        const navigation = useNavigation();
+        const {isOffline} = useNetwork();
+        const {translate} = useLocalize();
 
-    const [logger, setLogger] = useState('');
-    const cameraRef = useRef<Mapbox.Camera>(null);
-    const [isIdle, setIsIdle] = useState(false);
-    const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
-    const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+        const cameraRef = useRef<Mapbox.Camera>(null);
+        const [isIdle, setIsIdle] = useState(false);
+        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
+        const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (isOffline) {
-                return;
-            }
-
-            getCurrentPosition(
-                (params) => {
-                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
-                    setUserLocation(currentCoords);
-                },
-                () => {
-                    if (cachedUserLocation || !initialState) {
-                        return;
-                    }
-
-                    setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+        useFocusEffect(
+            useCallback(() => {
+                if (isOffline) {
+                    return;
                 }
-            )
-        }, [])
-    )
 
-    // Determines if map can be panned to user's detected
-    // location without bothering the user. It will return
-    // false if user has already started dragging the map or
-    // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+                getCurrentPosition(
+                    (params) => {
+                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                        setCurrentPosition(currentCoords);
+                        setUserLocation(currentCoords);
+                    },
+                    () => {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        if (cachedUserLocation || !initialState) {
+                            return;
+                        }
 
-    useEffect(() => {
-        if (!currentPosition || !cameraRef.current) {
-            return;
-        }
+                        setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+                    },
+                );
+            }, [cachedUserLocation, initialState, isOffline]),
+        );
 
-        if (!shouldPanMapToCurrentPosition()) {
-            return;
-        }
+        // Determines if map can be panned to user's detected
+        // location without bothering the user. It will return
+        // false if user has already started dragging the map or
+        // if there are one or more waypoints present.
+        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
-        cameraRef.current.setCamera({
-            zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-            animationDuration: 1500,
-            centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
-        });
-    }, [currentPosition, cameraRef.current, shouldPanMapToCurrentPosition]);
-
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
-                cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
-        }),
-        [],
-    );
-
-    // When the page loses focus, we temporarily set the "idled" state to false.
-    // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
-    // which in turn triggers the callback.
-    useFocusEffect(
-        useCallback(() => {
-            if (!waypoints || waypoints.length === 0 || !isIdle) {
+        useEffect(() => {
+            if (!currentPosition || !cameraRef.current) {
                 return;
             }
 
-            if (waypoints.length === 1) {
-                cameraRef.current?.setCamera({
-                    zoomLevel: 15,
-                    animationDuration: 1500,
-                    centerCoordinate: waypoints[0].coordinate,
-                });
-            } else {
-                const {southWest, northEast} = utils.getBounds(
-                    waypoints.map((waypoint) => waypoint.coordinate),
-                    directionCoordinates,
-                );
-                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
+            if (!shouldPanMapToCurrentPosition()) {
+                return;
             }
-        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
-    );
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setIsIdle(false);
-        });
-        return unsubscribe;
-    }, [navigation]);
+            cameraRef.current.setCamera({
+                zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                animationDuration: 1500,
+                centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
+            });
+        }, [currentPosition, shouldPanMapToCurrentPosition]);
 
-    useEffect(() => {
-        setAccessToken(accessToken);
-    }, [accessToken]);
+        useImperativeHandle(
+            ref,
+            () => ({
+                flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
+                    cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
+                fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
+                    cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
+            }),
+            [],
+        );
 
-    const setMapIdle = (e: MapState) => {
-        if (e.gestures.isGestureActive) {
-            return;
-        }
-        setIsIdle(true);
-        if (onMapReady) {
-            onMapReady();
-        }
-    };
+        // When the page loses focus, we temporarily set the "idled" state to false.
+        // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
+        // which in turn triggers the callback.
+        useFocusEffect(
+            useCallback(() => {
+                if (!waypoints || waypoints.length === 0 || !isIdle) {
+                    return;
+                }
 
-    return (
-        <>
-            {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-                <>
+                if (waypoints.length === 1) {
+                    cameraRef.current?.setCamera({
+                        zoomLevel: 15,
+                        animationDuration: 1500,
+                        centerCoordinate: waypoints[0].coordinate,
+                    });
+                } else {
+                    const {southWest, northEast} = utils.getBounds(
+                        waypoints.map((waypoint) => waypoint.coordinate),
+                        directionCoordinates,
+                    );
+                    cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
+                }
+            }, [mapPadding, waypoints, isIdle, directionCoordinates]),
+        );
+
+        useEffect(() => {
+            const unsubscribe = navigation.addListener('blur', () => {
+                setIsIdle(false);
+            });
+            return unsubscribe;
+        }, [navigation]);
+
+        useEffect(() => {
+            setAccessToken(accessToken);
+        }, [accessToken]);
+
+        const setMapIdle = (e: MapState) => {
+            if (e.gestures.isGestureActive) {
+                return;
+            }
+            setIsIdle(true);
+            if (onMapReady) {
+                onMapReady();
+            }
+        };
+
+        return (
+            <>
+                {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
                     <View style={style}>
                         <Mapbox.MapView
                             style={{flex: 1}}
@@ -173,20 +172,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(({accessToken, style, 
                             {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                         </Mapbox.MapView>
                     </View>
-                    <Text>
-                        {logger}
-                    </Text>
-                </>
-            ): (
-                <PendingMapView
-                    title={translate('distance.mapPending.title')}
-                    subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                    style={styles.mapEditView}
-                />
-            )}
-        </>
-    );
-});
+                ) : (
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
+                    />
+                )}
+            </>
+        );
+    },
+);
 
 export default compose(
     withOnyx<ComponentProps, MapViewOnyxProps>({
