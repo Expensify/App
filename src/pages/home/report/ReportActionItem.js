@@ -365,7 +365,7 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);

@@ -2708,10 +2708,7 @@ function submitReport(expenseReport) {
  * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport) {
-    const recipient = {
-        login: iouReport.ownerEmail,
-        accountID: iouReport.ownerAccountID,
-    };
+    const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
