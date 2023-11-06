@@ -14,6 +14,7 @@ import ROUTES from '@src/ROUTES';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -4044,6 +4045,21 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID,
 }
 
 /**
+ * Return the mention message of a list accounntID
+ * @param {Array<String>} accountIDs
+ * @returns {String}
+ */
+function getMentionMessage(accountIDs) {
+    const listMention = _.map(accountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+    return listMention.join(' and ');
+}
+
+/**
  * Returns an array of the participants Ids of a report
  *
  * @param {Object} report
@@ -4112,6 +4128,16 @@ function getIOUReportActionDisplayMessage(reportAction) {
         }
     }
     return displayMessage;
+}
+
+/**
+ * Return room channel log display message
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getRoomChannelLogMemberMessage(reportAction) {
+    const title = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
+    return `${title} ${getMentionMessage(reportAction.originalMessage.targetAccountIDs)}`;
 }
 
 /**
@@ -4315,4 +4341,5 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getRoomChannelLogMemberMessage,
 };
