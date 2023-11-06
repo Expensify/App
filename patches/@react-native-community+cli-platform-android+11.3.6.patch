@@ -1,13 +1,61 @@
 diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-index 8a218d5..8c99a75 100644
+index 8a218d5..fdd18ed 100644
 --- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
 +++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-@@ -412,7 +412,7 @@ class ReactNativeModules {
-      *
+@@ -140,6 +140,7 @@ class ReactNativeModules {
+   private Logger logger
+   private String packageName
+   private File root
++  private File rnRoot
+   private ArrayList<HashMap<String, String>> reactNativeModules
+   private ArrayList<String> unstable_reactLegacyComponentNames
+   private HashMap<String, ArrayList> reactNativeModulesBuildVariants
+@@ -147,8 +148,13 @@ class ReactNativeModules {
+   private static String LOG_PREFIX = ":ReactNative:"
+ 
+   ReactNativeModules(Logger logger, File root) {
++    this(logger, root, root)
++  }
++
++  ReactNativeModules(Logger logger, File root, File rnRoot) {
+     this.logger = logger
+     this.root = root
++    this.rnRoot = rnRoot
+ 
+     def (nativeModules, reactNativeModulesBuildVariants, androidProject) = this.getReactNativeConfig()
+     this.reactNativeModules = nativeModules
+@@ -368,6 +374,7 @@ class ReactNativeModules {
+    * Throws when the command result is empty.
+    */
+   String getCommandOutput(String[] command, File directory) {
++    println "Executing ${command} from ${directory}"
+     try {
+       def output = ""
+       def cmdProcess = Runtime.getRuntime().exec(command, null, directory)
+@@ -413,8 +420,10 @@ class ReactNativeModules {
       * @todo: `fastlane` has been reported to not work too.
       */
--    def cliResolveScript = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
-+    def cliResolveScript = "try {console.log(require('../react-native/node_modules/@react-native-community/cli').bin);} catch (e) {console.log(require('../react-native/node_modules/react-native/cli').bin);}"
+     def cliResolveScript = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
++
      String[] nodeCommand = ["node", "-e", cliResolveScript]
-     def cliPath = this.getCommandOutput(nodeCommand, this.root)
+-    def cliPath = this.getCommandOutput(nodeCommand, this.root)
++    def cliPath = this.getCommandOutput(nodeCommand, this.rnRoot)
++    println "CLI Path: ${cliPath}"
  
+     String[] reactNativeConfigCommand = ["node", cliPath, "config"]
+     def reactNativeConfigOutput = this.getCommandOutput(reactNativeConfigCommand, this.root)
+@@ -482,8 +491,13 @@ class ReactNativeModules {
+  * where build files of an active project are located.
+  */
+ def projectRoot = rootProject.projectDir
++def autoModules
++if(ext.has('reactNativeProject')) {
++  autoModules = new ReactNativeModules(logger, projectRoot, new File(projectRoot, ext.reactNativeProject))
++} else {
++  autoModules = new ReactNativeModules(logger, projectRoot)
++}
+ 
+-def autoModules = new ReactNativeModules(logger, projectRoot)
+ 
+ /** -----------------------
+  *    Exported Extensions
