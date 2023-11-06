@@ -22,7 +22,15 @@ const propTypes = {
 
 const companyTaxIdKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyTaxIdKey]);
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyTaxIdKey]);
+
+    if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
+        errors.companyTaxID = 'bankAccount.error.taxID';
+    }
+
+    return errors;
+};
 
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();

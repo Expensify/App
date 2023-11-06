@@ -32,7 +32,17 @@ const defaultProps = {
 
 const companyIncorporationDateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_DATE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
+
+    if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
+        errors.incorporationDate = 'common.error.dateInvalid';
+    } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+        errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
+    }
+
+    return errors;
+};
 
 function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();

@@ -44,7 +44,15 @@ const defaultProps = {
 
 const companyWebsiteKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_WEBSITE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyWebsiteKey]);
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyWebsiteKey]);
+
+    if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
+        errors.website = 'bankAccount.error.website';
+    }
+
+    return errors;
+};
 
 function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing}) {
     const {translate} = useLocalize();

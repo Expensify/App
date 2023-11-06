@@ -2,6 +2,9 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import PropTypes from 'prop-types';
 import useSubStep from '../../../hooks/useSubStep';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {reimbursementAccountPropTypes} from '../reimbursementAccountPropTypes';
@@ -35,11 +38,15 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /* The workspace policyID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     reimbursementAccountDraft: {},
+    policyID: '',
 };
 
 const STEPS_HEADER_HEIGHT = 40;
@@ -60,8 +67,21 @@ const bodyContent = [
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft}) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID}) {
     const {translate} = useLocalize();
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    const getBankAccountFields = useCallback(
+        (fieldNames) => ({
+            ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
+            ..._.pick(reimbursementAccountDraft, ...fieldNames),
+        }),
+        [reimbursementAccount, reimbursementAccountDraft],
+    );
 
     const submit = useCallback(() => {
         const values = getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount);
@@ -69,10 +89,13 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft}) {
         const payload = {
             bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
             ...values,
+            ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+            companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
+            companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(payload);
-    }, [reimbursementAccount, reimbursementAccountDraft]);
+        BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
+    }, [getBankAccountFields, reimbursementAccount, reimbursementAccountDraft, policyID]);
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
 

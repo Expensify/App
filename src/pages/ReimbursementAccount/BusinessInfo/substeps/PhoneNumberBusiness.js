@@ -22,7 +22,14 @@ const propTypes = {
 
 const companyPhoneNumberKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_PHONE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyPhoneNumberKey]);
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyPhoneNumberKey]);
+
+    if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+        errors.companyPhone = 'bankAccount.error.phoneNumber';
+    }
+    return errors;
+};
 
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();

@@ -10,7 +10,6 @@ import subStepPropTypes from '../../subStepPropTypes';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import TextLink from '../../../../components/TextLink';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import Button from '../../../../components/Button';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
@@ -19,6 +18,8 @@ import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes'
 import getSubstepValues from '../../utils/getSubstepValues';
 import CheckboxWithLabel from '../../../../components/CheckboxWithLabel';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
+import Form from '../../../../components/Form';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -36,6 +37,16 @@ const defaultProps = {
 };
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS]);
+
+    if (!values.hasNoConnectionToCannabis) {
+        errors.hasNoConnectionToCannabis = 'bankAccount.error.restrictedBusiness';
+    }
+
+    return errors;
+};
 
 function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
     const {translate} = useLocalize();
@@ -118,7 +129,14 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         onMove(7);
                     }}
                 />
-                <View style={styles.ph5}>
+                <Form
+                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                    validate={validate}
+                    onSubmit={onNext}
+                    scrollContextEnabled
+                    submitButtonText={translate('common.confirm')}
+                    style={[styles.mh5, styles.flexGrow1]}
+                >
                     <CheckboxWithLabel
                         accessibilityLabel={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
                         inputID={businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS}
@@ -138,8 +156,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         shouldSaveDraft
                         onInputChange={() => {}}
                     />
-                </View>
-
+                </Form>
                 <View style={[styles.ph5, styles.mtAuto]}>
                     {error.length > 0 && (
                         <DotIndicatorMessage
@@ -148,12 +165,6 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                             messages={{0: error}}
                         />
                     )}
-                    <Button
-                        success
-                        style={[styles.w100, styles.mt2, styles.pb5]}
-                        onPress={onNext}
-                        text={translate('common.confirm')}
-                    />
                 </View>
             </ScrollView>
         </ScreenWrapper>

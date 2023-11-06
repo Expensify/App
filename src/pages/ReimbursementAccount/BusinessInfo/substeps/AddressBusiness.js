@@ -31,7 +31,19 @@ const INPUT_KEYS = {
 
 const REQUIRED_FIELDS = [companyBusinessInfoKey.STREET, companyBusinessInfoKey.CITY, companyBusinessInfoKey.STATE, companyBusinessInfoKey.ZIP_CODE];
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+const validate = (values) => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+
+    if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        errors.addressStreet = 'bankAccount.error.addressStreet';
+    }
+
+    if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        errors.addressZipCode = 'bankAccount.error.zipCode';
+    }
+
+    return errors;
+};
 
 function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
