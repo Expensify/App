@@ -286,13 +286,13 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         [],
     ); // The empty dependency array ensures this runs only once after the component mounts.
 
-    // Check for network change from offline to online
-    if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        fetchData();
-    }
-
     useEffect(
         () => {
+            // Check for network change from offline to online
+             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                fetchData();
+            }
+
             if (!hasACHDataBeenLoaded) {
                 if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !reimbursementAccount.isLoading) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
