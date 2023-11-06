@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -202,16 +202,23 @@ function Button({
     forwardedRef,
 }) {
     const isFocused = useIsFocused();
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
+
+    const keyboardShortcutCallback = useCallback(
         (event) => {
             if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
                 return;
             }
             onPress();
         },
-        {isActive: pressOnEnter, shouldBubble: allowBubble, priority: enterKeyEventListenerPriority, shouldPreventDefault: false},
+        [isDisabled, isFocused, isLoading, onPress],
     );
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
+        isActive: pressOnEnter,
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    });
 
     const renderContent = () => {
         if (children) {
