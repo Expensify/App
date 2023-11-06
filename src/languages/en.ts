@@ -811,7 +811,6 @@ export default {
         title: 'Private notes',
         personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
-        notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
         myNote: 'My note',
     },

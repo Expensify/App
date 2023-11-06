@@ -49,6 +49,10 @@ function ScreenWrapper({
     const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
     const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
+    const isKeyboardShownRef = useRef();
+
+    isKeyboardShownRef.current = lodashGet(keyboardState, 'isKeyboardShown', false);
+
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
@@ -84,7 +88,7 @@ function ScreenWrapper({
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
             ? navigation.addListener('beforeRemove', () => {
-                  if (!isKeyboardShown) {
+                  if (!isKeyboardShownRef.current) {
                       return;
                   }
                   Keyboard.dismiss();

@@ -61,7 +61,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
             />
             {isPickerVisible && (
                 <RNDatePicker
-                    value={date ? new Date(date) : new Date()}
+                    value={date ? parseISO(date) : new Date()}
                     mode="date"
                     onChange={setDate}
                     maximumDate={maxDate}
