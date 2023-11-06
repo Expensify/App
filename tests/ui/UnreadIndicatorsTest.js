@@ -130,15 +130,14 @@ function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
-        .then(() =>
-            waitFor(() => {
-                const hintText = Localize.translateLocal('loginForm.loginForm');
-                const loginForm = screen.queryAllByLabelText(hintText);
-                expect(loginForm).toHaveLength(1);
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
+            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const loginForm = screen.queryAllByLabelText(hintText);
+            expect(loginForm).toHaveLength(1);
 
-                return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            }),
-        )
+            return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+        })
         .then(() => {
             User.subscribeToUserEvents();
             return waitForBatchedUpdates();

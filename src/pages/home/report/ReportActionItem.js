@@ -352,11 +352,16 @@ function ReportActionItem(props) {
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
-                <TaskPreview
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
-                    action={props.action}
-                    isHovered={hovered}
-                />
+                <ShowContextMenuContext.Provider value={contextValue}>
+                    <TaskPreview
+                        taskReportID={props.action.originalMessage.taskReportID.toString()}
+                        chatReportID={props.report.reportID}
+                        action={props.action}
+                        isHovered={hovered}
+                        contextMenuAnchor={popoverAnchorRef}
+                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    />
+                </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
@@ -772,7 +777,6 @@ export default compose(
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
