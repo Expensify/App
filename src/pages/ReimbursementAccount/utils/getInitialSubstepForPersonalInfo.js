@@ -8,7 +8,6 @@ import CONST from '../../../CONST';
  * @returns {number}
  */
 function getInitialSubstepForPersonalInfo(data) {
-    // console.log(data);
     if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME] === undefined && data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME] === undefined) {
         return 0;
     }

@@ -22,14 +22,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
         );
     }
 
-    return (
-        // <ScreenWrapper
-        //     testID={RequestorStep.displayName}
-        //     includeSafeAreaPaddingBottom={false}
-        // >
-        <PersonalInfo />
-        // </ScreenWrapper>
-    );
+    return <PersonalInfo />;
 }
 
 RequestorStep.propTypes = propTypes;

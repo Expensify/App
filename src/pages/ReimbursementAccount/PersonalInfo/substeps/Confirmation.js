@@ -1,7 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -17,6 +16,7 @@ import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
+import getPersonalInfoValues from '../../utils/getPersonalInfoValues';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -36,17 +36,7 @@ const defaultProps = {
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
     const {translate} = useLocalize();
 
-    const values = {
-        firstName: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME, ''),
-        lastName: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME, ''),
-        dob: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB, ''),
-        ssnLast4: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4, ''),
-        street: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET, ''),
-        city: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY, ''),
-        state: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE, ''),
-        zipCode: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE, ''),
-    };
-
+    const values = useMemo(() => getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     return (
@@ -59,7 +49,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.legalName')}
-                    title={`${values.firstName} ${values.lastName}`}
+                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]} ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -67,7 +57,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.dob')}
-                    title={values.dob}
+                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
@@ -75,7 +65,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.last4SSN')}
-                    title={values.ssnLast4}
+                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
@@ -83,7 +73,9 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.address')}
-                    title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
+                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]}, ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]}, ${
+                        values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]
+                    } ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);
