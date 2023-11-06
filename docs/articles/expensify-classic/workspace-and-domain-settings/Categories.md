@@ -82,7 +82,7 @@ To set up Category Rules, go to **Settings > Workspace> Group >** _[Workspace Na
 
 Then, click **Edit Rules** next to the category name for which you'd like to define a rule.
 
-- **GL Code and Payroll Code**: These are optional fields if these categories need to be associated with either of these codes in your accounting or payroll systems. GL code will be automatically populated if connecting to an accounting integration
+- **GL Code and Payroll Code**: These are optional fields if these categories need to be associated with either of these codes in your accounting or payroll systems. GL code will be automatically populated if connecting to an accounting integration.
 - **Max Amount**: Allows you to set specific expense amount caps based on the expense category. Using **Limit type**, you can define this **per individual expense**, or **per day** (for expenses in a category on an expense report).
 - **Receipts**: Allows you to decide whether you want to require receipts based on the category of the expense. For instance, it's common for companies to disable the receipt requirement for Toll expenses
 - **Description**: Allows you to decide whether to require the `description` field to be filled out based on the category of the expense
