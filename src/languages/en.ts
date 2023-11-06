@@ -266,6 +266,10 @@ export default {
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
         card: 'Card',
+        user: 'user',
+        users: 'users',
+        invited: 'invited',
+        removed: 'removed',
     },
     location: {
         useCurrent: 'Use current location',

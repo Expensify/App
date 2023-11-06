@@ -256,6 +256,10 @@ export default {
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
+        user: 'usuario',
+        users: 'usuarias',
+        invited: 'invitada',
+        removed: 'eliminado',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
