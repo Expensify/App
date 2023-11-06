@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -20,13 +19,11 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
-import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import Visibility from '@libs/Visibility';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
@@ -258,25 +255,6 @@ function ReportScreen({
     const chatWithAccountManager = useCallback(() => {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
-
-    useFocusEffect(
-        useCallback(() => {
-            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
-                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-                // we don't need to call openReport
-                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
-                    return;
-                }
-
-                Report.openReport(report.reportID);
-            });
-
-            return () => unsubscribeVisibilityListener();
-            // The effect should run only on the first focus to attach listener
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
-    );
 
     useEffect(() => {
         fetchReportIfNeeded();
