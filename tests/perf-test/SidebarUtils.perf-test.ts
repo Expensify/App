@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction from '@src/types/onyx/ReportAction';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,7 +34,7 @@ const getMockedReportsMap = (length = 100) => {
         return {[reportKey]: report};
     });
 
-    return Object.assign({}, ...mockReports) as Record<string, Report>;
+    return Object.assign({}, ...mockReports) as Partial<Report>;
 };
 
 const getMockedPoliciesMap = (length = 100) => {
@@ -69,7 +69,7 @@ test('getOptionData on 1k reports', async () => {
 
 test('getOrderedReportIDs on 1k reports', async () => {
     const currentReportId = '1';
-    const allReports = getMockedReportsMap();
+    const allReports = getMockedReportsMap() as Record<string, Report>;
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
     const policies = getMockedPoliciesMap();
     const reportActions = ReportTestUtils.getMockedReportsMap();
