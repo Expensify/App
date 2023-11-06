@@ -33,7 +33,6 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
-    const [shouldUseTargetLocation, setShouldUseTargetLocation] = useState(false);
 
     /**
      * Show the emoji picker menu.
@@ -59,7 +58,6 @@ const EmojiPicker = forwardRef((props, ref) => {
         calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
-            setShouldUseTargetLocation(anchorOrigin && anchorOrigin.shouldUseTargetLocation);
             setEmojiPopoverAnchorPosition(value);
             setEmojiPopoverAnchorOrigin(anchorOriginValue);
             setActiveID(id);
@@ -166,7 +164,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
-            shouldUseTargetLocation={shouldUseTargetLocation}
+            shouldUseTargetLocation
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
