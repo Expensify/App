@@ -1,5 +1,4 @@
 import React, { FC, ForwardedRef, KeyboardEventHandler, MouseEventHandler, ReactElement } from 'react';
-import _ from 'lodash';
 import Text from './Text';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
