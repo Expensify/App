@@ -15,6 +15,8 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
+let pusherEventsQueuePromise = Promise.resolve();
+
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -45,10 +47,18 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
-    const pusherEventPromises = updates.map((update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
-    return Promise.all(pusherEventPromises).then(() => {
+
+    for (const update of updates) {
+        pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => {
+            return PusherUtils.triggerMultiEventHandler(update.eventType, update.data);
+        });
+    }
+
+    pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => {
         console.debug('[OnyxUpdateManager] Done applying Pusher update');
     });
+
+    return pusherEventsQueuePromise;
 }
 
 /**
