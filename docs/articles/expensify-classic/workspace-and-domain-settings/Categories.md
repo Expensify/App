@@ -89,7 +89,6 @@ Then, click **Edit Rules** next to the category name for which you'd like to def
 - **Description Hint**: This allows you to place a hint in the `description` field. This will appear in light gray font on the expense edit screen in this field to prompt the expense creator to fill in the field accordingly.
 - **Rule Enforcement**: If users are in violation of these rules, those violations will be shown in red on the report. Any category-specific violations will only be shown once a category has been selected for a given expense. 
 
-
 ## Make categories required
 This means all expenses must be coded with a Category. If they do not have a category, there will be a violation on the expense which can prevent submission. 
 
