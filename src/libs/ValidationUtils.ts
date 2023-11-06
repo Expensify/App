@@ -8,8 +8,8 @@ import CONST from '@src/CONST';
 import {Report} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
-import isEmptyString from './isEmptyString';
 import * as LoginUtils from './LoginUtils';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -74,7 +74,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return !isEmptyString(value);
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {

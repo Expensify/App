@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import removeInvisibleCharacters from '@libs/removeInvisibleCharacters';
+import StringUtils from '@libs/StringUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
@@ -131,7 +131,7 @@ function Form(props) {
         const trimmedStringValues = {};
         _.each(values, (inputValue, inputID) => {
             if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = removeInvisibleCharacters(inputValue);
+                trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
             } else {
                 trimmedStringValues[inputID] = inputValue;
             }

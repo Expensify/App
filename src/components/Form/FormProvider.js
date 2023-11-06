@@ -6,7 +6,7 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
-import removeInvisibleCharacters from '@libs/removeInvisibleCharacters';
+import StringUtils from '@libs/StringUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
@@ -117,7 +117,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
         const trimmedStringValues = {};
         _.each(values, (inputValue, inputID) => {
             if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = removeInvisibleCharacters(inputValue);
+                trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
             } else {
                 trimmedStringValues[inputID] = inputValue;
             }
