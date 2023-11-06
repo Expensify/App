@@ -44,15 +44,20 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore how the Expensify Card combines convenience and security to enhance everyday business transactions. Discover how to apply for, oversee, and maximize your card perks here.
 
-      - href: exports
-        title: Exports
-        icon: /assets/images/monitor.svg
-        description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
+      - href: expensify-partner-program
+        title: Expensify Partner Program
+        icon: /assets/images/handshake.svg
+        description: Discover how to get the most out of Expensify as an ExpensifyApproved! accountant partner. Learn how to set up your clients, receive CPE credits, and take advantage of your partner discount.
 
       - href: get-paid-back
         title: Get Paid Back
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
+
+      - href: insights-and-custom-reporting
+        title: Insights & Custom Reporting
+        icon: /assets/images/monitor.svg
+        description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
 
       - href: integrations
         title: Integrations
@@ -64,15 +69,15 @@ platforms:
         icon: /assets/images/envelope-receipt.svg
         description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
       
-      - href: policy-and-domain-settings
-        title: Policy & Domain Settings
-        icon: /assets/images/shield.svg
-        description: Discover how to set up and manage policies, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
-      
       - href: send-payments
         title: Send Payments
         icon: /assets/images/money-wings.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
+      
+      - href: workspace-and-domain-settings
+        title: Workspace & Domain Settings
+        icon: /assets/images/shield.svg
+        description: Discover how to set up and manage workspace, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
   
   - href: new-expensify
     title: New Expensify
@@ -113,16 +118,21 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore how the Expensify Card combines convenience and security to enhance everyday business transactions. Discover how to apply for, oversee, and maximize your card perks here.
       
-      - href: exports
-        title: Exports
-        icon: /assets/images/monitor.svg
-        description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
+      - href: expensify-partner-program
+        title: Expensify Partner Program
+        icon: /assets/images/handshake.svg
+        description: Discover how to get the most out of Expensify as an ExpensifyApproved! accountant partner. Learn how to set up your clients, receive CPE credits, and take advantage of your partner discount.
 
       - href: get-paid-back
         title: Get Paid Back
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
       
+      - href: insights-and-custom-reporting
+        title: Insights & Custom Reporting
+        icon: /assets/images/monitor.svg
+        description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
+
       - href: integrations
         title: Integrations
         icon: /assets/images/workflow.svg

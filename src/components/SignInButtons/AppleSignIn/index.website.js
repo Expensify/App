@@ -1,13 +1,13 @@
-import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
-import Config from 'react-native-config';
 import get from 'lodash/get';
-import getUserLanguage from '../GetUserLanguage';
-import * as Session from '../../../libs/actions/Session';
-import Log from '../../../libs/Log';
-import CONFIG from '../../../CONFIG';
-import CONST from '../../../CONST';
-import withNavigationFocus from '../../withNavigationFocus';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import Config from 'react-native-config';
+import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
+import withNavigationFocus from '@components/withNavigationFocus';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.

@@ -1,39 +1,39 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import ONYXKEYS from '../../ONYXKEYS';
-import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import BankAccount from '../../libs/models/BankAccount';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
-import Text from '../../components/Text';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
+import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import BankAccount from '@libs/models/BankAccount';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import shouldReopenOnfido from '@libs/shouldReopenOnfido';
+import withPolicy from '@pages/workspace/withPolicy';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
+import EnableStep from './EnableStep';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
-import ACHContractStep from './ACHContractStep';
-import EnableStep from './EnableStep';
-import ROUTES from '../../ROUTES';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import withPolicy from '../workspace/withPolicy';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -105,10 +105,12 @@ class ReimbursementAccountPage extends React.Component {
         this.goBack = this.goBack.bind(this);
         this.requestorStepRef = React.createRef();
 
-        // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
-        // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate
+        // The first time we open this page, props.reimbursementAccount is either not available in Onyx
+        // or only partial data loaded where props.reimbursementAccount.achData.currentStep is not available
+        // Calculating shouldShowContinueSetupButton on first page open doesn't make sense, and we should recalculate
         // it once we get the response from the server the first time in componentDidUpdate.
-        const hasACHDataBeenLoaded = this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps;
+        const hasACHDataBeenLoaded =
+            this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(this.props.reimbursementAccount, 'achData.currentStep');
         this.state = {
             hasACHDataBeenLoaded,
             shouldShowContinueSetupButton: hasACHDataBeenLoaded ? this.getShouldShowContinueSetupButtonInitialValue() : false,
@@ -157,6 +159,12 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
+        // Update the data that is returned from back-end to draft value
+        const draftStep = this.props.reimbursementAccount.draftStep;
+        if (draftStep) {
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsForStep(draftStep)));
+        }
+
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
         if (currentStepRouteParam === currentStep) {
             // The route is showing the correct step, no need to update the route param or clear errors.
@@ -175,6 +183,46 @@ class ReimbursementAccountPage extends React.Component {
         const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
+    }
+
+    componentWillUnmount() {
+        BankAccounts.clearReimbursementAccount();
+    }
+
+    getFieldsForStep(step) {
+        switch (step) {
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+            case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                return [
+                    'companyName',
+                    'addressStreet',
+                    'addressZipCode',
+                    'addressCity',
+                    'addressState',
+                    'companyPhone',
+                    'website',
+                    'companyTaxID',
+                    'incorporationType',
+                    'incorporationDate',
+                    'incorporationState',
+                ];
+            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    getBankAccountFields(fieldNames) {
+        return {
+            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+        };
     }
 
     /*
@@ -292,6 +340,7 @@ class ReimbursementAccountPage extends React.Component {
                 }
                 if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
+                    BankAccounts.setPlaidEvent(null);
                 } else {
                     Navigation.goBack(backTo);
                 }
@@ -348,8 +397,9 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-
-        const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
+        const isLoading =
+            (this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading) &&
+            (!this.props.plaidCurrentEvent || this.props.plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
         // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
         const shouldShowOfflineLoader = !(
@@ -444,7 +494,6 @@ class ReimbursementAccountPage extends React.Component {
                 <RequestorStep
                     ref={this.requestorStepRef}
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -478,6 +527,7 @@ class ReimbursementAccountPage extends React.Component {
                 <EnableStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     policyName={policyName}
+                    onBackButtonPress={this.goBack}
                 />
             );
         }
@@ -486,6 +536,7 @@ class ReimbursementAccountPage extends React.Component {
 
 ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
+ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default compose(
     withNetwork(),
@@ -501,6 +552,9 @@ export default compose(
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+        },
+        plaidCurrentEvent: {
+            key: ONYXKEYS.PLAID_CURRENT_EVENT,
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,

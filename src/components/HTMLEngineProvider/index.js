@@ -1,8 +1,8 @@
 import React from 'react';
+import withWindowDimensions from '@components/withWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
 import {defaultProps, propTypes} from './htmlEnginePropTypes';
-import withWindowDimensions from '../withWindowDimensions';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 function HTMLEngineProvider(props) {
     return (

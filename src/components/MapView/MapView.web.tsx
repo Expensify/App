@@ -2,22 +2,18 @@
 // This is why we have separate components for web and native to handle the specific implementations.
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
-
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
-import {View} from 'react-native';
-import Map, {MapRef, Marker} from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
-
-import responder from './responder';
-import utils from './utils';
-
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import Map, {MapRef, Marker} from 'react-map-gl';
+import {View} from 'react-native';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
-
-import 'mapbox-gl/dist/mapbox-gl.css';
+import responder from './responder';
+import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({style, styleURL, waypoints, mapPadding, accessToken, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {

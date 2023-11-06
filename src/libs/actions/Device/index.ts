@@ -1,8 +1,8 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../Log';
-import generateDeviceID from './generateDeviceID/index';
-import getDeviceInfo from './getDeviceInfo/index';
+import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
+import generateDeviceID from './generateDeviceID';
+import getDeviceInfo from './getDeviceInfo';
 
 let deviceID: string | null = null;
 

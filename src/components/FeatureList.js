@@ -1,11 +1,11 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import menuItemPropTypes from './menuItemPropTypes';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
 import MenuItem from './MenuItem';
-import styles from '../styles/styles';
-import useLocalize from '../hooks/useLocalize';
+import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
 
 const propTypes = {

@@ -1,31 +1,35 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
-import * as Report from '../../libs/actions/Report';
-import * as App from '../../libs/actions/App';
-import useLocalize from '../../hooks/useLocalize';
-import styles from '../../styles/styles';
-import RoomNameInput from '../../components/RoomNameInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Text from '../../components/Text';
-import TextInput from '../../components/TextInput';
-import Permissions from '../../libs/Permissions';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import Form from '../../components/Form';
-import policyMemberPropType from '../policyMemberPropType';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import compose from '../../libs/compose';
-import variables from '../../styles/variables';
-import ValuePicker from '../../components/ValuePicker';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as App from '@userActions/App';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -60,7 +64,8 @@ const propTypes = {
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
-    ...withNavigationFocusPropTypes,
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 const defaultProps = {
     betas: [],
@@ -71,6 +76,8 @@ const defaultProps = {
 
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -97,7 +104,7 @@ function WorkspaceNewRoomPage(props) {
         }
 
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    }, [policyID, isPolicyAdmin]);
+    }, [isPolicyAdmin]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -154,24 +161,30 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    const roomNameInputRef = useRef(null);
+
+    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
+    useDelayedInputFocus(roomNameInputRef, 600);
+
     return (
         <FullPageNotFoundView
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
             shouldShowBackButton={false}
             linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
+            onLinkPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={isOffline}
+                shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) => (
                     <KeyboardAvoidingView
-                        style={{height: '100%'}}
-                        behavior="height"
+                        style={styles.h100}
+                        behavior="padding"
                         // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
@@ -186,6 +199,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
+                                    ref={(el) => (roomNameInputRef.current = el)}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
@@ -209,7 +223,6 @@ function WorkspaceNewRoomPage(props) {
                                 <ValuePicker
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
-                                    placeholder={translate('newRoomPage.selectAWorkspace')}
                                     items={workspaceOptions}
                                     onValueChange={setPolicyID}
                                 />
@@ -236,6 +249,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </Form>
+                        {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

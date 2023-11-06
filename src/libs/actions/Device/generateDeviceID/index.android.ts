@@ -1,6 +1,6 @@
-import DeviceInfo from 'react-native-device-info';
 import Str from 'expensify-common/lib/str';
 import GenerateDeviceID from './types';
+import DeviceInfo from 'react-native-device-info';
 
 const deviceID = DeviceInfo.getDeviceId();
 const uniqueID = Str.guid(deviceID);

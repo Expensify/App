@@ -1,8 +1,8 @@
-import {CSSProperties} from 'react';
+import {TextStyle} from 'react-native';
 
 type TextUnderlineStyles = {
-    textUnderlinePositionUnder: Pick<CSSProperties, 'textUnderlinePosition'>;
-    textDecorationSkipInkNone: Pick<CSSProperties, 'textDecorationSkipInk'>;
+    textUnderlinePositionUnder: Pick<TextStyle, 'textUnderlinePosition'>;
+    textDecorationSkipInkNone: Pick<TextStyle, 'textDecorationSkipInk'>;
 };
 
 export default TextUnderlineStyles;

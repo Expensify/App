@@ -1,13 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
+import * as Report from '../../src/libs/actions/Report';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
-import * as Report from '../../src/libs/actions/Report';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -140,7 +140,7 @@ describe('Sidebar', () => {
 
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
                     })
             );
@@ -190,7 +190,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -237,7 +237,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -289,7 +289,7 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
                     })
@@ -385,7 +385,7 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -396,6 +396,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 2,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -404,7 +405,6 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -430,9 +430,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -478,7 +478,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -491,8 +491,8 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Eight, Seven');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -538,7 +538,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -551,8 +551,8 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Eight, Seven');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -597,7 +597,7 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
                     })
             );
@@ -635,7 +635,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -648,8 +648,8 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Eight, Seven');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -689,7 +689,7 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
                     })
             );
@@ -734,6 +734,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 2,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -744,6 +745,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 3,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -754,6 +756,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 4,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 100000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -764,6 +767,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 5,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -774,6 +778,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 6,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -814,8 +819,8 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Four owes $1,000.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Four owes $1,000.00');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six owes $100.00');
                         expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three owes $100.00');
                         expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
@@ -866,7 +871,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Four, Three');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
