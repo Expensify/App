@@ -13,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
+import withHideKeyboardOnViewportScroll from '@components/withBlockViewportScroll';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useLocalize from '@hooks/useLocalize';
@@ -36,18 +37,6 @@ import HeaderView from './HeaderView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import Banner from '../../components/Banner';
-import reportPropTypes from '../reportPropTypes';
-import reportMetadataPropTypes from '../reportMetadataPropTypes';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withViewportOffsetTop from '../../components/withViewportOffsetTop';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import personalDetailsPropType from '../personalDetailsPropType';
-import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
-import MoneyRequestHeader from '../../components/MoneyRequestHeader';
-import MoneyReportHeader from '../../components/MoneyReportHeader';
-import * as ComposerActions from '../../libs/actions/Composer';
-import withHideKeyboardOnViewportScroll from '../../components/withBlockViewportScroll';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
 const propTypes = {

@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
-import Keyboard from '../../libs/NativeWebKeyboard';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
+import React, {useEffect, useRef} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Keyboard from '@libs/NativeWebKeyboard';
 
 /**
  * A Higher Order Component (HOC) that wraps a given React component and blocks viewport scroll when the keyboard is visible.
@@ -26,7 +26,7 @@ import getComponentDisplayName from '../../libs/getComponentDisplayName';
  * ));
  */
 export default function WithBlockViewportScrollHOC(WrappedComponent) {
-    function WithBlockViewportScroll(props) {
+    function WithBlockViewportScroll(props, ref) {
         const optimalScrollY = useRef(0);
         const keyboardShowListenerRef = useRef(() => {});
         const keyboardHideListenerRef = useRef(() => {});
@@ -58,7 +58,7 @@ export default function WithBlockViewportScrollHOC(WrappedComponent) {
         return (
             <WrappedComponent
                 {...props}
-                ref={props.forwardedRef}
+                ref={ref}
             />
         );
     }
@@ -71,10 +71,5 @@ export default function WithBlockViewportScrollHOC(WrappedComponent) {
         forwardedRef: undefined,
     };
 
-    return React.forwardRef((props, ref) => (
-        <WithBlockViewportScroll
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
+    return React.forwardRef(WithBlockViewportScroll);
 }

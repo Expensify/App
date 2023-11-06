@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import {Keyboard} from 'react-native';
+import _ from 'underscore';
 
 // <input /> types that will show a virtual keyboard in a mobile browser
 const INPUT_TYPES_WITH_KEYBOARD = ['text', 'search', 'tel', 'url', 'email', 'password'];
