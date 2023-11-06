@@ -59,7 +59,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The transaction from the parent report action */
-    transactions: PropTypes.arrayOf(
+    transactions: PropTypes.objectOf(
         PropTypes.shape({
             /** The ID of the transaction */
             transactionID: PropTypes.string,
@@ -75,7 +75,7 @@ const defaultProps = {
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
-    transactions: [],
+    transactions: {},
 };
 
 const keyExtractor = (item) => item;
