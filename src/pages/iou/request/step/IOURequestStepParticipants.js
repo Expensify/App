@@ -78,7 +78,7 @@ function IOURequestStepParticipants({
         >
             <MoneyRequestParticipantsSelector
                 ref={(el) => (optionsSelectorRef.current = el)}
-                participants={iouType === CONST.IOU.TYPE.SPLIT ? participants : []}
+                participants={participants}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
