@@ -64,7 +64,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});

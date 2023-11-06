@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 
