@@ -32,10 +32,10 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const personalInfoDobKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB;
 
 const validate = (values) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoStepKey.DOB]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoDobKey]);
 
     if (values.dob) {
         if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
@@ -51,8 +51,7 @@ const validate = (values) => {
 function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const dobDefaultValue =
-        getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.DOB, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, personalInfoStepKey.DOB, '');
+    const dobDefaultValue = getDefaultStateForField({reimbursementAccount, fieldName: personalInfoDobKey, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, personalInfoDobKey, '');
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
@@ -69,7 +68,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <NewDatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                inputID={personalInfoStepKey.DOB}
+                inputID={personalInfoDobKey}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}

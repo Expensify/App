@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -12,22 +12,33 @@ import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import FormProvider from '../../../../components/Form/FormProvider';
+import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
 };
 
 const companyIncorporationDateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_DATE;
 
 const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
 
-function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
+function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyIncorporationDate = getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: ''});
+    const defaultCompanyIncorporationDate =
+        getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, companyIncorporationDateKey, '');
 
     return (
         <FormProvider
@@ -38,26 +49,29 @@ function IncorporationDateBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
-                <NewDatePicker
-                    inputID={companyIncorporationDateKey}
-                    label={translate('businessInfoStep.incorporationDate')}
-                    containerStyles={[styles.mt6]}
-                    placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
-                    defaultValue={defaultCompanyIncorporationDate}
-                    shouldSaveDraft
-                />
-            </View>
+            <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
+            <NewDatePicker
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                inputID={companyIncorporationDateKey}
+                label={translate('businessInfoStep.incorporationDate')}
+                containerStyles={[styles.mt6]}
+                placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
+                defaultValue={defaultCompanyIncorporationDate}
+                shouldSaveDraft
+            />
         </FormProvider>
     );
 }
 
 IncorporationDateBusiness.propTypes = propTypes;
+IncorporationDateBusiness.defaultProps = defaultProps;
 IncorporationDateBusiness.displayName = 'IncorporationDateBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(IncorporationDateBusiness);
