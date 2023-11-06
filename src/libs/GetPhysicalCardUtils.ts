@@ -61,10 +61,15 @@ function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: Priva
  * @returns
  */
 function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    if (currentRoute === getCurrentRoute(domain, privatePersonalDetails, loginList)) {
+    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails, loginList);
+
+    // If the user is on the current route or the current route is confirmation, then he's allowed to stay on the current step
+    if ([currentRoute, ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain)].includes(expectedRoute)) {
         return;
     }
-    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, loginList), CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+
+    // Redirect the user if he's not allowed to be on the current step
+    Navigation.navigate(expectedRoute, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
 }
 
 export {goToNextPhysicalCardRoute, setCurrentRoute};
