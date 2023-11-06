@@ -2,9 +2,10 @@ import {CSSProperties} from 'react';
 import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
-import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '@libs/Browser';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import styles from './styles';
@@ -13,7 +14,6 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
-import {Transaction} from '../types/onyx';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
@@ -521,9 +521,9 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
 function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: themeColors.highlightBG} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -1316,6 +1316,13 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1361,6 +1368,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,

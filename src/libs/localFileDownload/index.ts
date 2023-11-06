@@ -1,4 +1,4 @@
-import * as FileUtils from '../fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import LocalFileDownload from './types';
 
 /**

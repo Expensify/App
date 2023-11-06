@@ -1,15 +1,13 @@
-import {View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import styles from '../../styles/styles';
-
+import {View} from 'react-native';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import Direction from './Direction';
+import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import responder from './responder';
 import utils from './utils';
-import Direction from './Direction';
-import CONST from '../../CONST';
-
-import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
     const cameraRef = useRef<Mapbox.Camera>(null);
