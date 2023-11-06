@@ -609,13 +609,13 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
 /**
  * Returns the font size for the HTML code tag renderer.
  */
-function getCodeFontSize(isInsideH1:Boolean) {
+function getCodeFontSize(isInsideH1: Boolean) {
     if (isInsideH1) {
-      return 15;
+        return 15;
     } else {
-      return 13;
+        return 13;
     }
-  }
+}
 
 /**
  * Gives the width for Emoji picker Widget

@@ -1,10 +1,10 @@
 import React from 'react';
 import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
+import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import * as StyleUtils from '@styles/StyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 
 function CodeRenderer(props) {
     // We split wrapper and inner styles
@@ -18,13 +18,9 @@ function CodeRenderer(props) {
     });
 
     // Determine the font size for the code based on whether it's inside an H1 element.
-    const isInsideH1 = HTMLEngineUtils.isInsideH1(
-        props.tnode
-    )
-    
-    const fontSize = StyleUtils.getCodeFontSize(
-        isInsideH1
-    )
+    const isInsideH1 = HTMLEngineUtils.isInsideH1(props.tnode);
+
+    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
     const textStyleOverride = {
         fontSize: fontSize,
