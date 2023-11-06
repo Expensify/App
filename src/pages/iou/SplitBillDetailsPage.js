@@ -1,29 +1,28 @@
-import React, {useCallback} from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import personalDetailsPropType from '../personalDetailsPropType';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import reportActionPropTypes from '../home/report/reportActionPropTypes';
-import reportPropTypes from '../reportPropTypes';
-import transactionPropTypes from '../../components/transactionPropTypes';
-import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
-import useLocalize from '../../hooks/useLocalize';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as IOU from '../../libs/actions/IOU';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
+import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,8 +61,6 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -73,8 +70,8 @@ const defaultProps = {
 };
 
 function SplitBillDetailsPage(props) {
-    const {translate} = useLocalize();
     const {reportID} = props.report;
+    const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
@@ -113,7 +110,7 @@ function SplitBillDetailsPage(props) {
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -136,7 +133,7 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
@@ -148,6 +145,7 @@ function SplitBillDetailsPage(props) {
                             reportActionID={reportAction.reportActionID}
                             transactionID={props.transaction.transactionID}
                             onConfirm={onConfirm}
+                            isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
                         />
                     )}
                 </View>
@@ -161,7 +159,6 @@ SplitBillDetailsPage.defaultProps = defaultProps;
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default compose(
-    withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
         report: {

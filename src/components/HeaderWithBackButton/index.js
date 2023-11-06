@@ -1,23 +1,24 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import Header from '../Header';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Tooltip from '../Tooltip';
-import getButtonState from '../../libs/getButtonState';
-import * as StyleUtils from '../../styles/StyleUtils';
-import ThreeDotsMenu from '../ThreeDotsMenu';
-import AvatarWithDisplayName from '../AvatarWithDisplayName';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import PinButton from '../PinButton';
+import {Keyboard, View} from 'react-native';
+import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
+import Header from '@components/Header';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PinButton from '@components/PinButton';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import getButtonState from '@libs/getButtonState';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
-import useThrottledButtonState from '../../hooks/useThrottledButtonState';
-import useLocalize from '../../hooks/useLocalize';
-import useKeyboardState from '../../hooks/useKeyboardState';
 
 function HeaderWithBackButton({
     iconFill = undefined,
@@ -35,8 +36,10 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
+    shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
+    shouldDisableThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -49,12 +52,19 @@ function HeaderWithBackButton({
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlay = false,
+    singleExecution = (func) => func,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
+    const waitForNavigate = useWaitForNavigation();
     return (
-        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+        <View
+            // Hover on some part of close icons will not work on Electron if dragArea is true
+            // https://github.com/Expensify/App/issues/29598
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+        >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
@@ -121,7 +131,8 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
+                                disabled={shouldDisableGetAssistanceButton}
+                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -136,6 +147,7 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
