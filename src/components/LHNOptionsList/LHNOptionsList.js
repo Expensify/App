@@ -65,7 +65,7 @@ const propTypes = {
         }),
     ),
     /** List of draft comments */
-    comments: PropTypes.objectOf(PropTypes.string),
+    draftComments: PropTypes.objectOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -77,7 +77,7 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
     transactions: {},
-    comments: {},
+    draftComments: {},
 };
 
 const keyExtractor = (item) => item;
@@ -95,7 +95,7 @@ function LHNOptionsList({
     preferredLocale,
     personalDetails,
     transactions,
-    comments,
+    draftComments,
 }) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
@@ -138,7 +138,7 @@ function LHNOptionsList({
                 [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
                 '',
             )}`;
-            const itemComment = comments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
+            const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails));
             return (
                 <OptionRowLHNDataWithFocus
@@ -158,7 +158,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [comments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -205,7 +205,7 @@ export default withOnyx({
     transactions: {
         key: ONYXKEYS.COLLECTION.TRANSACTION,
     },
-    comments: {
+    draftComments: {
         key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     },
 })(LHNOptionsList);
