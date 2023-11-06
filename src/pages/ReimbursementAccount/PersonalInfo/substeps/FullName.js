@@ -13,13 +13,17 @@ import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import HelpLinks from '../HelpLinks';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 const REQUIRED_FIELDS = [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME];
@@ -34,20 +38,12 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
         lastName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
     };
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME],
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME],
-        });
-        onNext();
-    };
-
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -80,6 +76,7 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
 }
 
 FullName.propTypes = propTypes;
+FullName.defaultProps = defaultProps;
 FullName.displayName = 'FullName';
 
 export default withOnyx({

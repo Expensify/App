@@ -13,13 +13,17 @@ import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes
 import HelpLinks from '../HelpLinks';
 import AddressForm from '../../AddressForm';
 import CONST from '../../../../CONST';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 const INPUT_KEYS = {
@@ -60,22 +64,12 @@ function Address({reimbursementAccount, onNext, isEditing}) {
         zipCode: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
     };
 
-    const handleSubmit = (values) => {
-        BankAccounts.updateOnyxVBBAData({
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET],
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY],
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE],
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE],
-        });
-        onNext();
-    };
-
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
@@ -99,6 +93,7 @@ function Address({reimbursementAccount, onNext, isEditing}) {
 }
 
 Address.propTypes = propTypes;
+Address.defaultProps = defaultProps;
 Address.displayName = 'Address';
 
 export default withOnyx({

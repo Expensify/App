@@ -20,10 +20,21 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
+import reimbursementAccountDraftPropTypes from '../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../reimbursementAccountPropTypes';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
 };
 
 const STEPS_HEADER_HEIGHT = 40;
@@ -32,19 +43,19 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-function PersonalInfo({reimbursementAccount}) {
+function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
     const submit = useCallback(() => {
         const values = {
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE, ''),
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE, ''),
         };
 
         const payload = {
@@ -54,7 +65,7 @@ function PersonalInfo({reimbursementAccount}) {
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }, [reimbursementAccount]);
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
+    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -67,7 +78,12 @@ function PersonalInfo({reimbursementAccount}) {
     };
 
     return (
-        <>
+        <ScreenWrapper
+            testID={PersonalInfo.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('personalInfoStep.personalInfo')}
@@ -85,15 +101,19 @@ function PersonalInfo({reimbursementAccount}) {
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </>
+        </ScreenWrapper>
     );
 }
 
 PersonalInfo.propTypes = propTypes;
+PersonalInfo.defaultProps = defaultProps;
 PersonalInfo.displayName = 'PersonalInfo';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(PersonalInfo);

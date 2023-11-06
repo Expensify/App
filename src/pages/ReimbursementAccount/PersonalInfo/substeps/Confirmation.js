@@ -15,26 +15,36 @@ import Button from '../../../../components/Button';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
+import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
     ...subStepPropTypes,
 };
 
-function Confirmation({reimbursementAccount, onNext, onMove}) {
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
+};
+
+function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
     const {translate} = useLocalize();
 
     const values = {
-        firstName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
-        lastName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
-        dob: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], ''),
-        ssnLast4: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], ''),
-        street: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-        city: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-        state: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-        zipCode: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
+        firstName: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME, ''),
+        lastName: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME, ''),
+        dob: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB, ''),
+        ssnLast4: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4, ''),
+        street: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET, ''),
+        city: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY, ''),
+        state: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE, ''),
+        zipCode: lodashGet(reimbursementAccountDraft, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE, ''),
     };
 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
@@ -124,10 +134,14 @@ function Confirmation({reimbursementAccount, onNext, onMove}) {
 }
 
 Confirmation.propTypes = propTypes;
+Confirmation.defaultProps = defaultProps;
 Confirmation.displayName = 'Confirmation';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(Confirmation);
