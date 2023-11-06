@@ -11,6 +11,7 @@ import compose from '@libs/compose';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@libs/ReportUtils';
+import convertToLTR from '@libs/convertToLTR';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
