@@ -1,19 +1,19 @@
-import React, {useState, useCallback} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import useLocalize from '../../hooks/useLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import SelectionList from '../../components/SelectionList';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
+import React, {useCallback, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as Policy from '@userActions/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
-import * as Policy from '../../libs/actions/Policy';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {

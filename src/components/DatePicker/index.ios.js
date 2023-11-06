@@ -1,20 +1,21 @@
-import React, {useState, useRef, useCallback, useEffect} from 'react';
-import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
+import {format, parseISO} from 'date-fns';
 import isFunction from 'lodash/isFunction';
-import TextInput from '../TextInput';
-import Popover from '../Popover';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import useKeyboardState from '../../hooks/useKeyboardState';
-import useLocalize from '../../hooks/useLocalize';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Button, Keyboard, View} from 'react-native';
+import Popover from '@components/Popover';
+import TextInput from '@components/TextInput';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
+    const dateValue = value || defaultValue;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(moment(value || defaultValue).toDate());
+    const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const initialValue = useRef(null);
@@ -65,8 +66,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
      */
     const selectDate = () => {
         setIsPickerVisible(false);
-        const asMoment = moment(selectedDate, true);
-        onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
     };
 
     /**
@@ -77,7 +77,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const dateAsText = dateValue ? format(parseISO(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -138,10 +138,14 @@ DatePicker.displayName = 'DatePicker';
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default React.forwardRef((props, ref) => (
+const DatePickerWithRef = React.forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;

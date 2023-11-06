@@ -1,9 +1,9 @@
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle, ReactNode, MutableRefObject} from 'react';
+import React, {MutableRefObject, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import _ from 'lodash';
+import _ from 'underscore';
 import HoverableProps from './types';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import CONST from '../../CONST';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 
 /**
  * Maps the children of a Hoverable component to
@@ -184,15 +184,21 @@ function assignRef(ref: MutableRefObject<HTMLElement> | ((element: HTMLElement) 
         [child.props],
     );
 
+    // We need to access the ref of a children from both parent and current component
+    // So we pass it to current ref and assign it once again to the child ref prop
+    const hijackRef = (el: HTMLElement) => {
+        ref.current = el;
+        assignRef(child.ref, el);
+    };
+
     if (!DeviceCapabilities.hasHoverSupport()) {
-        return child;
+        return React.cloneElement(child, {
+            ref: hijackRef,
+        });
     }
 
     return React.cloneElement(child, {
-        ref: (element: HTMLElement) => {
-            ref.current = element;
-            assignRef(child.ref, element);
-        },
+        ref: hijackRef,
         onMouseEnter: enableHoveredOnMouseEnter,
         onMouseLeave: disableHoveredOnMouseLeave,
         onBlur: disableHoveredOnBlur,
