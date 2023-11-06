@@ -144,7 +144,6 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
@@ -260,6 +259,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1312,6 +1312,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,

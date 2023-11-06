@@ -593,6 +593,7 @@ export default {
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different waypoints',
+            splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
@@ -1842,7 +1843,7 @@ export default {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     teachersUnitePage: {
-        teachersUnite: 'Teachers unite!',
+        teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
