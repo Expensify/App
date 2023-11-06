@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import StringUtils from '@libs/StringUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
@@ -122,31 +122,13 @@ function Form(props) {
     const hasServerError = useMemo(() => Boolean(props.formState) && !_.isEmpty(props.formState.errors), [props.formState]);
 
     /**
-     * This function is used to remove invisible characters from strings before validation and submission.
-     *
-     * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
-     * @returns {Object} - An object containing the processed values of each inputID
-     */
-    const prepareValues = useCallback((values) => {
-        const trimmedStringValues = {};
-        _.each(values, (inputValue, inputID) => {
-            if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
-            } else {
-                trimmedStringValues[inputID] = inputValue;
-            }
-        });
-        return trimmedStringValues;
-    }, []);
-
-    /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
             // Trim all string values
-            const trimmedStringValues = prepareValues(values);
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(props.formID, null);
@@ -204,7 +186,7 @@ function Form(props) {
 
             return touchedInputErrors;
         },
-        [prepareValues, props.formID, validate, errors],
+        [props.formID, validate, errors],
     );
 
     useEffect(() => {
@@ -242,7 +224,7 @@ function Form(props) {
         }
 
         // Trim all string values
-        const trimmedStringValues = prepareValues(inputValues);
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
 
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
@@ -259,7 +241,7 @@ function Form(props) {
 
         // Call submit handler
         onSubmit(trimmedStringValues);
-    }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, prepareValues, inputValues, onValidate, onSubmit]);
+    }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, inputValues, onValidate, onSubmit]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them

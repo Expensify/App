@@ -6,7 +6,7 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
-import StringUtils from '@libs/StringUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
@@ -107,27 +107,9 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
     const [errors, setErrors] = useState({});
     const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
-    /**
-     * This function is used to remove invisible characters from strings before validation and submission.
-     *
-     * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
-     * @returns {Object} - An object containing the processed values of each inputID
-     */
-    const prepareValues = useCallback((values) => {
-        const trimmedStringValues = {};
-        _.each(values, (inputValue, inputID) => {
-            if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
-            } else {
-                trimmedStringValues[inputID] = inputValue;
-            }
-        });
-        return trimmedStringValues;
-    }, []);
-
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = prepareValues(values);
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -179,7 +161,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             return touchedInputErrors;
         },
-        [errors, formID, prepareValues, validate],
+        [errors, formID, validate],
     );
 
     /**
@@ -199,7 +181,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
         }
 
         // Prepare values before submitting
-        const trimmedStringValues = prepareValues(inputValues);
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
 
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
@@ -215,7 +197,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
         }
 
         onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, prepareValues]);
+    }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
