@@ -45,7 +45,7 @@ type Message = {
     translationKey?: string;
 
     /** ID of a task report */
-    taskReportID?: string
+    taskReportID?: string;
 };
 
 type Person = {
