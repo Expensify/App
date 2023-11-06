@@ -13,7 +13,6 @@ import CONST from '../../../CONST';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import getDefaultStateForField from '../utils/getDefaultStateForField';
 import NameBusiness from './substeps/NameBusiness';
@@ -25,10 +24,22 @@ import TypeBusiness from './substeps/TypeBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
 import IncorporationStateBusiness from './substeps/IncorporationStateBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
+import getSubstepValues from '../utils/getSubstepValues';
+import reimbursementAccountDraftPropTypes from '../ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from '../reimbursementAccountPropTypes';
+import getInitialSubstepForBusinessInfo from '../utils/getInitialSubstepForBusinessInfo';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
 };
 
 const STEPS_HEADER_HEIGHT = 40;
@@ -47,15 +58,13 @@ const bodyContent = [
     ConfirmationBusiness,
 ];
 
-const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-function BusinessInfo({reimbursementAccount}) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
     const submit = useCallback(() => {
-        const values = {
-            [businessInfoStep.COMPANY_NAME]: getDefaultStateForField({reimbursementAccount, fieldName: businessInfoStep.COMPANY_NAME, defaultValue: ''}),
-        };
+        const values = getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount);
 
         const payload = {
             bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
@@ -63,9 +72,9 @@ function BusinessInfo({reimbursementAccount}) {
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(payload);
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount, reimbursementAccountDraft]);
 
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
+    const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -107,10 +116,14 @@ function BusinessInfo({reimbursementAccount}) {
 }
 
 BusinessInfo.propTypes = propTypes;
+BusinessInfo.defaultProps = defaultProps;
 BusinessInfo.displayName = 'BusinessInfo';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(BusinessInfo);
