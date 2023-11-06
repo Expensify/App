@@ -1,19 +1,19 @@
-import React, {useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import getComponentDisplayName from '../../../libs/getComponentDisplayName';
-import reportPropTypes from '../../reportPropTypes';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import * as Report from '@libs/actions/Report';
+import compose from '@libs/compose';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import * as ReportUtils from '@libs/ReportUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import reportPropTypes from '@pages/reportPropTypes';
+import ONYXKEYS from '@src/ONYXKEYS';
 import withReportOrNotFound from './withReportOrNotFound';
-import * as Report from '../../../libs/actions/Report';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import {withNetwork} from '../../../components/OnyxProvider';
-import compose from '../../../libs/compose';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
-import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
