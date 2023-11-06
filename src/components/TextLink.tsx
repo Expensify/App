@@ -26,27 +26,28 @@ type TextLinkProps = {
 };
 
 function TextLink({href, children, style, onPress, onMouseDown = (event) => event.preventDefault(), forwardedRef, ...props}: TextLinkProps) {
-    const openLink = (event: GestureResponderEvent) => {
-        event.preventDefault();
+    const openLink = () => {
         if (onPress) {
             onPress();
             return;
         }
 
         Link.openExternalLink(href);
+    }
+
+    const openLinkOnTap = (event: GestureResponderEvent) => {
+        event.preventDefault();
+
+        openLink();
     };
 
-    const openLinkIfEnterKeyPressed: KeyboardEventHandler = (event) => {
+    const openLinkOnEnterKey: KeyboardEventHandler = (event) => {
         event.preventDefault();
         if (event.key !== 'Enter') {
             return;
         }
-        if (onPress) {
-            onPress();
-            return;
-        }
 
-        Link.openExternalLink(href);
+        openLink();
     };
 
     return (
@@ -54,9 +55,9 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
             style={[styles.link, style]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
             href={href}
-            onPress={openLink}
+            onPress={openLinkOnTap}
+            onKeyDown={openLinkOnEnterKey}
             onMouseDown={onMouseDown}
-            onKeyDown={openLinkIfEnterKeyPressed}
             ref={forwardedRef}
             suppressHighlighting
             // eslint-disable-next-line react/jsx-props-no-spreading
