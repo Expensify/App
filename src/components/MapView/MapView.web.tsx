@@ -22,8 +22,8 @@ import Direction from './Direction';
 import {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
-import { ComponentProps, MapViewOnyxProps } from './types';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
     (
