@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
@@ -21,6 +22,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Optional styles for the container */
+    style: stylePropTypes,
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -29,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
+    style: [],
 };
 
 const setStyles = (containerStyles, isSmallScreenWidth) => {

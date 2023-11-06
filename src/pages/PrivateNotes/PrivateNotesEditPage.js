@@ -65,7 +65,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        () => Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+        () => Report.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
     );
 
     /**
@@ -132,7 +132,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={translate('privateNotes.myNote')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID))}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />

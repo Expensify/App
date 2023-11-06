@@ -154,7 +154,7 @@ jobs:
 
       - name: Build production desktop app
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build -- --publish always
+        run: npm run desktop-build
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -165,7 +165,7 @@ jobs:
 
       - name: Build staging desktop app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging -- --publish always
+        run: npm run desktop-build-staging
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
