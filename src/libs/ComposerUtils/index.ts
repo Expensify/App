@@ -1,6 +1,6 @@
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getNumberOfLines from './getNumberOfLines';
 import updateNumberOfLines from './updateNumberOfLines';
-import * as DeviceCapabilities from '../DeviceCapabilities';
 
 type Selection = {
     start: number;
@@ -32,7 +32,11 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
  */
 function getCommonSuffixLength(str1: string, str2: string): number {
     let i = 0;
-    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
+    if (str1.length === 0 || str2.length === 0) {
+        return 0;
+    }
+    const minLen = Math.min(str1.length, str2.length);
+    while (i < minLen && str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
         i++;
     }
     return i;

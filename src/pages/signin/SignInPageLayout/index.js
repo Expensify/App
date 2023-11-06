@@ -1,21 +1,21 @@
-import React, {forwardRef, useRef, useEffect, useImperativeHandle} from 'react';
-import {View, ScrollView} from 'react-native';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
-import compose from '../../../libs/compose';
-import SignInPageContent from './SignInPageContent';
-import Footer from './Footer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import styles from '../../../styles/styles';
-import SignInPageHero from '../SignInPageHero';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import scrollViewContentContainerStyles from './signInPageStyles';
-import themeColors from '../../../styles/themes/default';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import SignInGradient from '@assets/images/home-fade-gradient.svg';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import SignInPageHero from '@pages/signin/SignInPageHero';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 import BackgroundImage from './BackgroundImage';
-import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
-import variables from '../../../styles/variables';
-import usePrevious from '../../../hooks/usePrevious';
+import Footer from './Footer';
+import SignInPageContent from './SignInPageContent';
+import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -185,16 +185,14 @@ SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 SignInPageLayout.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withSafeAreaInsets,
-    withLocalize,
-)(
-    forwardRef((props, ref) => (
-        <SignInPageLayout
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const SignInPageLayoutWithRef = forwardRef((props, ref) => (
+    <SignInPageLayout
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
+
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);

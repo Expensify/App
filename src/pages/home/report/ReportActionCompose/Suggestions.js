@@ -1,7 +1,8 @@
-import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import SuggestionMention from './SuggestionMention';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 import SuggestionEmoji from './SuggestionEmoji';
+import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
@@ -40,6 +41,7 @@ function Suggestions({
     resetKeyboardInput,
     measureParentContainer,
     isAutoSuggestionPickerLarge,
+    isComposerFocused,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
@@ -103,10 +105,11 @@ function Suggestions({
         composerHeight,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
+        isComposerFocused,
     };
 
     return (
-        <>
+        <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -118,7 +121,7 @@ function Suggestions({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-        </>
+        </View>
     );
 }
 
@@ -126,10 +129,14 @@ Suggestions.propTypes = propTypes;
 Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionsWithRef = React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionsWithRef.displayName = 'SuggestionsWithRef';
+
+export default SuggestionsWithRef;

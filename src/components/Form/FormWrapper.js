@@ -1,16 +1,15 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import FormSubmit from '../FormSubmit';
-import FormAlertWithSubmitButton from '../FormAlertWithSubmitButton';
-import styles from '../../styles/styles';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import ScrollViewWithContext from '../ScrollViewWithContext';
-
-import stylePropTypes from '../../styles/stylePropTypes';
+import _ from 'underscore';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormSubmit from '@components/FormSubmit';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
@@ -105,8 +104,8 @@ function FormWrapper(props) {
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
                             const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs[focusKey].current;
+                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                            const focusInput = inputRefs.current[focusKey].current;
 
                             // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
                             if (typeof focusInput.isFocused !== 'function') {

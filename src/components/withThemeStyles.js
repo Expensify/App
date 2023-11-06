@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import useThemeStyles from '../styles/useThemeStyles';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import useThemeStyles from '@styles/useThemeStyles';
 import refPropTypes from './refPropTypes';
 
 const withThemeStylesPropTypes = {
@@ -28,13 +28,18 @@ export default function withThemeStyles(WrappedComponent) {
     WithThemeStyles.defaultProps = {
         forwardedRef: () => {},
     };
-    return React.forwardRef((props, ref) => (
+
+    const WithThemeStylesWithRef = React.forwardRef((props, ref) => (
         <WithThemeStyles
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithThemeStylesWithRef.displayName = `WithThemeStylesWithRef`;
+
+    return WithThemeStylesWithRef;
 }
 
 export {withThemeStylesPropTypes};
