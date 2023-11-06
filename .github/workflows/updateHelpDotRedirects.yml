@@ -1,7 +1,7 @@
 name: Update Redirects to ExpensifyHelp
 
 on:
-  # Run on any push to main that has changes to the docs directory
+  # Run on any push to main that has changes to the redirects file
   push:
     branches:
       - main
