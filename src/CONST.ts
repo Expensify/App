@@ -1333,6 +1333,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
