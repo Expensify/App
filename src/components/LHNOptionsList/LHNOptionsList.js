@@ -72,7 +72,7 @@ const propTypes = {
 const defaultProps = {
     style: styles.flex1,
     shouldDisableFocusOptions: false,
-    reportActions: [],
+    reportActions: {},
     reports: {},
     parentReportActions: {},
     policy: {},
