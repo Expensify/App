@@ -5,6 +5,8 @@ import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
+import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -12,7 +14,7 @@ import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OptionRowLHNDataWithFocus from './OptionRowLHNDataWithFocus';
+import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {
     /** Wrapper style for the section list */
@@ -66,6 +68,7 @@ const propTypes = {
     ),
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -78,6 +81,7 @@ const defaultProps = {
     personalDetails: {},
     transactions: {},
     draftComments: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 const keyExtractor = (item) => item;
@@ -96,6 +100,7 @@ function LHNOptionsList({
     personalDetails,
     transactions,
     draftComments,
+    currentReportID,
 }) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
@@ -141,7 +146,7 @@ function LHNOptionsList({
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails));
             return (
-                <OptionRowLHNDataWithFocus
+                <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
@@ -151,14 +156,14 @@ function LHNOptionsList({
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    shouldDisableFocusOptions={shouldDisableFocusOptions}
+                    isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
                 />
             );
         },
-        [draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -186,26 +191,29 @@ LHNOptionsList.propTypes = propTypes;
 LHNOptionsList.defaultProps = defaultProps;
 LHNOptionsList.displayName = 'LHNOptionsList';
 
-export default withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    reportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    },
-    policy: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    draftComments: {
-        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    },
-})(LHNOptionsList);
+export default compose(
+    withCurrentReportID,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        policy: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+        },
+        draftComments: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        },
+    }),
+)(LHNOptionsList);
