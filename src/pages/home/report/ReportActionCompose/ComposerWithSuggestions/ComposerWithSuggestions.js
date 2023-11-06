@@ -25,6 +25,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
+import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
@@ -35,8 +37,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
-import SilentCommentUpdater from './SilentCommentUpdater';
-import Suggestions from './Suggestions';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -104,6 +104,8 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
+    // For testing
+    children,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -645,6 +647,9 @@ function ComposerWithSuggestions({
                 updateComment={updateComment}
                 commentRef={commentRef}
             />
+
+            {/* Only used for testing so far */}
+            {children}
         </>
     );
 }
