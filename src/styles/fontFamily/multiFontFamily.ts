@@ -1,5 +1,5 @@
-import CONST from '@src/CONST';
 import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import {multiBold} from './bold';
 import FontFamilyStyles from './types';
 
