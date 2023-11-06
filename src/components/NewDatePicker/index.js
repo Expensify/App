@@ -100,5 +100,6 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
 
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
+NewDatePicker.displayName = 'NewDatePicker';
 
 export default withLocalize(NewDatePicker);

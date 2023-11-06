@@ -1,5 +1,5 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import isFunction from 'lodash/isFunction';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button, Keyboard, View} from 'react-native';
@@ -77,7 +77,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = dateValue ? format(new Date(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const dateAsText = dateValue ? format(parseISO(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>

@@ -354,6 +354,7 @@ function MagicCodeInput(props) {
 
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
+MagicCodeInput.displayName = 'MagicCodeInput';
 
 const MagicCodeInputWithRef = forwardRef((props, ref) => (
     <MagicCodeInput

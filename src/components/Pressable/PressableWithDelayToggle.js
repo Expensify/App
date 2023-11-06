@@ -140,6 +140,7 @@ function PressableWithDelayToggle(props) {
 
 PressableWithDelayToggle.propTypes = propTypes;
 PressableWithDelayToggle.defaultProps = defaultProps;
+PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 const PressableWithDelayToggleWithRef = React.forwardRef((props, ref) => (
     <PressableWithDelayToggle

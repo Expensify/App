@@ -129,6 +129,7 @@ InvertedFlatList.defaultProps = {
     contentContainerStyle: {},
     onScroll: () => {},
 };
+InvertedFlatList.displayName = 'InvertedFlatList';
 
 const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
