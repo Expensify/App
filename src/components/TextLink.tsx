@@ -33,7 +33,7 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
         }
 
         Link.openExternalLink(href);
-    }
+    };
 
     const openLinkOnTap = (event: GestureResponderEvent) => {
         event.preventDefault();
