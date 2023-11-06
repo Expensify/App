@@ -4,7 +4,7 @@ import React, {useCallback} from 'react';
 import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import participantPropTypes from '@components/participantPropTypes';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -56,9 +56,6 @@ const propTypes = {
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** The transaction from the parent report action */
     transactions: PropTypes.objectOf(
         PropTypes.shape({
@@ -97,11 +94,11 @@ function LHNOptionsList({
     reportActions,
     policy,
     preferredLocale,
-    personalDetails,
     transactions,
     draftComments,
     currentReportID,
 }) {
+    const personalDetails = usePersonalDetails();
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -145,6 +142,7 @@ function LHNOptionsList({
             )}`;
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails));
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
@@ -205,9 +203,6 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         transactions: {
             key: ONYXKEYS.COLLECTION.TRANSACTION,
