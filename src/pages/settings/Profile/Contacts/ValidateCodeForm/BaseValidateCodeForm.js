@@ -228,6 +228,7 @@ function BaseValidateCodeForm(props) {
 
 BaseValidateCodeForm.propTypes = propTypes;
 BaseValidateCodeForm.defaultProps = defaultProps;
+BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export default compose(
     withLocalize,

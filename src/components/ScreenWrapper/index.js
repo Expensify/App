@@ -53,6 +53,10 @@ const ScreenWrapper = React.forwardRef(
         const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
+        const isKeyboardShownRef = useRef();
+
+        isKeyboardShownRef.current = lodashGet(keyboardState, 'isKeyboardShown', false);
+
         const panResponder = useRef(
             PanResponder.create({
                 onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
@@ -88,7 +92,7 @@ const ScreenWrapper = React.forwardRef(
             // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
             const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
                 ? navigation.addListener('beforeRemove', () => {
-                      if (!isKeyboardShown) {
+                      if (!isKeyboardShownRef.current) {
                           return;
                       }
                       Keyboard.dismiss();
@@ -123,7 +127,7 @@ const ScreenWrapper = React.forwardRef(
                     return (
                         <View
                             ref={ref}
-                            style={styles.flex1}
+                            style={[styles.flex1, {minHeight}]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(isDevelopment ? panResponder.panHandlers : {})}
                             testID={testID}
@@ -134,7 +138,7 @@ const ScreenWrapper = React.forwardRef(
                                 {...keyboardDissmissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
-                                    style={[styles.w100, styles.h100, {maxHeight, minHeight}]}
+                                    style={[styles.w100, styles.h100, {maxHeight}]}
                                     behavior={keyboardAvoidingViewBehavior}
                                     enabled={shouldEnableKeyboardAvoidingView}
                                 >

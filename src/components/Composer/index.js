@@ -490,6 +490,7 @@ function Composer({
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
+Composer.displayName = 'Composer';
 
 const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
