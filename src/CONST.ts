@@ -191,6 +191,7 @@ const CONST = {
                 INCORPORATION_TYPE: 'incorporationType',
                 INCORPORATION_DATE: 'incorporationDate',
                 INCORPORATION_STATE: 'incorporationState',
+                HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
             },
         },
         PLAID: {
