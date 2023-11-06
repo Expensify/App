@@ -203,8 +203,8 @@ const runTests = async () => {
             }
         }
 
-        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-        coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
+        coolDownLogs.updateText(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
 
         // Having the cooldown right at the beginning should hopefully lower the chances of heat
         // throttling from the previous run (which we have no control over and will be a
