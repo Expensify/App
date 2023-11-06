@@ -134,7 +134,7 @@ function LHNOptionsList({
      */
     const renderItem = useCallback(
         ({item: reportID}) => {
-            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
