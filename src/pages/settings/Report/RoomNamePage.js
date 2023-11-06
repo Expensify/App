@@ -4,7 +4,6 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,6 +20,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FormProvider from "@components/Form/FormProvider";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -90,7 +90,7 @@ function RoomNamePage(props) {
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
@@ -100,13 +100,13 @@ function RoomNamePage(props) {
                 >
                     <View style={styles.mb4}>
                         <RoomNameInput
-                            ref={(ref) => (roomNameInputRef.current = ref)}
+                            ref={roomNameInputRef}
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
