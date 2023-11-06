@@ -5,7 +5,7 @@ description: Categories are used to classify and organize expenses
 # Overview
 Categories are commonly used to classify and organize expenses for both personal finances and business accounting.
 
-The way Categories function will vary depending on whether or not you connect Expensify to a direct account integration (i.e., QuickBooks Online, NetSuite, etc.). 
+The way Categories function will vary depending on whether or not you connect Expensify to a direct accounting integration (i.e., QuickBooks Online, NetSuite, etc.). 
 
 When reviewing this resource, be sure to take a look at the section that applies to your account setup! 
 
