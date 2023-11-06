@@ -3,7 +3,18 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
+function BaseAttachmentViewPdf({
+    file,
+    encryptedSourceUrl,
+    isFocused,
+    isUsedInCarousel,
+    onPress,
+    onScaleChanged: onScaleChangedProp,
+    onToggleKeyboard,
+    onLoadComplete,
+    errorLabelStyles,
+    style,
+}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     useEffect(() => {
@@ -16,7 +27,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
 
     const onScaleChanged = useCallback(
         (scale) => {
-            onScaleChangedProp();
+            onScaleChangedProp(scale);
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
             if (isUsedInCarousel) {
@@ -49,7 +60,8 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
     );
 }
 
-AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
+BaseAttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
+BaseAttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
+BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
-export default memo(AttachmentViewPdf);
+export default memo(BaseAttachmentViewPdf);
