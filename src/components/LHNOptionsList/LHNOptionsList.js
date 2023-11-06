@@ -3,6 +3,7 @@ import {FlatList, View} from 'react-native';
 import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,9 +46,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -74,7 +72,6 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     reportActions: {},
     reports: {},
-    parentReportActions: {},
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
@@ -92,7 +89,6 @@ function LHNOptionsList({
     shouldDisableFocusOptions,
     reports,
     reportActions,
-    parentReportActions,
     policy,
     preferredLocale,
     personalDetails,
@@ -150,9 +146,13 @@ function LHNOptionsList({
         ({item}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${item}`];
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item}`];
-            const itemParentReportActions = parentReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
+            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
-            const itemTransaction = itemParentReportActions ? itemParentReportActions[itemFullReport.parentReportActionID].originalMessage.IOUTransactionID : undefined;
+            const itemTransaction = `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(
+                itemParentReportActions,
+                [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
+                '',
+            )}`;
             const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, itemPersonalDetails));
             return (
                 <OptionRowLHNDataWithFocus
@@ -171,7 +171,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [itemPersonalDetails, onSelectRow, optionMode, parentReportActions, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [itemPersonalDetails, onSelectRow, optionMode, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -204,9 +204,6 @@ export default withOnyx({
         key: ONYXKEYS.COLLECTION.REPORT,
     },
     reportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    },
-    parentReportActions: {
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     },
     policy: {

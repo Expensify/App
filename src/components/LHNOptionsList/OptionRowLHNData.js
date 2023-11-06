@@ -11,6 +11,7 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {withReportCommentDrafts} from '@components/OnyxProvider';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
@@ -41,10 +42,8 @@ const propTypes = {
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The transaction from the parent report action */
-    transaction: PropTypes.shape({
-        /** The ID of the transaction */
-        transactionID: PropTypes.string,
-    }),
+    transaction: PropTypes.string,
+
     ...basePropTypes,
 };
 
