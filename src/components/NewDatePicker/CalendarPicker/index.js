@@ -1,21 +1,21 @@
-import _ from 'underscore';
+import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {setYear, format, getYear, subMonths, addMonths, startOfDay, endOfMonth, setDate, isSameDay} from 'date-fns';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import Text from '../../Text';
-import YearPickerModal from './YearPickerModal';
+import _ from 'underscore';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
-import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import CONST from '../../../CONST';
-import DateUtils from '../../../libs/DateUtils';
-import getButtonState from '../../../libs/getButtonState';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import YearPickerModal from './YearPickerModal';
 
 const propTypes = {
     /** An initial value of date string */
@@ -205,8 +205,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(new Date(this.props.value), new Date(currentYearView, currentMonthView, day));
-
+                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}

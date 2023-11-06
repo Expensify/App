@@ -1,7 +1,8 @@
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import {ValueOf} from 'type-fest';
-import DeepValueOf from './types/utils/DeepValueOf';
-import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
+import * as OnyxTypes from './types/onyx';
+import DeepValueOf from './types/utils/DeepValueOf';
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -117,6 +118,9 @@ const ONYXKEYS = {
 
     /** Token needed to initialize Plaid link */
     PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    /** Capture Plaid event  */
+    PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
 
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
@@ -243,7 +247,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
-        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingReportActions, isLoadingMoreReportActions).
+        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
         // directly on the report caused a lot of unnecessary re-renders
         REPORT_METADATA: 'reportMetadata_',
@@ -259,6 +263,7 @@ const ONYXKEYS = {
         TRANSACTION: 'transactions_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
+        NEXT_STEP: 'reportNextStep_',
 
         // Manual request tab selector
         SELECTED_TAB: 'selectedTab_',
@@ -298,6 +303,7 @@ const ONYXKEYS = {
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
+        REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
     },
 } as const;
@@ -380,16 +386,18 @@ type OnyxValues = {
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
-    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTag;
+    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportAction;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: string;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
@@ -429,7 +437,10 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
 };
 
+type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
+
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue};

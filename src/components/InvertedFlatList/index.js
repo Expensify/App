@@ -1,10 +1,10 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
@@ -130,11 +130,16 @@ InvertedFlatList.defaultProps = {
     contentContainerStyle: {},
     onScroll: () => {},
 };
+InvertedFlatList.displayName = 'InvertedFlatList';
 
-export default forwardRef((props, ref) => (
+const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+InvertedFlatListWithRef.displayName = 'InvertedFlatListWithRef';
+
+export default InvertedFlatListWithRef;

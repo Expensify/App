@@ -1,34 +1,34 @@
-import _ from 'underscore';
-import React, {useState, useRef, useCallback} from 'react';
-import PropTypes from 'prop-types';
-import {View, StyleSheet} from 'react-native';
-import lodashGet from 'lodash/get';
 import {useFocusEffect} from '@react-navigation/native';
-import * as optionRowStyles from '../../styles/optionRowStyles';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import DateUtils from '../../libs/DateUtils';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import MultipleAvatars from '../MultipleAvatars';
-import Hoverable from '../Hoverable';
-import DisplayNames from '../DisplayNames';
-import Text from '../Text';
-import SubscriptAvatar from '../SubscriptAvatar';
-import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import useLocalize from '../../hooks/useLocalize';
-import Permissions from '../../libs/Permissions';
-import Tooltip from '../Tooltip';
-import DomUtils from '../../libs/DomUtils';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import DisplayNames from '@components/DisplayNames';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
+import DomUtils from '@libs/DomUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as optionRowStyles from '@styles/optionRowStyles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Style for hovered state */
@@ -116,8 +116,7 @@ function OptionRowLHN(props) {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const shouldShowGreenDotIndicator =
-        !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -152,7 +151,11 @@ function OptionRowLHN(props) {
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
+    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
+
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
 
     return (
         <OfflineWithFeedback
@@ -233,7 +236,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -257,7 +260,7 @@ function OptionRowLHN(props) {
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

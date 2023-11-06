@@ -1,27 +1,27 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {View, StyleSheet, InteractionManager} from 'react-native';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import optionPropTypes from './optionPropTypes';
+import React, {useEffect, useRef, useState} from 'react';
+import {InteractionManager, StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import Button from './Button';
+import DisplayNames from './DisplayNames';
+import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import Button from './Button';
 import MultipleAvatars from './MultipleAvatars';
-import Hoverable from './Hoverable';
-import DisplayNames from './DisplayNames';
-import themeColors from '../styles/themes/default';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import optionPropTypes from './optionPropTypes';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import CONST from '../CONST';
-import * as ReportUtils from '../libs/ReportUtils';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Style for hovered state */
@@ -109,9 +109,20 @@ function OptionRow(props) {
         setIsDisabled(props.isDisabled);
     }, [props.isDisabled]);
 
+    const text = lodashGet(props.option, 'text', '');
+    const fullTitle = props.isMultilineSupported ? text.trimStart() : text;
+    const indentsLength = text.length - fullTitle.length;
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const textStyle = props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = props.boldStyle || props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style, styles.pre, isDisabled ? styles.optionRowDisabled : {});
+    const displayNameStyle = StyleUtils.combineStyles(
+        styles.optionDisplayName,
+        textUnreadStyle,
+        props.style,
+        styles.pre,
+        isDisabled ? styles.optionRowDisabled : {},
+        props.isMultilineSupported ? {paddingLeft} : {},
+    );
     const alternateTextStyle = StyleUtils.combineStyles(
         textStyle,
         styles.optionAlternateText,
@@ -204,7 +215,7 @@ function OptionRow(props) {
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
-                                        fullTitle={props.option.text}
+                                        fullTitle={fullTitle}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled={props.showTitleTooltip}
                                         numberOfLines={props.isMultilineSupported ? 2 : 1}
@@ -292,6 +303,7 @@ function OptionRow(props) {
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
 export default React.memo(
     withLocalize(OptionRow),
