@@ -17,7 +17,7 @@ type DisplayNameWithTooltip = {
 
 type DisplayNamesProps = {
     /** The full title of the DisplayNames component (not split up) */
-    fullTitle?: string;
+    fullTitle: string;
 
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips: DisplayNameWithTooltip[];
