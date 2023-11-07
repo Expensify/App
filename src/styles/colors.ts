@@ -1,7 +1,12 @@
+import {Color} from './themes/types';
+
 /**
- * DO NOT import colors.js into files. Use ../themes/default.js instead.
+ * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.
+ * For functional components, you can use the `useTheme` and `useThemeStyles` hooks
+ * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
-export default {
+const colors: Record<string, Color> = {
+    // Brand Colors
     black: '#000000',
     white: '#FFFFFF',
     ivory: '#fffaf0',
@@ -91,3 +96,5 @@ export default {
     ice700: '#28736D',
     ice800: '#134038',
 };
+
+export default colors;

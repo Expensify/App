@@ -211,6 +211,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
 WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
+WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
     withPolicyAndFullscreenLoading,
