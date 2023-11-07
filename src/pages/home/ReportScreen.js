@@ -419,7 +419,6 @@ function ReportScreen({
                                         report={report}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isComposerFullSize={isComposerFullSize}
-                                        policies={policies}
                                         listHeight={listHeight}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}

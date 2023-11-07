@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
-import Onyx from 'react-native-onyx';
-import {isEqual} from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import {compose, isEqual} from 'underscore';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -32,14 +32,14 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
-    /** Whether user interactions should be disabled */
-    shouldDisableCompose: PropTypes.bool,
-
     /** Height of the list which the composer is part of */
     listHeight: PropTypes.number,
 
     /** Whetjer the report is ready for display */
     isReportReadyForDisplay: PropTypes.bool,
+
+    /** Whether to show the compose input */
+    shouldShowComposeInput: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -47,11 +47,11 @@ const propTypes = {
 const defaultProps = {
     report: {reportID: '0'},
     pendingAction: null,
-    shouldDisableCompose: false,
     listHeight: 0,
     isReportReadyForDisplay: true,
     lastReportAction: null,
     isEmptyChat: true,
+    shouldShowComposeInput: false,
 };
 
 function ReportFooter(props) {
@@ -63,25 +63,6 @@ function ReportFooter(props) {
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
-
-    const [shouldShowComposeInput, setShouldShowComposeInput] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-        const connID = Onyx.connect({
-            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-            callback: (val) => {
-                if (val === shouldShowComposeInput) {
-                    return;
-                }
-                setShouldShowComposeInput(val);
-            },
-        });
-
-        return () => {
-            Onyx.disconnect(connID);
-        };
-    }, [shouldShowComposeInput]);
 
     const onSubmitComment = useCallback(
         (text) => {
@@ -114,7 +95,7 @@ function ReportFooter(props) {
                     )}
                 </View>
             )}
-            {!hideComposer && (shouldShowComposeInput || !props.isSmallScreenWidth) && (
+            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -124,7 +105,6 @@ function ReportFooter(props) {
                             lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
-                            disabled={props.shouldDisableCompose}
                             listHeight={props.listHeight}
                             isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
@@ -139,14 +119,24 @@ ReportFooter.displayName = 'ReportFooter';
 ReportFooter.propTypes = propTypes;
 ReportFooter.defaultProps = defaultProps;
 
-export default withWindowDimensions(
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+    }),
+)(
     memo(
         ReportFooter,
         (prevProps, nextProps) =>
             isEqual(prevProps.report, nextProps.report) &&
             prevProps.pendingAction === nextProps.pendingAction &&
-            prevProps.shouldDisableCompose === nextProps.shouldDisableCompose &&
             prevProps.listHeight === nextProps.listHeight &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            prevProps.isEmptyChat === nextProps.isEmptyChat &&
+            prevProps.lastReportAction === nextProps.lastReportAction &&
+            prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
             prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
     ),
 );

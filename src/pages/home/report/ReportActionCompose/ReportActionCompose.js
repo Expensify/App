@@ -136,6 +136,7 @@ function ReportActionCompose({
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
+    const attachementModalRef = useRef(null);
 
     const reportParticipantIDs = useMemo(
         () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
@@ -316,6 +317,10 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, isReportReadyForDisplay]);
 
+    const onDisplayFileInModal = () => {
+        attachementModalRef.current.displayFileInModal();
+    };
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -339,6 +344,7 @@ function ReportActionCompose({
                         ]}
                     >
                         <AttachmentModal
+                            ref={attachementModalRef}
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
@@ -365,34 +371,6 @@ function ReportActionCompose({
                                         onItemSelected={onItemSelected}
                                         actionButtonRef={actionButtonRef}
                                     />
-                                    <ComposerWithSuggestions
-                                        ref={composerRef}
-                                        suggestionsRef={suggestionsRef}
-                                        isNextModalWillOpenRef={isNextModalWillOpenRef}
-                                        reportID={reportID}
-                                        parentReportID={report.parentReportID}
-                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
-                                        parentReportAction={parentReportAction}
-                                        isEmptyChat={isEmptyChat}
-                                        lastReportAction={lastReportAction}
-                                        isMenuVisible={isMenuVisible}
-                                        inputPlaceholder={inputPlaceholder}
-                                        isComposerFullSize={isComposerFullSize}
-                                        displayFileInModal={displayFileInModal}
-                                        textInputShouldClear={textInputShouldClear}
-                                        setTextInputShouldClear={setTextInputShouldClear}
-                                        isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={disabled}
-                                        isFullComposerAvailable={isFullComposerAvailable}
-                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        handleSendMessage={handleSendMessage}
-                                        shouldShowComposeInput={shouldShowComposeInput}
-                                        onFocus={onFocus}
-                                        onBlur={onBlur}
-                                        measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
-                                        isSendDisabled={isSendDisabled}
-                                    />
                                     <ReportDropUI
                                         onDrop={(e) => {
                                             if (isAttachmentPreviewActive) {
@@ -405,6 +383,34 @@ function ReportActionCompose({
                                 </>
                             )}
                         </AttachmentModal>
+                        <ComposerWithSuggestions
+                            ref={composerRef}
+                            suggestionsRef={suggestionsRef}
+                            isNextModalWillOpenRef={isNextModalWillOpenRef}
+                            reportID={reportID}
+                            parentReportID={report.parentReportID}
+                            includesChronos={ReportUtils.chatIncludesChronos(report)}
+                            parentReportAction={parentReportAction}
+                            isEmptyChat={isEmptyChat}
+                            lastReportAction={lastReportAction}
+                            isMenuVisible={isMenuVisible}
+                            inputPlaceholder={inputPlaceholder}
+                            isComposerFullSize={isComposerFullSize}
+                            displayFileInModal={onDisplayFileInModal}
+                            textInputShouldClear={textInputShouldClear}
+                            setTextInputShouldClear={setTextInputShouldClear}
+                            isBlockedFromConcierge={isBlockedFromConcierge}
+                            disabled={disabled}
+                            isFullComposerAvailable={isFullComposerAvailable}
+                            setIsFullComposerAvailable={setIsFullComposerAvailable}
+                            handleSendMessage={handleSendMessage}
+                            shouldShowComposeInput={shouldShowComposeInput}
+                            onFocus={onFocus}
+                            onBlur={onBlur}
+                            measureParentContainer={measureContainer}
+                            listHeight={listHeight}
+                            isSendDisabled={isSendDisabled}
+                        />
                     </View>
                     <View
                         style={[
