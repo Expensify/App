@@ -81,6 +81,12 @@ type ReportActionBase = {
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
 
+    /** Report action child status number */
+    childStatusNum?: number;
+
+    /** Report action child status name */
+    childStateNum?: number;
+
     avatar?: string;
     automatic?: boolean;
     shouldShow?: boolean;

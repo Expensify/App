@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Response from '@src/types/onyx/Response';
 
-const openReport = (): Response => ({
+export default (): Response => ({
     onyxData: [
         {
             onyxMethod: 'merge',
@@ -32,7 +33,7 @@ const openReport = (): Response => ({
                 visibility: null,
                 isOwnPolicyExpenseChat: false,
                 lastMessageHtml: 'terry+hightraffic@margelo.io owes \u20ac12.00',
-                iouReportID: 206636935813547,
+                iouReportID: '206636935813547',
                 hasOutstandingIOU: false,
                 hasOutstandingChildRequest: false,
                 policyName: null,
@@ -157,7 +158,7 @@ const openReport = (): Response => ({
                     reportActionID: '6576518341807837187',
                     previousReportActionID: '2658221912430757962',
                     lastModified: '2023-08-29 12:38:16.070',
-                    childReportID: 206636935813547,
+                    childReportID: '206636935813547',
                     childType: 'iou',
                     childStatusNum: 1,
                     childStateNum: 1,
@@ -219,7 +220,7 @@ const openReport = (): Response => ({
                     reportActionID: '2658221912430757962',
                     previousReportActionID: '6551789403725495383',
                     lastModified: '2023-08-25 12:39:48.121',
-                    childReportID: 1411015346900020,
+                    childReportID: '1411015346900020',
                     childType: 'chat',
                     childOldestFourAccountIDs: '12883048',
                     childCommenterCount: 1,
@@ -729,7 +730,7 @@ const openReport = (): Response => ({
                     reportActionID: '3986429677777110818',
                     previousReportActionID: '7317910228472011573',
                     lastModified: '2023-07-27 17:03:11.250',
-                    childReportID: 3338245207149134,
+                    childReportID: '3338245207149134',
                     childType: 'chat',
                     whisperedToAccountIDs: [],
                 },
@@ -1595,7 +1596,7 @@ const openReport = (): Response => ({
                     reportActionID: '2030060194258527427',
                     previousReportActionID: '5540483153987237906',
                     lastModified: '2023-07-27 07:40:49.146',
-                    childReportID: 5860710623453234,
+                    childReportID: '5860710623453234',
                     childType: 'chat',
                     childOldestFourAccountIDs: '14567013,12883048',
                     childCommenterCount: 2,
@@ -1974,5 +1975,3 @@ const openReport = (): Response => ({
     jsonCode: 200,
     requestID: '81b8b8509a7f5b54-VIE',
 });
-
-export default openReport;

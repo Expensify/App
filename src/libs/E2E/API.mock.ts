@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-api-in-views */
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import Response from '@src/types/onyx/Response';
@@ -30,14 +29,14 @@ const mocks: Mocks = {
     ReadNewestAction: mockReadNewestAction,
 };
 
-function mockCall(command, apiCommandParameters, tag) {
-    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
+function mockCall(command: string, apiCommandParameters: ApiCommandParameters, tag: string): Promise<void> | Promise<Response> | undefined {
+    const mockResponse = mocks[command]?.(apiCommandParameters);
     if (!mockResponse) {
         Log.warn(`[${tag}] for command ${command} is not mocked yet! ⚠️`);
         return;
     }
 
-    if (_.isArray(mockResponse.onyxData)) {
+    if (Array.isArray(mockResponse.onyxData)) {
         return Onyx.update(mockResponse.onyxData);
     }
 
@@ -51,7 +50,7 @@ function mockCall(command, apiCommandParameters, tag) {
  * @param command - Name of API command to call.
  * @param apiCommandParameters - Parameters to send to the API.
  */
-function write(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | undefined {
+function write(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | Promise<Response> | undefined {
     return mockCall(command, apiCommandParameters, 'API.write');
 }
 
@@ -66,7 +65,7 @@ function write(command: string, apiCommandParameters: ApiCommandParameters = {})
  * @param command - Name of API command to call.
  * @param apiCommandParameters - Parameters to send to the API.
  */
-function makeRequestWithSideEffects(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | undefined {
+function makeRequestWithSideEffects(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | Promise<Response> | undefined {
     return mockCall(command, apiCommandParameters, 'API.makeRequestWithSideEffects');
 }
 
@@ -76,7 +75,7 @@ function makeRequestWithSideEffects(command: string, apiCommandParameters: ApiCo
  * @param command - Name of API command to call.
  * @param apiCommandParameters - Parameters to send to the API.
  */
-function read(command: string, apiCommandParameters: ApiCommandParameters): Promise<void> | undefined {
+function read(command: string, apiCommandParameters: ApiCommandParameters): Promise<void> | Promise<Response> | undefined {
     return mockCall(command, apiCommandParameters, 'API.read');
 }
 

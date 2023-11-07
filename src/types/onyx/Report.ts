@@ -36,11 +36,32 @@ type Report = {
     /** The last time the report was visited */
     lastReadTime?: string;
 
+    /** The sequence number of the last report visit */
+    lastReadSequenceNumber?: number;
+
+    /** The time of the last mention of the report */
+    lastMentionedTime?: string;
+
     /** The current user's notification preference for this report */
     notificationPreference?: string | number;
 
+    /** The policy name to use */
+    policyName?: string;
+
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
+
+    /** Whether the report has parent access */
+    hasParentAccess?: boolean;
+
+    /** Description of the report */
+    description?: string;
+
+    /** Whether the parent action was deleted */
+    isDeletedParentAction?: boolean;
+
+    /** PayPalMe address of the submitter */
+    submitterPayPalMeAddress?: string;
 
     /** The email address of the report owner */
     ownerEmail?: string;

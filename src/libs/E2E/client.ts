@@ -5,10 +5,20 @@ type TestResult = {
     name: string;
     duration?: number;
     error?: string;
+    renderCount?: number;
 };
 
 type TestConfig = {
     name: string;
+};
+
+type NativeCommandPayload = {
+    text: string;
+};
+
+type NativeCommand = {
+    actionName: string;
+    payload?: NativeCommandPayload;
 };
 
 const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
@@ -44,24 +54,23 @@ const submitTestResults = (testResult: TestResult): Promise<void> => {
 
 const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
-let currentActiveTestConfig = null;
-/**
- * @returns {Promise<TestConfig>}
- */
-const getTestConfig = () =>
+let currentActiveTestConfig: TestConfig | null = null;
+
+const getTestConfig = (): Promise<TestConfig> =>
     fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
-        .then((res) => res.json())
-        .then((config) => {
+        .then((res: Response): Promise<TestConfig> => res.json())
+        .then((config: TestConfig) => {
             currentActiveTestConfig = config;
             return config;
         });
 
 const getCurrentActiveTestConfig = () => currentActiveTestConfig;
 
-const sendNativeCommand = (payload) =>
+const sendNativeCommand = (payload: NativeCommand) =>
     fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
         method: 'POST',
         headers: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
