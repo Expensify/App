@@ -455,7 +455,7 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string 
  */
 const getUniqueEmojiCodes = (emojiAsset: Emoji, users: TimestampedUsersReactions): string[] => {
     const emojiCodes: Record<string, string> = Object.values(users ?? {}).reduce((result: Record<string, string>, userSkinTones) => {
-        Object.keys(userSkinTones.skinTones).forEach((skinTone) => {
+        Object.keys(userSkinTones?.skinTones ?? {}).forEach((skinTone) => {
             const createdAt = userSkinTones.skinTones[Number(skinTone)];
             const emojiCode = getPreferredEmojiCode(emojiAsset, Number(skinTone));
             if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
