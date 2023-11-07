@@ -192,4 +192,4 @@ const KeyboardShortcut = {
 };
 
 export default KeyboardShortcut;
-export type {EventHandler};
+export type {EventHandler, Shortcut};
