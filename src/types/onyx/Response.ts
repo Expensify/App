@@ -10,8 +10,6 @@ type Response = {
     authToken?: string;
     encryptedAuthToken?: string;
     message?: string;
-
-    /** Short-lived authToken to sign in a user */
     shortLivedAuthToken?: string;
 };
 
