@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -4168,6 +4169,19 @@ function getRoom(type, policyID) {
     return room;
 }
 
+/**
+ *
+ * @param {Object} report
+ * @returns {String}
+ */
+function getGroupChatName(report) {
+    const participants = lodashGet(report, 'participantAccountIDs', []);
+    const isMultipleParticipantReport = participants.length > 1;
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipantReport);
+    return getDisplayNamesStringFromTooltips(displayNamesWithTooltips);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4328,4 +4342,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    getGroupChatName,
 };

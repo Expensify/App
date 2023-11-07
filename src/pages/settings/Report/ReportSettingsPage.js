@@ -78,7 +78,7 @@ function ReportSettingsPage(props) {
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.getReportName(props.report);
+    const reportName = ReportUtils.isGroupChat(props.report) ? ReportUtils.getGroupChatName(props.report) : ReportUtils.getReportName(props.report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 

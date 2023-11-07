@@ -155,7 +155,7 @@ function OptionRowLHN(props) {
 
     const isGroupChat =
         optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
-    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
 
     return (
         <OfflineWithFeedback
