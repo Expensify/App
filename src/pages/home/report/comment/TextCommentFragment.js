@@ -9,14 +9,14 @@ import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
+import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 import editedLabelStyles from '@styles/editedLabelStyles';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
-import reportActionSourcePropType from "@pages/home/report/reportActionSourcePropType";
-import RenderCommentHTML from "./RenderCommentHTML";
+import RenderCommentHTML from './RenderCommentHTML';
 
 const propTypes = {
     /** The reportAction's source */

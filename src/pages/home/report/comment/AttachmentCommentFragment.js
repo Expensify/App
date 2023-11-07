@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
+import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 import styles from '@styles/styles';
-import reportActionSourcePropType from "@pages/home/report/reportActionSourcePropType";
-import {View} from "react-native";
-import RenderCommentHTML from "./RenderCommentHTML";
+import RenderCommentHTML from './RenderCommentHTML';
 
 const propTypes = {
     /** The reportAction's source */

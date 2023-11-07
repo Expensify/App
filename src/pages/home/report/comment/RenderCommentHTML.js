@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 import RenderHTML from '@components/RenderHTML';
+import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 
 const propTypes = {
     /** The reportAction's source */
