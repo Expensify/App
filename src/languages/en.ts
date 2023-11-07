@@ -592,8 +592,7 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
@@ -1637,6 +1636,7 @@ export default {
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
+        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",

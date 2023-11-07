@@ -336,7 +336,7 @@ function BaseValidateCodeForm(props) {
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
                         <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>
@@ -371,7 +371,7 @@ function BaseValidateCodeForm(props) {
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
