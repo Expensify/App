@@ -1,27 +1,27 @@
+import _ from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'lodash';
-import FullName from './substeps/FullName';
-import DateOfBirth from './substeps/DateOfBirth';
-import SocialSecurityNumber from './substeps/SocialSecurityNumber';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useSubStep from '@hooks/useSubStep';
+import Navigation from '@libs/Navigation/Navigation';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForPersonalInfo';
+import getPersonalInfoValues from '@pages/ReimbursementAccount/utils/getPersonalInfoValues';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
-import useSubStep from '../../../hooks/useSubStep';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {reimbursementAccountPropTypes} from '../reimbursementAccountPropTypes';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '../../../components/InteractiveStepSubHeader';
-import useLocalize from '../../../hooks/useLocalize';
-import styles from '../../../styles/styles';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
-import reimbursementAccountDraftPropTypes from '../ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountProps from '../reimbursementAccountPropTypes';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import getPersonalInfoValues from '../utils/getPersonalInfoValues';
+import DateOfBirth from './substeps/DateOfBirth';
+import FullName from './substeps/FullName';
+import SocialSecurityNumber from './substeps/SocialSecurityNumber';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

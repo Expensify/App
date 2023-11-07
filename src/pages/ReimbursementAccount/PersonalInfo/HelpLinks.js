@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import styles from '../../../styles/styles';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
-import Text from '../../../components/Text';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Style for wrapping View */

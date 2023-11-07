@@ -1,4 +1,4 @@
-import CONST from '../../../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Returns the initial substep for the Personal Info step based on already existing data

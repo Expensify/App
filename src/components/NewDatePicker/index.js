@@ -9,9 +9,9 @@ import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import styles from '@styles/styles';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
-import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     /**

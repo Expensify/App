@@ -1,16 +1,15 @@
-import React, {forwardRef, useState, useImperativeHandle} from 'react';
-import PropTypes from 'prop-types';
 import map from 'lodash/map';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
-
-import CONST from '../CONST';
-import variables from '../styles/variables';
-import styles from '../styles/styles';
-import colors from '../styles/colors';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
-import Icon from './Icon';
 
 const propTypes = {
     /** List of the Route Name to navigate when the step is selected */
