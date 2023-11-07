@@ -69,7 +69,10 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], [props.report]);
+    const excludedUsers = useMemo(
+        () => _.map([...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], (participant) => OptionsListUtils.addSMSDomainIfPhoneNumber(participant)),
+        [props.report],
+    );
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
@@ -188,11 +191,12 @@ function RoomInvitePage(props) {
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (!userToInvite && (excludedUsers.includes(searchValue) || excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails, reportName]);
+    console.log('/////', excludedUsers);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
