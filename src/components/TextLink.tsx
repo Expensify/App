@@ -39,10 +39,10 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
     };
 
     const openLinkOnEnterKey: KeyboardEventHandler = (event) => {
-        event.preventDefault();
         if (event.key !== 'Enter') {
             return;
         }
+        event.preventDefault();
 
         openLink();
     };
