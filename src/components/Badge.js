@@ -59,8 +59,9 @@ function Badge(props) {
         <Wrapper
             style={props.pressable ? wrapperStyles : wrapperStyles(false)}
             onPress={props.onPress}
-            accessibilityRole={props.pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
-            accessibilityLabel={props.text}
+            role={props.pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
+            accessibilityLabel={props.pressable ? props.text : undefined}
+            aria-label={!props.pressable ? props.text : undefined}
         >
             <Text
                 style={[styles.badgeText, textStyles, ...props.textStyles]}

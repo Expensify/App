@@ -38,6 +38,7 @@ Onyx.connect({
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -156,6 +157,18 @@ function getOrderedReportIDs(
         }
     }
 
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
+    });
+
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
@@ -169,17 +182,7 @@ function getOrderedReportIDs(
     const draftReports: Report[] = [];
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
-
     reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-
         const isPinned = report.isPinned ?? false;
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
@@ -409,10 +412,21 @@ function getOptionData(
     const reportAction = lastReportActions?.[report.reportID];
     if (result.isArchivedRoom) {
         const archiveReason = (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && reportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report, false, policy),
-        });
+
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                });
+                break;
+            }
+            default: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
@@ -450,7 +464,7 @@ function getOptionData(
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {

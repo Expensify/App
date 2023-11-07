@@ -88,10 +88,7 @@ function Avatar(props) {
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon || Expensicons.FallbackAvatar;
 
     return (
-        <View
-            pointerEvents="none"
-            style={props.containerStyles}
-        >
+        <View style={[props.containerStyles, styles.pointerEventsNone]}>
             {_.isFunction(props.source) || (imageError && _.isFunction(fallbackAvatar)) ? (
                 <View style={iconStyle}>
                     <Icon
@@ -119,6 +116,9 @@ function Avatar(props) {
         </View>
     );
 }
+
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
+Avatar.displayName = 'Avatar';
+
 export default Avatar;
