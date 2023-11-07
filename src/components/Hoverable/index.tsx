@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {ForwardedRef, forwardRef, MutableRefObject, ReactElement, RefAttributes, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -30,14 +29,13 @@ function mapChildren(children: ((isHovered: boolean) => ReactElement) | ReactEle
  * @param ref The ref object or function.
  * @param element The element to assign the ref to.
  */
-function assignRef(ref: MutableRefObject<HTMLElement> | ((element: HTMLElement) => void), element: HTMLElement) {
+function assignRef(ref: ((instance: HTMLElement | null) => void) | MutableRefObject<HTMLElement | null>, element: HTMLElement) {
     if (!ref) {
         return;
     }
-
     if (typeof ref === 'function') {
         ref(element);
-    } else if (_.has(ref, 'current')) {
+    } else if (ref?.current) {
         // eslint-disable-next-line no-param-reassign
         ref.current = element;
     }
