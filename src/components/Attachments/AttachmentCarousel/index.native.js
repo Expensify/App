@@ -171,7 +171,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -184,10 +183,6 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
-    }),
-
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
