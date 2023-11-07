@@ -11,7 +11,7 @@ import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
-    const onCloseKey = useRef(Modal.getAvailableKey());
+    const removeOnClose = useRef(() => {});
 
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
@@ -32,8 +32,11 @@ function Popover(props) {
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(onCloseKey, null),
-                onOpenCallback: () => Modal.setCloseModal(onCloseKey, () => props.onClose(props.anchorRef)),
+                onCloseCallback: removeOnClose.current,
+                onOpenCallback: () => {
+                    removeOnClose.current();
+                    removeOnClose.current = Modal.setCloseModal(() => props.onClose(props.anchorRef));
+                },
             });
         } else {
             props.onModalHide();
