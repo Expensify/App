@@ -1,14 +1,7 @@
 module.exports = {
     project: {
-        ios: {sourceDir: '../iOS'},
-        android: {sourceDir: '../Android'},
+        ios: {sourceDir: 'ios'},
+        android: {},
     },
     assets: ['./assets/fonts/native'],
-    dependencies: {
-        'react-native-flipper': {
-            platforms: {
-                ios: null
-            }
-        }
-    }
 };
