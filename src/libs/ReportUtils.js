@@ -3359,6 +3359,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
+            !isPublicRoom(report) &&
             !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
@@ -4214,6 +4215,17 @@ function shouldUseFullTitleToDisplay(report) {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
 
+/**
+ *
+ * @param {String} type
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getRoom(type, policyID) {
+    const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
+    return room;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4376,4 +4388,5 @@ export {
     buildOptimisticDoneReportAction,
     isMarkedAsDone,
     getPersonalDetailsForAccountID,
+    getRoom,
 };

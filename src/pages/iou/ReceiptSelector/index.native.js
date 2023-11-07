@@ -103,6 +103,25 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
         };
     }, []);
 
+    const validateReceipt = (file) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+            return false;
+        }
+        return true;
+    };
+
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
@@ -212,6 +231,9 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
+                                        if (!validateReceipt(file)) {
+                                            return;
+                                        }
                                         const filePath = file.uri;
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
 
