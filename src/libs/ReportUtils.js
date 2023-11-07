@@ -2077,7 +2077,7 @@ function getModifiedExpenseMessage(reportAction) {
     if (message === '') {
         return message;
     }
-    message = `${message.substring(1, message.length - 1)}.`;
+    message = `${message.substring(1, message.length)}`;
     return message;
 }
 
