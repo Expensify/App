@@ -46,5 +46,5 @@ export default {
     en: flattenObject(en),
     es: flattenObject(es),
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'es-ES': flattenObject(esES),
+    'es-ES': esES,
 };
