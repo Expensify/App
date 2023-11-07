@@ -24,14 +24,8 @@ jobs:
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Install Homebrew
-        run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          echo "Test"
-          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/runner/.bashrc
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          sudo apt-get install build-essential
-          echo "Homebrew installed"
+      - name: Setup Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
 
       - name: Install Act
         run: brew install act
