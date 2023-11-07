@@ -30,5 +30,8 @@ jobs:
       - name: Install Act
         run: brew install act
 
+      - name: Set ACT_BINARY
+        run: export ACT_BINARY="$(which act)"
+
       - name: Run tests
         run: npm run workflow-test
