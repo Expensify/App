@@ -377,7 +377,6 @@ function ReportActionCompose({
                                     />
                                     <ComposerWithSuggestions
                                         ref={(el) => {
-                                            ReportActionComposeFocusManager.reportActionComposeRef.current = el;
                                             composerRef.current = el;
                                         }}
                                         animatedRef={animatedRef}
