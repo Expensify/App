@@ -8,7 +8,7 @@ import _ from 'underscore';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -204,7 +204,7 @@ function IOURequestStepWaypoint({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
@@ -240,7 +240,7 @@ function IOURequestStepWaypoint({
                             resultTypes=""
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

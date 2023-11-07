@@ -4,7 +4,7 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -90,7 +90,7 @@ function IOURequestStepMerchant({
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
         >
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
@@ -110,7 +110,7 @@ function IOURequestStepMerchant({
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </StepScreenWrapper>
     );
 }
