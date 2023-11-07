@@ -1532,7 +1532,7 @@ export default {
             invited: 'invitada',
             removed: 'eliminado',
             to: 'a',
-            from: 'de'
+            from: 'de',
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
