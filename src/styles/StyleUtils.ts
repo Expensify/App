@@ -610,11 +610,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
  * Returns the font size for the HTML code tag renderer.
  */
 function getCodeFontSize(isInsideH1: Boolean) {
-    if (isInsideH1) {
-        return 15;
-    } else {
-        return 13;
-    }
+    return isInsideH1 ? 15 : 13;
 }
 
 /**
