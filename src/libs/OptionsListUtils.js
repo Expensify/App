@@ -165,7 +165,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         if (!cleanAccountID) {
             return;
         }
-        let personalDetail = personalDetails[accountID];
+        let personalDetail = _.findWhere(personalDetails, {accountID});
         if (!personalDetail) {
             personalDetail = {
                 avatar: UserUtils.getDefaultAvatar(cleanAccountID),
