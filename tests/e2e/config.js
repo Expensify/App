@@ -9,6 +9,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 const TEST_NAMES = {
     AppStartTime: 'App start time',
     OpenSearchPage: 'Open search page TTI',
+    ReportTyping: 'Report typing',
 };
 
 /**
@@ -46,6 +47,12 @@ module.exports = {
     // The time in milliseconds after which an operation fails due to timeout
     INTERACTION_TIMEOUT: 300000,
 
+    // Period we wait between each test runs, to let the device cool down
+    BOOT_COOL_DOWN: 90 * 1000,
+
+    // Period we wait between each test runs, to let the device cool down
+    SUITE_COOL_DOWN: 10 * 1000,
+
     TEST_NAMES,
 
     /**
@@ -62,6 +69,12 @@ module.exports = {
         },
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
+        },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
         },
     },
 };
