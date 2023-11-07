@@ -10,14 +10,18 @@ import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
+import {reimbursementAccountPropTypes, reimbursementAccountDefaultProps} from '../../reimbursementAccountPropTypes';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: reimbursementAccountDefaultProps,
 };
 
 const companyNameKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_NAME;
@@ -61,6 +65,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
 }
 
 NameBusiness.propTypes = propTypes;
+NameBusiness.defaultProps = defaultProps;
 NameBusiness.displayName = 'NameBusiness';
 
 export default withOnyx({

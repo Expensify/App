@@ -13,12 +13,12 @@ import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
+import {reimbursementAccountPropTypes, reimbursementAccountDefaultProps} from '../../reimbursementAccountPropTypes';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -36,6 +36,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    reimbursementAccount: reimbursementAccountDefaultProps,
     session: {
         email: null,
     },

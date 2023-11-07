@@ -9,15 +9,19 @@ import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
+import {reimbursementAccountPropTypes, reimbursementAccountDefaultProps} from '../../reimbursementAccountPropTypes';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import AddressForm from '../../AddressForm';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: reimbursementAccountDefaultProps,
 };
 
 const companyBusinessInfoKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
@@ -80,6 +84,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
 }
 
 AddressBusiness.propTypes = propTypes;
+AddressBusiness.defaultProps = defaultProps;
 AddressBusiness.displayName = 'AddressBusiness';
 
 export default withOnyx({

@@ -9,15 +9,19 @@ import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
+import {reimbursementAccountPropTypes, reimbursementAccountDefaultProps} from '../../reimbursementAccountPropTypes';
 import getDefaultStateForField from '../../utils/getDefaultStateForField';
 import StatePicker from '../../../../components/StatePicker';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: reimbursementAccountDefaultProps,
 };
 
 const companyIncorporationStateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
@@ -52,6 +56,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}) {
 }
 
 IncorporationStateBusiness.propTypes = propTypes;
+IncorporationStateBusiness.defaultProps = defaultProps;
 IncorporationStateBusiness.displayName = 'IncorporationStateBusiness';
 
 export default withOnyx({
