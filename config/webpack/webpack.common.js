@@ -187,7 +187,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
-            'lottie-react-native': 'react-native-web-lottie',
 
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
