@@ -1,5 +1,4 @@
 import {useContext, useEffect} from 'react';
-import _ from 'underscore';
 import {NetworkContext} from '@components/OnyxProvider';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 
@@ -7,13 +6,15 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
  * Hook for fetching private personal details
  */
 export default function usePrivatePersonalDetails() {
-    const {isOffline} = useContext(NetworkContext);
+    const network = useContext(NetworkContext);
 
     useEffect(() => {
         const personalDetails = PersonalDetails.getPrivatePersonalDetails();
-        if (isOffline || (Boolean(personalDetails) && !_.isUndefined(personalDetails.isLoading))) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (network?.isOffline || (Boolean(personalDetails) && personalDetails?.isLoading !== undefined)) {
             return;
         }
+
         PersonalDetails.openPersonalDetailsPage();
-    }, [isOffline]);
+    }, [network]);
 }
