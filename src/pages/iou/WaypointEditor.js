@@ -113,23 +113,13 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
-        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
         }
 
         return errors;
-    };
-
-    const saveWaypoint = (waypoint) => {
-        if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        } else {
-            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
-        }
     };
 
     const submit = (values) => {
@@ -148,7 +138,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 lng: null,
                 address: waypointValue,
             };
-            saveWaypoint(waypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
