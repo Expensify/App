@@ -480,7 +480,7 @@ function getOptionData(
                             return `${formattedText}.`;
                         }
                         if (index === displayNamesWithTooltips.length - 2) {
-                            return `${formattedText} ${Localize.translate(preferredLocale, 'workspace.common.and')}`;
+                            return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
                         }
                         if (index < displayNamesWithTooltips.length - 2) {
                             return `${formattedText},`;
