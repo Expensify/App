@@ -1,8 +1,8 @@
 import React from 'react';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
+import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
