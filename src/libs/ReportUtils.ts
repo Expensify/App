@@ -955,12 +955,9 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 
 /**
  * Get the notification preference given a report
- *
- * @param {Object} report
- * @returns {String}
  */
-function getReportNotificationPreference(report) {
-    return lodashGet(report, 'notificationPreference', '');
+function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
+    return report?.notificationPreference ?? '';
 }
 
 /**
