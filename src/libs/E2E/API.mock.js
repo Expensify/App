@@ -7,6 +7,7 @@ import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockBeginSignin from './apiMocks/beginSignin';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
+import mockReadNewestAction from './apiMocks/readNewestAction';
 import mockSigninUser from './apiMocks/signinUser';
 
 /**
@@ -20,17 +21,23 @@ const mocks = {
     OpenApp: mockOpenApp,
     ReconnectApp: mockOpenApp,
     OpenReport: mockOpenReport,
+    ReconnectToReport: mockOpenReport,
     AuthenticatePusher: mockAuthenticatePusher,
+    ReadNewestAction: mockReadNewestAction,
 };
 
 function mockCall(command, apiCommandParameters, tag) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
-    if (!mockResponse || !_.isArray(mockResponse.onyxData)) {
-        Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
+    if (!mockResponse) {
+        Log.warn(`[${tag}] for command ${command} is not mocked yet! ⚠️`);
         return;
     }
 
-    return Onyx.update(mockResponse.onyxData);
+    if (_.isArray(mockResponse.onyxData)) {
+        return Onyx.update(mockResponse.onyxData);
+    }
+
+    return Promise.resolve(mockResponse);
 }
 
 /**

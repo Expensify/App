@@ -378,7 +378,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.updateSearchValue}
                 errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
@@ -427,6 +427,7 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}

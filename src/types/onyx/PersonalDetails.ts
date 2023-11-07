@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type Timezone = {
     /** Value of selected timezone */
     selected?: string;
@@ -28,6 +30,11 @@ type PersonalDetails = {
     /** Avatar URL of the current user from their personal details */
     avatar: string;
 
+    /** Avatar thumbnail URL of the current user from their personal details */
+    avatarThumbnail?: string;
+
+    originalFileName?: string;
+
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
@@ -43,10 +50,21 @@ type PersonalDetails = {
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields<'avatar'>;
+
+    /** Field-specific pending states for offline UI status */
+    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon?: string;
     /** Status of the current user from their personal details */
+
     status?: string;
 };
 
-export type {Timezone};
-
 export default PersonalDetails;
+export type {Timezone};

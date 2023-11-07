@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import compose from '@libs/compose';
@@ -11,6 +10,7 @@ import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
@@ -32,7 +32,7 @@ function ReportHeaderSkeletonView(props) {
                     <PressableWithFeedback
                         onPress={() => {}}
                         style={[styles.LHNToggle]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('common.back')}
                     >
                         <Icon src={Expensicons.BackArrow} />
