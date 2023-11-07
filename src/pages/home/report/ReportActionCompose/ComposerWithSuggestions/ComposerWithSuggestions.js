@@ -127,22 +127,6 @@ function ComposerWithSuggestions({
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const parentAction = ReportActionsUtils.getParentReportAction(report);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
-    const textInputRef = useRef(null);
-    const shouldAutoFocusRef = useRef(false);
-
-    shouldAutoFocusRef.current = shouldAutoFocus;
-
-    const prevIsFocused = usePrevious(isFocused);
-
-    useEffect(() => {
-        if (!prevIsFocused && isFocused) {
-            setTimeout(() => {
-                if (shouldAutoFocusRef.current) {
-                    textInputRef.current.focus();
-                }
-            }, CONST.ANIMATED_TRANSITION);
-        }
-    }, [isFocused, prevIsFocused]);
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -154,6 +138,7 @@ function ComposerWithSuggestions({
 
     const [composerHeight, setComposerHeight] = useState(0);
 
+    const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -547,6 +532,7 @@ function ComposerWithSuggestions({
     }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
 
     const prevIsModalVisible = usePrevious(modal.isVisible);
+    const prevIsFocused = usePrevious(isFocused);
 
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
@@ -566,6 +552,24 @@ function ComposerWithSuggestions({
         }
         focus();
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
+
+    const shouldAutoFocusRef = useRef(false);
+    shouldAutoFocusRef.current = shouldAutoFocus;
+
+    useEffect(() => {
+        if (prevIsFocused || !isFocused) {
+            return;
+        }
+        // Focus composer when navigating from another screen
+        const focusTimeout = setTimeout(() => {
+            if (!shouldAutoFocusRef.current) {
+                return;
+            }
+            textInputRef.current.focus();
+        }, CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(focusTimeout);
+    }, [isFocused, prevIsFocused]);
+
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
