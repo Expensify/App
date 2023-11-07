@@ -478,7 +478,8 @@ const enrichEmojiReactionWithTimestamps = (emoji: UsersReactionsList, emojiName:
     const usersWithTimestamps: Record<string, UserReactionsWithTimestamps> = {};
     Object.keys(emoji.users ?? {}).forEach((id) => {
         const user = emoji?.users?.[id];
-        const oldestUserTimestamp = Object.values(user?.skinTones ?? {}).reduce((min, curr) => (curr < min ? curr : min));
+        const userTimestamps = Object.values(user?.skinTones ?? {});
+        const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (curr < min ? curr : min), userTimestamps[0]);
 
         if (!oldestEmojiTimestamp || oldestUserTimestamp < oldestEmojiTimestamp) {
             oldestEmojiTimestamp = oldestUserTimestamp;
