@@ -196,7 +196,6 @@ function RoomInvitePage(props) {
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails, reportName]);
-    console.log('/////', excludedUsers);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
