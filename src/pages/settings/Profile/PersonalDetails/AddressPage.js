@@ -212,7 +212,7 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={translate('common.addressLine')}
+                        accessibilityLabel={translate('common.addressLine', {lineNumber: 2})}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
