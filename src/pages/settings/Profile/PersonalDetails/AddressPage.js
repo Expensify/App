@@ -212,7 +212,7 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
-                        aria-label={translate('common.addressLine')}
+                        aria-label={translate('common.addressLine', {lineNumber: 2})}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}

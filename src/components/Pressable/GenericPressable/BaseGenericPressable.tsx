@@ -1,7 +1,6 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Pressable} from 'react-native';
-import _ from 'underscore';
+import {GestureResponderEvent, Pressable, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
@@ -9,15 +8,12 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import genericPressablePropTypes from './PropTypes';
+import PressableProps from './types';
 
 /**
  * Returns the cursor style based on the state of Pressable
- * @param {Boolean} isDisabled
- * @param {Boolean} isText
- * @returns {Object}
  */
-const getCursorStyle = (isDisabled, isText) => {
+function getCursorStyle(isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> {
     if (isDisabled) {
         return styles.cursorDisabled;
     }
@@ -27,28 +23,34 @@ const getCursorStyle = (isDisabled, isText) => {
     }
 
     return styles.cursorPointer;
-};
+}
 
-const GenericPressable = forwardRef((props, ref) => {
-    const {
+function GenericPressable(
+    {
         children,
-        onPress,
+        onPress = () => {},
         onLongPress,
-        onKeyPress,
         onKeyDown,
         disabled,
         style,
-        shouldUseHapticsOnLongPress,
-        shouldUseHapticsOnPress,
+        disabledStyle = {},
+        hoverStyle = {},
+        focusStyle = {},
+        pressStyle = {},
+        screenReaderActiveStyle = {},
+        shouldUseHapticsOnLongPress = false,
+        shouldUseHapticsOnPress = false,
         nextFocusRef,
         keyboardShortcut,
-        shouldUseAutoHitSlop,
-        enableInScreenReaderStates,
+        shouldUseAutoHitSlop = false,
+        enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
         onPressIn,
         onPressOut,
+        accessible = true,
         ...rest
-    } = props;
-
+    }: PressableProps,
+    ref: ForwardedRef<View>,
+) {
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
@@ -63,13 +65,14 @@ const GenericPressable = forwardRef((props, ref) => {
             shouldBeDisabledByScreenReader = isScreenReaderActive;
         }
 
-        return props.disabled || shouldBeDisabledByScreenReader || isExecuting;
-    }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled, isExecuting]);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return disabled || shouldBeDisabledByScreenReader || isExecuting;
+    }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
 
     const onLongPressHandler = useCallback(
-        (event) => {
+        (event: GestureResponderEvent) => {
             if (isDisabled) {
                 return;
             }
@@ -79,8 +82,8 @@ const GenericPressable = forwardRef((props, ref) => {
             if (shouldUseHapticsOnLongPress) {
                 HapticFeedback.longPress();
             }
-            if (ref && ref.current) {
-                ref.current.blur();
+            if (ref && 'current' in ref) {
+                ref.current?.blur();
             }
             onLongPress(event);
 
@@ -90,7 +93,7 @@ const GenericPressable = forwardRef((props, ref) => {
     );
 
     const onPressHandler = useCallback(
-        (event) => {
+        (event?: GestureResponderEvent | KeyboardEvent) => {
             if (isDisabled) {
                 return;
             }
@@ -100,24 +103,14 @@ const GenericPressable = forwardRef((props, ref) => {
             if (shouldUseHapticsOnPress) {
                 HapticFeedback.press();
             }
-            if (ref && ref.current) {
-                ref.current.blur();
+            if (ref && 'current' in ref) {
+                ref.current?.blur();
             }
             onPress(event);
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
-    );
-
-    const onKeyPressHandler = useCallback(
-        (event) => {
-            if (event.key !== 'Enter') {
-                return;
-            }
-            onPressHandler(event);
-        },
-        [onPressHandler],
     );
 
     useEffect(() => {
@@ -135,36 +128,37 @@ const GenericPressable = forwardRef((props, ref) => {
             ref={ref}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
-            onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [props.role, props.role].includes('text')),
-                StyleUtils.parseStyleFromFunction(props.style, state),
-                isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
-                state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
-                state.hovered && StyleUtils.parseStyleFromFunction(props.hoverStyle, state),
-                state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
-                isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
+                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text')),
+                StyleUtils.parseStyleFromFunction(style, state),
+                isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
+                state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
+                state.hovered && StyleUtils.parseStyleFromFunction(hoverStyle, state),
+                state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
+                isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
             ]}
             // accessibility props
-            aria-checked={props.ariaChecked}
+            accessibilityState={{
+                disabled: isDisabled,
+                ...rest.accessibilityState,
+            }}
             aria-disabled={isDisabled}
-            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
+            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
-            onMagicTap={!isDisabled && onPressHandler}
-            onAccessibilityTap={!isDisabled && onPressHandler}
+            onMagicTap={!isDisabled ? onPressHandler : undefined}
+            onAccessibilityTap={!isDisabled ? onPressHandler : undefined}
+            accessible={accessible}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
-            {(state) => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children)}
+            {(state) => (typeof children === 'function' ? children({...state, isScreenReaderActive, isDisabled}) : children)}
         </Pressable>
     );
-});
+}
 
 GenericPressable.displayName = 'GenericPressable';
-GenericPressable.propTypes = genericPressablePropTypes.pressablePropTypes;
-GenericPressable.defaultProps = genericPressablePropTypes.defaultProps;
 
-export default GenericPressable;
+export default forwardRef(GenericPressable);
