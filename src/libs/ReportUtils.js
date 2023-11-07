@@ -3620,10 +3620,10 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
  * - in DM chat
  *
  * @param {Object} report
- * @param {Array<Number>} participants
+ * @param {Array<Number>} otherParticipants
  * @returns {Boolean}
  */
-function canRequestMoney(report, participants) {
+function canRequestMoney(report, otherParticipants) {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
@@ -3641,7 +3641,7 @@ function canRequestMoney(report, participants) {
     }
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't request money from such report
-    if (participants.length === 0 && !isOwnPolicyExpenseChat) {
+    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
