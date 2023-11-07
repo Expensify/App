@@ -1,4 +1,4 @@
-import React, {FC, ForwardedRef, KeyboardEventHandler, MouseEventHandler, ReactElement} from 'react';
+import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler, ReactElement} from 'react';
 import {GestureResponderEvent, Text as RNText, TextStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
@@ -20,12 +20,9 @@ type TextLinkProps = {
 
     /** Callback that is called when mousedown is triggered */
     onMouseDown?: MouseEventHandler;
-
-    /** A ref to forward to text */
-    forwardedRef: ForwardedRef<RNText>;
 };
 
-function TextLink({href, children, style, onPress, onMouseDown = (event) => event.preventDefault(), forwardedRef, ...props}: TextLinkProps) {
+function TextLink({href, children, style, onPress, onMouseDown = (event) => event.preventDefault(), ...props}: TextLinkProps, ref: ForwardedRef<RNText>) {
     const openLink = () => {
         if (onPress) {
             onPress();
@@ -58,7 +55,7 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
             onPress={openLinkOnTap}
             onKeyDown={openLinkOnEnterKey}
             onMouseDown={onMouseDown}
-            ref={forwardedRef}
+            ref={ref}
             suppressHighlighting
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
@@ -70,14 +67,4 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
 
 TextLink.displayName = 'TextLink';
 
-const TextLinkWithRef: FC<TextLinkProps> = React.forwardRef<RNText, TextLinkProps>((props, ref) => (
-    <TextLink
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-TextLinkWithRef.displayName = 'TextLinkWithRef';
-
-export default TextLinkWithRef;
+export default forwardRef(TextLink);
