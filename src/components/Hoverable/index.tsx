@@ -13,8 +13,8 @@ import HoverableProps from './types';
  * @param callbackParam The parameter to pass to the children function.
  * @returns The mapped children.
  */
-function mapChildren(children: ((isHovered: boolean) => ReactElement) | ReactElement | ReactElement[], callbackParam: boolean): ReactElement & RefAttributes<HTMLElement> {
-    if (Array.isArray(children) && children.length === 1) {
+ function mapChildren(children: ((isHovered: boolean) => ReactElement) | ReactElement | ReactElement[], callbackParam: boolean): ReactElement & RefAttributes<HTMLElement> {
+    if (Array.isArray(children)) {
         return children[0];
     }
 
@@ -22,7 +22,7 @@ function mapChildren(children: ((isHovered: boolean) => ReactElement) | ReactEle
         return children(callbackParam);
     }
 
-    return children as ReactElement;
+    return children;
 }
 
 /**
