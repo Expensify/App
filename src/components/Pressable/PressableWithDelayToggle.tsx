@@ -1,8 +1,9 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
+import React, {ForwardedRef, forwardRef} from 'react';
+import {Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -10,68 +11,61 @@ import getButtonState from '@libs/getButtonState';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import PressableProps from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
-const propTypes = {
-    /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: refPropTypes,
-
+type PressableWithDelayToggleProps = PressableProps & {
     /** The text to display */
-    text: PropTypes.string,
+    text: string;
 
     /** The text to display once the pressable is pressed */
-    textChecked: PropTypes.string,
+    textChecked: string;
 
     /** The tooltip text to display */
-    tooltipText: PropTypes.string,
+    tooltipText: string;
 
     /** The tooltip text to display once the pressable is pressed */
-    tooltipTextChecked: PropTypes.string,
+    tooltipTextChecked: string;
 
     /** Styles to apply to the container */
-    // eslint-disable-next-line react/forbid-prop-types
-    styles: PropTypes.arrayOf(PropTypes.object),
+    styles?: StyleProp<ViewStyle>;
 
-    /** Styles to apply to the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
+    // /** Styles to apply to the text */
+    textStyles?: StyleProp<TextStyle>;
 
     /** Styles to apply to the icon */
-    // eslint-disable-next-line react/forbid-prop-types
-    iconStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Callback to be called on onPress */
-    onPress: PropTypes.func.isRequired,
+    iconStyles?: StyleProp<ViewStyle>;
 
     /** The icon to display */
-    icon: PropTypes.func,
+    icon?: React.FC<SvgProps>;
 
     /** The icon to display once the pressable is pressed */
-    iconChecked: PropTypes.func,
+    iconChecked?: React.FC<SvgProps>;
 
     /**
      * Should be set to `true` if this component is being rendered inline in
      * another `Text`. This is due to limitations in RN regarding the
      * vertical text alignment of non-Text elements
      */
-    inline: PropTypes.bool,
+    inline?: boolean;
 };
 
-const defaultProps = {
-    text: '',
-    textChecked: '',
-    tooltipText: '',
-    tooltipTextChecked: '',
-    styles: [],
-    textStyles: [],
-    iconStyles: [],
-    icon: null,
-    inline: true,
-    iconChecked: Expensicons.Checkmark,
-    innerRef: () => {},
-};
-
-function PressableWithDelayToggle(props) {
+function PressableWithDelayToggle(
+    {
+        iconChecked = Expensicons.Checkmark,
+        inline = true,
+        onPress,
+        text,
+        textChecked,
+        tooltipText,
+        tooltipTextChecked,
+        styles: pressableStyle,
+        textStyles,
+        iconStyles,
+        icon,
+    }: PressableWithDelayToggleProps,
+    ref: ForwardedRef<RNText | View>,
+) {
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
@@ -79,54 +73,57 @@ function PressableWithDelayToggle(props) {
             return;
         }
         temporarilyDisableInteractions();
-        props.onPress();
+        onPress();
     };
 
     // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
     // for elements that are supposed to be inline, we need to use a Text element instead
     // of a Pressable
-    const PressableView = props.inline ? Text : PressableWithoutFeedback;
-    const tooltipText = !isActive ? props.tooltipTextChecked : props.tooltipText;
+    const PressableView = inline ? Text : PressableWithoutFeedback;
+    const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     const labelText = (
         <Text
             suppressHighlighting
-            style={props.textStyles}
+            style={textStyles}
         >
-            {!isActive && props.textChecked ? props.textChecked : props.text}
+            {!isActive && textChecked ? textChecked : text}
             &nbsp;
         </Text>
     );
 
     return (
         <PressableView
-            ref={props.innerRef}
+            // Using `ref as any` due to variable component (Text or View) based on 'inline' prop; TypeScript workaround.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={tooltipText}
-            suppressHighlighting={props.inline ? true : undefined}
+            accessibilityLabel={tooltipTexts}
+            suppressHighlighting={inline ? true : undefined}
         >
             <>
-                {props.inline && labelText}
+                {inline && labelText}
                 <Tooltip
                     containerStyles={[styles.flexRow]}
-                    text={tooltipText}
+                    text={tooltipTexts}
+                    shouldRender
                 >
                     <PressableWithoutFeedback
                         focusable={false}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, ...props.styles, !isActive && styles.cursorDefault]}
+                        style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
                     >
                         {({hovered, pressed}) => (
                             <>
-                                {!props.inline && labelText}
-                                {props.icon && (
+                                {!inline && labelText}
+                                {icon && (
                                     <Icon
-                                        src={!isActive ? props.iconChecked : props.icon}
+                                        src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        style={props.iconStyles}
+                                        style={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
-                                        inline={props.inline}
+                                        inline={inline}
                                     />
                                 )}
                             </>
@@ -138,18 +135,6 @@ function PressableWithDelayToggle(props) {
     );
 }
 
-PressableWithDelayToggle.propTypes = propTypes;
-PressableWithDelayToggle.defaultProps = defaultProps;
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
-const PressableWithDelayToggleWithRef = React.forwardRef((props, ref) => (
-    <PressableWithDelayToggle
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-PressableWithDelayToggleWithRef.displayName = 'PressableWithDelayToggleWithRef';
-
-export default PressableWithDelayToggleWithRef;
+export default forwardRef(PressableWithDelayToggle);

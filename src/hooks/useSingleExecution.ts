@@ -1,20 +1,20 @@
 import {useCallback, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 
+type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
+
 /**
  * With any action passed in, it will only allow 1 such action to occur at a time.
- *
- * @returns {Object}
  */
 export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
-    const isExecutingRef = useRef();
+    const isExecutingRef = useRef<boolean>();
 
     isExecutingRef.current = isExecuting;
 
     const singleExecution = useCallback(
-        (action) =>
-            (...params) => {
+        <T extends unknown[]>(action: Action<T>) =>
+            (...params: T) => {
                 if (isExecutingRef.current) {
                     return;
                 }
