@@ -7,5 +7,9 @@ function isNotEmptyObject<T extends Record<string, unknown> | Falsy>(arg: T | Em
     return Object.keys(arg ?? {}).length > 0;
 }
 
-export default isNotEmptyObject;
+function isEmptyObject<T>(obj: T): boolean {
+    return Object.keys(obj ?? {}).length === 0;
+}
+
+export {isNotEmptyObject, isEmptyObject};
 export type {EmptyObject};

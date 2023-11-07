@@ -490,7 +490,7 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
                     pendingFields: {
                         avatar: null,
                     },
-                },
+                } as OnyxEntry<Partial<PersonalDetails>>,
             },
         },
     ];

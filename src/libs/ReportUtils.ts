@@ -11,6 +11,7 @@ import {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -19,7 +20,7 @@ import {IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMes
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
-import isNotEmptyObject, {EmptyObject} from '@src/types/utils/EmptyObject';
+import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -334,10 +335,6 @@ type OptionData = {
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
 } & Report;
-
-function isEmptyObject<T>(obj: T): boolean {
-    return Object.keys(obj ?? {}).length === 0;
-}
 
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -1012,7 +1009,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isUserPolicyAdmin: boo
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName});
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
@@ -1370,7 +1367,7 @@ function getDisplayNamesWithTooltips(
             let pronouns = user.pronouns;
             if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
             }
 
             return {
@@ -1426,9 +1423,9 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 
  */
 function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
-    const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true);
+    const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     const originalMessage = reportAction?.originalMessage as IOUMessage;
-    let messageKey;
+    let messageKey: TranslationPaths;
     if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         messageKey = 'iou.waitingOnEnabledWallet';
     } else {
@@ -1623,7 +1620,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID);
+    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
@@ -1817,8 +1814,8 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     const transactionDetails = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '', TransactionUtils.isDistanceRequest(transaction)),
-        comment: transactionDetails?.comment,
+        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '', TransactionUtils.isDistanceRequest(transaction)) ?? '',
+        comment: transactionDetails?.comment ?? '',
     });
 }
 
@@ -1854,12 +1851,12 @@ function getReportPreviewMessage(
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
             const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment});
+            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true) ?? '';
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1877,7 +1874,7 @@ function getReportPreviewMessage(
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
-        let translatePhraseKey = 'iou.paidElsewhereWithAmount';
+        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
         const originalMessage = reportAction?.originalMessage as IOUMessage;
         if (
             [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
@@ -1890,7 +1887,7 @@ function getReportPreviewMessage(
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID ?? -1, true);
+        const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID ?? -1, true) ?? '';
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
@@ -3979,27 +3976,27 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const iouReport = getReport(IOUReportID);
-        const payerName = isNotEmptyObject(iouReport) && isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
-        let translationKey;
+        const payerName = isNotEmptyObject(iouReport) && isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true) ?? '';
+        let translationKey: TranslationPaths;
         switch (reportAction?.originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = 'iou.paidElsewhereWithAmount';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
-                translationKey = 'iou.paidUsingExpensifyWithAmount';
+                translationKey = 'iou.paidWithExpensifyWithAmount';
                 break;
             default:
-                translationKey = '';
+                translationKey = 'iou.payerPaidAmount';
                 break;
         }
         displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
     } else {
         const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
         const transactionDetails = isNotEmptyObject(transaction) ? getTransactionDetails(transaction) : null;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '';
         const isRequestSettled = isSettled(originalMessage.IOUReportID);
         if (isRequestSettled) {
             displayMessage = Localize.translateLocal('iou.payerSettled', {
@@ -4008,7 +4005,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         } else {
             displayMessage = Localize.translateLocal('iou.requestedAmount', {
                 formattedAmount,
-                comment: transactionDetails?.comment,
+                comment: transactionDetails?.comment ?? '',
             });
         }
     }
@@ -4047,14 +4044,8 @@ function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
 
-/**
- *
- * @param {String} type
- * @param {String} policyID
- * @returns {Object}
- */
-function getRoom(type, policyID) {
-    const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
+function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string) {
+    const room = Object.values(allReports ?? {}).find((report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
 }
 
