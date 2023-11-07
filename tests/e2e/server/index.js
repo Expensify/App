@@ -2,6 +2,7 @@ const {createServer} = require('http');
 const Routes = require('./routes');
 const Logger = require('../utils/logger');
 const {SERVER_PORT} = require('../config');
+const {executeFromPayload} = require('../nativeCommands');
 
 const PORT = process.env.PORT || SERVER_PORT;
 
@@ -123,6 +124,26 @@ const createServerInstance = () => {
                     listener();
                 });
                 return res.end('ok');
+            }
+
+            case Routes.testNativeCommand: {
+                getPostJSONRequestData(req, res)
+                    .then((data) =>
+                        executeFromPayload(data.actionName, data.payload).then((status) => {
+                            if (status) {
+                                res.end('ok');
+                                return;
+                            }
+                            res.statusCode = 500;
+                            res.end('Error executing command');
+                        }),
+                    )
+                    .catch((error) => {
+                        Logger.error('Error executing command', error);
+                        res.statusCode = 500;
+                        res.end('Error executing command');
+                    });
+                break;
             }
 
             default:

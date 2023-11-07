@@ -2000,7 +2000,13 @@ function openReportFromDeepLink(url, isAuthenticated) {
                 navigateToConciergeChat(true);
                 return;
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                Navigation.isNavigationReady().then(() => {
+                    Session.signOutAndRedirectToSignIn();
+                });
+                return;
+            }
+            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
         });
     });
 }

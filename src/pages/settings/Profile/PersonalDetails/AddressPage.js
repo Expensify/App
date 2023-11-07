@@ -81,6 +81,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [city, setCity] = useState(address.city);
+    const [zipcode, setZipcode] = useState(address.zip);
 
     useEffect(() => {
         if (!address) {
@@ -89,6 +90,7 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);
+        setZipcode(address.zip);
     }, [address]);
 
     /**
@@ -137,20 +139,28 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state' && key !== 'city') {
+        if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
             setCity('');
+            setZipcode('');
             return;
         }
         if (key === 'state') {
             setState(value);
+            setCity('');
+            setZipcode('');
             return;
         }
-        setCity(value);
+        if (key === 'city') {
+            setCity(value);
+            setZipcode('');
+            return;
+        }
+        setZipcode(value);
     }, []);
 
     useEffect(() => {
@@ -202,8 +212,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={translate('common.addressLine')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.addressLine', {lineNumber: 2})}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -228,8 +238,8 @@ function AddressPage({privatePersonalDetails, route}) {
                         <TextInput
                             inputID="state"
                             label={translate('common.stateOrProvince')}
-                            accessibilityLabel={translate('common.stateOrProvince')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={translate('common.stateOrProvince')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             value={state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             spellCheck={false}
@@ -240,8 +250,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="city"
                         label={translate('common.city')}
-                        accessibilityLabel={translate('common.city')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.city')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -251,12 +261,13 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="zipPostCode"
                         label={translate('common.zipPostCode')}
-                        accessibilityLabel={translate('common.zipPostCode')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.zipPostCode')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
-                        defaultValue={address.zip || ''}
+                        value={zipcode || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={zipFormat}
+                        onValueChange={handleAddressChange}
                     />
                 </Form>
             )}

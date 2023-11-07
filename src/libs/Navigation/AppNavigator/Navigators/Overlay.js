@@ -27,13 +27,13 @@ function Overlay(props) {
                     style={[styles.draggableTopBar]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 />
                 <PressableWithoutFeedback
                     style={[styles.flex1]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     noDragArea
                 />
             </View>
