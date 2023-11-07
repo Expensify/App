@@ -1,7 +1,7 @@
 ---
 name: New Library Request
 about: Use this when you want to propose adding a new library to package.json (dev-dependencies excluded)
-labels: Weekly, AutoAssignerAppLibReview
+labels: Weekly, AutoAssignerAppLibraryReview
 ---
 In order to properly evaluate if a new library can be added to `package.json`, please fill out this request form. It will be automatically assigned someone from our review team that will go through and vet the library.
 
