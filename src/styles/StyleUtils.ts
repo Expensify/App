@@ -273,7 +273,8 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
-    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -521,9 +522,9 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
 function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: themeColors.highlightBG} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -1316,6 +1317,13 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1361,6 +1369,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,
