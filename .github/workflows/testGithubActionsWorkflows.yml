@@ -24,4 +24,4 @@ jobs:
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Run tests
-        runs: npm run workflow-test
+        run: npm run workflow-test
