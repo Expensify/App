@@ -37,6 +37,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
@@ -173,6 +174,11 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                                 enablePreviewModal
                             />
                         </View>
+                    </OfflineWithFeedback>
+                )}
+                {!hasReceipt && Permissions.canUseViolations() && (
+                    <OfflineWithFeedback pendingAction={pendingAction}>
+                        <ReceiptEmptyState hasError={hasErrors} onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))} />
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
