@@ -13,8 +13,8 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -203,7 +203,9 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64()),
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
                                 ),
                             ),
                     },
