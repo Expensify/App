@@ -21,7 +21,7 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         },
         onEvent: (event, metadata) => {
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
-            onEvent?.(event, metadata);
+            onEvent(event, metadata);
         },
         onLoad: () => setIsPlaidLoaded(true),
 

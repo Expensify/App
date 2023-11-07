@@ -15,7 +15,7 @@ type PlaidLinkProps = {
     onExit?: () => void;
 
     // Callback to execute whenever a Plaid event occurs
-    onEvent?: (eventName: PlaidLinkStableEvent | string, metadata?: PlaidLinkOnEventMetadata | LinkEventMetadata) => void;
+    onEvent: (eventName: PlaidLinkStableEvent | string, metadata?: PlaidLinkOnEventMetadata | LinkEventMetadata) => void;
 
     // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
     // user to their respective bank platform

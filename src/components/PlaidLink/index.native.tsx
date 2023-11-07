@@ -8,10 +8,10 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
     useDeepLinkRedirector();
     usePlaidEmitter((event: LinkEvent) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event.eventName);
-        onEvent?.(event.eventName, event.metadata);
+        onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
-        onEvent?.(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
+        onEvent(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
         openLink({
             tokenConfig: {
                 token,
