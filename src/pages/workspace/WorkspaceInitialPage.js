@@ -179,23 +179,32 @@ function WorkspaceInitialPage(props) {
         },
     ];
 
+    const availableRooms = _.filter(
+        props.reports,
+        (report) =>
+            report &&
+            report.reportID !== undefined &&
+            report.policyID === policy.id &&
+            (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
+    );
+
     const threeDotsMenuItems = [
         {
             icon: Expensicons.Trashcan,
             text: props.translate('workspace.common.delete'),
             onSelected: () => setIsDeleteModalOpen(true),
         },
-        {
-            icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
-        },
-        {
-            icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
-        },
     ];
+
+    availableRooms.forEach((room) => {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {
+                roomName: room.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS : CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+            }),
+            onSelected: () => goToRoom(room.chatType),
+        });
+    });
 
     return (
         <ScreenWrapper
