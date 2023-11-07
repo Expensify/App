@@ -96,6 +96,7 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
+
         // Verification to reset billable with a default value, when value in IOU was changed
         if (typeof transaction.billable !== 'boolean') {
             IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, lodashGet(policy, 'defaultBillable', false));

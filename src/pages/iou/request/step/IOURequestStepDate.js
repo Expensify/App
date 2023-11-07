@@ -1,5 +1,6 @@
+import dateAdd from 'date-fns/add';
+import dateSubtract from 'date-fns/sub';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -69,8 +70,8 @@ function IOURequestStepDate({
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={transaction.created}
-                    maxDate={moment().add(1, 'year').toDate()}
-                    minDate={moment().subtract(20, 'years').toDate()}
+                    maxDate={dateAdd(new Date(), {years: 1})}
+                    minDate={dateSubtract(new Date(), {years: 20})}
                 />
             </FormProvider>
         </StepScreenWrapper>
