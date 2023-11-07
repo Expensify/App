@@ -16,7 +16,7 @@ Check to make sure you haven't unintentionally blocked Expensify emails and whit
 Verify that your email address in your account settings is correct and is a real deliverable email address. 
 Re-send Verification Email: Look for an option to re-send a verification email, usually provided when this banner appears.
 
-![ExpensifyHelp_EmailError](https://help.expensify.com/assets/images/ExpensifyHelp_EmailError.png){:width="100%"}
+![ExpensifyHelp_EmailError]({{site.url}}/assets/images/ExpensifyHelp_EmailError.png){:width="100%"}
 
 # Deep Dive 
 
