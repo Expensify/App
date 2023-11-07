@@ -806,7 +806,6 @@ export default {
         title: 'Notas privadas',
         personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
-        notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
     },
@@ -1667,6 +1666,7 @@ export default {
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
