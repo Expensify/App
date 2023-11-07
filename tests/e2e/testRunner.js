@@ -171,20 +171,28 @@ const runTests = async () => {
     const server = createServerInstance();
     await server.start();
 
-    // Create a dict in which we will store the run durations for all tests
-    const durationsByTestName = {};
+    // Create a dict in which we will store the collected metrics for all tests
+    const resultsByTestName = {};
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        if (testResult.duration < 0) {
-            return;
+        let result = 0;
+
+        if ('duration' in testResult) {
+            if (testResult.duration < 0) {
+                return;
+            }
+            result = testResult.duration;
+        }
+        if ('renderCount' in testResult) {
+            result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+        Logger.log(`[LISTENER] Test '${testResult.name}' measured ${result}`);
+        resultsByTestName[testResult.name] = (resultsByTestName[testResult.name] || []).concat(result);
     });
 
     // Run the tests
@@ -275,8 +283,8 @@ const runTests = async () => {
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
 
-    for (const testName of _.keys(durationsByTestName)) {
-        const stats = math.getStats(durationsByTestName[testName]);
+    for (const testName of _.keys(resultsByTestName)) {
+        const stats = math.getStats(resultsByTestName[testName]);
         await writeTestStats(
             {
                 name: testName,

@@ -17,8 +17,9 @@ const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
  * Submits a test result to the server.
  * Note: a test can have multiple test results.
  */
-const submitTestResults = (testResult: TestResult): Promise<void> =>
-    fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
+const submitTestResults = (testResult: TestResult): Promise<void> => {
+    console.debug(`[E2E] Submitting test result '${testResult.name}'…`);
+    return fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
         method: 'POST',
         headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -39,16 +40,49 @@ const submitTestResults = (testResult: TestResult): Promise<void> =>
                 throw new Error(errorMsg);
             });
     });
+};
 
 const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
-const getTestConfig = (): Promise<TestConfig> =>
+let currentActiveTestConfig = null;
+/**
+ * @returns {Promise<TestConfig>}
+ */
+const getTestConfig = () =>
     fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
-        .then((res: Response): Promise<TestConfig> => res.json())
-        .then((config: TestConfig) => config);
+        .then((res) => res.json())
+        .then((config) => {
+            currentActiveTestConfig = config;
+            return config;
+        });
+
+const getCurrentActiveTestConfig = () => currentActiveTestConfig;
+
+const sendNativeCommand = (payload) =>
+    fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    }).then((res) => {
+        if (res.status === 200) {
+            return true;
+        }
+        const errorMsg = `Sending native command failed with status code ${res.status}`;
+        res.json()
+            .then((responseText) => {
+                throw new Error(`${errorMsg}: ${responseText}`);
+            })
+            .catch(() => {
+                throw new Error(errorMsg);
+            });
+    });
 
 export default {
     submitTestResults,
     submitTestDone,
     getTestConfig,
+    getCurrentActiveTestConfig,
+    sendNativeCommand,
 };
