@@ -24,6 +24,7 @@ const propTypes = {
 function InvertedFlatList(props) {
     const {innerRef, contentContainerStyle} = props;
 
+    
     const lastScrollEvent = useRef(null);
     const scrollEndTimeout = useRef(null);
     const updateInProgress = useRef(false);
