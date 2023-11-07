@@ -58,7 +58,7 @@ When you click the "Settings" link in the banner in Expensify, you'll be directe
 - To resolve this issue, confirm that the email address is indeed associated with an active inbox. Then, click the link that says "here," and your email should be unblocked shortly.
 - SMTP Error (Gray Box): In some cases, you might encounter a gray box with an SMTP error message. This error can vary, but it typically looks something like this:
 
-![ExpensifyHelp_SMTPError](https://help.expensify.com/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
+![ExpensifyHelp_SMTPError]({{site.url}}/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
 
 **These look a bit cryptic, yes, but hang in there!** 
 
