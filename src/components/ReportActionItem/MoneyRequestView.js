@@ -8,6 +8,7 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -37,7 +38,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
@@ -178,7 +178,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                 )}
                 {!hasReceipt && Permissions.canUseViolations() && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
-                        <ReceiptEmptyState hasError={hasErrors} onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))} />
+                        <ReceiptEmptyState
+                            hasError={hasErrors}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                        />
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>

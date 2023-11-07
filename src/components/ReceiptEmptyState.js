@@ -1,11 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import {  View } from 'react-native';
+import React from 'react';
+import {View} from 'react-native';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
@@ -14,20 +13,22 @@ const propTypes = {
 
     /** Callback to be called on onPress */
     onPress: PropTypes.func,
-}
+};
 
 const defaultProps = {
     hasError: false,
     onPress: undefined,
-}
-
+};
 
 // Create a component with the above instructions:
 
 function ReceiptEmptyState({hasError, onPress}) {
     return (
-        <PressableWithoutFeedback accessibilityRole="button" onPress={onPress}>
-            <View  style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}>
+        <PressableWithoutFeedback
+            accessibilityRole="button"
+            onPress={onPress}
+        >
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}>
                 <Icon
                     src={Expensicons.EmptyStateAttachReceipt}
                     width={variables.iconSizeUltraLarge}
@@ -37,7 +38,7 @@ function ReceiptEmptyState({hasError, onPress}) {
                 <Expensicons.EmptyStateAttachReceipt />
             </View>
         </PressableWithoutFeedback>
-    )
+    );
 }
 
 ReceiptEmptyState.displayName = 'ReceiptEmptyState';
