@@ -24,5 +24,8 @@ jobs:
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
+      - name: Install Act
+        run: brew install act
+
       - name: Run tests
         run: npm run workflow-test
