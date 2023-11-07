@@ -363,7 +363,7 @@ function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FN
 /**
  * Returns the translation key to use for the header title
  */
-function getHeaderTitle(transaction: Transaction): string {
+function getHeaderTitleTranslationKey(transaction: Transaction): string {
     const headerTitles = {
         [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
@@ -505,7 +505,7 @@ export {
     getUpdatedTransaction,
     getTransaction,
     getDescription,
-    getHeaderTitle,
+    getHeaderTitleTranslationKey,
     getRequestType,
     isManualRequest,
     isScanRequest,

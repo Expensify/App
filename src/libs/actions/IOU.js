@@ -2,7 +2,6 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
-import moment from 'moment';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -126,7 +125,7 @@ Onyx.connect({
 function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const created = currentDate || moment().format('YYYY-MM-DD');
+    const created = currentDate || format(new Date(), 'YYYY-MM-DD');
     const comment = {};
 
     // Add initial empty waypoints when starting a distance request
@@ -2929,7 +2928,7 @@ function replaceReceipt(transactionID, receipt, filePath) {
  * @param {String} transactionID of the transaction to set the participants of
  * @param {Object} report attached to the transaction
  */
-function autoAssignParticipants(transactionID, report) {
+function setMoneyRequestParticipants(transactionID, report) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -3110,7 +3109,7 @@ function getIOUReportID(iou, route) {
 }
 
 export {
-    autoAssignParticipants,
+    setMoneyRequestParticipants,
     createDistanceRequest,
     editMoneyRequest,
     deleteMoneyRequest,

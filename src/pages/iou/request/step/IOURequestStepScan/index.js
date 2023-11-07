@@ -139,7 +139,7 @@ function IOURequestStepScan({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            IOU.autoAssignParticipants(transactionID, report);
+            IOU.setMoneyRequestParticipants(transactionID, report);
             Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
             return;
         }
@@ -168,7 +168,7 @@ function IOURequestStepScan({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            IOU.autoAssignParticipants(transactionID, report);
+            IOU.setMoneyRequestParticipants(transactionID, report);
             Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
             return;
         }

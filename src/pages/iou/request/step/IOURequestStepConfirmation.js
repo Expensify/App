@@ -76,7 +76,7 @@ function IOURequestStepConfirmation({
     const receiptPath = lodashGet(transaction, 'receipt.source');
 
     const requestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitle(transaction));
+    const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
 
     const participants = useMemo(
         () =>

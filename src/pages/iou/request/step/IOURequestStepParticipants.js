@@ -38,7 +38,7 @@ function IOURequestStepParticipants({
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
+    const headerTitle = translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
 
     const addParticipant = useCallback(
         (val) => {
