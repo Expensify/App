@@ -1,3 +1,4 @@
+import {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -35,13 +36,13 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false): Report {
-    if (currency !== iouReport.currency) {
+function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+    if (currency !== iouReport?.currency) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate: OnyxEntry<Report> = {...iouReport};
 
     if (iouReportUpdate.total) {
         if (actorAccountID === iouReport.ownerAccountID) {
