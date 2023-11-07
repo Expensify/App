@@ -19,12 +19,6 @@ type LoungeAccessIconProps = {
     height?: number;
 };
 
-const defaultProps: LoungeAccessIconProps = {
-    fill: themeColors.icon,
-    hovered: 'false',
-    pressed: 'false',
-};
-
 function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed = 'false', width, height}: LoungeAccessIconProps) {
     return (
         <Svg
@@ -72,6 +66,4 @@ function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed =
 }
 
 LoungeAccessIcon.displayName = 'LoungeAccessIcon';
-LoungeAccessIcon.defaultProps = defaultProps;
-
 export default LoungeAccessIcon;
