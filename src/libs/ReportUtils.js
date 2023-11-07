@@ -3699,11 +3699,7 @@ function getMoneyRequestOptions(report, reportParticipants) {
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
     // Your own workspace chats will have the split bill option.
-    if (
-        (isChatRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && hasMultipleOtherParticipants) ||
-        (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
-    ) {
+    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
