@@ -130,7 +130,7 @@ function getPlatformEquivalentForKeys(keys: ShortcutModifiers): string[] {
  */
 function subscribe(
     key: string,
-    callback: () => void,
+    callback: (event?: KeyboardEvent) => void,
     descriptionKey: string,
     modifiers: ShortcutModifiers = ['CTRL'],
     captureOnInputs = false,
