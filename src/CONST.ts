@@ -1129,7 +1129,8 @@ const CONST = {
     },
 
     IOU: {
-        OPTIMISTIC_TRANSACTION_ID: '1', // Web-E API throws out anything that isn't a number, use a number that won't exist in production
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
