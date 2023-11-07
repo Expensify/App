@@ -53,7 +53,7 @@ const mockedResponseMap = getMockedReportsMap(1000);
 
 test('getOptionData on 1k reports', async () => {
     const report = LHNTestUtils.getFakeReportWithPolicy([1, 2], 1, true) as Report;
-    const reportActions = ReportTestUtils.getMockedReportsMap();
+    const reportActions = ReportTestUtils.getMockedReportActionsMap();
     const personalDetails = LHNTestUtils.fakePersonalDetails;
     const preferredLocale = 'en';
     const policy = LHNTestUtils.getFakePolicy() as Policy;
@@ -72,7 +72,7 @@ test('getOrderedReportIDs on 1k reports', async () => {
     const allReports = getMockedReportsMap() as Record<string, Report>;
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
     const policies = getMockedPoliciesMap();
-    const reportActions = ReportTestUtils.getMockedReportsMap();
+    const reportActions = ReportTestUtils.getMockedReportActionsMap();
 
     Onyx.multiSet({
         ...mockedResponseMap,
