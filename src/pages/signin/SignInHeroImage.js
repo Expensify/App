@@ -34,6 +34,7 @@ function SignInHeroImage(props) {
             loop
             autoPlay
             style={[styles.alignSelfCenter, imageSize]}
+            webStyle={{...styles.alignSelfCenter, ...imageSize}}
         />
     );
 }

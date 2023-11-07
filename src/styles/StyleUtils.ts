@@ -16,7 +16,7 @@ import spacing from './utilities/spacing';
 import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
-type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
+type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -273,7 +273,8 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
-    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -651,7 +652,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -748,9 +749,8 @@ function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
-    const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
-    return parseStyleAsArray(functionAppliedStyle);
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): StyleProp<ViewStyle> {
+    return typeof style === 'function' ? style(state) : style;
 }
 
 /**
@@ -1071,7 +1071,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};
@@ -1097,7 +1097,7 @@ function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 
@@ -1316,6 +1316,13 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1361,6 +1368,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,

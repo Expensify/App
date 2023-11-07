@@ -17,9 +17,10 @@ import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeDefault} from './themes/types';
+import {ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
@@ -80,7 +81,7 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobile
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
-const picker = (theme: ThemeDefault) =>
+const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
         color: theme.text,
@@ -96,14 +97,14 @@ const picker = (theme: ThemeDefault) =>
         textAlign: 'left',
     } satisfies TextStyle);
 
-const link = (theme: ThemeDefault) =>
+const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
         fontFamily: fontFamily.EXP_NEUE,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
-const baseCodeTagStyles = (theme: ThemeDefault) =>
+const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
         borderRadius: 5,
@@ -116,7 +117,7 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
-const webViewStyles = (theme: ThemeDefault) =>
+const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
@@ -211,7 +212,7 @@ const webViewStyles = (theme: ThemeDefault) =>
         },
     } satisfies WebViewStyle);
 
-const styles = (theme: ThemeDefault) =>
+const styles = (theme: ThemeColors) =>
     ({
         // Add all of our utility and helper styles
         ...spacing,
@@ -324,6 +325,18 @@ const styles = (theme: ThemeDefault) =>
 
         textAlignLeft: {
             textAlign: 'left',
+        },
+
+        textUnderline: {
+            textDecorationLine: 'underline',
+        },
+
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
+
+        verticalAlignTop: {
+            verticalAlign: 'top',
         },
 
         label: {
@@ -1029,7 +1042,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 12,
             paddingTop: 10,
             paddingBottom: 10,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         textInputPrefixWrapper: {
@@ -1048,7 +1061,7 @@ const styles = (theme: ThemeDefault) =>
             color: theme.text,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         pickerContainer: {
@@ -1630,7 +1643,7 @@ const styles = (theme: ThemeDefault) =>
 
         chatContentScrollView: {
             flexGrow: 1,
-            justifyContent: 'flex-start',
+            justifyContent: 'flex-end',
             paddingBottom: 16,
         },
 
@@ -1774,13 +1787,13 @@ const styles = (theme: ThemeDefault) =>
                 ...overflowXHidden,
 
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-                // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+                // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
                 paddingHorizontal: variables.avatarChatSpacing,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
             },
             0,
         ),
@@ -1789,7 +1802,7 @@ const styles = (theme: ThemeDefault) =>
             alignSelf: 'stretch',
             flex: 1,
             maxHeight: '100%',
-            textAlignVertical: 'top',
+            verticalAlign: 'top',
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2119,6 +2132,8 @@ const styles = (theme: ThemeDefault) =>
         pointerEventsNone,
 
         pointerEventsAuto,
+
+        pointerEventsBoxNone,
 
         headerBar: {
             overflow: 'hidden',
@@ -2456,7 +2471,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         flipUpsideDown: {
-            transform: [{rotate: '180deg'}],
+            transform: `rotate(180deg)`,
         },
 
         navigationScreenCardStyle: {
@@ -2757,7 +2772,7 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            shadowColor: theme.shadow,
+            boxShadow: `${theme.shadow}`,
             ...spacing.p5,
         },
 
@@ -2856,7 +2871,7 @@ const styles = (theme: ThemeDefault) =>
             },
             text: {
                 color: theme.textSupporting,
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
                 fontSize: variables.fontSizeLabel,
             },
             errorDot: {
@@ -3197,11 +3212,11 @@ const styles = (theme: ThemeDefault) =>
         miniQuickEmojiReactionText: {
             fontSize: 15,
             lineHeight: 20,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         emojiReactionBubbleText: {
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         reactionCounterText: {
@@ -3308,7 +3323,6 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmount: {
             ...headlineFont,
             fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
             color: colors.green400,
         },
 
@@ -3400,7 +3414,6 @@ const styles = (theme: ThemeDefault) =>
 
         linkPreviewImage: {
             flex: 1,
-            resizeMode: 'contain',
             borderRadius: 8,
             marginTop: 8,
         },
@@ -3553,7 +3566,8 @@ const styles = (theme: ThemeDefault) =>
         googlePillButtonContainer: {
             colorScheme: 'light',
             height: 40,
-            width: 219,
+            width: 300,
+            overflow: 'hidden',
         },
 
         thirdPartyLoadingContainer: {
@@ -3728,21 +3742,6 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImagesMoreCornerTriangle: {
             position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 0,
-            height: 0,
-            borderStyle: 'solid',
-            borderWidth: 0,
-            borderBottomWidth: 40,
-            borderLeftWidth: 40,
-            borderColor: 'transparent',
-            borderBottomColor: theme.cardBG,
-        },
-
-        reportActionItemImagesMoreCornerTriangleHighlighted: {
-            borderColor: 'transparent',
-            borderBottomColor: theme.border,
         },
 
         assignedCardsIconContainer: {
@@ -3782,7 +3781,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         rotate90: {
-            transform: [{rotate: '90deg'}],
+            transform: 'rotate(90deg)',
         },
 
         emojiStatusLHN: {
@@ -4008,12 +4007,8 @@ const styles = (theme: ThemeDefault) =>
         },
     } satisfies Styles);
 
-// For now we need to export the styles function that takes the theme as an argument
-// as something named different than "styles", because a lot of files import the "defaultStyles"
-// as "styles", which causes ESLint to throw an error.
-// TODO: Remove "stylesGenerator" and instead only return "styles" once the app is migrated to theme switching hooks and HOCs and "styles/theme/default.js" is not used anywhere anymore (GH issue: https://github.com/Expensify/App/issues/27337)
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator};
+export {stylesGenerator, type Styles};
