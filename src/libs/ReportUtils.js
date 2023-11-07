@@ -79,6 +79,30 @@ Onyx.connect({
     callback: (val) => (loginList = val),
 });
 
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        priorityMode = nextPriorityMode;
+    },
+});
+
+let allBetas;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (nextBetas) => {
+        allBetas = nextBetas;
+    },
+});
+
+let allReportActionsForReportUtils;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (nextReportActions) => {
+        allReportActionsForReportUtils = nextReportActions;
+    },
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -3364,6 +3388,30 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
 }
 
 /**
+ * @param {Array<String>} filterReportIDs
+ * @returns {Object}
+ */
+function findLastAccessibleReportID(filterReportIDs = []) {
+    // If it's the user's first time using New Expensify, then they could either have:
+    //   - just a Concierge report, if so we'll return that
+    //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
+    // If it's the latter, we'll use the deeplinked report over the Concierge report,
+    // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
+    let sortedReports = sortReportsByLastRead(allReports);
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+
+    sortedReports = sortedReports.filter(
+        (report) =>
+            shouldReportBeInOptionList(report, null, isInGSDMode, allBetas, allPolicies, allReportActionsForReportUtils, true) &&
+            !_.contains(filterReportIDs, report.reportID) &&
+            report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    );
+
+    const reportID = lodashGet(_.last(sortedReports), 'reportID');
+    return reportID;
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
  * @param {Array<Number>} newParticipantList
  * @returns {Array|undefined}
@@ -4328,4 +4376,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    findLastAccessibleReportID,
 };

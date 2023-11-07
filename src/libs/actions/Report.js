@@ -2078,6 +2078,12 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     );
 
     if (isWorkspaceMemberLeavingWorkspaceRoom) {
+        const lastAccessedReportId = ReportUtils.findLastAccessibleReportID([reportID]);
+
+        if (lastAccessedReportId) {
+            Navigation.dismissModal(lastAccessedReportId);
+            return;
+        }
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));

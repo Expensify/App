@@ -315,6 +315,11 @@ function ReportScreen({
                 Navigation.setShouldPopAllStateOnUP();
                 Navigation.goBack(ROUTES.HOME, false, true);
             }
+            const lastAccessedReportId = ReportUtils.findLastAccessibleReportID();
+            if (lastAccessedReportId) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportId));
+                return;
+            }
             if (prevReport.parentReportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
