@@ -34,4 +34,7 @@ jobs:
         run: echo "ACT_BINARY=$(which act)" >> $GITHUB_ENV
 
       - name: Run tests
-        run: npm run workflow-test
+        run: |
+          echo "$(pwd)"
+          echo "$(ls)"
+          npm run workflow-test
