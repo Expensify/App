@@ -2026,20 +2026,20 @@ function getModifiedExpenseMessage(reportAction) {
     }
 
     let message = '';
+    if (changeFragments.length > 0) {
+        message = changeFragments.reduce((acc, value, index) => {
+            return `${acc} ${value},`;
+        }, `${message}\n${Localize.translateLocal('iou.changed')}`);
+    }
     if (setFragments.length > 0) {
         message = setFragments.reduce((acc, value) => {
             return `${acc} ${value},`;
-        }, `${message} ${Localize.translateLocal('iou.set')}`);
-    }
-    if (changeFragments.length > 0) {
-        message = changeFragments.reduce((acc, value) => {
-            return `${acc} ${value},`;
-        }, `${message} ${Localize.translateLocal('iou.changed')}`);
+        }, `${message}\n${Localize.translateLocal('iou.set')}`);
     }
     if (removalFragments.length > 0) {
         message = removalFragments.reduce((acc, value) => {
             return `${acc} ${value},`;
-        }, `${message} ${Localize.translateLocal('iou.removed')}`);
+        }, `${message}\n${Localize.translateLocal('iou.removed')}`);
     }
     if (message === '') {
         return message;
