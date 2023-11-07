@@ -4046,21 +4046,6 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID,
 }
 
 /**
- * Return the mention message of a list accounntID
- * @param {Array<String>} accountIDs
- * @returns {String}
- */
-function getMentionMessage(accountIDs) {
-    const listMention = _.map(accountIDs, (accountID) => {
-        const personalDetail = lodashGet(allPersonalDetails, accountID);
-        const displayNameOrLogin =
-            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
-        return `@${displayNameOrLogin}`;
-    });
-    return listMention.join(' and ');
-}
-
-/**
  * Returns an array of the participants Ids of a report
  *
  * @param {Object} report
@@ -4137,8 +4122,22 @@ function getIOUReportActionDisplayMessage(reportAction) {
  * @returns {String}
  */
 function getRoomChannelLogMemberMessage(reportAction) {
-    const title = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
-    return `${title} ${getMentionMessage(reportAction.originalMessage.targetAccountIDs)}`;
+    const actionPerformed = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
+    const listMention = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+    const lastMention = listMention.pop();
+    let lastPrefix = ', and ';
+    if (listMention.length === 0) {
+        lastPrefix = '';
+    }
+    if (listMention.length === 1) {
+        lastPrefix = ' and ';
+    }
+    return `${actionPerformed} ${listMention.join(', ')}${lastPrefix}${lastMention}`;
 }
 
 /**
