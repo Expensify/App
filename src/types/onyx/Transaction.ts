@@ -57,7 +57,7 @@ type Transaction = {
     created: string;
     currency: string;
     errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'route'>;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
     // Used during the creation flow before the transaction is saved to the server

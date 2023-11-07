@@ -812,7 +812,6 @@ export default {
         title: 'Private notes',
         personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
-        notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
         myNote: 'My note',
     },
@@ -1639,6 +1638,7 @@ export default {
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
+        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",

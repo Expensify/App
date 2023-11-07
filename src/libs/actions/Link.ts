@@ -1,6 +1,4 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import * as API from '@libs/API';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
@@ -10,29 +8,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+    callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
 });
 
-let currentUserEmail;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserEmail = lodashGet(val, 'email', '')),
+    callback: (value) => (currentUserEmail = value?.email ?? ''),
 });
 
-/**
- * @param {String} [url] the url path
- * @param {String} [shortLivedAuthToken]
- *
- * @returns {Promise<string>}
- */
-function buildOldDotURL(url, shortLivedAuthToken) {
+function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
     const hasHashParams = url.indexOf('#') !== -1;
     const hasURLParams = url.indexOf('?') !== -1;
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-
-    const params = _.compact([authTokenParam, emailParam]).join('&');
+    const paramsArray = [authTokenParam, emailParam];
+    const params = paramsArray.filter(Boolean).join('&');
 
     return Environment.getOldDotEnvironmentURL().then((environmentURL) => {
         const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
@@ -43,17 +35,13 @@ function buildOldDotURL(url, shortLivedAuthToken) {
 }
 
 /**
- * @param {String} url
- * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
+function openExternalLink(url: string, shouldSkipCustomSafariLogic = false) {
     asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
-/**
- * @param {String} url the url path
- */
-function openOldDotLink(url) {
+function openOldDotLink(url: string) {
     if (isNetworkOffline) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
         return;
@@ -63,7 +51,7 @@ function openOldDotLink(url) {
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
-            .then((response) => buildOldDotURL(url, response.shortLivedAuthToken))
+            .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
     );

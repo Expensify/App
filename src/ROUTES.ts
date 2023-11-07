@@ -2,7 +2,7 @@ import {ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 /**
- * Returns the URL with an encoded URI component for the backTo param which can be added to the end of URLs
+ * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
  */
 function getUrlWithBackToParam(url: string, backTo?: string): string {
     const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
@@ -105,7 +105,10 @@ export default {
         route: 'settings/profile/personal-details/address/country',
         getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
-    SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
+    SETTINGS_CONTACT_METHODS: {
+        route: 'settings/profile/contact-methods',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
+    },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,

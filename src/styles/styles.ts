@@ -17,6 +17,7 @@ import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
 import {ThemeColors} from './themes/types';
@@ -328,6 +329,14 @@ const styles = (theme: ThemeColors) =>
 
         textUnderline: {
             textDecorationLine: 'underline',
+        },
+
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
+
+        verticalAlignTop: {
+            verticalAlign: 'top',
         },
 
         label: {
@@ -1050,7 +1059,7 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
             paddingTop: 10,
             paddingBottom: 10,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         textInputPrefixWrapper: {
@@ -1069,7 +1078,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         pickerContainer: {
@@ -1651,7 +1660,7 @@ const styles = (theme: ThemeColors) =>
 
         chatContentScrollView: {
             flexGrow: 1,
-            justifyContent: 'flex-start',
+            justifyContent: 'flex-end',
             paddingBottom: 16,
         },
 
@@ -1795,13 +1804,13 @@ const styles = (theme: ThemeColors) =>
                 ...overflowXHidden,
 
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-                // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+                // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
                 paddingHorizontal: variables.avatarChatSpacing,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
             },
             0,
         ),
@@ -1810,7 +1819,7 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'stretch',
             flex: 1,
             maxHeight: '100%',
-            textAlignVertical: 'top',
+            verticalAlign: 'top',
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2140,6 +2149,8 @@ const styles = (theme: ThemeColors) =>
         pointerEventsNone,
 
         pointerEventsAuto,
+
+        pointerEventsBoxNone,
 
         headerBar: {
             overflow: 'hidden',
@@ -2477,7 +2488,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: [{rotate: '180deg'}],
+            transform: `rotate(180deg)`,
         },
 
         navigationScreenCardStyle: {
@@ -2778,7 +2789,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            shadowColor: theme.shadow,
+            boxShadow: `${theme.shadow}`,
             ...spacing.p5,
         },
 
@@ -2877,7 +2888,7 @@ const styles = (theme: ThemeColors) =>
             },
             text: {
                 color: theme.textSupporting,
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
                 fontSize: variables.fontSizeLabel,
             },
             errorDot: {
@@ -3222,11 +3233,11 @@ const styles = (theme: ThemeColors) =>
         miniQuickEmojiReactionText: {
             fontSize: 15,
             lineHeight: 20,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         emojiReactionBubbleText: {
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         reactionCounterText: {
@@ -3424,7 +3435,6 @@ const styles = (theme: ThemeColors) =>
 
         linkPreviewImage: {
             flex: 1,
-            resizeMode: 'contain',
             borderRadius: 8,
             marginTop: 8,
         },
@@ -3792,7 +3802,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: [{rotate: '90deg'}],
+            transform: 'rotate(90deg)',
         },
 
         emojiStatusLHN: {
