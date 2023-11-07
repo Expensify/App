@@ -4118,26 +4118,31 @@ function getIOUReportActionDisplayMessage(reportAction) {
 
 /**
  * Return room channel log display message
+ * 
  * @param {Object} reportAction
  * @returns {String}
  */
 function getRoomChannelLogMemberMessage(reportAction) {
     const actionPerformed = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
-    const listMention = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+
+    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
         const personalDetail = lodashGet(allPersonalDetails, accountID);
         const displayNameOrLogin =
             LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
         return `@${displayNameOrLogin}`;
     });
-    const lastMention = listMention.pop();
-    let lastPrefix = ', and ';
-    if (listMention.length === 0) {
-        lastPrefix = '';
+
+    const lastMention = mentions.pop();
+
+    if (mentions.length === 0) {
+        return `${actionPerformed} ${lastMention}`;
     }
-    if (listMention.length === 1) {
-        lastPrefix = ' and ';
+
+    if (mentions.length === 1) {
+        return `${actionPerformed} ${mentions[0]} and ${lastMention}`;
     }
-    return `${actionPerformed} ${listMention.join(', ')}${lastPrefix}${lastMention}`;
+
+    return `${actionPerformed} ${mentions.join(', ')}, and ${lastMention}`;
 }
 
 /**
