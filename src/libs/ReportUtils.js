@@ -482,7 +482,7 @@ function isChatThread(report) {
  * @returns {Boolean}
  */
 function isDM(report) {
-    return !getChatType(report);
+    return isChatReport(report) && !getChatType(report);
 }
 
 /**
@@ -3617,7 +3617,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
  * - in an open or submitted expense report tied to a policy expense chat the user owns
  *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
- * - in DM chat
+ * - in a 1:1 DM chat
  *
  * @param {Object} report
  * @param {Array<Number>} otherParticipants
@@ -3627,6 +3627,11 @@ function canRequestMoney(report, otherParticipants) {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
+    }
+
+    // Users can only request money in DMs if they are a 1:1 DM
+    if (isDM(report)) {
+        return otherParticipants.length === 1;
     }
 
     // Prevent requesting money if pending IOU report waiting for their bank account already exists
