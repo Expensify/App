@@ -1809,8 +1809,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const displayName = isExpenseReport(report) && isPreviewMessageForParentChatReport ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
-    const payerName = shouldHidePayerName || report.managerID === currentUserAccountID ? '' : displayName;
+    let displayName = isExpenseReport(report) && isPreviewMessageForParentChatReport ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    displayName = isPreviewMessageForParentChatReport ? displayName : `${displayName}:`;
+    const payerName = shouldHidePayerName || (report.managerID === currentUserAccountID && !isPreviewMessageForParentChatReport) ? '' : displayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1850,9 +1851,17 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, formattedAmount});
     }
 
-    const requestor = shouldHidePayerName || report.lastActorAccountID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.lastActorAccountID, true);
+    if (isPreviewMessageForParentChatReport) {
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    }
 
-    return Localize.translateLocal('iou.requestedAmount', {requestor, formattedAmount});
+    let requestorDisplayName = shouldHidePayerName || report.lastActorAccountID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.lastActorAccountID, !isPreviewMessageForParentChatReport);
+    requestorDisplayName = isPreviewMessageForParentChatReport ? requestorDisplayName : `${requestorDisplayName}:`;
+
+    const requestor = shouldHidePayerName || report.lastActorAccountID === currentUserAccountID ? '' : requestorDisplayName
+    const requestedAmount = !isIOUReport(report) ? formattedAmount : CurrencyUtils.convertToDisplayString(Math.abs(reportAction.originalMessage.amount), report.currency);
+
+    return Localize.translateLocal('iou.requestedAmount', {requestor, formattedAmount: requestedAmount});
 }
 
 /**
