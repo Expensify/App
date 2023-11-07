@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -71,20 +70,18 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
-                <Text style={[styles.label, styles.mb2]}>{translate('common.websiteExample')}</Text>
-                <TextInput
-                    inputID={companyWebsiteKey}
-                    label={translate('businessInfoStep.companyWebsite')}
-                    accessibilityLabel={translate('businessInfoStep.companyWebsite')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    containerStyles={[styles.mt4]}
-                    defaultValue={defaultCompanyWebsite}
-                    shouldSaveDraft
-                    keyboardType={CONST.KEYBOARD_TYPE.URL}
-                />
-            </View>
+            <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
+            <Text style={[styles.label, styles.mb2]}>{translate('common.websiteExample')}</Text>
+            <TextInput
+                inputID={companyWebsiteKey}
+                label={translate('businessInfoStep.companyWebsite')}
+                accessibilityLabel={translate('businessInfoStep.companyWebsite')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                containerStyles={[styles.mt4]}
+                defaultValue={defaultCompanyWebsite}
+                shouldSaveDraft
+                keyboardType={CONST.KEYBOARD_TYPE.URL}
+            />
         </Form>
     );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -54,22 +53,20 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
-                <TextInput
-                    inputID={companyTaxIdKey}
-                    label={translate('businessInfoStep.taxIDNumber')}
-                    accessibilityLabel={translate('businessInfoStep.taxIDNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    disabled={shouldDisableCompanyTaxID}
-                    placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
-                    defaultValue={defaultCompanyTaxId}
-                    shouldSaveDraft
-                    shouldUseDefaultValue={shouldDisableCompanyTaxID}
-                />
-            </View>
+            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
+            <TextInput
+                inputID={companyTaxIdKey}
+                label={translate('businessInfoStep.taxIDNumber')}
+                accessibilityLabel={translate('businessInfoStep.taxIDNumber')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                disabled={shouldDisableCompanyTaxID}
+                placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
+                defaultValue={defaultCompanyTaxId}
+                shouldSaveDraft
+                shouldUseDefaultValue={shouldDisableCompanyTaxID}
+            />
         </Form>
     );
 }

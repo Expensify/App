@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -42,15 +41,13 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={styles.textHeadline}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
-                <StatePicker
-                    inputID={companyIncorporationStateKey}
-                    label={translate('businessInfoStep.incorporationState')}
-                    defaultValue={defaultCompanyIncorporationState}
-                    shouldSaveDraft
-                />
-            </View>
+            <Text style={styles.textHeadline}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
+            <StatePicker
+                inputID={companyIncorporationStateKey}
+                label={translate('businessInfoStep.incorporationState')}
+                defaultValue={defaultCompanyIncorporationState}
+                shouldSaveDraft
+            />
         </Form>
     );
 }

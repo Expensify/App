@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
@@ -43,17 +42,15 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
-                <Picker
-                    inputID={companyIncorporationTypeKey}
-                    label={translate('businessInfoStep.companyType')}
-                    items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
-                    placeholder={{value: '', label: '-'}}
-                    defaultValue={defaultIncorporationType}
-                    shouldSaveDraft
-                />
-            </View>
+            <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
+            <Picker
+                inputID={companyIncorporationTypeKey}
+                label={translate('businessInfoStep.companyType')}
+                items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
+                placeholder={{value: '', label: '-'}}
+                defaultValue={defaultIncorporationType}
+                shouldSaveDraft
+            />
         </Form>
     );
 }

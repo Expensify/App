@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -68,17 +67,15 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <View>
-                <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
-                <Text>{translate('common.noPO')}</Text>
-                <AddressForm
-                    inputKeys={INPUT_KEYS}
-                    shouldSaveDraft
-                    translate={translate}
-                    defaultValues={defaultValues}
-                    streetTranslationKey="common.companyAddress"
-                />
-            </View>
+            <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
+            <Text>{translate('common.noPO')}</Text>
+            <AddressForm
+                inputKeys={INPUT_KEYS}
+                shouldSaveDraft
+                translate={translate}
+                defaultValues={defaultValues}
+                streetTranslationKey="common.companyAddress"
+            />
         </Form>
     );
 }

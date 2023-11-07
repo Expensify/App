@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -46,20 +45,18 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
-                <TextInput
-                    label={translate('businessInfoStep.businessName')}
-                    accessibilityLabel={translate('businessInfoStep.businessName')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    inputID={companyNameKey}
-                    containerStyles={[styles.mt4]}
-                    disabled={shouldDisableCompanyName}
-                    defaultValue={defaultCompanyName}
-                    shouldSaveDraft
-                    shouldUseDefaultValue={shouldDisableCompanyName}
-                />
-            </View>
+            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
+            <TextInput
+                label={translate('businessInfoStep.businessName')}
+                accessibilityLabel={translate('businessInfoStep.businessName')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                inputID={companyNameKey}
+                containerStyles={[styles.mt4]}
+                disabled={shouldDisableCompanyName}
+                defaultValue={defaultCompanyName}
+                shouldSaveDraft
+                shouldUseDefaultValue={shouldDisableCompanyName}
+            />
         </Form>
     );
 }

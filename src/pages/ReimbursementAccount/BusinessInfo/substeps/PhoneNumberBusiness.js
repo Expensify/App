@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -32,6 +31,7 @@ const validate = (values) => {
     if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
         errors.companyPhone = 'bankAccount.error.phoneNumber';
     }
+
     return errors;
 };
 
@@ -49,20 +49,18 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <View>
-                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
-                <TextInput
-                    inputID={companyPhoneNumberKey}
-                    label={translate('common.phoneNumber')}
-                    accessibilityLabel={translate('common.phoneNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                    placeholder={translate('common.phoneNumberPlaceholder')}
-                    defaultValue={defaultCompanyPhoneNumber}
-                    shouldSaveDraft
-                />
-            </View>
+            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
+            <TextInput
+                inputID={companyPhoneNumberKey}
+                label={translate('common.phoneNumber')}
+                accessibilityLabel={translate('common.phoneNumber')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                placeholder={translate('common.phoneNumberPlaceholder')}
+                defaultValue={defaultCompanyPhoneNumber}
+                shouldSaveDraft
+            />
         </Form>
     );
 }
