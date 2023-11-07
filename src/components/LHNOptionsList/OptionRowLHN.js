@@ -116,8 +116,7 @@ function OptionRowLHN(props) {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const shouldShowGreenDotIndicator =
-        !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -152,7 +151,7 @@ function OptionRowLHN(props) {
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
+    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
 
     const isGroupChat =
         optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
