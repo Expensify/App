@@ -136,7 +136,7 @@ function BaseInvertedFlatList(props) {
             windowSize={15}
             maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
-                autoscrollToTopThreshold: variables.listItemHeightNormal,
+                // autoscrollToTopThreshold: variables.listItemHeightNormal,
             }}
             inverted
         />

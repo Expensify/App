@@ -11,6 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -95,6 +96,8 @@ function getReportActionID(route) {
 function ReportActionsView({reportActions: allReportActions, fetchReport, ...props}) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
+    const reportScrollManager = useReportScrollManager();
+    const {scrollToBottom} = reportScrollManager;
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
@@ -105,22 +108,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const [isLinkingToExtendedMessage, setLinkingToExtendedMessage] = useState(false);
     const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
 
-    useEffect(() => {
-        let timeoutIdCatted;
-        let timeoutIdExtended;
-        if (!isLoadingLinkedMessage) {
-            timeoutIdCatted = setTimeout(() => {
-                setLinkingToCattedMessage(false);
-            }, 100);
-            timeoutIdExtended = setTimeout(() => {
-                setLinkingToExtendedMessage(false);
-            }, 200);
-        }
-        return () => {
-            clearTimeout(timeoutIdCatted);
-            clearTimeout(timeoutIdExtended);
-        };
-    }, [isLoadingLinkedMessage]);
 
     const {catted: reportActionsBeforeAndIncludingLinked, expanded: reportActionsBeforeAndIncludingLinkedExpanded} = useMemo(() => {
         if (reportActionID && allReportActions?.length) {
@@ -158,10 +145,28 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (!reportActionID) {
             return;
         }
+        if (scrollToBottom) {
+            scrollToBottom();
+        }
         setLinkingToCattedMessage(true);
         setLinkingToExtendedMessage(true);
         fetchReport();
-    }, [route, reportActionID, fetchReport]);
+
+        const timeoutIdCatted = setTimeout(() => {
+            setLinkingToCattedMessage(false);
+        }, 100);
+        const timeoutIdExtended = setTimeout(() => {
+            setLinkingToExtendedMessage(false);
+        }, 200);
+
+        return () => {
+            if (!timeoutIdCatted && !timeoutIdExtended) {
+                return;
+            }
+            clearTimeout(timeoutIdCatted);
+            clearTimeout(timeoutIdExtended);
+        };
+    }, [route, reportActionID, fetchReport, scrollToBottom]);
 
     const isReportActionArrayCatted = useMemo(() => {
         if (reportActions?.length !== allReportActions?.length && reportActionID) {
@@ -346,6 +351,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
                 isLoadingOlderReportActions={props.isLoadingOlderReportActions}
                 isLoadingNewerReportActions={props.isLoadingNewerReportActions}
+                reportScrollManager={reportScrollManager}
                 policy={props.policy}
             />
             <PopoverReactionList ref={reactionListRef} />

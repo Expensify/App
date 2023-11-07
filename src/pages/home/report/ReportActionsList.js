@@ -130,9 +130,8 @@ function ReportActionsList({
     loadOlderChats,
     onLayout,
     isComposerFullSize,
-    isLinkingLoader,
+    reportScrollManager,
 }) {
-    const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const route = useRoute();
@@ -360,7 +359,7 @@ function ReportActionsList({
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const contentContainerStyle = useMemo(
-        () => [styles.chatContentScrollView,  isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
         [isLoadingNewerReportActions],
     );
 
@@ -404,12 +403,6 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions]);
 
-    useEffect(() => {
-        if (!isLinkingLoader) {
-            return;
-        }
-        reportScrollManager.scrollToBottom();
-    }, [isLinkingLoader, reportScrollManager]);
     return (
         <>
             <FloatingMessageCounter
