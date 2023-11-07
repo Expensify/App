@@ -81,6 +81,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [city, setCity] = useState(address.city);
+    const [zipcode, setZipcode] = useState(address.zip);
 
     useEffect(() => {
         if (!address) {
@@ -89,6 +90,7 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);
+        setZipcode(address.zip);
     }, [address]);
 
     /**
@@ -137,20 +139,28 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state' && key !== 'city') {
+        if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
             setCity('');
+            setZipcode('');
             return;
         }
         if (key === 'state') {
             setState(value);
+            setCity('');
+            setZipcode('');
             return;
         }
-        setCity(value);
+        if (key === 'city') {
+            setCity(value);
+            setZipcode('');
+            return;
+        }
+        setZipcode(value);
     }, []);
 
     useEffect(() => {
@@ -202,7 +212,7 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={translate('common.addressLine')}
+                        accessibilityLabel={translate('common.addressLine', {lineNumber: 2})}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
@@ -254,9 +264,10 @@ function AddressPage({privatePersonalDetails, route}) {
                         accessibilityLabel={translate('common.zipPostCode')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
-                        defaultValue={address.zip || ''}
+                        value={zipcode || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={zipFormat}
+                        onValueChange={handleAddressChange}
                     />
                 </Form>
             )}
