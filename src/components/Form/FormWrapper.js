@@ -56,6 +56,10 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Submit button container styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -74,10 +78,25 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
+    submitButtonStyles: [],
 };
 
 function FormWrapper(props) {
-    const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
+    const {
+        onSubmit,
+        children,
+        formState,
+        errors,
+        inputRefs,
+        submitButtonText,
+        footerContent,
+        isSubmitButtonVisible,
+        style,
+        enabledWhenOffline,
+        isSubmitActionDangerous,
+        formID,
+        submitButtonStyles,
+    } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const errorMessage = useMemo(() => {
@@ -129,7 +148,7 @@ function FormWrapper(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter
@@ -150,6 +169,7 @@ function FormWrapper(props) {
             isSubmitActionDangerous,
             isSubmitButtonVisible,
             onSubmit,
+            submitButtonStyles,
             style,
             submitButtonText,
         ],
