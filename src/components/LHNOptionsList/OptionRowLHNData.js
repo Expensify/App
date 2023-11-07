@@ -16,7 +16,7 @@ const propTypes = {
     isFocused: PropTypes.bool,
 
     /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.arrayOf(participantPropTypes),
 
     /** The preferred language for the app */
     preferredLocale: PropTypes.string,
