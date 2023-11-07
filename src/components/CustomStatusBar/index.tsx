@@ -11,8 +11,9 @@ function CustomStatusBar() {
             // appBG color.
             const currentRoute = navigationRef.getCurrentRoute();
             let currentScreenBackgroundColor = themeColors.appBG;
-            if (currentRoute?.name && themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name]) {
-                currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name];
+
+            if (currentRoute?.name && currentRoute?.name in themeColors.PAGE_BACKGROUND_COLORS) {
+                currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS];
             }
             StatusBar.setBarStyle('light-content', true);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor);

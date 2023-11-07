@@ -1,7 +1,5 @@
 type Color = string;
 
-type PageBackgroundColors = Record<string, string>;
-
 type ThemeColors = {
     // Figma keys
     appBG: Color;
@@ -88,4 +86,4 @@ type ThemeColors = {
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
 
-export {type ThemeColors, type Color, type PageBackgroundColors};
+export {type ThemeColors, type Color};
