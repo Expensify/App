@@ -522,26 +522,20 @@ function subscribeToUserEvents() {
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(
-        Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-        (pushJSON) =>
-            new Promise((resolve) =>
-                SequentialQueue.getCurrentRequest().then(() => {
-                    // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
-                    if (!currentUserAccountID) {
-                        return resolve();
-                    }
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) =>
+        SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return
+            }
 
-                    const onyxUpdatePromise = Onyx.update(pushJSON);
-                    triggerNotifications(pushJSON);
+            const onyxUpdatePromise = Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
 
-                    // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
-                    // the onyx updates in order
-                    return onyxUpdatePromise.then(() => {
-                        resolve(onyxUpdatePromise);
-                    });
-                }),
-            ),
+            // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
+            // the onyx updates in order
+            return onyxUpdatePromise;
+        }),
     );
 }
 
