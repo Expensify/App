@@ -17,6 +17,7 @@ export default function useAutoFocusInput() {
             return;
         }
         inputRef.current.focus();
+        setIsScreenTransitionEnded(false);
     }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
 
     useFocusEffect(

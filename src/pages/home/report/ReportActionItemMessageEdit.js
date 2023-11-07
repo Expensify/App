@@ -169,6 +169,15 @@ function ReportActionItemMessageEdit(props) {
         [props.action.reportActionID],
     );
 
+    // Scroll content of textInputRef to bottom
+    useEffect(() => {
+        if (!textInputRef.current) {
+            return;
+        }
+        textInputRef.current.focus();
+        textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
+    }, []);
+
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -316,7 +325,7 @@ function ReportActionItemMessageEdit(props) {
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current.blur();
-            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, true, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
