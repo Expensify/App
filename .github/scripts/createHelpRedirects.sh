@@ -19,7 +19,7 @@ function checkCloudflareResult {
 
     if ! [[ "$RESULT_MESSAGE" == "true" ]]; then
         ERROR_MESSAGE=$(echo "$RESULTS" | jq .errors)
-        error "Error calling Cloudflare API: $ERROR_MESSAGE"
+        error "Error calling Cloudfalre API: $ERROR_MESSAGE"
         exit 1
     fi
 }
@@ -74,6 +74,9 @@ PUT_JSON=$(for new in "${ITEMS_TO_ADD[@]}"; do
     read -r -a LINE_PARTS < <(echo "$new" | tr ',' ' ')
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
+
+    # We strip the prefix here so that the rule will match both http and https. Since vanilla will eventially be removed,
+    # we need to catch both because we will not have the http > https redirect done by vanilla anymore.
     NO_PREFIX_SOURCE_URL=${SOURCE_URL/https:\/\//}
     jq -n --arg source "$NO_PREFIX_SOURCE_URL" --arg dest "$DEST_URL" '{"redirect": {source_url: $source, target_url: $dest}}'
 done | jq -n '. |= [inputs]')
@@ -97,7 +100,7 @@ OPERATION_ID=$(echo "$PUT_RESULT" | jq -r .result.operation_id)
 
 DONE=false
 
-# Poll for completion
+# Poll for completition
 while [[ $DONE == false ]]; do
     CHECK_RESULT=$(curl -s --request GET --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/bulk_operations/$OPERATION_ID" \
         --header 'Content-Type: application/json' \
