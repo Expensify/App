@@ -1,8 +1,8 @@
 import core from '@actions/core';
 import github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
-import GithubUtils from '../../../libs/GithubUtils';
 import CONST from '../../../libs/CONST';
+import GithubUtils from '../../../libs/GithubUtils';
 import newComponentCategory from './categories/newComponentCategory';
 
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
@@ -142,7 +142,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     // check for completion
     try {
         const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberOfItems, newBody);
+        checkPRForCompletedChecklist(numberOfItems, checklist);
     } catch (error) {
         console.error(error);
         if (error instanceof Error) {

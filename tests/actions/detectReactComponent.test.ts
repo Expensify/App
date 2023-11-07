@@ -66,6 +66,32 @@ describe('detectReactComponent test', () => {
         expect(result).toBe(true);
     });
 
+    it('should detect if code is a Class pure component', () => {
+        const code = `
+            class Component extends PureComponent {
+                render() {
+                    return <div>Hello World</div>;
+                }
+            }
+        `;
+        const result = detectReactComponent(code, 'filename.js');
+
+        expect(result).toBe(true);
+    });
+
+    it('should detect if code is a Class pure component with React namespace', () => {
+        const code = `
+            class Component extends React.PureComponent {
+                render() {
+                    return <div>Hello World</div>;
+                }
+            }
+        `;
+        const result = detectReactComponent(code, 'filename.js');
+
+        expect(result).toBe(true);
+    });
+
     it('should not detect if code is not a React component', () => {
         const code = `
             function NotAComponent() {

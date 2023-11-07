@@ -1,10 +1,10 @@
+import github from '@actions/github';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
-import github from '@actions/github';
-import Category from './Category';
 import CONST from '../../../../libs/CONST';
 import GithubUtils from '../../../../libs/GithubUtils';
-import promiseRaceTo from '../../../../libs/promiseRaceTo';
+import promiseSome from '../../../../libs/promiseSome';
+import Category from './Category';
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 
@@ -20,6 +20,10 @@ const items = [
     'I verified that all JSX used for rendering exists in the render method',
     'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
 ];
+
+function isComponentOrPureComponent(name?: string) {
+    return name === 'Component' || name === 'PureComponent';
+}
 
 function detectReactComponent(code: string, filename: string): boolean | undefined {
     if (!code) {
@@ -51,7 +55,10 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
         // eslint-disable-next-line @typescript-eslint/naming-convention
         ClassDeclaration(path) {
             const {superClass} = path.node as unknown as SuperClassType;
-            if (superClass && ((superClass.object && superClass.object.name === 'React' && superClass.property.name === 'Component') || superClass.name === 'Component')) {
+            if (
+                superClass &&
+                ((superClass.object && superClass.object.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))
+            ) {
                 isReactComponent = true;
                 path.stop();
             }
@@ -84,9 +91,9 @@ async function detectReactComponentInFile(filename: string): Promise<boolean | u
 async function detect(changedFiles: Array<{filename: string; status: string}>): Promise<boolean> {
     const filteredFiles = changedFiles.filter(({filename, status}) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
     try {
-        await promiseRaceTo(
+        await promiseSome(
             filteredFiles.map(({filename}) => detectReactComponentInFile(filename)),
-            true,
+            (result) => !!result,
         );
         return true;
     } catch (err) {

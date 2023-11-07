@@ -1,5 +1,5 @@
-import newComponent from './newComponentCategory';
 import Category from './Category';
+import newComponent from './newComponentCategory';
 
 const categories: Category[] = [newComponent];
 

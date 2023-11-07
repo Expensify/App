@@ -21484,12 +21484,12 @@ function wrappy (fn, cb) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.detectReactComponent = void 0;
+const github_1 = __nccwpck_require__(5438);
 const parser_1 = __nccwpck_require__(5026);
 const traverse_1 = __nccwpck_require__(1380);
-const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __nccwpck_require__(4097);
 const GithubUtils_1 = __nccwpck_require__(7999);
-const promiseRaceTo_1 = __nccwpck_require__(8235);
+const promiseSome_1 = __nccwpck_require__(8534);
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
@@ -21502,6 +21502,9 @@ const items = [
     'I verified that all JSX used for rendering exists in the render method',
     'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
 ];
+function isComponentOrPureComponent(name) {
+    return name === 'Component' || name === 'PureComponent';
+}
 function detectReactComponent(code, filename) {
     if (!code) {
         console.error('failed to get code from a filename', code, filename);
@@ -21530,7 +21533,8 @@ function detectReactComponent(code, filename) {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         ClassDeclaration(path) {
             const { superClass } = path.node;
-            if (superClass && ((superClass.object && superClass.object.name === 'React' && superClass.property.name === 'Component') || superClass.name === 'Component')) {
+            if (superClass &&
+                ((superClass.object && superClass.object.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))) {
                 isReactComponent = true;
                 path.stop();
             }
@@ -21561,7 +21565,7 @@ async function detectReactComponentInFile(filename) {
 async function detect(changedFiles) {
     const filteredFiles = changedFiles.filter(({ filename, status }) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
     try {
-        await (0, promiseRaceTo_1.default)(filteredFiles.map(({ filename }) => detectReactComponentInFile(filename)), true);
+        await (0, promiseSome_1.default)(filteredFiles.map(({ filename }) => detectReactComponentInFile(filename)), (result) => !!result);
         return true;
     }
     catch (err) {
@@ -21577,32 +21581,33 @@ exports["default"] = newComponentCategory;
 
 /***/ }),
 
-/***/ 8235:
+/***/ 8534:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
- * Like Promise.race, except it resolves with the first promise that resolves to the desired value.
- * If no promise resolves to the desired value, it rejects.
+ * Like _.some but for promises. It short-circuts after a promise fulfills with a value that passes the test implemented by provided function.
+ * It does not wait for the other promises to complete once it finds one.
+ * If no promise passes the provided test, it rejects.
  */
-function promiseRaceTo(promises, desiredValue) {
+function promiseSome(promises, callbackFn) {
     return new Promise((resolve, reject) => {
         for (const p of promises) {
             Promise.resolve(p)
                 .then((res) => {
-                if (res !== desiredValue) {
+                if (!callbackFn(res)) {
                     return;
                 }
-                resolve(res);
+                resolve(true);
             })
                 .catch(() => { });
         }
         Promise.allSettled(promises).then(() => reject());
     });
 }
-exports["default"] = promiseRaceTo;
+exports["default"] = promiseSome;
 
 
 /***/ }),
@@ -64840,8 +64845,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __nccwpck_require__(2186);
 const github_1 = __nccwpck_require__(5438);
 const escapeRegExp_1 = __nccwpck_require__(8415);
-const GithubUtils_1 = __nccwpck_require__(7999);
 const CONST_1 = __nccwpck_require__(4097);
+const GithubUtils_1 = __nccwpck_require__(7999);
 const newComponentCategory_1 = __nccwpck_require__(8750);
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
@@ -64959,7 +64964,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     // check for completion
     try {
         const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberOfItems, newBody);
+        checkPRForCompletedChecklist(numberOfItems, checklist);
     }
     catch (error) {
         console.error(error);
