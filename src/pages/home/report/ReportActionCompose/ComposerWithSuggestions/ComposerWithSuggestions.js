@@ -533,7 +533,6 @@ function ComposerWithSuggestions({
 
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocused);
-
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line no-param-reassign
@@ -555,7 +554,6 @@ function ComposerWithSuggestions({
 
     const shouldAutoFocusRef = useRef(false);
     shouldAutoFocusRef.current = shouldAutoFocus;
-
     useEffect(() => {
         if (prevIsFocused || !isFocused) {
             return;
