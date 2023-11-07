@@ -259,7 +259,7 @@ function ComposerWithSuggestions({
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
+            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
                 isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
                 preferredSkinTone,
