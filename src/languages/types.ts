@@ -246,6 +246,7 @@ export type {
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
+    TranslationPaths,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
     ZipCodeExampleFormatParams,
