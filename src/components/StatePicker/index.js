@@ -1,14 +1,14 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import styles from '../../styles/styles';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import useLocalize from '../../hooks/useLocalize';
-import FormHelpMessage from '../FormHelpMessage';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import refPropTypes from '@components/refPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
 import StateSelectorModal from './StateSelectorModal';
-import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Error text to display */

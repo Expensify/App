@@ -1,78 +1,79 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportActionPropTypes from './reportActionPropTypes';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
-import Hoverable from '../../../components/Hoverable';
-import Button from '../../../components/Button';
-import ReportActionItemSingle from './ReportActionItemSingle';
-import ReportActionItemGrouped from './ReportActionItemGrouped';
-import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
-import ReportActionItemMessage from './ReportActionItemMessage';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
-import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
-import ReportActionItemCreated from './ReportActionItemCreated';
-import ReportActionItemThread from './ReportActionItemThread';
-import LinkPreviewer from './LinkPreviewer';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import ControlSelection from '../../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import _ from 'underscore';
+import Button from '@components/Button';
+import DisplayNames from '@components/DisplayNames';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import InlineSystemMessage from '@components/InlineSystemMessage';
+import KYCWall from '@components/KYCWall';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
+import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
+import RenderHTML from '@components/RenderHTML';
+import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
+import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
+import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
+import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import RenameAction from '@components/ReportActionItem/RenameAction';
+import ReportPreview from '@components/ReportActionItem/ReportPreview';
+import TaskAction from '@components/ReportActionItem/TaskAction';
+import TaskPreview from '@components/ReportActionItem/TaskPreview';
+import TaskView from '@components/ReportActionItem/TaskView';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import SelectionScraper from '@libs/SelectionScraper';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as store from '@userActions/ReimbursementAccount/store';
+import * as Report from '@userActions/Report';
+import * as ReportActions from '@userActions/ReportActions';
+import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
-import RenameAction from '../../../components/ReportActionItem/RenameAction';
-import InlineSystemMessage from '../../../components/InlineSystemMessage';
-import styles from '../../../styles/styles';
-import SelectionScraper from '../../../libs/SelectionScraper';
-import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
-import * as User from '../../../libs/actions/User';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as ReportActions from '../../../libs/actions/ReportActions';
-import reportPropTypes from '../../reportPropTypes';
-import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
-import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
-import ReportActionItemEmojiReactions from '../../../components/Reactions/ReportActionItemEmojiReactions';
-import * as Report from '../../../libs/actions/Report';
-import withLocalize from '../../../components/withLocalize';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Text from '../../../components/Text';
-import DisplayNames from '../../../components/DisplayNames';
-import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
-import ReportActionItemDraft from './ReportActionItemDraft';
-import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
-import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
-import TaskView from '../../../components/ReportActionItem/TaskView';
-import MoneyReportView from '../../../components/ReportActionItem/MoneyReportView';
-import * as Session from '../../../libs/actions/Session';
-import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
-import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import * as store from '../../../libs/actions/ReimbursementAccount/store';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import {ReactionListContext} from '../ReportScreenContext';
-import usePrevious from '../../../hooks/usePrevious';
-import Permissions from '../../../libs/Permissions';
-import themeColors from '../../../styles/themes/default';
+import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
-import RenderHTML from '../../../components/RenderHTML';
+import ReportActionItemCreated from './ReportActionItemCreated';
+import ReportActionItemDraft from './ReportActionItemDraft';
+import ReportActionItemGrouped from './ReportActionItemGrouped';
+import ReportActionItemMessage from './ReportActionItemMessage';
+import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ReportActionItemSingle from './ReportActionItemSingle';
+import ReportActionItemThread from './ReportActionItemThread';
+import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import ROUTES from '../../../ROUTES';
-import Navigation from '../../../libs/Navigation/Navigation';
-import KYCWall from '../../../components/KYCWall';
-import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -353,11 +354,16 @@ function ReportActionItem(props) {
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
-                <TaskPreview
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
-                    action={props.action}
-                    isHovered={hovered}
-                />
+                <ShowContextMenuContext.Provider value={contextValue}>
+                    <TaskPreview
+                        taskReportID={props.action.originalMessage.taskReportID.toString()}
+                        chatReportID={props.report.reportID}
+                        action={props.action}
+                        isHovered={hovered}
+                        contextMenuAnchor={popoverAnchorRef}
+                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    />
+                </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
@@ -571,23 +577,31 @@ function ReportActionItem(props) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
                     <>
-                        <ReportActionItemSingle
-                            action={parentReportAction}
-                            showHeader={!props.draftMessage}
-                            wrapperStyles={[styles.chatItem]}
-                            report={props.report}
-                        >
-                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                        </ReportActionItemSingle>
-                        <View style={styles.reportHorizontalRule} />
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={!props.draftMessage}
+                                wrapperStyles={[styles.chatItem]}
+                                report={props.report}
+                            >
+                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.reportHorizontalRule} />
+                        </View>
                     </>
                 );
             } else {
                 content = (
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
+                    <>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <TaskView
+                                report={props.report}
+                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                            />
+                        </View>
+                    </>
                 );
             }
         }
@@ -725,8 +739,8 @@ export default compose(
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
-            return lodashGet(drafts, draftKey, '');
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
+            return lodashGet(drafts, [draftKey, props.action.reportActionID], '');
         },
     }),
     withOnyx({
@@ -760,6 +774,7 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.iouReport, nextProps.iouReport) &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
@@ -773,7 +788,6 @@ export default compose(
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&

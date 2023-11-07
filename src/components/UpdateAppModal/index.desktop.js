@@ -1,7 +1,7 @@
 import React from 'react';
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 import {propTypes} from './updateAppModalPropTypes';
-import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 function UpdateAppModal(props) {
     const updateApp = () => {
