@@ -22,6 +22,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
+import * as Modal from '@userActions/Modal';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1815,7 +1816,15 @@ function showReportActionNotification(reportID, reportAction) {
     const notificationParams = {
         report,
         reportAction,
-        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        onClick: () => {
+            Modal.close(() => {
+                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+                if (Navigation.isActiveRoute(reportRoute)) {
+                    return;
+                }
+                Navigation.navigate(reportRoute);
+            });
+        },
     };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(notificationParams);
