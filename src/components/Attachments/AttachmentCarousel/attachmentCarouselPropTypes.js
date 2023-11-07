@@ -25,7 +25,7 @@ const propTypes = {
     /** The parent of `report` */
     parentReport: reportPropTypes,
 
-    /** The specific action that links to the parent report */
+    /** The report actions of the parent report */
     parentReportActions: PropTypes.shape(reportActionPropTypes),
 
     /** The transaction attached to the parent report action */
