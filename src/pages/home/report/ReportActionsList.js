@@ -437,6 +437,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                 />
             </Animated.View>
