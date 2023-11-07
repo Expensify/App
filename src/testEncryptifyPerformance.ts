@@ -11,29 +11,29 @@ const ENCRYPTION_IV = 'Lorem ipsum dolor sit amet';
 const PERFORMANCE_METRICS_DECIMAL_PLACES = 4;
 
 const testEncryptionFlow = async (shouldLog = true): Promise<string> => {
-    performance.mark('KEMGenKeys');
+    performance.mark('KemGenKeys');
     const kemKeys = await Encryptify.KemGenKeys();
-    performance.measure('KEMGenKeys', 'KEMGenKeys');
+    performance.measure('KemGenKeys', 'KemGenKeys');
 
-    performance.mark('KEMEncrypt');
+    performance.mark('KemEncrypt');
     const {sharedSecret, cipherText} = await Encryptify.KemEncrypt(kemKeys.public);
-    performance.measure('KEMEncrypt', 'KEMEncrypt');
+    performance.measure('KemEncrypt', 'KemEncrypt');
 
-    performance.mark('AESEncrypt');
+    performance.mark('AesEncrypt');
     const encryptedData = await Encryptify.AesEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
-    performance.measure('AESEncrypt', 'AESEncrypt');
+    performance.measure('AesEncrypt', 'AesEncrypt');
 
     // After encryption on the sender side, the message is sent to the receiver:
     // Only the encryptedData an the cipherText must be sent to the receiver
     // The receiver can then decrypt the cipherText with his private keys
 
-    performance.mark('KEMDecrypt');
+    performance.mark('KemDecrypt');
     const decryptedSharedSecret = await Encryptify.KemDecrypt(kemKeys.private, cipherText);
-    performance.measure('KEMDecrypt', 'KEMDecrypt');
+    performance.measure('KemDecrypt', 'KemDecrypt');
 
-    performance.mark('AESDecrypt');
+    performance.mark('AesDecrypt');
     const decryptedData = await Encryptify.AesDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
-    performance.measure('AESDecrypt', 'AESDecrypt');
+    performance.measure('AesDecrypt', 'AesDecrypt');
 
     if (shouldLog) {
         console.log({kemKeys});
@@ -68,24 +68,22 @@ Performance:
 const testAesUnderLoad = async (sharedSecret: string, iterations: number, shouldLog = true) => {
     const shiftString = (str: string, numOfChars: number) => str.substring(numOfChars) + str.substring(0, numOfChars);
 
-    const promises = [];
-
     async function runAesEncryptionFlow(i: number) {
         const inputData = shiftString(ENCRYPTION_DATA, i);
 
-        performance.mark('AESEncrypt under load');
+        performance.mark('AesEncrypt under load');
         const encryptedDataIter = await Encryptify.AesEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
-        performance.measure(`Encryption Iteration ${i}`, 'AESEncrypt under load');
+        performance.measure(`Encryption Iteration ${i}`, 'AesEncrypt under load');
 
-        performance.mark('AESDecrypt under load');
+        performance.mark('AesDecrypt under load');
         await Encryptify.AesDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
-        performance.measure(`Decryption teration ${i}`, 'AESDecrypt under load');
+        performance.measure(`Decryption teration ${i}`, 'AesDecrypt under load');
     }
 
+    const promises = [];
     for (let i = 0; i < iterations; i++) {
         promises.push(runAesEncryptionFlow(i));
     }
-
     await Promise.all(promises);
 
     const allMeasures = performance.getEntriesByType('measure');
