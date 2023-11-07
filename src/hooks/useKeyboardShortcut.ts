@@ -51,7 +51,7 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: () => 
             shouldBubble,
             priority,
             shouldPreventDefault,
-            excludedNodes,
+            excludedNodes as string[],
         );
 
         return () => {

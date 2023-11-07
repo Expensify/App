@@ -137,7 +137,7 @@ function subscribe(
     shouldBubble = false,
     priority = 0,
     shouldPreventDefault = true,
-    excludedNodes: string[] | readonly never[] = [],
+    excludedNodes: string[] = [],
     shouldStopPropagation = false,
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
@@ -153,7 +153,7 @@ function subscribe(
         captureOnInputs,
         shouldPreventDefault,
         shouldBubble,
-        excludedNodes: [...excludedNodes],
+        excludedNodes,
         shouldStopPropagation,
     });
 
