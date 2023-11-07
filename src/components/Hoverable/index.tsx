@@ -191,7 +191,7 @@ function Hoverable(
     const hijackRef = (el: HTMLElement) => {
         ref.current = el;
         if (child.ref) {
-            assignRef(child.ref as MutableRefObject<HTMLElement>, el);
+            assignRef(child.ref, el);
         }
     };
 
