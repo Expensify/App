@@ -1,4 +1,5 @@
 import crashlytics from '@react-native-firebase/crashlytics';
+import React from 'react';
 import Log from '@libs/Log';
 import BaseErrorBoundary from './BaseErrorBoundary';
 import {BaseErrorBoundaryProps, LogError} from './types';
