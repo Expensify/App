@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -95,7 +94,6 @@ function ReportActionsView(props) {
 
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
-    const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
 
@@ -180,7 +178,7 @@ function ReportActionsView(props) {
      */
     const loadOlderChats = () => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-        if (isOffline || props.isLoadingOlderReportActions) {
+        if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
 
