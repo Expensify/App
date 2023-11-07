@@ -1917,7 +1917,9 @@ function getModifiedExpenseMessage(reportAction) {
         return Localize.translateLocal('iou.changedTheRequest');
     }
 
-    const messageFragments = [];
+    const removalFragments = [];
+    const setFragments = [];
+    const changeFragments = [];
 
     const hasModifiedAmount =
         _.has(reportActionOriginalMessage, 'oldAmount') &&
@@ -1939,14 +1941,26 @@ function getModifiedExpenseMessage(reportAction) {
             return getProperSchemaForModifiedDistanceMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
         }
 
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false));
+        const fragment = getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
+        if (!oldAmount) {
+            setFragments.push(fragment);
+        } else if (!amount) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        messageFragments.push(
-            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, Localize.translateLocal('common.description'), true),
-        );
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, Localize.translateLocal('common.description'), true);
+        if (!reportActionOriginalMessage.oldComment) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.newComment) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
@@ -1954,40 +1968,81 @@ function getModifiedExpenseMessage(reportAction) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false));
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
+        if (!formattedOldCreated) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.created) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     if (hasModifiedMerchant) {
-        messageFragments.push(
-            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true),
-        );
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
+        if (!reportActionOriginalMessage.oldMerchant) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.merchant) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
     if (hasModifiedCategory) {
-        messageFragments.push(
-            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true),
-        );
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
+        if (!reportActionOriginalMessage.oldCategory) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.category) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true));
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+        if (!reportActionOriginalMessage.oldTag) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.tag) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
     if (hasModifiedBillable) {
-        messageFragments.push(
-            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true),
-        );
+        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true);
+        if (!reportActionOriginalMessage.oldBillable) {
+            setFragments.push(fragment);
+        } else if (!reportActionOriginalMessage.billable) {
+            removalFragments.push(fragment);
+        } else  {
+            changeFragments.push(fragment);
+        }
     }
 
-    return messageFragments.reduce((acc, value, index) => {
-        if (index === 0) {
-            return acc + value;
-        }
-        return `${acc}. ${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-    }, '');
+    let message = '';
+    if (setFragments.length > 0) {
+        message = setFragments.reduce((acc, value) => {
+            return `${acc} ${value},`;
+        }, `${message} ${Localize.translateLocal('iou.set')}`);
+    }
+    if (changeFragments.length > 0) {
+        message = changeFragments.reduce((acc, value) => {
+            return `${acc} ${value},`;
+        }, `${message} ${Localize.translateLocal('iou.changed')}`);
+    }
+    if (removalFragments.length > 0) {
+        message = removalFragments.reduce((acc, value) => {
+            return `${acc} ${value},`;
+        }, `${message} ${Localize.translateLocal('iou.removed')}`);
+    }
+    message = `${message.substring(1, message.length - 1)}.`;
+    return message;
 }
 
 /**
