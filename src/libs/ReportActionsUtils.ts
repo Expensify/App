@@ -667,5 +667,4 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
     isMemberRoomChangeLog,
-    isMemberPolicyChangeLog,
 };
