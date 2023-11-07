@@ -123,22 +123,20 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <AttachmentViewPdf
-                    source={source}
-                    file={file}
-                    isAuthTokenRequired={isAuthTokenRequired}
-                    encryptedSourceUrl={encryptedSourceUrl}
-                    isUsedInCarousel={isUsedInCarousel}
-                    isFocused={isFocused}
-                    onPress={onPress}
-                    onScaleChanged={onScaleChanged}
-                    onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
-                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-                />
-            </View>
+            <AttachmentViewPdf
+                source={source}
+                file={file}
+                isAuthTokenRequired={isAuthTokenRequired}
+                encryptedSourceUrl={encryptedSourceUrl}
+                isUsedInCarousel={isUsedInCarousel}
+                isFocused={isFocused}
+                onPress={onPress}
+                onScaleChanged={onScaleChanged}
+                onToggleKeyboard={onToggleKeyboard}
+                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+            />
         );
     }
 
