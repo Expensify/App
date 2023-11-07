@@ -17,7 +17,6 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
-import {hasNonReimbursableTransactions} from "../libs/ReportUtils";
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */

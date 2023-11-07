@@ -296,7 +296,7 @@ const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), 
 
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
- * and supported type, it's not deleted and also not closed.
+ * and supported type and it's not deleted.
  */
 function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
@@ -318,7 +318,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-        console.log(reportAction);
         return false;
     }
 
