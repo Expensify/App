@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import optionPropTypes from '../optionPropTypes';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
+import optionPropTypes from '@components/optionPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -108,6 +109,9 @@ const propTypes = {
     /** Hover style for options in the OptionsList */
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -128,6 +132,12 @@ const propTypes = {
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
+
+    /** Whether we should allow the view wrapping the nested children to be scrollable */
+    shouldAllowScrollingChildren: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -153,6 +163,7 @@ const defaultProps = {
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
     optionHoveredStyle: styles.hoveredComponentBG,
+    sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
@@ -165,6 +176,8 @@ const defaultProps = {
     isRowMultilineSupported: false,
     initialFocusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
+    shouldAllowScrollingChildren: false,
+    nestedScrollEnabled: true,
 };
 
 export {propTypes, defaultProps};

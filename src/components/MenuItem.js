@@ -1,30 +1,31 @@
-import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Text from './Text';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import getButtonState from '../libs/getButtonState';
-import convertToLTR from '../libs/convertToLTR';
+import _ from 'underscore';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ControlSelection from '@libs/ControlSelection';
+import convertToLTR from '@libs/convertToLTR';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import Badge from './Badge';
-import CONST from '../CONST';
-import menuItemPropTypes from './menuItemPropTypes';
-import SelectCircle from './SelectCircle';
-import MultipleAvatars from './MultipleAvatars';
-import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
-import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
-import ControlSelection from '../libs/ControlSelection';
-import variables from '../styles/variables';
-import * as Session from '../libs/actions/Session';
+import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import menuItemPropTypes from './menuItemPropTypes';
+import MultipleAvatars from './MultipleAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
+import SelectCircle from './SelectCircle';
+import Text from './Text';
 
 const propTypes = menuItemPropTypes;
 
@@ -79,6 +80,8 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    titleWithTooltips: [],
+    shouldCheckActionAllowedOnPress: true,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -117,39 +120,57 @@ const MenuItem = React.forwardRef((props, ref) => {
             return;
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(convertToLTR(props.title)));
+        setHtml(parser.replace(props.title));
         titleRef.current = props.title;
     }, [props.title, props.shouldParseTitle]);
 
     const getProcessedTitle = useMemo(() => {
+        let title = '';
         if (props.shouldRenderAsHTML) {
-            return convertToLTR(props.title);
+            title = convertToLTR(props.title);
         }
 
         if (props.shouldParseTitle) {
-            return html;
+            title = html;
         }
 
-        return '';
+        return title ? `<comment>${title}</comment>` : '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
+    const renderTitleContent = () => {
+        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
+            return (
+                <DisplayNames
+                    fullTitle={props.title}
+                    displayNamesWithTooltips={props.titleWithTooltips}
+                    tooltipEnabled
+                    numberOfLines={1}
+                />
+            );
+        }
+
+        return convertToLTR(props.title);
+    };
+
+    const onPressAction = (e) => {
+        if (props.disabled || !props.interactive) {
+            return;
+        }
+
+        if (e && e.type === 'click') {
+            e.currentTarget.blur();
+        }
+
+        props.onPress(e);
+    };
 
     return (
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={Session.checkIfActionIsAllowed((e) => {
-                        if (props.disabled || !props.interactive) {
-                            return;
-                        }
-
-                        if (e && e.type === 'click') {
-                            e.currentTarget.blur();
-                        }
-
-                        props.onPress(e);
-                    }, props.isAnonymousAction)}
+                    onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
                     onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
@@ -262,7 +283,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
-                                                    {convertToLTR(props.title)}
+                                                    {renderTitleContent()}
                                                 </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (

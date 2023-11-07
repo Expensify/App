@@ -1,17 +1,19 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import {baseListItemPropTypes} from './selectionListPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import UserListItem from './UserListItem';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import CONST from '../../CONST';
+import {baseListItemPropTypes} from './selectionListPropTypes';
+import UserListItem from './UserListItem';
 
 function BaseListItem({
     item,
@@ -23,6 +25,7 @@ function BaseListItem({
     onSelectRow,
     onDismissError = () => {},
 }) {
+    const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
@@ -76,7 +79,6 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
-
                     <ListItem
                         item={item}
                         isFocused={isFocused}
@@ -84,7 +86,6 @@ function BaseListItem({
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
                     />
-
                     {!canSelectMultiple && item.isSelected && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
@@ -99,6 +100,11 @@ function BaseListItem({
                         </View>
                     )}
                 </View>
+                {Boolean(item.invitedSecondaryLogin) && (
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
+                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                    </Text>
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

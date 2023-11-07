@@ -1,17 +1,17 @@
-import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as ValidationUtils from '../libs/ValidationUtils';
-import CONST from '../CONST';
+import useNetwork from '@hooks/useNetwork';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import FormHelpMessage from './FormHelpMessage';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
 import TextInput from './TextInput';
-import FormHelpMessage from './FormHelpMessage';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
-import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Information about the network */
@@ -103,6 +103,7 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+    const [wasSubmitted, setWasSubmitted] = useState(false);
 
     const blurMagicCodeInput = () => {
         inputRefs.current[editIndex].blur();
@@ -124,8 +125,11 @@ function MagicCodeInput(props) {
 
     const validateAndSubmit = () => {
         const numbers = decomposeString(props.value, props.maxLength);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
+        if (wasSubmitted || !props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
+        }
+        if (!wasSubmitted) {
+            setWasSubmitted(true);
         }
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
@@ -351,13 +355,16 @@ function MagicCodeInput(props) {
 
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
+MagicCodeInput.displayName = 'MagicCodeInput';
 
-export default withNetwork()(
-    forwardRef((props, ref) => (
-        <MagicCodeInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const MagicCodeInputWithRef = forwardRef((props, ref) => (
+    <MagicCodeInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+MagicCodeInputWithRef.displayName = 'MagicCodeInputWithRef';
+
+export default withNetwork()(MagicCodeInputWithRef);

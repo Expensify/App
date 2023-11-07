@@ -1,9 +1,9 @@
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import PopoverMenu from '../components/PopoverMenu';
-import * as Expensicons from '../components/Icon/Expensicons';
-import MenuItem from '../components/MenuItem';
-import themeColors from '../styles/themes/default';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import PopoverMenu from '@components/PopoverMenu';
+import themeColors from '@styles/themes/default';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

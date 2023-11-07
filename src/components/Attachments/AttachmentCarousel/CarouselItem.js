@@ -1,16 +1,16 @@
+import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import useLocalize from '../../../hooks/useLocalize';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import Text from '../../Text';
-import Button from '../../Button';
-import AttachmentView from '../AttachmentView';
-import SafeAreaConsumer from '../../SafeAreaConsumer';
-import ReportAttachmentsContext from '../../../pages/home/report/ReportAttachmentsContext';
-import * as AttachmentsPropTypes from '../propTypes';
+import AttachmentView from '@components/Attachments/AttachmentView';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import Button from '@components/Button';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -52,7 +52,7 @@ function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
 
     const renderButton = (style) => (
         <Button
@@ -116,5 +116,6 @@ function CarouselItem({item, isFocused, onPress}) {
 
 CarouselItem.propTypes = propTypes;
 CarouselItem.defaultProps = defaultProps;
+CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

@@ -1,7 +1,7 @@
-import React, {ComponentType, ForwardedRef, RefAttributes, forwardRef} from 'react';
 import PropTypes from 'prop-types';
+import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 import {LocaleContext, LocaleContextProps} from './LocaleContextProvider';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
@@ -32,7 +32,9 @@ const withLocalizePropTypes = {
 
 type WithLocalizeProps = LocaleContextProps;
 
-export default function withLocalize<TProps extends WithLocalizeProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function withLocalize<TProps extends WithLocalizeProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof LocaleContextProps> & React.RefAttributes<TRef>) => ReactElement | null {
     function WithLocalize(props: Omit<TProps, keyof WithLocalizeProps>, ref: ForwardedRef<TRef>) {
         return (
             <LocaleContext.Consumer>
@@ -41,7 +43,7 @@ export default function withLocalize<TProps extends WithLocalizeProps, TRef>(Wra
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...translateUtils}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
+                        {...(props as TProps)}
                         ref={ref}
                     />
                 )}
@@ -54,3 +56,4 @@ export default function withLocalize<TProps extends WithLocalizeProps, TRef>(Wra
 }
 
 export {withLocalizePropTypes};
+export type {WithLocalizeProps};
