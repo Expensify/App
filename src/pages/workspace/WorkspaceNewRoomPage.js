@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -162,10 +162,7 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
-    const roomNameInputRef = useRef(null);
-
-    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
-    useDelayedInputFocus(roomNameInputRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <FullPageNotFoundView
@@ -200,7 +197,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
-                                    ref={roomNameInputRef}
+                                    ref={inputCallbackRef}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
@@ -213,7 +210,7 @@ function WorkspaceNewRoomPage(props) {
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
