@@ -45,17 +45,17 @@ const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confi
 function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
-    const submit = useCallback(() => {
-        const values = getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount);
+    const values = useMemo(() => getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
+    const submit = useCallback(() => {
         const payload = {
             bankAccountID: _.get(reimbursementAccount, 'achData.bankAccountID', 0),
             ...values,
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }, [reimbursementAccount, reimbursementAccountDraft]);
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
+    }, [reimbursementAccount, values]);
+    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
