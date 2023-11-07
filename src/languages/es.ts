@@ -256,10 +256,6 @@ export default {
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
-        user: 'usuario',
-        users: 'usuarias',
-        invited: 'invitada',
-        removed: 'eliminado',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1532,6 +1528,12 @@ export default {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'usuario',
+            users: 'usuarias',
+            invited: 'invitada',
+            removed: 'eliminado',
+            to: 'a',
+            from: 'de'
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',

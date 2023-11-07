@@ -52,7 +52,7 @@ function getReportActionMessageRoomChange(originalMessage: Message, targetAccoun
         return `<mention-user accountID=${accountID}></mention-user>${targetAccountIDs.length > 1 ? ', ' : ''}`;
     });
 
-    const html = `<muted-text>${Localize.translateLocal('common.invited')} ${mentionTags.join('')} </muted-text>`;
+    const html = `<muted-text>${Localize.translateLocal('workspace.invite.invited')} ${mentionTags.join('')} </muted-text>`;
 
     const message: Message = {
         ...originalMessage,
