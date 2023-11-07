@@ -2041,6 +2041,9 @@ function getModifiedExpenseMessage(reportAction) {
             return `${acc} ${value},`;
         }, `${message} ${Localize.translateLocal('iou.removed')}`);
     }
+    if (message === '') {
+        return message;
+    }
     message = `${message.substring(1, message.length - 1)}.`;
     return message;
 }
