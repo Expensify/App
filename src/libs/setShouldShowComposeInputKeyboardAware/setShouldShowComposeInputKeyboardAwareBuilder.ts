@@ -1,8 +1,6 @@
 import {EmitterSubscription, Keyboard} from 'react-native';
 import {KeyboardEventName} from 'react-native/Libraries/Components/Keyboard/Keyboard';
-// import getOperatingSystem from '@libs/getOperatingSystem';
 import * as Composer from '@userActions/Composer';
-// import CONST from '@src/CONST';
 import SetShouldShowComposeInputKeyboardAware from './types';
 
 let keyboardEventListener: EmitterSubscription | null = null;
