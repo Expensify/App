@@ -27,7 +27,7 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, o
             onPress={onPress}
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
         >
             {children}
@@ -39,5 +39,6 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, o
 
 AttachmentViewImage.propTypes = propTypes;
 AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
+AttachmentViewImage.displayName = 'AttachmentViewImage';
 
 export default compose(memo, withLocalize)(AttachmentViewImage);
