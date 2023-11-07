@@ -2028,17 +2028,50 @@ function getModifiedExpenseMessage(reportAction) {
     let message = '';
     if (changeFragments.length > 0) {
         message = changeFragments.reduce((acc, value, index) => {
-            return `${acc} ${value},`;
+            if (index === changeFragments.length - 1) {
+                if (changeFragments.length === 1) {
+                    return `${acc} ${value}.`;        
+                } else if (changeFragments.length === 2) {
+                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                } else {
+                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+                }
+            } else if (index === 0) {
+                return `${acc} ${value}`;
+            }
+            return `${acc}, ${value}`;
         }, `${message}\n${Localize.translateLocal('iou.changed')}`);
     }
     if (setFragments.length > 0) {
-        message = setFragments.reduce((acc, value) => {
-            return `${acc} ${value},`;
+        message = setFragments.reduce((acc, value, index) => {
+            if (index === setFragments.length - 1) {
+                if (setFragments.length === 1) {
+                    return `${acc} ${value}.`;        
+                } else if (setFragments.length === 2) {
+                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                } else {
+                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+                }
+            } else if (index === 0) {
+                return `${acc} ${value}`;
+            }
+            return `${acc}, ${value}`;
         }, `${message}\n${Localize.translateLocal('iou.set')}`);
     }
     if (removalFragments.length > 0) {
-        message = removalFragments.reduce((acc, value) => {
-            return `${acc} ${value},`;
+        message = removalFragments.reduce((acc, value, index) => {
+            if (index === removalFragments.length - 1) {
+                if (removalFragments.length === 1) {
+                    return `${acc} ${value}.`;        
+                } else if (removalFragments.length === 2) {
+                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                } else {
+                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+                }
+            } else if (index === 0) {
+                return `${acc} ${value}`;
+            }
+            return `${acc}, ${value}`;
         }, `${message}\n${Localize.translateLocal('iou.removed')}`);
     }
     if (message === '') {
