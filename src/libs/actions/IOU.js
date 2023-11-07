@@ -2103,6 +2103,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
                           hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
                           iouReportID: null,
                           lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
                           lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
@@ -2447,6 +2448,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
                 iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
@@ -2470,6 +2472,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
         },

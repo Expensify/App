@@ -135,7 +135,13 @@ function isYesterday(date: Date, timeZone: string): boolean {
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZone = false, currentSelectedTimezone = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(
+    locale: 'en' | 'es' | 'es-ES' | 'es_ES',
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone = timezone.selected,
+    isLowercase = false,
+): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');
