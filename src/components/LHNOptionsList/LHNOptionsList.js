@@ -179,7 +179,7 @@ function LHNOptionsList({
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
-                initialNumToRender={5}
+                initialNumToRender={20}
                 maxToRenderPerBatch={5}
                 windowSize={5}
             />
