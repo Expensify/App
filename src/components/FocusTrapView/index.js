@@ -3,7 +3,7 @@
  */
 import FocusTrap from 'focus-trap-react';
 import {PropTypes} from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 const propTypes = {
@@ -40,18 +40,6 @@ function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus
      */
     const ref = useRef(null);
 
-    /**
-     * We have to set the 'tabindex' attribute to 0 to make the View focusable.
-     * Currently, it is not possible to set this through props.
-     * After the upgrade of 'react-native-web' to version 0.19 we can use 'tabIndex={0}' prop instead.
-     */
-    useEffect(() => {
-        if (!ref.current) {
-            return;
-        }
-        ref.current.setAttribute('tabindex', '0');
-    }, []);
-
     return isEnabled ? (
         <FocusTrap
             active={isActive}
@@ -63,6 +51,7 @@ function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus
         >
             <View
                 ref={ref}
+                tabIndex={0}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
