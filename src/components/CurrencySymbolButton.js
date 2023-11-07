@@ -22,7 +22,7 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
             <PressableWithoutFeedback
                 onPress={onCurrencyButtonPress}
                 accessibilityLabel={translate('common.selectCurrency')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
             </PressableWithoutFeedback>

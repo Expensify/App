@@ -66,7 +66,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => {
                             if (!el) {
                                 return;
@@ -75,8 +75,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                             updateMultilineInputRange(descriptionInputRef.current);
                         }}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>

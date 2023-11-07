@@ -954,6 +954,16 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 }
 
 /**
+ * Get the notification preference given a report
+ *
+ * @param {Object} report
+ * @returns {String}
+ */
+function getReportNotificationPreference(report) {
+    return lodashGet(report, 'notificationPreference', '');
+}
+
+/**
  * Returns whether or not the author of the action is this user
  *
  */
@@ -2456,7 +2466,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -2494,7 +2504,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -3162,7 +3172,7 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
         '',
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReportID,
     );
@@ -4099,6 +4109,7 @@ export {
     getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
+    getReportNotificationPreference,
     getReportIDFromLink,
     getRouteFromLink,
     getDeletedParentActionMessageForChatReport,

@@ -225,7 +225,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 <AttachmentPicker shouldHideCameraOption>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
                             style={[styles.alignItemsStart]}
                             onPress={() => {
@@ -258,7 +258,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
@@ -269,7 +269,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
                     disabled={cameraPermissionStatus !== RESULTS.GRANTED}

@@ -190,7 +190,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
@@ -199,7 +199,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
@@ -217,10 +217,10 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     <TextInput
                         inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
@@ -239,9 +239,9 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
                 </Form>
             </View>
