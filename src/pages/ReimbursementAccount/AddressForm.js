@@ -96,7 +96,8 @@ function AddressForm(props) {
     return (
         <>
             <View>
-                <AddressSearch
+                <InputWrapper
+                    InputComponent={AddressSearch}
                     inputID={props.inputKeys.street}
                     shouldSaveDraft={props.shouldSaveDraft}
                     label={props.translate(props.streetTranslationKey)}
