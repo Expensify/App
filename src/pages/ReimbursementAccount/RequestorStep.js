@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import RequestorOnfidoStep from './RequestorOnfidoStep';
-import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
+import React from 'react';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
+import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
+import RequestorOnfidoStep from './RequestorOnfidoStep';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
