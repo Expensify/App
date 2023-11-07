@@ -81,7 +81,6 @@ function AddressPage({privatePersonalDetails, route}) {
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [city, setCity] = useState(address.city);
-    const [zipcode, setZipcode] = useState(address.zip);
 
     useEffect(() => {
         if (!address) {
@@ -90,7 +89,6 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);
-        setZipcode(address.zip);
     }, [address]);
 
     /**
@@ -139,28 +137,20 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
+        if (key !== 'country' && key !== 'state' && key !== 'city') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
             setCity('');
-            setZipcode('');
             return;
         }
         if (key === 'state') {
             setState(value);
-            setCity('');
-            setZipcode('');
             return;
         }
-        if (key === 'city') {
-            setCity(value);
-            setZipcode('');
-            return;
-        }
-        setZipcode(value);
+        setCity(value);
     }, []);
 
     useEffect(() => {
@@ -264,10 +254,9 @@ function AddressPage({privatePersonalDetails, route}) {
                         accessibilityLabel={translate('common.zipPostCode')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
-                        value={zipcode || ''}
+                        defaultValue={address.zip || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={zipFormat}
-                        onValueChange={handleAddressChange}
                     />
                 </Form>
             )}
