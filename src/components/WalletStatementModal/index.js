@@ -1,18 +1,18 @@
-import React, {useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import withLocalize from '../withLocalize';
-import ONYXKEYS from '../../ONYXKEYS';
-import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
-import styles from '../../styles/styles';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as Report from '../../libs/actions/Report';
-import CONST from '../../CONST';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 function WalletStatementModal({statementPageURL, session}) {
     const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +67,7 @@ function WalletStatementModal({statementPageURL, session}) {
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
+WalletStatementModal.displayName = 'WalletStatementModal';
 
 export default compose(
     withLocalize,

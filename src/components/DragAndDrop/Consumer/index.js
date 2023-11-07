@@ -1,7 +1,7 @@
-import React, {useContext, useEffect} from 'react';
 import {Portal} from '@gorhom/portal';
+import React, {useContext, useEffect} from 'react';
+import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
-import {DragAndDropContext} from '../Provider';
 
 function DragAndDropConsumer({children, onDrop}) {
     const {isDraggingOver, setOnDropHandler, dropZoneID} = useContext(DragAndDropContext);

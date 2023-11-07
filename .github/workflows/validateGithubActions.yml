@@ -4,8 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths:
-      - .github/**
+    paths: ['.github/**', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   verify:

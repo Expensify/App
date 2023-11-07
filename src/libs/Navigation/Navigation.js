@@ -1,19 +1,19 @@
+import {getActionFromState} from '@react-navigation/core';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import {getActionFromState} from '@react-navigation/core';
-import Log from '../Log';
-import linkTo from './linkTo';
-import ROUTES from '../../ROUTES';
-import linkingConfig from './linkingConfig';
-import navigationRef from './navigationRef';
-import NAVIGATORS from '../../NAVIGATORS';
-import originalGetTopmostReportId from './getTopmostReportId';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import getStateFromPath from './getStateFromPath';
 import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
-import getStateFromPath from './getStateFromPath';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
+import originalGetTopmostReportId from './getTopmostReportId';
+import linkingConfig from './linkingConfig';
+import linkTo from './linkTo';
+import navigationRef from './navigationRef';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -96,8 +96,8 @@ function navigate(route = ROUTES.HOME, type) {
 
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
- * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
+ * @param {Boolean} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Boolean} shouldPopToTop - Should we navigate to LHN on back press
  */
 function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
@@ -207,6 +207,14 @@ function getActiveRoute() {
     return '';
 }
 
+/**
+ * Returns the current active route without the URL params
+ * @returns {String}
+ */
+function getActiveRouteWithoutParams() {
+    return getActiveRoute().replace(/\?.*/, '');
+}
+
 /** Returns the active route name from a state event from the navigationRef
  * @param {Object} event
  * @returns {String | undefined}
@@ -270,6 +278,7 @@ export default {
     dismissModal,
     isActiveRoute,
     getActiveRoute,
+    getActiveRouteWithoutParams,
     goBack,
     isNavigationReady,
     setIsNavigationReady,

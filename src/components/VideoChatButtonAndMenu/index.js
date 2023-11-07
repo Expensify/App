@@ -1,7 +1,7 @@
 import React from 'react';
-import CONST from '../../CONST';
-import {propTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import CONST from '@src/CONST';
 import BaseVideoChatButtonAndMenu from './BaseVideoChatButtonAndMenu';
+import {defaultProps, propTypes} from './videoChatButtonAndMenuPropTypes';
 
 function VideoChatButtonAndMenu(props) {
     return (

@@ -1,17 +1,17 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import stylePropTypes from '../styles/stylePropTypes';
+import useNetwork from '@hooks/useNetwork';
+import * as ReportUtils from '@libs/ReportUtils';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Icon from './Icon';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
-import styles from '../styles/styles';
-import * as ReportUtils from '../libs/ReportUtils';
-import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -119,6 +119,9 @@ function Avatar(props) {
         </View>
     );
 }
+
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
+Avatar.displayName = 'Avatar';
+
 export default Avatar;

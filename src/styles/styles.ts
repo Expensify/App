@@ -6,10 +6,11 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
 import codeStyles from './codeStyles';
+import colors from './colors';
 import fontFamily from './fontFamily';
 import fontWeightBold from './fontWeight/bold';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
@@ -18,15 +19,17 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeDefault} from './themes/types';
+import {ThemeColors} from './themes/types';
+import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
 import flex from './utilities/flex';
+import objectFit from './utilities/objectFit';
 import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
 import sizing from './utilities/sizing';
 import spacing from './utilities/spacing';
-import borders from './utilities/borders';
+import textDecorationLine from './utilities/textDecorationLine';
 import textUnderline from './utilities/textUnderline';
 import userSelect from './utilities/userSelect';
 import visibility from './utilities/visibility';
@@ -34,9 +37,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import colors from './colors';
-import objectFit from './utilities/objectFit';
-import textDecorationLine from './utilities/textDecorationLine';
 
 type AnchorPosition = {
     horizontal: number;
@@ -80,7 +80,7 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobile
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
-const picker = (theme: ThemeDefault) =>
+const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
         color: theme.text,
@@ -96,14 +96,14 @@ const picker = (theme: ThemeDefault) =>
         textAlign: 'left',
     } satisfies TextStyle);
 
-const link = (theme: ThemeDefault) =>
+const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
         fontFamily: fontFamily.EXP_NEUE,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
-const baseCodeTagStyles = (theme: ThemeDefault) =>
+const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
         borderRadius: 5,
@@ -116,7 +116,7 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
-const webViewStyles = (theme: ThemeDefault) =>
+const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
@@ -211,7 +211,7 @@ const webViewStyles = (theme: ThemeDefault) =>
         },
     } satisfies WebViewStyle);
 
-const styles = (theme: ThemeDefault) =>
+const styles = (theme: ThemeColors) =>
     ({
         // Add all of our utility and helper styles
         ...spacing,
@@ -3329,7 +3329,6 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmount: {
             ...headlineFont,
             fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
             color: colors.green400,
         },
 
@@ -3574,7 +3573,8 @@ const styles = (theme: ThemeDefault) =>
         googlePillButtonContainer: {
             colorScheme: 'light',
             height: 40,
-            width: 219,
+            width: 300,
+            overflow: 'hidden',
         },
 
         thirdPartyLoadingContainer: {
@@ -3749,21 +3749,6 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImagesMoreCornerTriangle: {
             position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 0,
-            height: 0,
-            borderStyle: 'solid',
-            borderWidth: 0,
-            borderBottomWidth: 40,
-            borderLeftWidth: 40,
-            borderColor: 'transparent',
-            borderBottomColor: theme.cardBG,
-        },
-
-        reportActionItemImagesMoreCornerTriangleHighlighted: {
-            borderColor: 'transparent',
-            borderBottomColor: theme.border,
         },
 
         assignedCardsIconContainer: {
@@ -4029,12 +4014,8 @@ const styles = (theme: ThemeDefault) =>
         },
     } satisfies Styles);
 
-// For now we need to export the styles function that takes the theme as an argument
-// as something named different than "styles", because a lot of files import the "defaultStyles"
-// as "styles", which causes ESLint to throw an error.
-// TODO: Remove "stylesGenerator" and instead only return "styles" once the app is migrated to theme switching hooks and HOCs and "styles/theme/default.js" is not used anywhere anymore (GH issue: https://github.com/Expensify/App/issues/27337)
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator};
+export {stylesGenerator, type Styles};
