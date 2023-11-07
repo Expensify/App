@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import {PasswordResponses} from 'pdfjs-dist';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -142,7 +143,7 @@ function PDFView(props) {
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             isFocused={props.isFocused}
-                            onSubmit={() => attemptPDFLoadWithPassword()}
+                            onSubmit={(formPasswordValue) => attemptPDFLoadWithPassword(formPasswordValue)}
                             onPasswordUpdated={() => setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
