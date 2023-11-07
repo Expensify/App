@@ -4,6 +4,7 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,8 +21,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import FormProvider from "@components/Form/FormProvider";
-import _ from "underscore";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,7 +43,7 @@ const defaultProps = {
 };
 
 function RoomNamePage({policy, report, reports, translate}) {
-  const roomNameInputRef = useRef(null);
+    const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
     const validate = useCallback(

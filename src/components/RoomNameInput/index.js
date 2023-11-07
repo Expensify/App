@@ -1,20 +1,19 @@
 import React from 'react';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
-import _ from 'underscore';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import InputWrapper from "@components/Form/InputWrapper";
-import getOperatingSystem from "@libs/getOperatingSystem";
 
 function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, onBlur, shouldDelayFocus, inputID, roomName}) {
     const {translate} = useLocalize();
 
     const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
 
-    const valueParser = (roomName) => RoomNameInputUtils.modifyRoomName(roomName);
-    const displayParser = (roomName) =>  RoomNameInputUtils.modifyRoomName(roomName, true);
+    const valueParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName);
+    const displayParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName, true);
 
     return (
         <InputWrapper

@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-    import _ from 'underscore';
+import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useContext} from 'react';
+import refPropTypes from '@components/refPropTypes';
 import FormContext from './FormContext';
-import refPropTypes from "@components/refPropTypes";
 
 const propTypes = {
     InputComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.elementType]).isRequired,
@@ -9,7 +9,7 @@ const propTypes = {
     valueType: PropTypes.string,
     forwardedRef: refPropTypes,
     valueParser: PropTypes.func,
-    displayParser: PropTypes.func
+    displayParser: PropTypes.func,
 };
 
 const defaultProps = {

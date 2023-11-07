@@ -32,7 +32,7 @@ const propTypes = {
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
-    roomName: PropTypes.string
+    roomName: PropTypes.string,
 };
 
 const defaultProps = {
