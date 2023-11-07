@@ -22,11 +22,11 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
-import * as Modal from '@userActions/Modal';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
