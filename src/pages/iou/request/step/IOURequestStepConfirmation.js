@@ -369,7 +369,7 @@ export default compose(
             key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
         },
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TEMPTRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

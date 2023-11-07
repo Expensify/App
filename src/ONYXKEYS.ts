@@ -263,7 +263,7 @@ const ONYXKEYS = {
         TRANSACTION: 'transactions_',
 
         // Holds temporary transactions used during the creation and edit flow
-        TEMPTRANSACTION: 'temptransactions_',
+        TRANSACTION_DRAFT: 'transactionsDraft_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
