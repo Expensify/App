@@ -95,6 +95,7 @@ function IOURequestStepWaypoint({
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
+
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = totalWaypoints > 2;
 

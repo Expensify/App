@@ -2935,7 +2935,7 @@ function replaceReceipt(transactionID, receipt, filePath) {
  * @param {String} transactionID of the transaction to set the participants of
  * @param {Object} report attached to the transaction
  */
-function setMoneyRequestParticipants(transactionID, report) {
+function setMoneyRequestParticipantsFromReport(transactionID, report) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -3155,7 +3155,7 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestId,
     setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestTag,
     setUpDistanceTransaction,
