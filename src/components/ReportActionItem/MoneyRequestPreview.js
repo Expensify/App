@@ -276,7 +276,9 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
+                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                </Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
