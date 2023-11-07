@@ -164,6 +164,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
+            shouldUseTargetLocation
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
