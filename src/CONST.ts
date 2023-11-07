@@ -50,6 +50,9 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     AUTO_AUTH_STATE: {
@@ -259,6 +262,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1311,6 +1315,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
