@@ -1,4 +1,4 @@
-import {format, isValid} from 'date-fns';
+import {format, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
 import TextInput from '@components/TextInput';
@@ -29,7 +29,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
             return;
         }
 
-        const date = new Date(text);
+        const date = parseISO(text);
         if (isValid(date)) {
             onInputChange(format(date, CONST.DATE.FNS_FORMAT_STRING));
         }
