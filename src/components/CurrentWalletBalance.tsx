@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextStyle} from 'react-native';
+import {StyleProp, TextStyle} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import styles from '@styles/styles';
@@ -13,12 +13,12 @@ type CurrentWalletBalanceOnyxProps = {
 };
 
 type CurrentWalletBalanceProps = CurrentWalletBalanceOnyxProps & {
-    balanceStyles?: TextStyle[];
+    balanceStyles?: StyleProp<TextStyle>;
 };
 
-function CurrentWalletBalance({userWallet, balanceStyles = []}: CurrentWalletBalanceProps) {
+function CurrentWalletBalance({userWallet, balanceStyles}: CurrentWalletBalanceProps) {
     const formattedBalance = CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0);
-    return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...balanceStyles]}>{`${formattedBalance}`}</Text>;
+    return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, balanceStyles]}>{`${formattedBalance}`}</Text>;
 }
 
 CurrentWalletBalance.displayName = 'CurrentWalletBalance';
