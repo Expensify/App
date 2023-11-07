@@ -144,6 +144,7 @@ function BaseSelectionList({
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
+    const initialFocusedIndex = focusedIndex > -1 ? focusedIndex : undefined;
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -307,14 +308,9 @@ function BaseSelectionList({
             />
         );
     };
-
-    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
-        if (!firstLayoutRef.current) {
-            return;
-        }
-        scrollToIndex(focusedIndex, false);
+    const handleFirstLayout = useCallback(() => {
         firstLayoutRef.current = false;
-    }, [focusedIndex, scrollToIndex]);
+    }, []);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -454,7 +450,8 @@ function BaseSelectionList({
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     style={[styles.flexGrow0]}
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={handleFirstLayout}
+                                    initialScrollIndex={initialFocusedIndex}
                                 />
                                 {children}
                             </>
