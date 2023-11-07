@@ -327,10 +327,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
-        },
-
         verticalAlignMiddle: {
             verticalAlign: 'middle',
         },
