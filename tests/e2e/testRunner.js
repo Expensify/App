@@ -222,8 +222,16 @@ const runTests = async () => {
         if (testResult.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        if (testResult.duration < 0) {
-            return;
+        let result = 0;
+
+        if ('duration' in testResult) {
+            if (testResult.duration < 0) {
+                return;
+            }
+            result = testResult.duration;
+        }
+        if ('renderCount' in testResult) {
+            result = testResult.renderCount;
         }
 
         Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);

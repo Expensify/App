@@ -1,5 +1,5 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import TextInput from '@components/TextInput';
@@ -39,14 +39,14 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
     );
 
     const date = value || defaultValue;
-    const dateAsText = date ? format(new Date(date), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const dateAsText = date ? format(parseISO(date), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
             <TextInput
                 label={label}
                 accessibilityLabel={label}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 forceActiveLabel
                 placeholder={placeholder}
@@ -54,14 +54,14 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
                 containerStyles={containerStyles}
                 textInputContainerStyles={isPickerVisible ? [styles.borderColorFocus] : []}
                 onPress={showPicker}
-                editable={false}
+                readOnly
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={ref}
             />
             {isPickerVisible && (
                 <RNDatePicker
-                    value={date ? new Date(date) : new Date()}
+                    value={date ? parseISO(date) : new Date()}
                     mode="date"
                     onChange={setDate}
                     maximumDate={maxDate}
