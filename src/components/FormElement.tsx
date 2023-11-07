@@ -1,14 +1,13 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {View, ViewStyle} from 'react-native';
-import * as ComponentUtils from '../libs/ComponentUtils';
+import React, {ForwardedRef, forwardRef, LegacyRef} from 'react';
+import {View, ViewProps} from 'react-native';
+import * as ComponentUtils from '@libs/ComponentUtils';
 
-function FormElement(props: {style: ViewStyle; children: React.ReactNode}, ref: ForwardedRef<View | null>) {
-    console.debug('hej', JSON.stringify(ref));
+type FormElementProps = ViewProps;
+function FormElement(props: FormElementProps, ref: ForwardedRef<View | HTMLFormElement | null>) {
     return (
         <View
-            accessibilityRole={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
-            accessibilityAutoComplete="on"
-            ref={ref}
+            role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
+            ref={ref as LegacyRef<View>}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
