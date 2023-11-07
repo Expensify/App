@@ -81,6 +81,14 @@ function IOURequestStartPage({
         [reportID],
     );
 
+    // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
+    useEffect(() => {
+        if (transaction.reportID === reportID) {
+            return;
+        }
+        IOU.startMoneyRequest_temporaryForRefactor(reportID, iouType);
+    }, [transaction, reportID, iouType]);
+
     const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);
     const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;

@@ -2945,7 +2945,7 @@ function setMoneyRequestParticipantsFromReport(transactionID, report) {
               .filter((accountID) => currentUserAccountID !== accountID)
               .map((accountID) => ({accountID, selected: true}))
               .value();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants, participantsAutoAssigned: true});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
 /**
