@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
-import _ from 'underscore';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
@@ -30,8 +29,8 @@ function InvertedFlatList(props) {
     const updateInProgress = useRef(false);
     const eventHandler = useRef(null);
 
-    useEffect(() => {
-        return () => {
+    useEffect(
+        () => () => {
             if (scrollEndTimeout.current) {
                 clearTimeout(scrollEndTimeout.current);
             }
@@ -39,8 +38,9 @@ function InvertedFlatList(props) {
             if (eventHandler.current) {
                 eventHandler.current.remove();
             }
-        };
-    }, [innerRef]);
+        },
+        [innerRef],
+    );
 
     /**
      * Emits when the scrolling is in progress. Also,
