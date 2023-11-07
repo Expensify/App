@@ -83,9 +83,9 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const submit = useCallback(() => {
-        const values = getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount);
+    const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
+    const submit = useCallback(() => {
         const payload = {
             bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
             ...values,
@@ -95,9 +95,9 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
-    }, [getBankAccountFields, reimbursementAccount, reimbursementAccountDraft, policyID]);
+    }, [reimbursementAccount, values, getBankAccountFields, policyID]);
 
-    const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
+    const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
