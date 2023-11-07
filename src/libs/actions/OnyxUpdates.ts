@@ -49,9 +49,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
 
     for (const update of updates) {
-        pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => {
-            return PusherUtils.triggerMultiEventHandler(update.eventType, update.data);
-        });
+        pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
     }
 
     pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => {
