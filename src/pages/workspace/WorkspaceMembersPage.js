@@ -365,6 +365,7 @@ function WorkspaceMembersPage(props) {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
                     },
                 ],
                 errors: policyMember.errors,
@@ -397,7 +398,7 @@ function WorkspaceMembersPage(props) {
                 type="success"
                 messages={{0: props.translate('workspace.people.addedWithPrimary')}}
                 containerStyles={[styles.pb5, styles.ph5]}
-                onClose={() => Policy.dismissAddedWithPrimaryMessages(policyID)}
+                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />
         );
     };
