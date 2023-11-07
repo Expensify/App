@@ -409,7 +409,7 @@ function ReportScreen({
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || ReportUtils.shouldDisableWriteActions(report)}>
+                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
