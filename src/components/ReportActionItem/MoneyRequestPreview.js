@@ -243,6 +243,8 @@ function MoneyRequestPreview(props) {
         return CurrencyUtils.convertToDisplayString(amount, currency);
     };
 
+    const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -288,13 +290,21 @@ function MoneyRequestPreview(props) {
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text
                                         style={[
-                                            styles.moneyRequestPreviewAmount,
-                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                            styles.textHeadline,
+                                            props.isBillSplit &&
+                                                StyleUtils.getAmountFontSizeAndLineHeight(
+                                                    variables.fontSizeXLarge,
+                                                    variables.lineHeightXXLarge,
+                                                    isSmallScreenWidth,
+                                                    windowWidth,
+                                                    displayAmount.length,
+                                                    participantAvatars.length,
+                                                ),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
                                     >
-                                        {isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText()}
+                                        {displayAmount}
                                     </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>

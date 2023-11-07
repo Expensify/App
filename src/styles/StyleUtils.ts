@@ -1258,22 +1258,51 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(
+    baseFontSize: number,
+    baseLineHeight: number,
+    isSmallScreenWidth: boolean,
+    windowWidth: number,
+    displayAmountLength: number,
+    numberOfParticipant: number,
+): TextStyle {
     let toSubtract = 0;
-
-    if (isSmallScreenWidth) {
-        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    if (isSmallScreenWidth && windowWidth <= 410) {
+        const widthDifferent = 410 - windowWidth;
         switch (true) {
-            case widthDifference > 450:
+            case widthDifferent > 60:
                 toSubtract = 11;
                 break;
-            case widthDifference > 400:
-                toSubtract = 8;
+            case widthDifferent > 50:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = numberOfAvatar * 2;
+                }
                 break;
-            case widthDifference > 350:
-                toSubtract = 4;
+            case widthDifferent > 40:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1;
+                }
+                break;
+            case widthDifferent > 30:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2;
+                }
+                break;
+            case widthDifferent > 20:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1;
+                }
+                break;
+            case widthDifferent > 10:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2;
+                }
                 break;
             default:
+                if (displayAmountLength + numberOfAvatar === 21) {
+                    toSubtract = 3;
+                }
                 break;
         }
     }
