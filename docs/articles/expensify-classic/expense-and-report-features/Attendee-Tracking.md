@@ -11,12 +11,14 @@ Every expense has an Attendees field and will list the expense creator’s name 
 ## How to Add Additional Attendees to an Expense
 * Go to the attendees field
 * Search for the names of the attendees
-    * The default list will be of internal attendees belonging to your workspace and domain.
+    * The default list will be of internal attendees belonging to your workspace and domain
     * External attendees are not part of your workspace or domain, so you will need to enter their name or email 
 * Select the attendees you would like to add 
 * Save the expense 
-* Once added, the list of attendees for each expense will be visible on the expense line.
-* An amount per employee expense will also be displayed on the report for easy viewing 
+* Once added, the list of attendees for each expense will be visible on the expense line
+* An amount per employee expense will also be displayed on the report for easy viewing
+
+![image of an expense with attendee tracking]({{site.url}}/assets/images/attendee-tracking.png){:width="100%"}
 
 # FAQ
 
