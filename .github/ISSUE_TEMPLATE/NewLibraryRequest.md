@@ -17,3 +17,6 @@ Note: This is only for production dependencies. While we don't want people to ad
 - Number of releases in the last year:
 - Level of activity in the repo:
 - Alternatives:
+- Are security concerns brought up and addressed in the library's repo?
+- How many dependencies does this lib use that will be brought into our code?
+- What will the effect be on the bundle size of our code?
