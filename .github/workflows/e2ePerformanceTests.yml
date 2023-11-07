@@ -187,7 +187,7 @@ jobs:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
           device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease-main.apk
+          app_file: zip/app-e2eRelease.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
           test_package_file: App.zip
