@@ -8,7 +8,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
-import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 
@@ -25,11 +25,7 @@ type LocaleContextProviderProps = LocaleContextProviderOnyxProps &
         children: React.ReactNode;
     };
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
-
-type Translate = <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string;
+type Translate = <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
 
 type NumberFormat = (number: number, options: Intl.NumberFormatOptions) => string;
 
