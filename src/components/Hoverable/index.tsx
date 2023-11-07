@@ -1,9 +1,9 @@
 import React, {MutableRefObject, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import _ from 'underscore';
-import HoverableProps from './types';
+import _ from 'lodash';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
+import HoverableProps from './types';
 
 /**
  * Maps the children of a Hoverable component to
