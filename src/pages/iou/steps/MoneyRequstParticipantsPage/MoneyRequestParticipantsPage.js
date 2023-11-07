@@ -155,19 +155,14 @@ MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-        selectedTab: {
-            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
-        },
-    }),
-)(MoneyRequestParticipantsPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+    transaction: {
+        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(iou, 'transactionID', 0)}`,
+    },
+})(MoneyRequestParticipantsPage);
