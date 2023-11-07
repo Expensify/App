@@ -1,4 +1,3 @@
-import {PasswordResponses} from 'pdfjs-dist';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
