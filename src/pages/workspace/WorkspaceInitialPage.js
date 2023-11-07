@@ -205,7 +205,6 @@ function WorkspaceInitialPage(props) {
         });
     });
 
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
