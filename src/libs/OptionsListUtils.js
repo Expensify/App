@@ -520,8 +520,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        let lastActorDetailsName = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
+        let lastMessageText = lastActorDetailsName + lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
@@ -536,7 +536,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else if (result.isTaskReport) {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
