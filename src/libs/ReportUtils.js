@@ -3624,8 +3624,8 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
  * @returns {Boolean}
  */
 function canRequestMoney(report, participants) {
-    // User cannot request money in chat thread or in task report
-    if (isChatThread(report) || isTaskReport(report)) {
+    // User cannot request money in chat thread or in task report or in chat room
+    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
     }
 
@@ -3683,8 +3683,6 @@ function getMoneyRequestOptions(report, reportParticipants) {
         return [];
     }
 
-    const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
-
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const isPolicyOwnedByExpensifyAccounts = report.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report.policyID).ownerAccountID || 0) : false;
@@ -3692,30 +3690,33 @@ function getMoneyRequestOptions(report, reportParticipants) {
         return [];
     }
 
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
+    const otherParticipants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+    const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
+    const hasMultipleOtherParticipants = otherParticipants.length > 1;
 
+    let options = [];
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    // There is no Split Bill option for IOU or Expense reports which are threads
+    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
+    // Your own workspace chats will have the split bill option.
     if (
-        (isChatRoom(report) && participants.length > 0) ||
-        (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
-        (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
+        (isChatRoom(report) && otherParticipants.length > 0) ||
+        (isDM(report) && hasMultipleOtherParticipants) ||
+        (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
     ) {
-        return [CONST.IOU.TYPE.SPLIT];
+        options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    // DM chats that only have 2 people will see the Send / Request money options.
-    // IOU and open or processing expense reports should show the Request option.
-    // Workspace chats should only see the Request money option or Split option in case of Control policies
-    return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
+    if (canRequestMoney(report, otherParticipants)) {
+        options = [...options, CONST.IOU.TYPE.REQUEST];
+    }
 
-        // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
-    ];
+    // Send money option should be visible only in 1:1 DMs
+    if (isDM(report) && hasSingleOtherParticipantInReport) {
+        options = [...options, CONST.IOU.TYPE.SEND];
+    }
+
+    return options;
 }
 
 /**
