@@ -41,10 +41,12 @@ type Message = {
     isDeletedParentAction?: boolean;
     whisperedTo?: number[];
     reactions?: Reaction[];
-    taskReportID?: string;
     translationKey?: string;
     moderationDecision?: Decision;
     isReversedTransaction?: boolean;
+
+    /** ID of a task report */
+    taskReportID?: string;
 };
 
 type Person = {

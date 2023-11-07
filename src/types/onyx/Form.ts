@@ -16,6 +16,11 @@ type AddDebitCardForm = Form & {
     setupComplete: boolean;
 };
 
+type DateOfBirthForm = Form & {
+    /** Date of birth */
+    dob?: string;
+};
+
 export default Form;
 
-export type {AddDebitCardForm};
+export type {AddDebitCardForm, DateOfBirthForm};

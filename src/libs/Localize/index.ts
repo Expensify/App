@@ -1,12 +1,10 @@
-import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import Log from '@libs/Log';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
+import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
@@ -15,12 +13,11 @@ import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 let userEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    waitForCollectionCallback: true,
     callback: (val) => {
         if (!val) {
             return;
         }
-        userEmail = val.email;
+        userEmail = val?.email ?? '';
     },
 });
 
@@ -29,66 +26,60 @@ LocaleListener.connect();
 
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
-let CONJUNCTION_LIST_FORMATS_FOR_LOCALES;
+let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
 function init() {
-    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(
-        CONST.LOCALES,
-        (memo, locale) => {
-            // This is not a supported locale, so we'll use ES_ES instead
-            if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
-                // eslint-disable-next-line no-param-reassign
-                memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
-                return memo;
-            }
-
+    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
+        // This is not a supported locale, so we'll use ES_ES instead
+        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
             // eslint-disable-next-line no-param-reassign
-            memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
             return memo;
-        },
-        {},
-    );
+        }
+
+        // eslint-disable-next-line no-param-reassign
+        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+        return memo;
+    }, {});
 }
+
+type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
  * Return translated string for given locale and phrase
  *
- * @param {String} [desiredLanguage] eg 'en', 'es-ES'
- * @param {String} phraseKey
- * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
- * @returns {String}
+ * @param [desiredLanguage] eg 'en', 'es-ES'
+ * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
  */
-function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phraseParameters = {}) {
-    const languageAbbreviation = desiredLanguage.substring(0, 2);
-    let translatedPhrase;
-
+function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
     // Search phrase in full locale e.g. es-ES
-    const desiredLanguageDictionary = translations[desiredLanguage] || {};
-    translatedPhrase = desiredLanguageDictionary[phraseKey];
+    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
+    let translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = translations[languageAbbreviation] || {};
-    translatedPhrase = fallbackLanguageDictionary[phraseKey];
+    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+    translatedPhrase = translations?.[languageAbbreviation]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
+
     if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
         Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = translations[CONST.LOCALES.DEFAULT] || {};
-    translatedPhrase = defaultLanguageDictionary[phraseKey];
+    translatedPhrase = translations?.[CONST.LOCALES.DEFAULT]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
 
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString: string = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
@@ -100,49 +91,38 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
- *
- * @param {String|Array} phrase
- * @param {Object} [variables]
- * @returns {String}
  */
-function translateLocal(phrase, variables) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
 /**
  * Return translated string for given error.
- *
- * @param {String|Array} message
- * @returns {String}
  */
-function translateIfPhraseKey(message) {
-    if (_.isEmpty(message)) {
+function translateIfPhraseKey(message: string | [string, Record<string, unknown> & {isTranslated?: true}] | []): string {
+    if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
 
     try {
         // check if error message has a variable parameter
-        const [phrase, variables] = _.isArray(message) ? message : [message];
+        const [phrase, variables] = Array.isArray(message) ? message : [message];
 
         // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
-
-        if (variables && variables.isTranslated) {
+        if (variables?.isTranslated) {
             return phrase;
         }
 
-        return translateLocal(phrase, variables);
+        return translateLocal(phrase as TranslationPaths, variables as never);
     } catch (error) {
-        return message;
+        return Array.isArray(message) ? message[0] : message;
     }
 }
 
 /**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
- *
- * @param {Array} anArray
- * @return {String}
  */
-function arrayToString(anArray) {
+function arrayToString(anArray: string[]) {
     if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
         init();
     }
@@ -152,11 +132,9 @@ function arrayToString(anArray) {
 
 /**
  * Returns the user device's preferred language.
- *
- * @return {String}
  */
-function getDevicePreferredLocale() {
-    return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
+function getDevicePreferredLocale(): string {
+    return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
 export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};

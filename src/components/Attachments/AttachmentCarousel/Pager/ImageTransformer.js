@@ -574,5 +574,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 }
 ImageTransformer.propTypes = imageTransformerPropTypes;
 ImageTransformer.defaultProps = imageTransformerDefaultProps;
+ImageTransformer.displayName = 'ImageTransformer';
 
 export default ImageTransformer;

@@ -150,6 +150,7 @@ VerifyStep.propTypes = {
     }),
 };
 VerifyStep.defaultProps = defaultProps;
+VerifyStep.displayName = 'VerifyStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
