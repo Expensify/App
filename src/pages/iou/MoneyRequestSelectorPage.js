@@ -94,7 +94,6 @@ function MoneyRequestSelectorPage(props) {
         }
 
         resetMoneyRequestInfo();
-        //
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
