@@ -151,6 +151,13 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
 
 /**
  * @param {String} transactionID
+ */
+function clearMoneyRequest(transactionID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+/**
+ * @param {String} transactionID
  * @param {Number} amount
  * @param {String} currency
  */
@@ -3129,6 +3136,7 @@ export {
     resetMoneyRequestCategory,
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
+    clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,

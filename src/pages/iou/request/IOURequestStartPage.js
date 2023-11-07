@@ -76,9 +76,9 @@ function IOURequestStartPage({
     // Clear out the temporary money request when this component is unmounted
     useEffect(
         () => () => {
-            IOU.startMoneyRequest_temporaryForRefactor('');
+            IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         },
-        [],
+        [reportID],
     );
 
     const isFromGlobalCreate = _.isEmpty(report.reportID);
