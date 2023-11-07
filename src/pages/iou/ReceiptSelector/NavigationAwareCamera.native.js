@@ -1,8 +1,8 @@
-import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {Camera} from 'react-native-vision-camera';
+import withTabAnimation from '@libs/Navigation/withTabAnimation';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -14,6 +14,16 @@ const propTypes = {
 
     /** Name of the selected receipt tab */
     selectedTab: PropTypes.string.isRequired,
+
+    /**  */
+    tabAnimation: PropTypes.shape({
+        addListener: PropTypes.func,
+        removeListener: PropTypes.func,
+    }),
+};
+
+const defaultProps = {
+    tabAnimation: undefined,
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
@@ -27,8 +37,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
 
     // STOP!!!!!!! This is not a pattern to be followed! We are conditionally rendering this hook becase when used in the edit flow we'll never be inside a tab navigator.
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const tabPositionAnimation = isInTabNavigator ? useTabAnimation() : null;
-
+    const tabPositionAnimation = props.tabAnimation;
     useEffect(() => {
         if (!isInTabNavigator) {
             return;
@@ -78,6 +87,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
 });
 
 NavigationAwareCamera.propTypes = propTypes;
+NavigationAwareCamera.defaultProps = defaultProps;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 
-export default NavigationAwareCamera;
+export default withTabAnimation(NavigationAwareCamera);
