@@ -168,6 +168,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 }
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

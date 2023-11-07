@@ -2006,7 +2006,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
                 });
                 return;
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
         });
     });
 }

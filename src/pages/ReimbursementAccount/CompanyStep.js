@@ -163,7 +163,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <TextInput
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     inputID="companyName"
                     containerStyles={[styles.mt4]}
                     disabled={shouldDisableCompanyName}
@@ -192,9 +192,9 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="companyPhone"
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                    inputMode={CONST.INPUT_MODE.TEL}
                     placeholder={translate('common.phoneNumberPlaceholder')}
                     defaultValue={getDefaultStateForField('companyPhone')}
                     shouldSaveDraft
@@ -203,20 +203,20 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="website"
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
                     hint={translate('common.websiteExample')}
-                    keyboardType={CONST.KEYBOARD_TYPE.URL}
+                    inputMode={CONST.INPUT_MODE.URL}
                 />
                 <TextInput
                     inputID="companyTaxID"
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableCompanyTaxID}
                     placeholder={translate('companyStep.taxIDNumberPlaceholder')}
                     defaultValue={getDefaultStateForField('companyTaxID')}
