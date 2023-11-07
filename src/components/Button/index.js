@@ -112,7 +112,7 @@ const propTypes = {
     shouldEnableHapticFeedback: PropTypes.bool,
 
     /** Id to use for this button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
@@ -152,7 +152,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
-    nativeID: '',
+    id: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
 };
@@ -197,7 +197,7 @@ function Button({
     shouldRemoveLeftBorderRadius,
     shouldEnableHapticFeedback,
 
-    nativeID,
+    id,
     accessibilityLabel,
     forwardedRef,
 }) {
@@ -228,7 +228,6 @@ function Button({
         const textComponent = (
             <Text
                 numberOfLines={1}
-                selectable={false}
                 style={[
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
@@ -327,9 +326,9 @@ function Button({
                 success && !isDisabled ? styles.buttonSuccessHovered : undefined,
                 danger && !isDisabled ? styles.buttonDangerHovered : undefined,
             ]}
-            nativeID={nativeID}
+            id={id}
             accessibilityLabel={accessibilityLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             hoverDimmingValue={1}
         >
             {renderContent()}

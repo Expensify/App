@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
+import {DeviceEventEmitter, FlatList} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
@@ -116,7 +115,7 @@ function InvertedFlatList(props) {
             {...props}
             ref={listRef}
             shouldMeasureItems
-            contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
+            contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
             // We need to keep batch size to one to workaround a bug in react-native-web.
             // This can be removed once https://github.com/Expensify/App/pull/24482 is merged.
@@ -130,6 +129,7 @@ InvertedFlatList.defaultProps = {
     contentContainerStyle: {},
     onScroll: () => {},
 };
+InvertedFlatList.displayName = 'InvertedFlatList';
 
 const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
