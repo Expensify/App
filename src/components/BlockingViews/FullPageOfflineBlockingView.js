@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import networkPropTypes from '../networkPropTypes';
-import {withNetwork} from '../OnyxProvider';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Expensicons from '../Icon/Expensicons';
-import compose from '../../libs/compose';
+import React from 'react';
+import * as Expensicons from '@components/Icon/Expensicons';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
 import BlockingView from './BlockingView';
 
 const propTypes = {

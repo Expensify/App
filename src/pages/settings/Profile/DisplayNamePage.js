@@ -1,26 +1,26 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import TextInput from '../../../components/TextInput';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import ROUTES from '../../../ROUTES';
-import Navigation from '../../../libs/Navigation/Navigation';
-import FormProvider from '../../../components/Form/FormProvider';
-import InputWrapper from '../../../components/Form/InputWrapper';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -100,8 +100,8 @@ function DisplayNamePage(props) {
                             inputID="firstName"
                             name="fname"
                             label={props.translate('common.firstName')}
-                            accessibilityLabel={props.translate('common.firstName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.firstName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
@@ -113,8 +113,8 @@ function DisplayNamePage(props) {
                             inputID="lastName"
                             name="lname"
                             label={props.translate('common.lastName')}
-                            accessibilityLabel={props.translate('common.lastName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.lastName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}

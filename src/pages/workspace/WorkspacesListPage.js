@@ -1,34 +1,34 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import MenuItem from '../../components/MenuItem';
-import * as Policy from '../../libs/actions/Policy';
-import policyMemberPropType from '../policyMemberPropType';
-import Button from '../../components/Button';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import Button from '@components/Button';
+import FeatureList from '@components/FeatureList';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as App from '@userActions/App';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import * as App from '../../libs/actions/App';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import usePermissions from '../../hooks/usePermissions';
-import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
-import SCREENS from '../../SCREENS';
-import * as LottieAnimations from '../../components/LottieAnimations';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import FeatureList from '../../components/FeatureList';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -211,6 +211,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
 WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
+WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
     withPolicyAndFullscreenLoading,

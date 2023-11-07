@@ -1,25 +1,31 @@
-import React, {useRef, useEffect, useContext, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {useIsFocused} from '@react-navigation/native';
-import * as Report from '../../../libs/actions/Report';
-import reportActionPropTypes from './reportActionPropTypes';
-import Timing from '../../../libs/actions/Timing';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Performance from '../../../libs/Performance';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import ReportActionsList from './ReportActionsList';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import reportPropTypes from '../../reportPropTypes';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useInitialValue from '@hooks/useInitialValue';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {didUserLogInDuringSession} from '@libs/SessionUtils';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import {ReactionListContext} from '../ReportScreenContext';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsList from './ReportActionsList';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -29,10 +35,13 @@ const propTypes = {
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report metadata loading states */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingInitialReportActions: PropTypes.bool,
 
     /** The report actions are loading more data */
-    isLoadingMoreReportActions: PropTypes.bool,
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** The report actions are loading newer data */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -50,6 +59,12 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -57,8 +72,12 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
-    isLoadingReportActions: false,
-    isLoadingMoreReportActions: false,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
+    session: {
+        authTokenType: '',
+    },
 };
 
 function ReportActionsView(props) {
@@ -66,10 +85,13 @@ function ReportActionsView(props) {
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const hasCachedActions = useRef(_.size(props.reportActions) > 0);
+    const isFirstRender = useRef(true);
+    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
+    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const prevNetworkRef = useRef(props.network);
+    const prevAuthTokenType = usePrevious(props.session.authTokenType);
+
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
@@ -113,6 +135,18 @@ function ReportActionsView(props) {
     }, [props.network, props.report, isReportFullyVisible]);
 
     useEffect(() => {
+        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
+            if (isReportFullyVisible) {
+                openReportIfNecessary();
+            } else {
+                Report.reconnect(reportID);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.session, props.report, isReportFullyVisible]);
+
+    useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
@@ -142,9 +176,9 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadMoreChats = () => {
+    const loadOlderChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.isLoadingMoreReportActions) {
+        if (props.isLoadingOlderReportActions) {
             return;
         }
 
@@ -154,10 +188,41 @@ function ReportActionsView(props) {
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
-
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    const loadNewerChats = useMemo(
+        () =>
+            _.throttle(({distanceFromStart}) => {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                    return;
+                }
+
+                // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+                // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+                //
+                // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+                // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+                //
+                // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+                // This should be removed once the issue of frequent re-renders is resolved.
+                //
+                // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
+                if (isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    isFirstRender.current = false;
+                    return;
+                }
+
+                const newestReportAction = _.first(props.reportActions);
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            }, 500),
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+    );
 
     /**
      * Runs when the FlatList finishes laying out
@@ -168,7 +233,7 @@ function ReportActionsView(props) {
         }
 
         didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions.current ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -190,10 +255,12 @@ function ReportActionsView(props) {
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingReportActions={props.isLoadingReportActions}
-                isLoadingMoreReportActions={props.isLoadingMoreReportActions}
-                loadMoreChats={loadMoreChats}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                loadOlderChats={loadOlderChats}
+                loadNewerChats={loadNewerChats}
+                isLoadingInitialReportActions={props.isLoadingInitialReportActions}
+                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
+                isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
             />
             <PopoverReactionList ref={reactionListRef} />
@@ -222,11 +289,19 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.isLoadingMoreReportActions !== newProps.isLoadingMoreReportActions) {
+    if (lodashGet(oldProps.session, 'authTokenType') !== lodashGet(newProps.session, 'authTokenType')) {
         return false;
     }
 
-    if (oldProps.isLoadingReportActions !== newProps.isLoadingReportActions) {
+    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
+        return false;
+    }
+
+    if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
+        return false;
+    }
+
+    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
         return false;
     }
 
@@ -270,10 +345,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
-        return false;
-    }
-
     if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
         return false;
     }
@@ -295,4 +366,14 @@ function arePropsEqual(oldProps, newProps) {
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);
+export default compose(
+    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
+    withWindowDimensions,
+    withLocalize,
+    withNetwork(),
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(MemoizedReportActionsView);

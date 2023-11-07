@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import Collapsible from './Collapsible';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Title of the Collapsible section */
@@ -43,14 +43,13 @@ class CollapsibleSection extends React.Component {
                 <PressableWithFeedback
                     onPress={this.toggleSection}
                     style={[styles.pb4, styles.flexRow]}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={this.props.title}
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
                 >
                     <Text
-                        selectable={false}
-                        style={[styles.flex1, styles.textStrong]}
+                        style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {this.props.title}

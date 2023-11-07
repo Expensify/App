@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as LoginUtils from '../../libs/LoginUtils';
+import * as LoginUtils from '@libs/LoginUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ImTeacherUpdateEmailPage from './ImTeacherUpdateEmailPage';
 import IntroSchoolPrincipalPage from './IntroSchoolPrincipalPage';
 

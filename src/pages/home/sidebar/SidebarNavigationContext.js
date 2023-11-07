@@ -1,9 +1,9 @@
-import React, {useMemo, useCallback, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useState} from 'react';
 import _ from 'underscore';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import GLOBAL_NAVIGATION_MAPPING from '../../../GLOBAL_NAVIGATION_MAPPING';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import GLOBAL_NAVIGATION_MAPPING from '@src/GLOBAL_NAVIGATION_MAPPING';
 
 const propTypes = {
     /** Children to wrap. The part of app that should have acces to this context */
