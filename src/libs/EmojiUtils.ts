@@ -466,7 +466,7 @@ const getUniqueEmojiCodes = (emojiAsset: Emoji, users: TimestampedUsersReactions
         return result;
     }, {});
 
-    return Object.keys(emojiCodes).sort((a, b) => (new Date(emojiCodes[a]) > new Date(emojiCodes[b]) ? 1 : -1));
+    return Object.keys(emojiCodes ?? {}).sort((a, b) => (new Date(emojiCodes[a]) > new Date(emojiCodes[b]) ? 1 : -1));
 };
 
 /**
@@ -512,7 +512,7 @@ function hasAccountIDEmojiReacted(accountID: string, usersReactions: Timestamped
         return Boolean(usersReactions[accountID]);
     }
     const userReaction = usersReactions[accountID];
-    if (!userReaction?.skinTones || !Object.values(userReaction.skinTones).length) {
+    if (!userReaction?.skinTones || !Object.values(userReaction?.skinTones ?? {}).length) {
         return false;
     }
     return Boolean(userReaction.skinTones[skinTone]);
@@ -526,11 +526,11 @@ const getEmojiReactionDetails = (emojiName: string, reaction: UsersReactionsList
 
     const emoji = findEmojiByName(emojiName);
     const emojiCodes = getUniqueEmojiCodes(emoji, users);
-    const reactionCount = Object.values(users)
-        .map((user) => Object.values(user.skinTones).length)
+    const reactionCount = Object.values(users ?? {})
+        .map((user) => Object.values(user?.skinTones ?? {}).length)
         .reduce((sum, curr) => sum + curr, 0);
     const hasUserReacted = hasAccountIDEmojiReacted(currentUserAccountID, users);
-    const userAccountIDs = Object.values(users)
+    const userAccountIDs = Object.values(users ?? {})
         .sort((a, b) => (a.oldestTimestamp > b.oldestTimestamp ? 1 : -1))
         .map((user) => Number(user.id));
 
