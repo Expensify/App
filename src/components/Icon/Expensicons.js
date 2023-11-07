@@ -46,6 +46,7 @@ import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
+import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -176,6 +177,7 @@ export {
     EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
+    EmptyStateAttachReceipt,
     Exclamation,
     Exit,
     ExpensifyCard,
