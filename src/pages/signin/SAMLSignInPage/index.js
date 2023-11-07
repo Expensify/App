@@ -60,6 +60,7 @@ function SAMLSignInPage({credentials}) {
 
 SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
+SAMLSignInPage.displayName = 'SAMLSignInPage';
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
