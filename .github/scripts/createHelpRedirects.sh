@@ -74,7 +74,8 @@ PUT_JSON=$(for new in "${ITEMS_TO_ADD[@]}"; do
     read -r -a LINE_PARTS < <(echo "$new" | tr ',' ' ')
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
-    jq -n --arg source "$SOURCE_URL" --arg dest "$DEST_URL" '{"redirect": {source_url: $source, target_url: $dest}}'
+    NO_PREFIX_SOURCE_URL=${SOURCE_URL/https:\/\//}
+    jq -n --arg source "$NO_PREFIX_SOURCE_URL" --arg dest "$DEST_URL" '{"redirect": {source_url: $source, target_url: $dest}}'
 done | jq -n '. |= [inputs]')
 
 info "Adding redirects for $PUT_JSON"
