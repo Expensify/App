@@ -19,7 +19,7 @@ function checkCloudflareResult {
 
     if ! [[ "$RESULT_MESSAGE" == "true" ]]; then
         ERROR_MESSAGE=$(echo "$RESULTS" | jq .errors)
-        error "Error calling Cloudfalre API: $ERROR_MESSAGE"
+        error "Error calling Cloudflare API: $ERROR_MESSAGE"
         exit 1
     fi
 }
@@ -97,7 +97,7 @@ OPERATION_ID=$(echo "$PUT_RESULT" | jq -r .result.operation_id)
 
 DONE=false
 
-# Poll for completition
+# Poll for completion
 while [[ $DONE == false ]]; do
     CHECK_RESULT=$(curl -s --request GET --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/bulk_operations/$OPERATION_ID" \
         --header 'Content-Type: application/json' \
