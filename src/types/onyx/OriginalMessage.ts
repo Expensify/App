@@ -146,6 +146,7 @@ type OriginalMessageReportPreview = {
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
     originalMessage: {
+        reportID?: string;
         targetAccountIDs?: number[];
         roomName?: string;
     };

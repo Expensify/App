@@ -352,8 +352,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
 /**
  * For invite to room and remove from room policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
+ * and the room name also need to be updated in the client because it isn't updated in original message when the room name is changed
  */
-function replaceBaseURL(reportAction: ReportAction): ReportAction {
+function replaceBaseURLAndUpdateRoomName(reportAction: ReportAction): ReportAction {
     if (!reportAction) {
         return reportAction;
     }
@@ -371,7 +372,22 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    const reportID = reportAction.originalMessage.reportID;
+    const roomName = allReports ? allReports[`${reportID}`]?.reportName : '';
+    const verb = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
+    const listMention = (reportAction.originalMessage.targetAccountIDs ?? []).map((accountID) => `<mention-user accountID=${accountID}></mention-user>`);
+
+    const lastMention = listMention.pop();
+    let lastPrefix = ', and ';
+    if (listMention.length === 0) {
+        lastPrefix = '';
+    }
+    if (listMention.length === 1) {
+        lastPrefix = ' and ';
+    }
+    const linkToRoom = `<a href=${environmentURL}/r/${reportID}>${roomName}</a>`;
+    updatedReportAction.message[0].html = `<muted-text>${verb} ${listMention.join(', ')}${lastPrefix}${lastMention} ${linkToRoom}</muted-text>`;
+    updatedReportAction.originalMessage.roomName = roomName;
     return updatedReportAction;
 }
 
@@ -436,7 +452,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null): 
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
-    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
+    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLAndUpdateRoomName(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
