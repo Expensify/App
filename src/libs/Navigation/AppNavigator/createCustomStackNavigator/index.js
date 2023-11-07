@@ -29,8 +29,11 @@ const defaultProps = {
 function reduceReportRoutes(routes) {
     const result = [];
     let count = 0;
-    routes.forEach((route) => {
+    const reverseRoutes = [...routes].reverse();
+
+    reverseRoutes.forEach((route) => {
         if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+            // Remove all report routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
                 count++;
@@ -40,7 +43,7 @@ function reduceReportRoutes(routes) {
         }
     });
 
-    return result;
+    return result.reverse();
 }
 
 function ResponsiveStackNavigator(props) {
