@@ -1,27 +1,27 @@
+import {setYear} from 'date-fns';
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import * as Expensicons from '../Icon/Expensicons';
-import {defaultProps as defaultBaseTextInputPropTypes, propTypes as baseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Expensicons from '@components/Icon/Expensicons';
+import TextInput from '@components/TextInput';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/baseTextInputPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
-import InputWrapper from '../Form/InputWrapper';
 import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     /**
-     * The datepicker supports any value that `moment` can parse.
+     * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     value: PropTypes.string,
 
     /**
-     * The datepicker supports any defaultValue that `moment` can parse.
+     * The datepicker supports any defaultValue that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue: PropTypes.string,
@@ -46,8 +46,8 @@ const propTypes = {
 
 const datePickerDefaultProps = {
     ...defaultBaseTextInputPropTypes,
-    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
-    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
+    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     value: undefined,
     shouldSaveDraft: false,
     formID: '',
@@ -132,5 +132,6 @@ function NewDatePicker({
 
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
+NewDatePicker.displayName = 'NewDatePicker';
 
 export default withLocalize(NewDatePicker);

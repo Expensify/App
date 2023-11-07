@@ -1,13 +1,13 @@
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
-import Text from '../../components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import * as StyleUtils from '../../styles/StyleUtils';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
+import {View} from 'react-native';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Override the green headline copy */

@@ -1,6 +1,6 @@
 import Mapbox from '@rnmapbox/maps';
+import styles from '@styles/styles';
 import {DirectionProps} from './MapViewTypes';
-import styles from '../../styles/styles';
 
 function Direction({coordinates}: DirectionProps) {
     if (coordinates.length < 1) {
@@ -26,5 +26,7 @@ function Direction({coordinates}: DirectionProps) {
         </Mapbox.ShapeSource>
     );
 }
+
+Direction.displayName = 'Direction';
 
 export default Direction;

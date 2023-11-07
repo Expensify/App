@@ -1,10 +1,10 @@
-import CONST from '../../CONST';
-import * as NetworkStore from '../Network/NetworkStore';
-import * as MainQueue from '../Network/MainQueue';
-import * as Authentication from '../Authentication';
-import * as Request from '../Request';
-import Log from '../Log';
-import NetworkConnection from '../NetworkConnection';
+import * as Authentication from '@libs/Authentication';
+import Log from '@libs/Log';
+import * as MainQueue from '@libs/Network/MainQueue';
+import * as NetworkStore from '@libs/Network/NetworkStore';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as Request from '@libs/Request';
+import CONST from '@src/CONST';
 import Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.

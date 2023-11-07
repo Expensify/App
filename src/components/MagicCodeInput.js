@@ -1,17 +1,17 @@
-import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as ValidationUtils from '../libs/ValidationUtils';
-import CONST from '../CONST';
+import useNetwork from '@hooks/useNetwork';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import FormHelpMessage from './FormHelpMessage';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
 import TextInput from './TextInput';
-import FormHelpMessage from './FormHelpMessage';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
-import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Information about the network */
@@ -355,6 +355,7 @@ function MagicCodeInput(props) {
 
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
+MagicCodeInput.displayName = 'MagicCodeInput';
 
 const MagicCodeInputWithRef = forwardRef((props, ref) => (
     <MagicCodeInput

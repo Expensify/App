@@ -1,36 +1,36 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import reportActionPropTypes from './reportActionPropTypes';
-import ReportActionItemFragment from './ReportActionItemFragment';
-import styles from '../../../styles/styles';
+import _ from 'underscore';
+import Avatar from '@components/Avatar';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
-import Avatar from '../../../components/Avatar';
-import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import {usePersonalDetails} from '../../../components/OnyxProvider';
-import ControlSelection from '../../../libs/ControlSelection';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import CONST from '../../../CONST';
-import SubscriptAvatar from '../../../components/SubscriptAvatar';
-import reportPropTypes from '../../reportPropTypes';
-import * as UserUtils from '../../../libs/UserUtils';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
-import Permissions from '../../../libs/Permissions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Text from '../../../components/Text';
-import Tooltip from '../../../components/Tooltip';
-import DateUtils from '../../../libs/DateUtils';
+import ReportActionItemFragment from './ReportActionItemFragment';
+import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -85,7 +85,7 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    let {displayName} = personalDetails[actorAccountID] || {};
+    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
@@ -113,7 +113,7 @@ function ReportActionItemSingle(props) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
         const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
-        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
