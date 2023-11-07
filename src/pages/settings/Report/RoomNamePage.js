@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FormProvider from "@components/Form/FormProvider";
+import _ from "underscore";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -42,13 +43,8 @@ const defaultProps = {
     policy: {},
 };
 
-function RoomNamePage(props) {
-    const policy = props.policy;
-    const report = props.report;
-    const reports = props.reports;
-    const translate = props.translate;
-
-    const roomNameInputRef = useRef(null);
+function RoomNamePage({policy, report, reports, translate}) {
+  const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
     const validate = useCallback(
@@ -104,6 +100,7 @@ function RoomNamePage(props) {
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
+                            roomName={report.reportName.slice(1)}
                         />
                     </View>
                 </FormProvider>

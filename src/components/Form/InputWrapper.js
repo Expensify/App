@@ -1,19 +1,22 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useContext} from 'react';
 import FormContext from './FormContext';
+import refPropTypes from "@components/refPropTypes";
 
 const propTypes = {
     InputComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.elementType]).isRequired,
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
     valueParser: PropTypes.func,
+    displayParser: PropTypes.func
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     valueType: 'string',
     valueParser: undefined,
+    displayParser: undefined,
 };
 
 function InputWrapper(props) {

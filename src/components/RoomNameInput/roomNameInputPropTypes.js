@@ -31,6 +31,8 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    roomName: PropTypes.string
 };
 
 const defaultProps = {
@@ -43,6 +45,7 @@ const defaultProps = {
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
+    roomName: '',
 };
 
 export {propTypes, defaultProps};
