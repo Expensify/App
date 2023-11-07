@@ -85,6 +85,8 @@
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Your photos are used to create chat attachments.</string>
+	<key>ReactNativeShareMenu_AppGroup</key>
+	<string>group.com.chat.expensify.chat</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ExpensifyNewKansas-Medium.otf</string>
@@ -122,6 +124,8 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
+	<key>HostAppGroup</key>
+	<string>group.com.chat.expensify.chat</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-native-share-menu/ios/Constants.swift b/node_modules/react-native-share-menu/ios/Constants.swift
+index 08385b7..e22bdfa 100644
+--- a/node_modules/react-native-share-menu/ios/Constants.swift
++++ b/node_modules/react-native-share-menu/ios/Constants.swift
+@@ -32,6 +32,7 @@ public let USER_DEFAULTS_EXTRA_DATA_KEY = "ShareMenuUserDefaultsExtraData"
+ public let URL_SCHEME_INFO_PLIST_KEY = "AppURLScheme"
+ public let HOST_APP_IDENTIFIER_INFO_PLIST_KEY = "HostAppBundleIdentifier"
+ public let HOST_URL_SCHEME_INFO_PLIST_KEY = "HostAppURLScheme"
++public let HOST_APP_GROUP_INFO_PLIST_KEY:String = "HostAppGroup"
+ 
+ public let REACT_SHARE_VIEW_BACKGROUND_COLOR_KEY = "ReactShareViewBackgroundColor"
+ public let COLOR_RED_KEY = "Red"
+diff --git a/node_modules/react-native-share-menu/ios/Modules/ShareMenu.swift b/node_modules/react-native-share-menu/ios/Modules/ShareMenu.swift
+index 74badda..6ed5073 100644
+--- a/node_modules/react-native-share-menu/ios/Modules/ShareMenu.swift
++++ b/node_modules/react-native-share-menu/ios/Modules/ShareMenu.swift
+@@ -83,8 +83,8 @@ class ShareMenu: RCTEventEmitter {
+         }
+ 
+         guard let scheme = url.scheme, scheme == targetUrlScheme else { return }
+-        guard let bundleId = Bundle.main.bundleIdentifier else { return }
+-        guard let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") else {
++        guard let appGroup = Bundle.main.object(forInfoDictionaryKey: HOST_APP_GROUP_INFO_PLIST_KEY) else { return }
++            guard let userDefaults = UserDefaults(suiteName: appGroup as? String) else {
+             print("Error: \(NO_APP_GROUP_ERROR)")
+             return
+         }
+@@ -102,7 +102,7 @@ class ShareMenu: RCTEventEmitter {
+     func getSharedText(callback: RCTResponseSenderBlock) {
+         var data = [DATA_KEY: sharedData] as [String: Any]
+ 
+-        if let bundleId = Bundle.main.bundleIdentifier, let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") {
++        if let appGroup = Bundle.main.object(forInfoDictionaryKey: HOST_APP_GROUP_INFO_PLIST_KEY), let userDefaults = UserDefaults(suiteName: (Bundle.main.object(forInfoDictionaryKey: appGroup as! String) as! String)) {
+             data[EXTRA_DATA_KEY] = userDefaults.object(forKey: USER_DEFAULTS_EXTRA_DATA_KEY) as? [String: Any]
+         } else {
+             print("Error: \(NO_APP_GROUP_ERROR)")

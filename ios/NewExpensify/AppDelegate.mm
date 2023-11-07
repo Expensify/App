@@ -4,6 +4,7 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTI18nUtil.h>
 #import <React/RCTLinkingManager.h>
+#import <RNShareMenu/ShareMenuManager.h>
 #import <UserNotifications/UserNotifications.h>
 
 #import "RCTBootSplash.h"
@@ -22,7 +23,7 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  
+
   // Configure firebase
   [FIRApp configure];
 
@@ -34,7 +35,7 @@
 
   [RCTBootSplash initWithStoryboard:@"BootSplash"
                            rootView:(RCTRootView *)self.window.rootViewController.view]; // <- initialization using the storyboard file name
-  
+
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
@@ -44,7 +45,7 @@
   // stopped by a native module in the JS so we can measure total time starting
   // in the native layer and ending in the JS layer.
   [RCTStartupTimer start];
-  
+
   return YES;
 }
 
@@ -52,9 +53,7 @@
             openURL:(NSURL *)url
             options:
                 (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-  return [RCTLinkingManager application:application
-                                openURL:url
-                                options:options];
+  return [ShareMenuManager application:application openURL:url options:options];
 }
 
 - (BOOL)application:(UIApplication *)application

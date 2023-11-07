@@ -96,6 +96,14 @@ target 'NewExpensify' do
     # Pods for testing
   end
 
+  target 'NewExpensifyShare' do
+    use_react_native!
+    pod 'RNShareMenu', :path => '../node_modules/react-native-share-menu'
+  end
+
+
+
+
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
@@ -110,6 +118,10 @@ target 'NewExpensify' do
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
     installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
+      end
+
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
         target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
@@ -118,3 +130,5 @@ target 'NewExpensify' do
     end
   end
 end
+
+
