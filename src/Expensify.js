@@ -199,7 +199,7 @@ function Expensify(props) {
 
         setTimeout(() => {
             exec();
-        }, 30000);
+        }, 10000);
     }, []);
 
     // Display a blank page until the onyx migration completes
