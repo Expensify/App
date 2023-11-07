@@ -146,7 +146,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                                 {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
-                                    href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
+                                    href={CONST.LIST_OF_RESTRICTED_BUSINESSES}
                                 >
                                     {`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}
                                 </TextLink>

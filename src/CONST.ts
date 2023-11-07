@@ -491,6 +491,7 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
+    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
