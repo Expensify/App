@@ -443,16 +443,18 @@ function AttachmentModal(props) {
                     ) : (
                         Boolean(sourceForAttachmentView) &&
                         shouldLoadAttachment && (
-                            <AttachmentView
-                                containerStyles={[styles.mh5]}
-                                source={sourceForAttachmentView}
-                                isAuthTokenRequired={isAuthTokenRequired}
-                                file={file}
-                                onToggleKeyboard={updateConfirmButtonVisibility}
-                                isWorkspaceAvatar={props.isWorkspaceAvatar}
-                                fallbackSource={props.fallbackSource}
-                                isUsedInAttachmentModal
-                            />
+                            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                                <AttachmentView
+                                    containerStyles={[styles.mh5]}
+                                    source={sourceForAttachmentView}
+                                    isAuthTokenRequired={isAuthTokenRequired}
+                                    file={file}
+                                    onToggleKeyboard={updateConfirmButtonVisibility}
+                                    isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                    fallbackSource={props.fallbackSource}
+                                    isUsedInAttachmentModal
+                                />
+                            </View>
                         )
                     )}
                 </View>
