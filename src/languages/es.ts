@@ -883,7 +883,7 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
-        cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+        cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
