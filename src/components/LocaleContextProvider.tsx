@@ -114,7 +114,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const fromLocaleDigit = useMemo<FromLocaleDigit>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
-    const contextValue = useMemo(
+    const contextValue = useMemo<LocaleContextProps>(
         () => ({
             translate,
             numberFormat,
