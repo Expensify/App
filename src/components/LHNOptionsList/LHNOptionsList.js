@@ -132,9 +132,10 @@ function LHNOptionsList({
         ({item: reportID}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportAction = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
+            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
+            const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
-            const transactionID = lodashGet(itemParentReportAction, [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '');
+            const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
 
@@ -143,7 +144,7 @@ function LHNOptionsList({
                     reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
-                    parentReportActions={itemParentReportAction}
+                    parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
                     transactionID={transactionID}

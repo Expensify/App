@@ -35,8 +35,8 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The action from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** ID of the transaction assigned to report */
     transactionID: PropTypes.string,
@@ -49,7 +49,7 @@ const defaultProps = {
     personalDetails: {},
     fullReport: {},
     policy: {},
-    parentReportActions: {},
+    parentReportAction: {},
     transactionID: '',
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
@@ -70,15 +70,13 @@ function OptionRowLHNData({
     comment,
     policy,
     receiptTransactions,
-    parentReportActions,
+    parentReportAction,
     transactionID,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
-
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
