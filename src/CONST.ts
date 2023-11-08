@@ -1162,7 +1162,6 @@ const CONST = {
             DOC: 'doc',
             DOCX: 'docx',
             SVG: 'svg',
-            PDF: 'pdf',
         },
     },
 
