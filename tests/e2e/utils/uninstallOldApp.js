@@ -2,12 +2,9 @@ const execAsync = require('./execAsync');
 const Logger = require('./logger');
 
 /**
- * Installs the app on the currently connected device for the given platform.
- * It removes the app first if it already exists, so it's a clean installation.
+ * Uninstalls the old app version with a different identifier so new versions can be installed
  *
  * @param {String} platform
- * @param {String} packageName
- * @param {String} path
  * @returns {Promise<void>}
  */
 module.exports = function (platform = 'android') {
@@ -15,7 +12,6 @@ module.exports = function (platform = 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
 
-    // Uninstall first, then install
     return execAsync(`adb uninstall com.expensify.chat.adhoc`).catch((e) => {
         // Ignore errors
         Logger.warn('Failed to uninstall app:', e);
