@@ -39,6 +39,13 @@ describe('test workflow deploy', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
+    
+    const secrets = {
+        OS_BOTIFY_TOKEN: 'dummy_token',
+        LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+        OS_BOTIFY_APP_ID: 'os_botify_app_id',
+        OS_BOTIFY_PRIVATE_KEY: 'os_botify_private_key',
+    };
     describe('push', () => {
         it('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
@@ -50,10 +57,7 @@ describe('test workflow deploy', () => {
                 {
                     ref: 'refs/heads/main',
                 },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
+                secrets,
                 'dummy_github_token',
             );
             const testMockSteps = {
@@ -80,10 +84,7 @@ describe('test workflow deploy', () => {
                 {
                     ref: 'refs/heads/staging',
                 },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
+                secrets,
                 'dummy_github_token',
             );
             const testMockSteps = {
@@ -110,10 +111,7 @@ describe('test workflow deploy', () => {
                 {
                     ref: 'refs/heads/production',
                 },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
+                secrets,
                 'dummy_github_token',
             );
             const testMockSteps = {
@@ -145,10 +143,7 @@ describe('test workflow deploy', () => {
             act,
             'pull_request',
             {head: {ref: 'main'}},
-            {
-                OS_BOTIFY_TOKEN: 'dummy_token',
-                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-            },
+            secrets,
             'dummy_github_token',
         );
         let result = await act.runEvent('pull_request', {
@@ -165,10 +160,7 @@ describe('test workflow deploy', () => {
             act,
             'workflow_dispatch',
             {},
-            {
-                OS_BOTIFY_TOKEN: 'dummy_token',
-                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-            },
+            secrets,
             'dummy_github_token',
         );
         result = await act.runEvent('workflow_dispatch', {
