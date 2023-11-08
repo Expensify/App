@@ -21,7 +21,7 @@ type RadioButtonProps = {
 
     /** Should the input be disabled  */
     disabled?: boolean;
-}
+};
 
 function RadioButton({isChecked, onPress = () => undefined, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
     return (
