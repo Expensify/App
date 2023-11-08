@@ -222,11 +222,13 @@ jobs:
           unzip "Customer Artifacts.zip" -d mainResults
           cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log
 
-      - name: Unzip AWS Device Farm main results
-        run: unzip "Customer Artifacts.zip" -d mainResults
+      - name: Unzip AWS Device Farm results
+        if: ${{ always() }}
+        run: unzip "Customer Artifacts.zip"
 
-      - name: Print results
-        run: cat "./output.md"
+      - name: Print AWS Device Farm run results
+        if: ${{ always() }}
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         run: |
