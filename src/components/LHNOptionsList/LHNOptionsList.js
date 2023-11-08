@@ -144,7 +144,7 @@ function LHNOptionsList({
                 '',
             )}`;
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails));
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
             return (
                 <OptionRowLHNData
                     reportID={reportID}
@@ -152,7 +152,7 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportActions={itemParentReportActions}
                     policy={itemPolicy}
-                    personalDetails={participantPersonalDetailList}
+                    personalDetails={participantsPersonalDetails}
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
@@ -179,7 +179,7 @@ function LHNOptionsList({
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
-                initialNumToRender={5}
+                initialNumToRender={20}
                 maxToRenderPerBatch={5}
                 windowSize={5}
             />
