@@ -127,7 +127,7 @@
     "react-native": "0.72.4",
     "react-native-android-location-enabler": "^1.2.2",
     "react-native-blob-util": "^0.17.3",
-    "react-native-collapsible": "^1.6.0",
+    "react-native-collapsible": "^1.6.1",
     "react-native-config": "^1.4.5",
     "react-native-dev-menu": "^4.1.1",
     "react-native-device-info": "^10.3.0",
