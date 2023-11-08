@@ -86,99 +86,6 @@ const UPDATE_STAGING_JOB_MOCK_STEPS = [
     ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP,
 ];
 
-// is_expensify_employee
-const GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE = utils.createMockStep(
-    'Get merged pull request',
-    'Getting merged pull request',
-    'IS_EXPENSIFY_EMPLOYEE',
-    ['github_token'],
-    null,
-    {author: 'Dummy Author'},
-);
-const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE = utils.createMockStep(
-    'Check whether the PR author is member of Expensify/expensify team',
-    'Checking actors Expensify membership',
-    'IS_EXPENSIFY_EMPLOYEE',
-    [],
-    ['GITHUB_TOKEN'],
-    {IS_EXPENSIFY_EMPLOYEE: true},
-);
-const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE = [GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE, CHECK_TEAM_MEMBERSHIP_MOCK_STEP__TRUE];
-const CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE = utils.createMockStep(
-    'Check whether the PR author is member of Expensify/expensify team',
-    'Checking actors Expensify membership',
-    'IS_EXPENSIFY_EMPLOYEE',
-    [],
-    ['GITHUB_TOKEN'],
-    {IS_EXPENSIFY_EMPLOYEE: false},
-);
-const IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE = [GET_MERGED_PULL_REQUEST_MOCK_STEP__IS_EXPENSIFY_EMPLOYEE, CHECK_TEAM_MEMBERSHIP_MOCK_STEP__FALSE];
-
-// new_contributor_welcome_message
-const CHECKOUT_MOCK_STEP = utils.createMockStep('Checkout', 'Checking out', 'NEW_CONTRIBUTOR_WELCOME_MESSAGE', ['token'], null, {author: 'Dummy Author'});
-const CHECKOUT_MOCK_STEP__OSBOTIFY = utils.createMockStep('Checkout', 'Checking out', 'NEW_CONTRIBUTOR_WELCOME_MESSAGE', ['token'], null, {author: 'OSBotify'});
-const GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE = utils.createMockStep(
-    'Get merged pull request',
-    'Getting merged pull request',
-    'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
-    ['github_token'],
-    null,
-    {number: '12345', author: 'Dummy Author'},
-);
-const GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY = utils.createMockStep(
-    'Get merged pull request',
-    'Getting merged pull request',
-    'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
-    ['github_token'],
-    null,
-    {number: '12345', author: 'OSBotify'},
-);
-const GET_PR_COUNT_MOCK_STEP__1 = utils.createMockStep(
-    // eslint-disable-next-line no-template-curly-in-string
-    'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
-    'Getting PR count',
-    'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
-    null,
-    ['GITHUB_TOKEN'],
-    null,
-    {PR_COUNT: '1'},
-);
-const GET_PR_COUNT_MOCK_STEP__10 = utils.createMockStep(
-    // eslint-disable-next-line no-template-curly-in-string
-    'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
-    'Getting PR count',
-    'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
-    null,
-    ['GITHUB_TOKEN'],
-    null,
-    {PR_COUNT: '10'},
-);
-const COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP = utils.createMockStep(
-    // eslint-disable-next-line no-template-curly-in-string
-    "Comment on ${{ steps.getMergedPullRequest.outputs.author }}\\'s first pull request!",
-    'Creating comment',
-    'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
-    ['github_token', 'number', 'body'],
-);
-const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS = [
-    CHECKOUT_MOCK_STEP,
-    GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
-    GET_PR_COUNT_MOCK_STEP__10,
-    COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
-];
-const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR = [
-    CHECKOUT_MOCK_STEP,
-    GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE,
-    GET_PR_COUNT_MOCK_STEP__1,
-    COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
-];
-const NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY = [
-    CHECKOUT_MOCK_STEP__OSBOTIFY,
-    GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY,
-    GET_PR_COUNT_MOCK_STEP__10,
-    COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP,
-];
-
 const PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP = utils.createMockStep('Perform E2E tests', 'Perform E2E tests', 'E2EPERFORMANCETESTS');
 const PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS = [PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP];
 
@@ -192,10 +99,5 @@ module.exports = {
     SKIP_DEPLOY_JOB_MOCK_STEPS,
     CREATE_NEW_VERSION_JOB_MOCK_STEPS,
     UPDATE_STAGING_JOB_MOCK_STEPS,
-    IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-    IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
-    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
-    NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
     PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
 };
