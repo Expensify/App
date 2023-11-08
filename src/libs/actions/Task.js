@@ -433,8 +433,6 @@ function editTask(report, {title, description}) {
         },
         {optimisticData, successData, failureData},
     );
-
-    Navigation.dismissModal(report.reportID);
 }
 
 function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
