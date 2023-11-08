@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
 import StepPropTypes from './StepPropTypes';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     ...StepPropTypes,
@@ -168,7 +169,8 @@ function ACHContractStep(props) {
                         <Text style={[styles.mb5]}>
                             <Text>{props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                         </Text>
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
                             inputID="ownsMoreThan25Percent"
                             style={[styles.mb2]}
@@ -189,7 +191,8 @@ function ACHContractStep(props) {
                             defaultValue={props.getDefaultStateForField('ownsMoreThan25Percent', false)}
                             shouldSaveDraft
                         />
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
                             inputID="hasOtherBeneficialOwners"
                             style={[styles.mb2]}
@@ -255,7 +258,8 @@ function ACHContractStep(props) {
                             </View>
                         )}
                         <Text style={[styles.mv5]}>{props.translate('beneficialOwnersStep.agreement')}</Text>
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('beneficialOwnersStep.termsAndConditions')}`}
                             inputID="acceptTermsAndConditions"
                             style={[styles.mt4]}
@@ -268,7 +272,8 @@ function ACHContractStep(props) {
                             defaultValue={props.getDefaultStateForField('acceptTermsAndConditions', false)}
                             shouldSaveDraft
                         />
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}
                             inputID="certifyTrueInformation"
                             style={[styles.mt4]}
