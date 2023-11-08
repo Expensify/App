@@ -17,7 +17,7 @@ const propTypes = {
     setDownloadButtonVisibility: PropTypes.func,
 
     /** Object of report actions for this report */
-    reportActions: PropTypes.shape(reportActionPropTypes),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -26,7 +26,7 @@ const propTypes = {
     parentReport: reportPropTypes,
 
     /** The report actions of the parent report */
-    parentReportActions: PropTypes.shape(reportActionPropTypes),
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The transaction attached to the parent report action */
     transaction: transactionPropTypes,

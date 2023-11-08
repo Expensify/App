@@ -41,7 +41,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     useEffect(() => {
         const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(report, parentReportAction, reportActions, transaction);
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 

@@ -9,13 +9,12 @@ import CONST from '@src/CONST';
 
 /**
  * Constructs the initial component state from report actions
- * @param {Object} report
  * @param {Object} parentReportAction
- * @param {Array} reportActions
+ * @param {Object} reportActions
  * @param {Object} transaction
  * @returns {Array}
  */
-function extractAttachmentsFromReport(report, parentReportAction, reportActions, transaction) {
+function extractAttachmentsFromReport(parentReportAction, reportActions, transaction) {
     const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
 

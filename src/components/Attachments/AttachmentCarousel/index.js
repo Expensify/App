@@ -51,7 +51,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     useEffect(() => {
         const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(report, parentReportAction, reportActions, transaction);
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -225,7 +225,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
