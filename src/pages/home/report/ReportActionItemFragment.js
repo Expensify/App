@@ -65,6 +65,11 @@ const propTypes = {
 
     /** Moderation decision of the report action */
     moderationDecision: PropTypes.string,
+    /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
+    isApprovedOrSubmittedReportAction: PropTypes.bool,
+
+    /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
+    isFragmentContainingDisplayName: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -90,6 +95,8 @@ const defaultProps = {
     actorIcon: {},
     isThreadParentMessage: false,
     moderationDecision: '',
+    isApprovedOrSubmittedReportAction: false,
+    isFragmentContainingDisplayName: false,
     displayAsGroup: false,
 };
 
@@ -134,15 +141,19 @@ function ReportActionItemFragment(props) {
                         displayAsGroup={props.displayAsGroup}
                     />
                     <Text
-                        selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete ? styles.offlineFeedback.deleted : undefined]}
+                        style={[
+                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            ...props.style,
+                            isPendingDelete ? styles.offlineFeedback.deleted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
                     >
                         {convertToLTR(props.iouMessage || text)}
                     </Text>
                     {Boolean(props.fragment.isEdited) && (
                         <>
                             <Text
-                                selectable={false}
                                 style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
@@ -160,8 +171,15 @@ function ReportActionItemFragment(props) {
                 </Text>
             );
         }
-        case 'TEXT':
-            return (
+        case 'TEXT': {
+            return props.isApprovedOrSubmittedReportAction ? (
+                <Text
+                    numberOfLines={props.isSingleLine ? 1 : undefined}
+                    style={[styles.chatItemMessage, styles.colorMuted]}
+                >
+                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                </Text>
+            ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
@@ -175,6 +193,7 @@ function ReportActionItemFragment(props) {
                     </Text>
                 </UserDetailsTooltip>
             );
+        }
         case 'LINK':
             return <Text>LINK</Text>;
         case 'INTEGRATION_COMMENT':
