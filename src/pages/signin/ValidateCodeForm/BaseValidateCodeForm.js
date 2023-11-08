@@ -331,6 +331,7 @@ function BaseValidateCodeForm(props) {
                             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
+                            key="twoFactorAuthCode"
                         />
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
@@ -360,6 +361,7 @@ function BaseValidateCodeForm(props) {
                         errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
+                        key="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>

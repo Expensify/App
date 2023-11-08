@@ -823,6 +823,16 @@ function getReport(reportID) {
 }
 
 /**
+ * Get the notification preference given a report
+ *
+ * @param {Object} report
+ * @returns {String}
+ */
+function getReportNotificationPreference(report) {
+    return lodashGet(report, 'notificationPreference', '');
+}
+
+/**
  * Returns whether or not the author of the action is this user
  *
  * @param {Object} reportAction
@@ -2420,7 +2430,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -2459,7 +2469,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -3156,7 +3166,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         '',
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction.reportActionID,
         moneyRequestReportID,
     );
@@ -4075,14 +4085,14 @@ function getParticipantsIDs(report) {
  */
 function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
-    let displayMessage;
+    let translationKey;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
         const {amount, currency} = originalMessage.IOUDetails || originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
-        let translationKey;
+
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = 'iou.paidElsewhereWithAmount';
@@ -4095,24 +4105,23 @@ function getIOUReportActionDisplayMessage(reportAction) {
                 translationKey = '';
                 break;
         }
-        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
-    } else {
-        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-        const {amount, currency, comment} = getTransactionDetails(transaction);
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-        const isRequestSettled = isSettled(originalMessage.IOUReportID);
-        if (isRequestSettled) {
-            displayMessage = Localize.translateLocal('iou.payerSettled', {
-                amount: formattedAmount,
-            });
-        } else {
-            displayMessage = Localize.translateLocal('iou.requestedAmount', {
-                formattedAmount,
-                comment,
-            });
-        }
+        return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
     }
-    return displayMessage;
+
+    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+    const {amount, currency, comment} = getTransactionDetails(transaction);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+    const isRequestSettled = isSettled(originalMessage.IOUReportID);
+    if (isRequestSettled) {
+        return Localize.translateLocal('iou.payerSettled', {
+            amount: formattedAmount,
+        });
+    }
+    translationKey = ReportActionsUtils.isSplitBillAction(reportAction) ? 'iou.didSplitAmount' : 'iou.requestedAmount';
+    return Localize.translateLocal(translationKey, {
+        formattedAmount,
+        comment,
+    });
 }
 
 /**
@@ -4217,6 +4226,7 @@ export {
     getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
+    getReportNotificationPreference,
     getReportIDFromLink,
     getRouteFromLink,
     getDeletedParentActionMessageForChatReport,
