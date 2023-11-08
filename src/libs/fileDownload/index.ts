@@ -1,3 +1,5 @@
+import * as ApiUtils from '@libs/ApiUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
@@ -5,8 +7,16 @@ import type {FileDownload} from './types';
 /**
  * Downloading attachment in web, desktop
  */
-const fileDownload: FileDownload = (url: string, fileName: string) =>
-    new Promise((resolve) => {
+const fileDownload: FileDownload = (url: string, fileName: string) => {
+    const resolvedUrl = tryResolveUrlFromApiRoot(url);
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot())) {
+        // Different origin URLs might pose a CORS issue during direct downloads.
+        // Opening in a new tab avoids this limitation, letting the browser handle the download.
+        Link.openExternalLink(url);
+        return Promise.resolve();
+    }
+
+    return (
         fetch(url)
             .then((response) => response.blob())
             .then((blob) => {
@@ -33,13 +43,14 @@ const fileDownload: FileDownload = (url: string, fileName: string) =>
                 // Clean up and remove the link
                 URL.revokeObjectURL(link.href);
                 link.parentNode?.removeChild(link);
-                return resolve();
+
             })
             .catch(() => {
                 // file could not be downloaded, open sourceURL in new tab
                 Link.openExternalLink(url);
-                return resolve();
-            });
-    });
+
+            })
+    );
+}
 
 export default fileDownload;
