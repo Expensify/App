@@ -202,7 +202,7 @@ function ExpensifyCardPage({
                                                 <DotIndicatorMessage
                                                     messages={cardDetailsErrorObject}
                                                     type="error"
-                                                    style={[styles.ph5]}
+                                                    style={styles.ph5}
                                                 />
                                             </>
                                         )}
