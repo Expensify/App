@@ -144,7 +144,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="privateNotes"
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
@@ -152,7 +152,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                         maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
-                        textAlignVertical="top"
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         defaultValue={privateNote}
                         value={privateNote}
