@@ -1857,7 +1857,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 }
 
 /**
- * Get the proper message schema for a modified field on the expense.
+ * Get the proper message schema for a modified a field on the expense.
  *
  * @param {String} newValue
  * @param {String} oldValue
@@ -1878,6 +1878,36 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
         return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
     return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+}
+
+/**
+ * Get the proper message line for a modified expense.
+ *
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @param {String} valueName
+ * @param {Boolean} valueInQuotes
+ * @returns {String}
+ */
+
+function getProperLineForModifiedExpenseMessage(prefix, messageFragments) {
+    if (messageFragments.length === 0) {
+        return '';
+    }
+    return messageFragments.reduce((acc, value, index) => {
+        if (index === messageFragments.length - 1) {
+            if (messageFragments.length === 1) {
+                return `${acc} ${value}.`;        
+            } else if (messageFragments.length === 2) {
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+            } else {
+                return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+            }
+        } else if (index === 0) {
+            return `${acc} ${value}`;
+        }
+        return `${acc}, ${value}`;
+    }, prefix);
 }
 
 /**
@@ -2025,55 +2055,9 @@ function getModifiedExpenseMessage(reportAction) {
         }
     }
 
-    let message = '';
-    if (changeFragments.length > 0) {
-        message = changeFragments.reduce((acc, value, index) => {
-            if (index === changeFragments.length - 1) {
-                if (changeFragments.length === 1) {
-                    return `${acc} ${value}.`;        
-                } else if (changeFragments.length === 2) {
-                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
-                } else {
-                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
-                }
-            } else if (index === 0) {
-                return `${acc} ${value}`;
-            }
-            return `${acc}, ${value}`;
-        }, `${message}\n${Localize.translateLocal('iou.changed')}`);
-    }
-    if (setFragments.length > 0) {
-        message = setFragments.reduce((acc, value, index) => {
-            if (index === setFragments.length - 1) {
-                if (setFragments.length === 1) {
-                    return `${acc} ${value}.`;        
-                } else if (setFragments.length === 2) {
-                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
-                } else {
-                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
-                }
-            } else if (index === 0) {
-                return `${acc} ${value}`;
-            }
-            return `${acc}, ${value}`;
-        }, `${message}\n${Localize.translateLocal('iou.set')}`);
-    }
-    if (removalFragments.length > 0) {
-        message = removalFragments.reduce((acc, value, index) => {
-            if (index === removalFragments.length - 1) {
-                if (removalFragments.length === 1) {
-                    return `${acc} ${value}.`;        
-                } else if (removalFragments.length === 2) {
-                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
-                } else {
-                    return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
-                }
-            } else if (index === 0) {
-                return `${acc} ${value}`;
-            }
-            return `${acc}, ${value}`;
-        }, `${message}\n${Localize.translateLocal('iou.removed')}`);
-    }
+    let message = getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
+    getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
+     getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
         return message;
     }
