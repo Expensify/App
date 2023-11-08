@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -19,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
 import StepPropTypes from './StepPropTypes';
-import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     ...StepPropTypes,
