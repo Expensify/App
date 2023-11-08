@@ -3,6 +3,7 @@ import {View, ViewProps} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 
 type FormElementProps = ViewProps;
+
 function FormElement(props: FormElementProps, ref: ForwardedRef<View | HTMLFormElement | null>) {
     return (
         <View
@@ -15,4 +16,5 @@ function FormElement(props: FormElementProps, ref: ForwardedRef<View | HTMLFormE
 }
 
 FormElement.displayName = 'BaseForm';
+
 export default forwardRef(FormElement);
