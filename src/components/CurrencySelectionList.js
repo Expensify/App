@@ -20,6 +20,9 @@ const propTypes = {
     /** Currency item to be selected initially */
     initiallySelectedCurrencyCode: PropTypes.string.isRequired,
 
+    /** Currency item to be focused initially */
+    initiallyFocusedCurrencyCode: PropTypes.string.isRequired,
+
     // The curency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -79,7 +82,7 @@ function CurrencySelectionList(props) {
             onChangeText={setSearchValue}
             onSelectRow={props.onSelect}
             headerMessage={headerMessage}
-            initiallyFocusedOptionKey={props.initiallySelectedCurrencyCode}
+            initiallyFocusedOptionKey={props.initiallyFocusedCurrencyCode}
             showScrollIndicator
         />
     );

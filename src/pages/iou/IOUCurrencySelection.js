@@ -106,6 +106,7 @@ function IOUCurrencySelection(props) {
             <CurrencySelectionList
                 textInputLabel={props.translate('common.search')}
                 onSelect={confirmCurrencySelection}
+                initiallyFocusedCurrencyCode={selectedCurrencyCode}
                 initiallySelectedCurrencyCode={selectedCurrencyCode}
             />
         </ScreenWrapper>

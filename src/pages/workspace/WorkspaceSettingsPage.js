@@ -87,7 +87,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         return errors;
     }, []);
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id, policy.outputCurrency)), [policy.id, policy.outputCurrency]);
 
     const policyName = lodashGet(policy, 'name', '');
 

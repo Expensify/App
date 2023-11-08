@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import _ from 'underscore';
@@ -6,6 +7,7 @@ import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
@@ -19,12 +21,25 @@ const propTypes = {
 };
 
 const defaultProps = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Focused currency code */
+            currency: PropTypes.string,
+
+            /** ID of a policy */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
     isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
-function WorkspaceSettingsCurrencyPage({policy, isLoadingReportData}) {
+function WorkspaceSettingsCurrencyPage({route, policy, isLoadingReportData}) {
     const {translate} = useLocalize();
+    const currencyParam = lodashGet(route, 'params.currency', '').toUpperCase();
+    const focusedCurrencyCode = CurrencyUtils.isValidCurrencyCode(currencyParam) ? currencyParam : policy.outputCurrency;
     const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)), [policy.id]);
 
     const onSelectCurrency = (item) => {
@@ -50,6 +65,7 @@ function WorkspaceSettingsCurrencyPage({policy, isLoadingReportData}) {
                 <CurrencySelectionList
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     onSelect={onSelectCurrency}
+                    initiallyFocusedCurrencyCode={focusedCurrencyCode}
                     initiallySelectedCurrencyCode={policy.outputCurrency}
                 />
             </FullPageNotFoundView>
