@@ -412,7 +412,7 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxEntry<Report> | undefined, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> = null): string {
+function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> = null): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -448,7 +448,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(report: OnyxEntry<Report>): boolean {
+function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
@@ -3978,16 +3978,16 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
-    const originalMessage = reportAction?.originalMessage ?? {};
-    let displayMessage;
+    const originalMessage = reportAction?.originalMessage;
+    let translationKey: TranslationPaths;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const iouReport = getReport(IOUReportID);
-        const payerName = isNotEmptyObject(iouReport) && isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true) ?? '';
-        let translationKey: TranslationPaths;
-        switch (reportAction?.originalMessage.paymentType) {
+        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
+
+        switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = 'iou.paidElsewhereWithAmount';
                 break;
@@ -3999,24 +3999,23 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
                 translationKey = 'iou.payerPaidAmount';
                 break;
         }
-        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
-    } else {
-        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
-        const transactionDetails = isNotEmptyObject(transaction) ? getTransactionDetails(transaction) : null;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '';
-        const isRequestSettled = isSettled(originalMessage.IOUReportID);
-        if (isRequestSettled) {
-            displayMessage = Localize.translateLocal('iou.payerSettled', {
-                amount: formattedAmount,
-            });
-        } else {
-            displayMessage = Localize.translateLocal('iou.requestedAmount', {
-                formattedAmount,
-                comment: transactionDetails?.comment ?? '',
-            });
-        }
+        return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName ?? ''});
     }
-    return displayMessage;
+
+    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
+    const transactionDetails = getTransactionDetails(isNotEmptyObject(transaction) ? transaction : null);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
+    const isRequestSettled = isSettled(originalMessage.IOUReportID);
+    if (isRequestSettled) {
+        return Localize.translateLocal('iou.payerSettled', {
+            amount: formattedAmount,
+        });
+    }
+    translationKey = ReportActionsUtils.isSplitBillAction(reportAction) ? 'iou.didSplitAmount' : 'iou.requestedAmount';
+    return Localize.translateLocal(translationKey, {
+        formattedAmount,
+        comment: transactionDetails?.comment ?? '',
+    });
 }
 
 function isReportDraft(report: OnyxEntry<Report>): boolean {
