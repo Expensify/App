@@ -335,6 +335,7 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
+        GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
     },
 } as const;
 
