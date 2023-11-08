@@ -1,13 +1,11 @@
+import {useCardAnimation} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated, View} from 'react-native';
-import {useCardAnimation} from '@react-navigation/stack';
-
-import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-
-import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import CONST from '../../../../CONST';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /* Callback to close the modal */
@@ -29,13 +27,13 @@ function Overlay(props) {
                     style={[styles.draggableTopBar]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 />
                 <PressableWithoutFeedback
                     style={[styles.flex1]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     noDragArea
                 />
             </View>

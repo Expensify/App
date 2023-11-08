@@ -1,10 +1,11 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
-import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '@libs/Browser';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import styles from './styles';
@@ -13,10 +14,9 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
-import {Transaction} from '../types/onyx';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
-type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
+type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -273,7 +273,8 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
-    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -651,7 +652,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -748,9 +749,8 @@ function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
-    const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
-    return parseStyleAsArray(functionAppliedStyle);
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): StyleProp<ViewStyle> {
+    return typeof style === 'function' ? style(state) : style;
 }
 
 /**
@@ -882,17 +882,19 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
             position: 'absolute',
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
         position: 'absolute',
     };
@@ -901,15 +903,16 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -934,17 +937,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
             justifyContent: 'space-between',
         };
     }
 
     return {
-        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
         display: 'flex',
         justifyContent: 'space-between',
     };
@@ -1067,7 +1071,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};
@@ -1093,7 +1097,7 @@ function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 
@@ -1312,6 +1316,13 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1357,6 +1368,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,

@@ -1,29 +1,29 @@
-import React, {useMemo, useRef, useState} from 'react';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
-import AddressSearch from '../../components/AddressSearch';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
-import Form from '../../components/Form';
-import styles from '../../styles/styles';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as Transaction from '../../libs/actions/Transaction';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ROUTES from '../../ROUTES';
-import transactionPropTypes from '../../components/transactionPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import AddressSearch from '@components/AddressSearch';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as Transaction from '@userActions/Transaction';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Route params */
@@ -45,6 +45,9 @@ const propTypes = {
 
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
@@ -163,6 +166,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
+            name: values.name,
         };
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
@@ -264,6 +268,7 @@ export default withOnyx({
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
             _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                name: waypoint.name,
                 description: waypoint.address,
                 geometry: {
                     location: {

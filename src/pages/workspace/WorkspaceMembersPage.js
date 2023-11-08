@@ -1,37 +1,38 @@
-import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import * as Policy from '../../libs/actions/Policy';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import Button from '../../components/Button';
-import ROUTES from '../../ROUTES';
-import ConfirmModal from '../../components/ConfirmModal';
-import personalDetailsPropType from '../personalDetailsPropType';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MessagesRow from '@components/MessagesRow';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as UserUtils from '@libs/UserUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import styles from '@styles/styles';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
-import CONST from '../../CONST';
-import {withNetwork} from '../../components/OnyxProvider';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import networkPropTypes from '../../components/networkPropTypes';
-import * as UserUtils from '../../libs/UserUtils';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import usePrevious from '../../hooks/usePrevious';
-import Log from '../../libs/Log';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import SelectionList from '../../components/SelectionList';
-import Text from '../../components/Text';
-import * as Browser from '../../libs/Browser';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
@@ -290,6 +291,7 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
         let result = [];
@@ -361,12 +363,16 @@ function WorkspaceMembersPage(props) {
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
                     },
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
+
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
             });
         });
 
@@ -381,6 +387,20 @@ function WorkspaceMembersPage(props) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+    };
+
+    const getHeaderContent = () => {
+        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+            return null;
+        }
+        return (
+            <MessagesRow
+                type="success"
+                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                containerStyles={[styles.pb5, styles.ph5]}
+                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+            />
+        );
     };
 
     return (
@@ -447,6 +467,7 @@ function WorkspaceMembersPage(props) {
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}

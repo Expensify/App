@@ -1,27 +1,31 @@
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../ONYXKEYS';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TabSelector from '../../components/TabSelector/TabSelector';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import * as IOUUtils from '../../libs/IOUUtils';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import ReceiptSelector from './ReceiptSelector';
-import * as IOU from '../../libs/actions/IOU';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TabSelector from '@components/TabSelector/TabSelector';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
-import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
+import ReceiptSelector from './ReceiptSelector';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
-import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** React Navigation route */
@@ -41,11 +45,15 @@ const propTypes = {
 
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.SCAN,
     report: {},
+    betas: [],
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -69,6 +77,8 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 
     useEffect(() => {
@@ -85,11 +95,12 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
                     <DragAndDropProvider
                         isDisabled={props.selectedTab !== CONST.TAB.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
@@ -144,11 +155,11 @@ MoneyRequestSelectorPage.propTypes = propTypes;
 MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-})(MoneyRequestSelectorPage);
+export default compose(
+    withReportOrNotFound(false),
+    withOnyx({
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+)(MoneyRequestSelectorPage);
