@@ -7,31 +7,15 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-type AvatarType = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
-
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name?: string;
-
-    /** Avatar id */
-    id?: number | string;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-};
-
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
-    icons: AvatarType[];
+    icons: Icon[];
 
     /** Set the size of avatars */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
