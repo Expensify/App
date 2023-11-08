@@ -1,12 +1,13 @@
-import Smiley from '../images/emoji.svg';
-import Flags from '../images/emojiCategoryIcons/flag.svg';
-import FoodAndDrink from '../images/emojiCategoryIcons/hamburger.svg';
-import Objects from '../images/emojiCategoryIcons/light-bulb.svg';
-import Symbols from '../images/emojiCategoryIcons/peace-sign.svg';
-import TravelAndPlaces from '../images/emojiCategoryIcons/plane.svg';
-import AnimalsAndNature from '../images/emojiCategoryIcons/plant.svg';
-import Activities from '../images/emojiCategoryIcons/soccer-ball.svg';
-import FrequentlyUsed from '../images/history.svg';
+import Smiley from '@assets/images/emoji.svg';
+import Flags from '@assets/images/emojiCategoryIcons/flag.svg';
+import FoodAndDrink from '@assets/images/emojiCategoryIcons/hamburger.svg';
+import Objects from '@assets/images/emojiCategoryIcons/light-bulb.svg';
+import Symbols from '@assets/images/emojiCategoryIcons/peace-sign.svg';
+import TravelAndPlaces from '@assets/images/emojiCategoryIcons/plane.svg';
+import AnimalsAndNature from '@assets/images/emojiCategoryIcons/plant.svg';
+import Activities from '@assets/images/emojiCategoryIcons/soccer-ball.svg';
+import FrequentlyUsed from '@assets/images/history.svg';
+import {HeaderEmoji, PickerEmojis} from './types';
 
 const skinTones = [
     {
@@ -33,9 +34,9 @@ const skinTones = [
         code: '🖐🏿',
         skinTone: 0,
     },
-];
+] as const;
 
-const emojis = [
+const emojis: PickerEmojis = [
     {
         header: true,
         icon: Smiley,
@@ -7619,7 +7620,7 @@ const emojis = [
     },
 ];
 
-const categoryFrequentlyUsed = {
+const categoryFrequentlyUsed: HeaderEmoji = {
     header: true,
     code: 'frequentlyUsed',
     icon: FrequentlyUsed,

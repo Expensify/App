@@ -1336,6 +1336,8 @@ const CONST = {
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
+        FIRST_SPACE: /.+?(?=\s)/,
+
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },

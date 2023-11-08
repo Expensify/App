@@ -101,7 +101,6 @@ const getPhoneNumber = (details) => {
 
 function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
@@ -302,7 +301,7 @@ export default compose(
             key: ({route, session}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));
                 const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
-                if (Number(session.accountID) === accountID || Session.isAnonymousUser() || !reportID) {
+                if ((session && Number(session.accountID) === accountID) || Session.isAnonymousUser() || !reportID) {
                     return null;
                 }
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
