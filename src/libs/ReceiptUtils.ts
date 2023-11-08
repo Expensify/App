@@ -36,17 +36,19 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     const hasEReceipt = transaction?.hasEReceipt;
 
-    if (hasEReceipt) {
-        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
-    }
+    if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+        if (hasEReceipt) {
+            return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+        }
 
-    // For local files, we won't have a thumbnail yet
-    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {thumbnail: null, image: path};
-    }
+        // For local files, we won't have a thumbnail yet
+        if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
+            return {thumbnail: null, image: path};
+        }
 
-    if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path};
+        if (isReceiptImage) {
+            return {thumbnail: `${path}.1024.jpg`, image: path};
+        }
     }
 
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
@@ -39,8 +40,8 @@ const propTypes = {
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
-    /** Optional keyboard type for the input */
-    keyboardType: PropTypes.string,
+    /** Optional input mode precedence over keyboardType */
+    inputMode: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -108,6 +109,9 @@ const propTypes = {
     /** Hover style for options in the OptionsList */
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -140,7 +144,7 @@ const defaultProps = {
     onSelectRow: undefined,
     textInputLabel: '',
     placeholderText: '',
-    keyboardType: 'default',
+    inputMode: CONST.INPUT_MODE.TEXT,
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -159,6 +163,7 @@ const defaultProps = {
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
     optionHoveredStyle: styles.hoveredComponentBG,
+    sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,

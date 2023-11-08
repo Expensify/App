@@ -1,5 +1,5 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
+import {format, parseISO} from 'date-fns';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import TextInput from '@components/TextInput';
@@ -7,7 +7,7 @@ import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
-function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {
+const DatePicker = forwardRef(({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) => {
     const ref = useRef();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -20,8 +20,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         setIsPickerVisible(false);
 
         if (event.type === 'set') {
-            const asMoment = moment(selectedDate, true);
-            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
         }
     };
 
@@ -39,14 +38,15 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         [showPicker],
     );
 
-    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const date = value || defaultValue;
+    const dateAsText = date ? format(parseISO(date), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
             <TextInput
                 label={label}
                 accessibilityLabel={label}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 forceActiveLabel
                 placeholder={placeholder}
@@ -54,14 +54,14 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
                 containerStyles={containerStyles}
                 textInputContainerStyles={isPickerVisible ? [styles.borderColorFocus] : []}
                 onPress={showPicker}
-                editable={false}
+                readOnly
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={ref}
             />
             {isPickerVisible && (
                 <RNDatePicker
-                    value={value || defaultValue ? moment(value || defaultValue).toDate() : new Date()}
+                    value={date ? parseISO(date) : new Date()}
                     mode="date"
                     onChange={setDate}
                     maximumDate={maxDate}
@@ -70,10 +70,10 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
             )}
         </>
     );
-}
+});
 
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 DatePicker.displayName = 'DatePicker';
 
-export default forwardRef(DatePicker);
+export default DatePicker;
