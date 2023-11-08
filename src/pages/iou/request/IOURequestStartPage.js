@@ -100,7 +100,7 @@ function IOURequestStartPage({
         Navigation.dismissModal();
     };
 
-    const resetIouTypeIfChanged = useCallback(
+    const resetIOUTypeIfChanged = useCallback(
         (newIouType) => {
             if (newIouType === previousIOURequestType) {
                 return;
@@ -130,7 +130,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
-                                onTabSelected={resetIouTypeIfChanged}
+                                onTabSelected={resetIOUTypeIfChanged}
                                 tabBar={({state, navigation, position}) => (
                                     <TabSelector
                                         state={state}

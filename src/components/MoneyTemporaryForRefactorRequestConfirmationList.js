@@ -74,10 +74,10 @@ const propTypes = {
     /** IOU merchant */
     iouMerchant: PropTypes.string,
 
-    /** IOU Category */
+    /** IOU category */
     iouCategory: PropTypes.string,
 
-    /** IOU Tag */
+    /** IOU tag */
     iouTag: PropTypes.string,
 
     /** IOU isBillable */
@@ -129,9 +129,6 @@ const propTypes = {
     /** ID of the transaction that represents the money request */
     transactionID: PropTypes.string,
 
-    /** Transaction that represents the money request */
-    transaction: transactionPropTypes,
-
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: PropTypes.shape({
         /** Unit used to represent distance */
@@ -165,6 +162,9 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** Transaction that represents the money request */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
@@ -236,7 +236,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList(props) {
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     const canUseTags = Permissions.canUseTags(props.betas);
-    // A flag for showing the tags field
+
+    // The tags should be shown when the report is a policy expense chat, and the user can use tags, and there are enabled tags
     const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field

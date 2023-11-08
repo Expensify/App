@@ -118,7 +118,7 @@ Onyx.connect({
 });
 
 /**
- * Initialize money request info and navigate to the MoneyRequest page
+ * Initialize money request info
  * @param {String} reportID to attach the transaction to
  * @param {String} [iouRequestType] one of manual/scan/distance
  */

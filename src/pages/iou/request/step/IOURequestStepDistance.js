@@ -104,7 +104,6 @@ function IOURequestStepDistance({
 
     const navigateBack = () => {
         if (isUserComingFromConfirmationStep) {
-            // Take the user back to the confirmation step
             navigateToConfirmationStep();
             return;
         }
@@ -122,7 +121,6 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useCallback(() => {
         if (isUserComingFromConfirmationStep) {
-            // Take the user back to the confirmation step
             navigateToConfirmationStep();
             return;
         }

@@ -154,7 +154,7 @@ function IOURequestStepConfirmation({
     /**
      * @param {Array} selectedParticipants
      * @param {String} trimmedComment
-     * @param {File} [receipt]
+     * @param {File} [receiptObj]
      */
     const requestMoney = useCallback(
         (selectedParticipants, trimmedComment, receiptObj) => {
