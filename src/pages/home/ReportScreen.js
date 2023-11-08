@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
-=======
->>>>>>> main
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
