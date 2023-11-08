@@ -24,7 +24,6 @@ import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 import withNavigationFocus from './withNavigationFocus';
-import SpinningIndicatorAnimation from '@styles/animation/SpinningIndicatorAnimation';
 
 const propTypes = {
     /** Avatar source to display */
@@ -156,18 +155,6 @@ function AvatarWithImagePicker({
     });
     const anchorRef = useRef();
     const {translate} = useLocalize();
-    const animationRef = useRef(null);
-    
-    useEffect(() => {
-        animationRef.current = new SpinningIndicatorAnimation();        
-        animationRef.current.start();
-    
-        return () => {
-          if (animationRef.current) {
-            animationRef.current.stop();
-          }
-        };
-    }, []); // The empty array ensures this effect only runs once
 
     /**
      * @param {String} error
