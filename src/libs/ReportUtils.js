@@ -1776,15 +1776,30 @@ function getTransactionReportName(reportAction) {
 }
 
 /**
+ * Get actor name to display in the message preview
+ *
+ * @param {Object} report
+ * @param {Number} actorID
+ * @param {Boolean} shouldShowWorkspaceName
+ * @param {Boolean} shouldUseShortForm
+ * @returns  {String}
+ */
+
+function getActorNameForPreviewMessage({report, actorID, shouldShowWorkspaceName = false, shouldUseShortForm = false}) {
+    return shouldShowWorkspaceName ? getPolicyName(report) : getDisplayNameForParticipant(actorID, shouldUseShortForm);
+}
+
+/**
  * Get money request message for an IOU report
  *
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Boolean} shouldHideParticipantName
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false, shouldHideParticipantName = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1808,7 +1823,13 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerDisplayName = getActorNameForPreviewMessage({
+        report,
+        actorID: report.managerID,
+        shouldUseShortForm: true,
+        shouldShowWorkspaceName: isExpenseReport(report),
+    });
+    const payerName = shouldHideParticipantName ? '' : payerDisplayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1867,7 +1888,11 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
     if (!newValue) {
         return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
-    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+    return Localize.translateLocal('iou.updatedTheRequest', {
+        valueName: displayValueName,
+        newValueToDisplay,
+        oldValueToDisplay,
+    });
 }
 
 /**
@@ -1882,7 +1907,10 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 
 function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, newAmount, oldAmount) {
     if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+        return Localize.translateLocal('iou.setTheDistance', {
+            newDistanceToDisplay: newDistance,
+            newAmountToDisplay: newAmount,
+        });
     }
     return Localize.translateLocal('iou.updatedTheDistance', {
         newDistanceToDisplay: newDistance,
@@ -2619,6 +2647,7 @@ function buildOptimisticIOUReportAction(
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
+
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  *
@@ -3257,6 +3286,7 @@ function canAccessReport(report, policies, betas, allReportActions) {
 
     return true;
 }
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  * @param {Object} report
@@ -4328,4 +4358,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    getActorNameForPreviewMessage,
 };
