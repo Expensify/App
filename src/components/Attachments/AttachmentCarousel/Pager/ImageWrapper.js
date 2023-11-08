@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet} from 'react-native';
@@ -19,6 +18,8 @@ function ImageWrapper({children}) {
         </Animated.View>
     );
 }
+
 ImageWrapper.propTypes = imageWrapperPropTypes;
+ImageWrapper.displayName = 'ImageWrapper';
 
 export default ImageWrapper;

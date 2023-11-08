@@ -156,7 +156,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
