@@ -62,7 +62,6 @@ function Suggestions({
         }
 
         return [];
-
     }, []);
 
     /**
