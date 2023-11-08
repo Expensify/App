@@ -4127,12 +4127,15 @@ function getIOUReportActionDisplayMessage(reportAction) {
 
 /**
  * Return room channel log display message
- * 
+ *
  * @param {Object} reportAction
  * @returns {String}
  */
-function getRoomChannelLogMemberMessage(reportAction) {
-    const actionPerformed = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
+function getChannelLogMemberMessage(reportAction) {
+    const verb =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
 
     const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
         const personalDetail = lodashGet(allPersonalDetails, accountID);
@@ -4142,16 +4145,26 @@ function getRoomChannelLogMemberMessage(reportAction) {
     });
 
     const lastMention = mentions.pop();
+    let message = '';
 
     if (mentions.length === 0) {
-        return `${actionPerformed} ${lastMention}`;
+        message = `${verb} ${lastMention}`;
+    } else if (mentions.length === 1) {
+        message = `${verb} ${mentions[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
     }
 
-    if (mentions.length === 1) {
-        return `${actionPerformed} ${mentions[0]} and ${lastMention}`;
+    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
+    if (roomName) {
+        const preposition =
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
     }
 
-    return `${actionPerformed} ${mentions.join(', ')}, and ${lastMention}`;
+    return message;
 }
 
 /**
@@ -4367,6 +4380,6 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
-    getRoomChannelLogMemberMessage,
+    getChannelLogMemberMessage,
     getRoom,
 };

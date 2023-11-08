@@ -95,8 +95,13 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
-function isRoomChannelLogMember(reportAction: OnyxEntry<ReportAction>) {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM;
+function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+    );
 }
 
 /**
@@ -666,5 +671,5 @@ export {
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
-    isRoomChannelLogMember,
+    isChannelLogMemberAction,
 };
