@@ -1,4 +1,5 @@
-import polyfillNumberFormat from './polyfillNumberFormat';
+import polyfillDateTimeFormat from '@libs/IntlPolyfill/polyfillDateTimeFormat';
+import polyfillNumberFormat from '@libs/IntlPolyfill/polyfillNumberFormat';
 import IntlPolyfill from './types';
 
 /**
@@ -6,8 +7,7 @@ import IntlPolyfill from './types';
  * This ensures that the currency data is consistent across platforms and browsers.
  */
 const intlPolyfill: IntlPolyfill = () => {
-    // Just need to polyfill Intl.NumberFormat for web based platforms
     polyfillNumberFormat();
-    require('@formatjs/intl-datetimeformat');
+    polyfillDateTimeFormat();
 };
 export default intlPolyfill;

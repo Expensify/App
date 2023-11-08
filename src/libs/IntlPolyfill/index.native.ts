@@ -1,3 +1,4 @@
+import polyfillDateTimeFormat from '@libs/IntlPolyfill/polyfillDateTimeFormat';
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
 import IntlPolyfill from './types';
@@ -10,8 +11,8 @@ const intlPolyfill: IntlPolyfill = () => {
     require('@formatjs/intl-getcanonicallocales/polyfill');
     require('@formatjs/intl-locale/polyfill');
     require('@formatjs/intl-pluralrules/polyfill');
-    require('@formatjs/intl-datetimeformat');
     polyfillNumberFormat();
+    polyfillDateTimeFormat();
     polyfillListFormat();
 };
 
