@@ -7,7 +7,7 @@ import Text from './Text';
 
 type TextLinkProps = {
     /** Link to open in new tab */
-    href: string;
+    href?: string;
 
     /** Text content child */
     children: ReactElement;
@@ -29,7 +29,9 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
             return;
         }
 
-        Link.openExternalLink(href);
+        if (href) {
+            Link.openExternalLink(href);
+        }
     };
 
     const openLinkOnTap = (event: GestureResponderEvent) => {
