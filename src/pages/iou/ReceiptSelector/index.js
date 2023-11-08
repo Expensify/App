@@ -119,6 +119,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                 setVideoConstraints({deviceId: lastBackDeviceId});
             });
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isCameraActive]);
 
     const hideReciptModal = () => {
