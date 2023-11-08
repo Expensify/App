@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
-import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/baseTextInputPropTypes';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -75,7 +75,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={value || selectedDate || ''}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}
@@ -83,7 +83,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     textInputContainerStyles={[styles.borderColorFocus]}
                     inputStyle={[styles.pointerEventsNone]}
                     disabled={disabled}
-                    editable={false}
+                    readOnly
                 />
             </View>
             <View style={[styles.datePickerPopover, styles.border]}>
