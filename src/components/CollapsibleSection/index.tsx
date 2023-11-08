@@ -45,7 +45,6 @@ function CollapsibleSection(props: CollapsibleSectionProps) {
                 <Icon src={src} />
             </PressableWithFeedback>
             <View style={styles.collapsibleSectionBorder} />
-
             <Collapsible isOpened={isExpanded}>
                 <View>{props.children}</View>
             </Collapsible>
