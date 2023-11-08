@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -11,6 +11,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -80,7 +81,7 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const optionRef = useRef();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
@@ -208,7 +209,6 @@ function TaskAssigneeSelectorModal(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskAssigneeSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -229,7 +229,7 @@ function TaskAssigneeSelectorModal(props) {
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
                         />
                     </View>
                 </FullPageNotFoundView>
