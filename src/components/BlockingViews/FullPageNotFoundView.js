@@ -1,13 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
-import * as Illustrations from '../Icon/Illustrations';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Child elements */
@@ -44,7 +45,7 @@ const defaultProps = {
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
-    onBackButtonPress: Navigation.goBack,
+    onBackButtonPress: () => Navigation.goBack(ROUTES.HOME),
     shouldShowLink: true,
     shouldShowBackButton: true,
     onLinkPress: () => Navigation.dismissModal(),

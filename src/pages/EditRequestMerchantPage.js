@@ -1,16 +1,15 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import TextInput from '../components/TextInput';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import CONST from '../CONST';
-import useLocalize from '../hooks/useLocalize';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Transaction default merchant value */
@@ -39,11 +38,9 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
+            testID={EditRequestMerchantPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.merchant')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButton title={translate('common.merchant')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
@@ -59,7 +56,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         defaultValue={defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (merchantInputRef.current = e)}
                     />
                 </View>

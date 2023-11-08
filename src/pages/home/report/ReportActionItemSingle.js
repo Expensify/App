@@ -1,44 +1,40 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import reportActionPropTypes from './reportActionPropTypes';
-import ReportActionItemFragment from './ReportActionItemFragment';
-import styles from '../../../styles/styles';
+import _ from 'underscore';
+import Avatar from '@components/Avatar';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
-import Avatar from '../../../components/Avatar';
-import personalDetailsPropType from '../../personalDetailsPropType';
-import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import ControlSelection from '../../../libs/ControlSelection';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import CONST from '../../../CONST';
-import SubscriptAvatar from '../../../components/SubscriptAvatar';
-import reportPropTypes from '../../reportPropTypes';
-import * as UserUtils from '../../../libs/UserUtils';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
-import Permissions from '../../../libs/Permissions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Text from '../../../components/Text';
-import Tooltip from '../../../components/Tooltip';
-import DateUtils from '../../../libs/DateUtils';
+import ReportActionItemFragment from './ReportActionItemFragment';
+import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
-
-    /** All of the personalDetails */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     // eslint-disable-next-line react/forbid-prop-types
@@ -69,7 +65,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetailsList: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
@@ -80,17 +75,18 @@ const defaultProps = {
 };
 
 const showUserDetails = (accountID) => {
-    Navigation.navigate(ROUTES.getProfileRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
 };
 
 const showWorkspaceDetails = (reportID) => {
-    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 };
 
 function ReportActionItemSingle(props) {
-    const actorAccountID = props.action.actorAccountID;
-    let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status} = props.personalDetailsList[actorAccountID] || {};
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
+    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
@@ -100,10 +96,10 @@ function ReportActionItemSingle(props) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && props.personalDetailsList[props.action.delegateAccountID]) {
+    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
+        const delegateDetails = personalDetails[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
@@ -114,17 +110,22 @@ function ReportActionItemSingle(props) {
     let secondaryAvatar = {};
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
-        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
+        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
-            id: props.iouReport.ownerAccountID,
+            id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
+        const avatarIconIndex = props.report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(props.report) ? 0 : 1;
+        const reportIcons = ReportUtils.getIcons(props.report, {});
+
+        secondaryAvatar = reportIcons[avatarIconIndex];
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
 
@@ -149,7 +150,7 @@ function ReportActionItemSingle(props) {
         } else {
             // Show participants page IOU report preview
             if (displayAllActors) {
-                Navigation.navigate(ROUTES.getReportParticipantsRoute(iouReportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
@@ -198,6 +199,7 @@ function ReportActionItemSingle(props) {
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        fallbackIcon={fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -217,7 +219,7 @@ function ReportActionItemSingle(props) {
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={actorHint}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
@@ -231,15 +233,13 @@ function ReportActionItemSingle(props) {
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={actorHint}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
                                     fragment={fragment}
-                                    isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
@@ -269,7 +269,6 @@ ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default compose(
     withLocalize,
-    withPersonalDetails(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

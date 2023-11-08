@@ -1,28 +1,26 @@
-import React, {useMemo, useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import MenuItem from '../../components/MenuItem';
-import useLocalize from '../../hooks/useLocalize';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import * as Report from '../../libs/actions/Report';
-import personalDetailsPropType from '../personalDetailsPropType';
-import * as UserUtils from '../../libs/UserUtils';
-import reportPropTypes from '../reportPropTypes';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import ROUTES from '../../ROUTES';
+import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -45,8 +43,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -58,15 +54,8 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesListPage({report, personalDetailsList, network, session}) {
+function PrivateNotesListPage({report, personalDetailsList, session}) {
     const {translate} = useLocalize();
-
-    useEffect(() => {
-        if (network.isOffline) {
-            return;
-        }
-        Report.getReportPrivateNote(report.reportID);
-    }, [report.reportID, network.isOffline]);
 
     /**
      * Gets the menu item for each workspace
@@ -110,46 +99,35 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
                 icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView
-                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}
-                onBackButtonPress={() => Navigation.goBack()}
-            >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator />
-                ) : (
-                    _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                )}
-            </FullPageNotFoundView>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesListPage.displayName}
+        >
+            <HeaderWithBackButton
+                title={translate('privateNotes.title')}
+                shouldShowBackButton
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>{_.map(privateNotes, (item, index) => getMenuItem(item, index))}</ScrollView>
         </ScreenWrapper>
     );
 }
 
 PrivateNotesListPage.propTypes = propTypes;
 PrivateNotesListPage.defaultProps = defaultProps;
+PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,
+    withReportAndPrivateNotesOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

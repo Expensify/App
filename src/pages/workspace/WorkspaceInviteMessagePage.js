@@ -1,32 +1,32 @@
-import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {View, Keyboard} from 'react-native';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Policy from '../../libs/actions/Policy';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import TextInput from '../../components/TextInput';
-import MultipleAvatars from '../../components/MultipleAvatars';
-import CONST from '../../CONST';
-import * as Link from '../../libs/actions/Link';
-import Text from '../../components/Text';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MultipleAvatars from '@components/MultipleAvatars';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ROUTES from '../../ROUTES';
-import * as Localize from '../../libs/Localize';
-import Form from '../../components/Form';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withNavigationFocus from '../../components/withNavigationFocus';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The accountID of the person */
@@ -76,13 +76,13 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getDefaultWelcomeNote(),
+            welcomeNote: this.props.savedWelcomeMessage || this.getDefaultWelcomeNote(),
         };
     }
 
     componentDidMount() {
         if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(this.props.route.params.policyID), true);
             return;
         }
         this.focusWelcomeMessageInput();
@@ -122,8 +122,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        Navigation.goBack(ROUTES.HOME);
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(this.props.route.params.policyID));
     }
 
     /**
@@ -158,9 +158,12 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceInviteMessagePage.displayName}
+            >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy) || PolicyUtils.isPendingDeletePolicy(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
@@ -171,7 +174,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(this.props.route.params.policyID))}
                     />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
@@ -183,7 +186,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                role={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
@@ -213,18 +216,19 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
-                                textAlignVertical="top"
+                                inputStyle={[styles.verticalAlignTop]}
                                 containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
+                                shouldSaveDraft
                             />
                         </View>
                     </Form>
@@ -236,6 +240,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
 WorkspaceInviteMessagePage.propTypes = propTypes;
 WorkspaceInviteMessagePage.defaultProps = defaultProps;
+WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default compose(
     withLocalize,
@@ -246,6 +251,10 @@ export default compose(
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+        },
+        savedWelcomeMessage: {
+            key: `${ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}Draft`,
+            selector: (draft) => (draft ? draft.welcomeMessage : ''),
         },
     }),
     withNavigationFocus,

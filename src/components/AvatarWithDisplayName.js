@@ -1,28 +1,28 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import CONST from '../CONST';
-import reportPropTypes from '../pages/reportPropTypes';
-import participantPropTypes from './participantPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import SubscriptAvatar from './SubscriptAvatar';
-import * as ReportUtils from '../libs/ReportUtils';
-import MultipleAvatars from './MultipleAvatars';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import DisplayNames from './DisplayNames';
-import compose from '../libs/compose';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Text from './Text';
-import * as StyleUtils from '../styles/StyleUtils';
+import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
+import participantPropTypes from './participantPropTypes';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import SubscriptAvatar from './SubscriptAvatar';
+import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,6 +43,8 @@ const propTypes = {
     /** Whether if it's an unauthenticated user */
     isAnonymous: PropTypes.bool,
 
+    shouldEnableDetailPageNavigation: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -53,16 +55,22 @@ const defaultProps = {
     report: {},
     isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation: false,
 };
 
-const showActorDetails = (report) => {
+const showActorDetails = (report, shouldEnableDetailPageNavigation = false) => {
+    // We should navigate to the details page if the report is a IOU/expense report
+    if (shouldEnableDetailPageNavigation) {
+        return ReportUtils.navigateToDetailsPage(report);
+    }
+
     if (ReportUtils.isExpenseReport(report)) {
-        Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
         return;
     }
 
     if (ReportUtils.isIOUReport(report)) {
-        Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
         return;
     }
 
@@ -71,13 +79,13 @@ const showActorDetails = (report) => {
         const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
         // in an ideal situation account ID won't be 0
         if (actorAccountID > 0) {
-            Navigation.navigate(ROUTES.getProfileRoute(actorAccountID));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID));
             return;
         }
     }
 
     // report detail route is added as fallback but based on the current implementation this route won't be executed
-    Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
 };
 
 function AvatarWithDisplayName(props) {
@@ -85,25 +93,26 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy, true);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
+    const avatarBorderColor = props.isAnonymous ? themeColors.highlightBG : themeColors.componentBG;
 
-    return (
+    const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
-                        onPress={() => showActorDetails(props.report)}
+                        onPress={() => showActorDetails(props.report, props.shouldEnableDetailPageNavigation)}
                         accessibilityLabel={title}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
-                                backgroundColor={themeColors.highlightBG}
+                                backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
                                 size={defaultSubscriptSize}
@@ -112,7 +121,7 @@ function AvatarWithDisplayName(props) {
                             <MultipleAvatars
                                 icons={icons}
                                 size={props.size}
-                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
+                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -143,6 +152,21 @@ function AvatarWithDisplayName(props) {
                 </View>
             )}
         </View>
+    );
+
+    if (!props.shouldEnableDetailPageNavigation) {
+        return headerView;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+            accessibilityLabel={title}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+        >
+            {headerView}
+        </PressableWithoutFeedback>
     );
 }
 AvatarWithDisplayName.propTypes = propTypes;

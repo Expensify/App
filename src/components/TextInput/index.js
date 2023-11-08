@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import * as styleConst from './styleConst';
+import * as Browser from '@libs/Browser';
+import DomUtils from '@libs/DomUtils';
+import Visibility from '@libs/Visibility';
+import styles from '@styles/styles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import DomUtils from '../../libs/DomUtils';
-import Visibility from '../../libs/Visibility';
-import * as Browser from '../../libs/Browser';
+import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
+import * as styleConst from './styleConst';
 
 function TextInput(props) {
     const textInputRef = useRef(null);
@@ -30,7 +30,9 @@ function TextInput(props) {
         });
 
         return () => {
-            if (!removeVisibilityListenerRef.current) return;
+            if (!removeVisibilityListenerRef.current) {
+                return;
+            }
             removeVisibilityListenerRef.current();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,10 +73,14 @@ TextInput.displayName = 'TextInput';
 TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const TextInputWithRef = React.forwardRef((props, ref) => (
     <TextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+TextInputWithRef.displayName = 'TextInputWithRef';
+
+export default TextInputWithRef;

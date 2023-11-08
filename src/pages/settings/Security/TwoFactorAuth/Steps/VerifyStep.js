@@ -1,28 +1,36 @@
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
-import * as Session from '../../../../../libs/actions/Session';
-import styles from '../../../../../styles/styles';
-import Button from '../../../../../components/Button';
-import Text from '../../../../../components/Text';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import TextLink from '../../../../../components/TextLink';
-import Clipboard from '../../../../../libs/Clipboard';
-import FixedFooter from '../../../../../components/FixedFooter';
-import * as Expensicons from '../../../../../components/Icon/Expensicons';
-import PressableWithDelayToggle from '../../../../../components/Pressable/PressableWithDelayToggle';
-import TwoFactorAuthForm from '../TwoFactorAuthForm';
-import QRCode from '../../../../../components/QRCode';
-import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
-import CONST from '../../../../../CONST';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
-import useLocalize from '../../../../../hooks/useLocalize';
-import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
+import {withOnyx} from 'react-native-onyx';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
+import QRCode from '@components/QRCode';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import Clipboard from '@libs/Clipboard';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
+import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
+import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-function VerifyStep({account = defaultAccount}) {
+const defaultProps = {
+    account: defaultAccount,
+    session: {
+        email: null,
+    },
+};
+
+function VerifyStep({account, session}) {
     const {translate} = useLocalize();
 
     const formRef = React.useRef(null);
@@ -31,6 +39,9 @@ function VerifyStep({account = defaultAccount}) {
 
     useEffect(() => {
         Session.clearAccountMessages();
+        return () => {
+            Session.clearAccountMessages();
+        };
     }, []);
 
     useEffect(() => {
@@ -61,7 +72,7 @@ function VerifyStep({account = defaultAccount}) {
      * @returns {string}
      */
     function buildAuthenticatorUrl() {
-        return `otpauth://totp/Expensify:${account.primaryLogin}?secret=${account.twoFactorAuthSecretKey}&issuer=Expensify`;
+        return `otpauth://totp/Expensify:${account.primaryLogin || session.email}?secret=${account.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     return (
@@ -76,8 +87,8 @@ function VerifyStep({account = defaultAccount}) {
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
-                style={styles.mb5}
                 keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.flexGrow1}
             >
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
@@ -107,11 +118,11 @@ function VerifyStep({account = defaultAccount}) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <View style={[styles.mt3, styles.mh5]}>
+            </ScrollView>
+            <FixedFooter style={[styles.mt2, styles.pt2]}>
+                <View style={[styles.mh5, styles.mb4]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
-            </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                 <Button
                     success
                     text={translate('common.next')}
@@ -128,9 +139,21 @@ function VerifyStep({account = defaultAccount}) {
     );
 }
 
-VerifyStep.propTypes = TwoFactorAuthPropTypes;
+VerifyStep.propTypes = {
+    /** Information about the users account that is logging in */
+    account: TwoFactorAuthPropTypes.account,
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Email address */
+        email: PropTypes.string.isRequired,
+    }),
+};
+VerifyStep.defaultProps = defaultProps;
+VerifyStep.displayName = 'VerifyStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
 })(VerifyStep);
