@@ -58,7 +58,6 @@ export default function () {
     // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in.
     // We must manually do this by getting the local timezone before adding polyfill.
     let currentTimezone = timezone.automatic ? Intl.DateTimeFormat().resolvedOptions().timeZone : timezone.selected;
-    console.log(currentTimezone)
     if (currentTimezone in tzLinks) {
         currentTimezone = tzLinks[currentTimezone];
     }
