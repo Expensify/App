@@ -1,5 +1,4 @@
-import {format} from 'date-fns';
-
+const format = require('date-fns/format');
 const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
