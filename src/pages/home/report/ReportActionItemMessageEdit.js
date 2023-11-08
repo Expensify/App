@@ -26,6 +26,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import reportPropTypes from '@pages/reportPropTypes';
 import containerComposeStyles from '@styles/containerComposeStyles';
 import styles from '@styles/styles';
@@ -84,6 +85,7 @@ function ReportActionItemMessageEdit(props) {
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
     const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
@@ -168,6 +170,13 @@ function ReportActionItemMessageEdit(props) {
         () => isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         [props.action.reportActionID],
     );
+
+    /**
+     * Focus the composer text input
+     */
+    const focus = useCallback((shouldDelay = false) => {
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+    }, []);
 
     // Scroll content of textInputRef to bottom
     useEffect(() => {
@@ -283,6 +292,20 @@ function ReportActionItemMessageEdit(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [props.action.reportActionID, preferredLocale]);
 
+    useEffect(() => {
+        ReportActionComposeFocusManager.onComposerFocus((shouldFocus = willBlurTextInputOnTapOutside) => {
+            if (!shouldFocus) {
+                return;
+            }
+
+            focus(true);
+        });
+
+        return () => {
+            ReportActionComposeFocusManager.clear();
+        };
+    }, [focus, willBlurTextInputOnTapOutside]);
+
     /**
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
@@ -363,11 +386,6 @@ function ReportActionItemMessageEdit(props) {
         },
         [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
-
-    /**
-     * Focus the composer text input
-     */
-    const focus = focusComposerWithDelay(textInputRef.current);
 
     return (
         <>

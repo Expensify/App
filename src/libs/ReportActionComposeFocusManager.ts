@@ -4,12 +4,10 @@ import ROUTES from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 import willBlurTextInputOnTapOutsideFunc from './willBlurTextInputOnTapOutside';
 
-type FocusCallback = () => void;
+type FocusCallback = (shouldFocus?: boolean) => void;
 
 const composerRef = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
-// This ref is to access functions exposed by ComposerWithSuggestion
-const reFocusCallback: FocusCallback | null = null
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
 let focusCallback: FocusCallback | null = null;
@@ -35,7 +33,7 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
 /**
  * Request focus on the ReportActionComposer
  */
-function focus() {
+function focus(shouldFocus?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report route, */
     if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
         return;
@@ -45,12 +43,11 @@ function focus() {
         if (typeof mainComposerFocusCallback !== 'function') {
             return;
         }
-
-        mainComposerFocusCallback();
+        mainComposerFocusCallback(shouldFocus);
         return;
     }
 
-    focusCallback();
+    focusCallback(shouldFocus);
 }
 
 /**
@@ -79,7 +76,6 @@ function isEditFocused(): boolean {
 }
 
 function setIsKeyboardVisibleWhenShowingModal(value: boolean) {
-    console.log('value123',value)
     isKeyboardVisibleWhenShowingModal = value;
 }
 
@@ -90,8 +86,7 @@ function restoreFocusState() {
     if (!isKeyboardVisibleWhenShowingModal) {
         return;
     }
-    console.log('11o1okoko')
-    focus()
+    focus(true);
     isKeyboardVisibleWhenShowingModal = false;
 }
 
@@ -100,17 +95,17 @@ function restoreFocusState() {
  */
 function blur() {
     let focusedInstance = null;
-    if(isFocused()){
-        focusedInstance = composerRef.current
-    }else if(isEditFocused()){
-        focusedInstance = editComposerRef.current
+    if (isFocused()) {
+        focusedInstance = composerRef.current;
+    } else if (isEditFocused()) {
+        focusedInstance = editComposerRef.current;
     }
 
     if (!willBlurTextInputOnTapOutside) {
-        isKeyboardVisibleWhenShowingModal = !!focusedInstance
+        isKeyboardVisibleWhenShowingModal = !!focusedInstance;
     }
 
-    if(!focusedInstance){
+    if (!focusedInstance) {
         return;
     }
     focusedInstance.blur();
