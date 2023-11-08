@@ -20,7 +20,7 @@ export default function useReactNativeShareMenuData() {
     const handleShare = useCallback((item) => {
         console.log("RECEIVED:")
         console.log(item);
-        if (!item || isEmpty(item) || !item[0].data || isEmpty(item[0].data)) {
+        if (!item || isEmpty(item) || isEmpty(item[0]) || !item[0].data || isEmpty(item[0].data)) {
             console.log(item);
             console.warn("Received empty share data");
             return;
