@@ -333,7 +333,7 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
-        WORKSPACE_EDIT_NAME: 'workspaceEditName',
+        WORKSPACE_EDIT_NAME: 'workspaceEditNameDraft',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
     },
 } as const;
