@@ -38,6 +38,9 @@ const propTypes = {
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** ID of the transaction assigned to report */
+    transactionID: PropTypes.string,
+
     ...basePropTypes,
 };
 
@@ -47,6 +50,7 @@ const defaultProps = {
     fullReport: {},
     policy: {},
     parentReportActions: {},
+    transactionID: '',
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
 };
@@ -67,7 +71,7 @@ function OptionRowLHNData({
     policy,
     receiptTransactions,
     parentReportActions,
-    transaction,
+    transactionID,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -93,7 +97,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionID]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {

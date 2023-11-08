@@ -52,7 +52,7 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.shape(reportActionPropTypes),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
@@ -61,7 +61,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The transaction from the parent report action */
-    transactions: transactionPropTypes,
+    transactions: PropTypes.objectOf(transactionPropTypes),
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
     ...withCurrentReportIDPropTypes,
@@ -132,21 +132,21 @@ function LHNOptionsList({
         ({item: reportID}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
+            const itemParentReportAction = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
-            const itemTransactions = lodashGet(itemParentReportActions, [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '');
-            const transactionsList = itemTransactions ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransactions}`] : transactions;
+            const transactionID = lodashGet(itemParentReportAction, [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '');
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
-                    parentReportActions={itemParentReportActions}
+                    parentReportActions={itemParentReportAction}
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
-                    transaction={transactionsList}
+                    transactionID={transactionID}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
