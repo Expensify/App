@@ -1898,12 +1898,13 @@ function getProperLineForModifiedExpenseMessage(prefix, messageFragments) {
         if (index === messageFragments.length - 1) {
             if (messageFragments.length === 1) {
                 return `${acc} ${value}.`;
-            } else if (messageFragments.length === 2) {
-                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
-            } else {
-                return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
             }
-        } else if (index === 0) {
+            if (messageFragments.length === 2) {
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+            }
+            return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+        }
+        if (index === 0) {
             return `${acc} ${value}`;
         }
         return `${acc}, ${value}`;
