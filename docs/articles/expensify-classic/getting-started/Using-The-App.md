@@ -47,7 +47,7 @@ Yes, you can categorize and tag expenses on the mobile app. The app allows you t
 
 
 ## What should I do if I encounter issues with the mobile app, such as login problems or crashes?
-If you experience issues, first make sure you’re using the most recent version of the app. You can also try to restarting the app. If the issue persists, you can start a chat with Concierge in the app or write to concierge@expensify.com.
+If you experience issues, first make sure you’re using the most recent version of the app. You can also try to restarting the app. If the issue persists, you can start a chat with Concierge in the app or write to [concierge@expensify.com](mailto:concierge@expensify.com).
 
 ## Is the mobile app secure for managing sensitive financial information?
 Expensify takes security seriously and employs encryption and other security measures to protect your data. It's important to use strong, unique passwords and enable device security features like biometric authentication.
