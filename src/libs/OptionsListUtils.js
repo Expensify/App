@@ -558,7 +558,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.phoneNumber = personalDetail.phoneNumber;
     }
 
-    result.text = reportName;
+    result.text = reportName || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
