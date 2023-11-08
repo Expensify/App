@@ -23,7 +23,7 @@ function CodeRenderer(props) {
     const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
     const textStyleOverride = {
-        fontSize: fontSize,
+        fontSize,
         fontFamily: font,
 
         // We need to override this properties bellow that was defined in `textStyle`
