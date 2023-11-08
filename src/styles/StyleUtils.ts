@@ -1263,9 +1263,12 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
     const baseLineHeight = variables.lineHeightXXLarge;
 
     const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const differentWithMaxLength = 17 - displayAmountLength;
 
     // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
     if (isSmallScreenWidth && windowWidth < 420) {
+        // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
+        // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
         const widthDifference = 420 - windowWidth;
         switch (true) {
             // It is very rare for native devices to have a width smaller than 350px so add a constant subtract here
@@ -1274,27 +1277,27 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
                 break;
             case widthDifference > 60:
                 if (18 - numberOfAvatar * 2 < displayAmountLength) {
-                    toSubtract = numberOfAvatar * 2;
+                    toSubtract = numberOfAvatar * 2 - differentWithMaxLength;
                 }
                 break;
             case widthDifference > 50:
-                if (18 - numberOfAvatar * 2 < displayAmountLength) {
-                    toSubtract = (numberOfAvatar - 1) * 2 + 1;
+                if (19 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1 - differentWithMaxLength;
                 }
                 break;
             case widthDifference > 40:
                 if (20 - numberOfAvatar * 2 < displayAmountLength) {
-                    toSubtract = (numberOfAvatar - 1) * 2;
+                    toSubtract = (numberOfAvatar - 1) * 2 - differentWithMaxLength;
                 }
                 break;
             case widthDifference > 30:
-                if (20 - numberOfAvatar * 2 < displayAmountLength) {
-                    toSubtract = (numberOfAvatar - 1) * 2 - 1;
+                if (21 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1 - differentWithMaxLength;
                 }
                 break;
             case widthDifference > 20:
-                if (20 - numberOfAvatar * 2 < displayAmountLength) {
-                    toSubtract = (numberOfAvatar - 2) * 2;
+                if (22 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2 - differentWithMaxLength;
                 }
                 break;
             default:
