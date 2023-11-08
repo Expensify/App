@@ -55,7 +55,7 @@ const propTypes = {
             geometry: PropTypes.shape({
                 /** Data about the location */
                 location: PropTypes.shape({
-                    /** Lattitude of the location */
+                    /** Latitude of the location */
                     lat: PropTypes.number,
 
                     /** Longitude of the location */
@@ -86,25 +86,29 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const waypointCount = _.keys(allWaypoints).length;
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
 
-    const wayPointDescriptionKey = useMemo(() => {
+    const waypointsCount = _.size(allWaypoints);
+    const filledWaypointsCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+
+    const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
-            case waypointCount - 1:
+            case waypointsCount - 1:
                 return 'distance.waypointDescription.finish';
             default:
                 return 'distance.waypointDescription.stop';
         }
-    }, [parsedWaypointIndex, waypointCount]);
+    }, [parsedWaypointIndex, waypointsCount]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     const isEditingWaypoint = Boolean(threadReportID);
-    const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
     // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = totalWaypoints > 2;
+    const shouldShowThreeDotsButton = waypointsCount > 2;
+    const shouldDisableEditor =
+        isFocused &&
+        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointsCount || (filledWaypointsCount < 2 && parsedWaypointIndex >= waypointsCount));
 
     const validate = (values) => {
         const errors = {};
@@ -122,6 +126,8 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         return errors;
     };
 
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+
     const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
@@ -138,7 +144,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 lng: null,
                 address: waypointValue,
             };
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            saveWaypoint(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -158,7 +164,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             address: values.address,
             name: values.name,
         };
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+        saveWaypoint(waypoint);
 
         if (isEditingWaypoint) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
@@ -174,9 +180,9 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
+            <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={translate(wayPointDescriptionKey)}
+                    title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
