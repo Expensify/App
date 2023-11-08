@@ -545,7 +545,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
         markAsDone: 'Marcar como completado',
-        markedAsDoneWithAmount: ({payer, amount}: MarkedAsDoneWithAmountParams) => `${[payer]} marcó ${amount} como completados`,
+        markedAsDoneWithAmount: ({payer, amount}: MarkedAsDoneWithAmountParams) => `${payer} marcó ${amount} como completados`,
         nextSteps: 'Pasos Siguientes',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,

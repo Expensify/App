@@ -18,7 +18,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as UserUtils from './UserUtils';
-import {getIOUReportActionDisplayMessage} from "./ReportUtils";
 
 const visibleReportActionItems: ReportActions = {};
 const lastReportActions: ReportActions = {};
