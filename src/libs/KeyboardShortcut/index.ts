@@ -13,6 +13,7 @@ type EventHandler = {
     shouldPreventDefault: boolean;
     shouldBubble: boolean | (() => void);
     excludedNodes: string[];
+    shouldStopPropagation: boolean;
 };
 
 // Handlers for the various keyboard listeners we set up
@@ -127,7 +128,7 @@ function getPlatformEquivalentForKeys(keys: string[]): string[] {
  */
 function subscribe(
     key: string,
-    callback: () => void,
+    callback: (event?: KeyboardEvent) => void,
     descriptionKey: string,
     modifiers: string[] = ['shift'],
     captureOnInputs = false,
@@ -135,6 +136,7 @@ function subscribe(
     priority = 0,
     shouldPreventDefault = true,
     excludedNodes = [],
+    shouldStopPropagation = false,
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
@@ -150,6 +152,7 @@ function subscribe(
         shouldPreventDefault,
         shouldBubble,
         excludedNodes,
+        shouldStopPropagation,
     });
 
     if (descriptionKey) {

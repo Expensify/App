@@ -27,6 +27,7 @@ const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
+const sleep = require('./utils/sleep');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -170,20 +171,28 @@ const runTests = async () => {
     const server = createServerInstance();
     await server.start();
 
-    // Create a dict in which we will store the run durations for all tests
-    const durationsByTestName = {};
+    // Create a dict in which we will store the collected metrics for all tests
+    const resultsByTestName = {};
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        if (testResult.duration < 0) {
-            return;
+        let result = 0;
+
+        if ('duration' in testResult) {
+            if (testResult.duration < 0) {
+                return;
+            }
+            result = testResult.duration;
+        }
+        if ('renderCount' in testResult) {
+            result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+        Logger.log(`[LISTENER] Test '${testResult.name}' measured ${result}`);
+        resultsByTestName[testResult.name] = (resultsByTestName[testResult.name] || []).concat(result);
     });
 
     // Run the tests
@@ -201,6 +210,15 @@ const runTests = async () => {
                 continue;
             }
         }
+
+        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+        coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+
+        // Having the cooldown right at the beginning should hopefully lower the chances of heat
+        // throttling from the previous run (which we have no control over and will be a
+        // completely different AWS DF customer/app). It also gives the time to cool down between test suites.
+        await sleep(config.BOOT_COOL_DOWN);
+        coolDownLogs.done();
 
         server.setTestConfig(testConfig);
 
@@ -229,7 +247,17 @@ const runTests = async () => {
             progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
-            await restartApp();
+            Logger.log('Killing app...');
+            await killApp('android', config.APP_PACKAGE);
+
+            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
+
+            // Adding the cool down between booting the app again, had the side-effect of actually causing a cold boot,
+            // which increased TTI/bundle load JS times significantly but also stabilized standard deviation.
+            await sleep(config.SUITE_COOL_DOWN);
+
+            Logger.log('Starting app...');
+            await launchApp('android', config.APP_PACKAGE);
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -250,22 +278,13 @@ const runTests = async () => {
             }
         }
         testLog.done();
-
-        // If we still have tests add a cool down period
-        if (testIndex < numOfTests - 1) {
-            const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-            coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-            // eslint-disable-next-line no-loop-func
-            await new Promise((resolve) => setTimeout(resolve, config.COOL_DOWN));
-            coolDownLogs.done();
-        }
     }
 
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
 
-    for (const testName of _.keys(durationsByTestName)) {
-        const stats = math.getStats(durationsByTestName[testName]);
+    for (const testName of _.keys(resultsByTestName)) {
+        const stats = math.getStats(resultsByTestName[testName]);
         await writeTestStats(
             {
                 name: testName,
