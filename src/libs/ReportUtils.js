@@ -2526,7 +2526,7 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CLOSE:
-            iouMessage = `closed the ${amount} request${comment && ` for ${comment}`}`;
+            iouMessage = `marked the ${amount} request${comment && ` for ${comment}`} as done`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
@@ -4134,24 +4134,28 @@ function getParticipantsIDs(report) {
 function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
     let displayMessage;
-    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY || originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CLOSE) {
         const {IOUReportID} = originalMessage;
         const {amount, currency} = originalMessage.IOUDetails || originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
         let translationKey;
-        switch (originalMessage.paymentType) {
-            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = 'iou.paidElsewhereWithAmount';
-                break;
-            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            case CONST.IOU.PAYMENT_TYPE.VBBA:
-                translationKey = 'iou.paidUsingExpensifyWithAmount';
-                break;
-            default:
-                translationKey = '';
-                break;
+        if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CLOSE) {
+            translationKey = 'iou.markedAsDoneWithAmount';
+        } else {
+            switch (originalMessage.paymentType) {
+                case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                    translationKey = 'iou.paidElsewhereWithAmount';
+                    break;
+                case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+                case CONST.IOU.PAYMENT_TYPE.VBBA:
+                    translationKey = 'iou.paidUsingExpensifyWithAmount';
+                    break;
+                default:
+                    translationKey = '';
+                    break;
+            }
         }
         displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
     } else {

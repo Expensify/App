@@ -18,6 +18,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as UserUtils from './UserUtils';
+import {getIOUReportActionDisplayMessage} from "./ReportUtils";
 
 const visibleReportActionItems: ReportActions = {};
 const lastReportActions: ReportActions = {};
@@ -253,6 +254,7 @@ type OptionData = {
     iouReportAmount?: number | null;
     isChatRoom?: boolean | null;
     isArchivedRoom?: boolean | null;
+    isDoneReport?: boolean | null;
     shouldShowSubscript?: boolean | null;
     isPolicyExpenseChat?: boolean | null;
     isMoneyRequestReport?: boolean | null;
@@ -338,6 +340,7 @@ function getOptionData(
         iouReportAmount: 0,
         isChatRoom: false,
         isArchivedRoom: false,
+        isDoneReport: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
@@ -348,12 +351,12 @@ function getOptionData(
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
-
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    result.isDoneReport = ReportUtils.isMarkedAsDone(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -429,7 +432,7 @@ function getOptionData(
         }
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || result.isDoneReport) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
@@ -461,6 +464,8 @@ function getOptionData(
                         : ' from';
                 result.alternateText += `${preposition} ${roomName}`;
             }
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            result.alternateText = ReportUtils.getIOUReportActionDisplayMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {

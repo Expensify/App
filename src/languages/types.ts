@@ -115,6 +115,8 @@ type PayerOwesAmountParams = {payer: string; amount: number};
 
 type PayerOwesParams = {payer: string};
 
+type MarkedAsDoneWithAmountParams = {payer: string; amount: number};
+
 type PayerPaidAmountParams = {payer: string; amount: number};
 
 type ManagerApprovedParams = {manager: string};
@@ -321,4 +323,5 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    MarkedAsDoneWithAmountParams,
 };
