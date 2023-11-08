@@ -1,3 +1,34 @@
+diff --git a/node_modules/react-native-share-menu/android/build.gradle b/node_modules/react-native-share-menu/android/build.gradle
+index 9557fdb..26825b5 100644
+--- a/node_modules/react-native-share-menu/android/build.gradle
++++ b/node_modules/react-native-share-menu/android/build.gradle
+@@ -1,12 +1,22 @@
+ apply plugin: 'com.android.library'
+ 
++buildscript {
++    ext {
++        rnsmDefaultTargetSdkVersion = 31
++        rnsmDefaultCompileSdkVersion = 31
++        rnsmDefaultMinSdkVersion = 21
++    }
++    ext.safeExtGet = {prop, fallback ->
++        rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
++    }
++}
++
+ android {
+-    compileSdkVersion 29
+-    buildToolsVersion "29.0.2"
++    compileSdkVersion safeExtGet('compileSdkVersion', rnsmDefaultCompileSdkVersion)
+ 
+     defaultConfig {
+-        minSdkVersion 16
+-        targetSdkVersion 29
++        minSdkVersion safeExtGet('minSdkVersion', rnsmDefaultCompileSdkVersion)
++        targetSdkVersion safeExtGet('targetSdkVersion', rnsmDefaultCompileSdkVersion)
+         versionCode 1
+         versionName "1.0"
+         ndk {
 diff --git a/node_modules/react-native-share-menu/ios/Constants.swift b/node_modules/react-native-share-menu/ios/Constants.swift
 index 08385b7..e22bdfa 100644
 --- a/node_modules/react-native-share-menu/ios/Constants.swift
