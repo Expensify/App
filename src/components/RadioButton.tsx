@@ -40,13 +40,13 @@ type RadioButtonProps = {
     accessibilityLabel: string;
 
     /** Should the input be styled for errors  */
-    hasError: boolean;
+    hasError?: boolean;
 
     /** Should the input be disabled  */
-    disabled: boolean;
+    disabled?: boolean;
 }
 
-function RadioButton({accessibilityLabel, disabled = false, hasError = false, isChecked, onPress}: RadioButtonProps) {
+function RadioButton({isChecked, onPress = () => undefined, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
     return (
         <PressableWithFeedback
             disabled={disabled}
