@@ -18,7 +18,7 @@ function CodeRenderer(props) {
     });
 
     // Determine the font size for the code based on whether it's inside an H1 element.
-    const isInsideH1 = HTMLEngineUtils.isInsideH1(props.tnode);
+    const isInsideH1 = HTMLEngineUtils.isChildOfH1(props.tnode);
 
     const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
