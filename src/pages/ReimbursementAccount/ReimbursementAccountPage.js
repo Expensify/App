@@ -238,7 +238,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     // Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
     // it relies on complete data. Thus, we should wait to calculate it until we have received
     // the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
-    // which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes. 
+    // which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
         reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(reimbursementAccount, 'achData.currentStep'),
     );
@@ -289,7 +289,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     useEffect(
         () => {
             // Check for network change from offline to online
-             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 fetchData();
             }
 
