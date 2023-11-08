@@ -288,7 +288,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         if (shouldDisplayFieldError && hasRouteError) {
-            setFormError(_.values(ErrorUtils.getLatestErrorField(transaction, 'route'))[0]);
+            setFormError('bankAccount.error.address');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
