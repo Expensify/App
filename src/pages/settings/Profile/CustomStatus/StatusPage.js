@@ -51,6 +51,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     };
 
     const topMostReportID = Navigation.getTopmostReportId();
+
     const navigateBackToSettingsPage = useCallback(() => {
         if (topMostReportID) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(topMostReportID));
