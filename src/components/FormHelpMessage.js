@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
+import * as StyleUtils from '@styles/StyleUtils';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
@@ -23,9 +24,6 @@ const propTypes = {
     /** Container style props */
     style: stylePropTypes,
 
-    /** Container text style props */
-    containerMessageStyle: stylePropTypes,
-
     /** Whether to show dot indicator */
     shouldShowRedDotIndicator: PropTypes.bool,
 };
@@ -36,7 +34,6 @@ const defaultProps = {
     isError: true,
     shouldShowRedDotIndicator: true,
     style: [],
-    containerMessageStyle: {},
 };
 
 function FormHelpMessage(props) {
@@ -46,14 +43,14 @@ function FormHelpMessage(props) {
 
     const translatedMessage = Localize.translateIfPhraseKey(props.message);
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style, styles.justifyContentCenter]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, StyleUtils.parseStyleAsArray(props.style), styles.justifyContentCenter]}>
             {props.isError && props.shouldShowRedDotIndicator && (
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={themeColors.danger}
                 />
             )}
-            <View style={[styles.flex1, props.isError && props.shouldShowRedDotIndicator ? styles.ml2 : {}, props.containerMessageStyle]}>
+            <View style={[styles.flex1, props.isError && props.shouldShowRedDotIndicator ? styles.ml2 : {}]}>
                 {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
             </View>
         </View>

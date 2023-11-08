@@ -2425,6 +2425,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             padding: 20,
         },
+        numberPadWrapper: {
+            width: '100%',
+            alignItems: 'center',
+            paddingHorizontal: 20
+        },
 
         avatarSectionWrapper: {
             width: '100%',

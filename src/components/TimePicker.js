@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
@@ -22,10 +23,10 @@ const propTypes = {
     forwardedRef: refPropTypes,
 
     /** Default value for the inputs */
-    value: PropTypes.string,
+    defaultValue: PropTypes.string,
 
-    /** Form Error description */
-    errorText: PropTypes.string,
+    /** Callback to call when the Save button is pressed  */
+    onSubmit: PropTypes.func.isRequired,
 
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
@@ -33,9 +34,8 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: null,
-    errorText: '',
     onInputChange: () => {},
-    value: '',
+    defaultValue: '',
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -91,53 +91,49 @@ function replaceWithZeroAtPosition(originalString, position) {
     return `${originalString.slice(0, position - 1)}0${originalString.slice(position)}`;
 }
 
-function TimePicker({forwardedRef, value, errorText, onInputChange}) {
-    const {numberFormat} = useLocalize();
+function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
+    const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
-    const localize = useLocalize();
-    const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
-    const [minute, setMinute] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).minute);
+    const value = DateUtils.extractTime12Hour(defaultValue);
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+
+    const [isError, setError] = useState(false);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
-
+    const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
+    const [minute, setMinute] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).minute);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).period);
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const focusMinuteInputOnFirstCharacter = useCallback(() => {
-        minuteInputRef.current.focus();
         setSelectionMinute({start: 0, end: 0});
+        minuteInputRef.current.focus();
     }, []);
+
+    const validate = (time) => {
+        const isValid = ValidationUtils.isTimeAtLeastOneMinuteInFuture(time, defaultValue);
+        setError(isValid);
+        return isValid;
+    };
 
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text) => {
-        let filteredText;
-        // Remove non-numeric characters and limit to 3 digits. The third digit will appear when input has 01 and you type 2 => 201
-        if (selectionHour.start !== selectionHour.end) {
-            filteredText = text.replace(/[^0-9]/g, '').slice(0, 2);
-        } else {
-            filteredText = text.replace(/[^0-9]/g, '');
+        const isOnlyNumericValue = /^\d+$/.test(text.trim());
+        // Skip if the user is pasting the text or use non numeric characters.
+        if (selectionHour.start !== selectionHour.end || !isOnlyNumericValue) {
+            return;
         }
+        // Remove non-numeric characters.
+        const filteredText = text.replace(/[^0-9]/g, '');
+
         let newHour = hours;
         let newSelection = selectionHour.start;
 
-        // Case when user selects and replaces the text.
-        if (selectionHour.start !== selectionHour.end) {
-            // If the first digit is <= 1, append 0 at the end.
-            if (filteredText.length === 1 && filteredText <= 1) {
-                newHour = `${filteredText}0`;
-                newSelection = 1;
-            } else {
-                // Format the hour and move focus to minute input.
-                newHour = `${formatHour(filteredText)}`;
-                newSelection = 2;
-                focusMinuteInputOnFirstCharacter();
-            }
-            // Case when the cursor is at the start.
-        } else if (selectionHour.start === 0) {
+        // Case when the cursor is at the start.
+        if (selectionHour.start === 0) {
             // Handle cases where the hour would be > 12.
 
             // when you entering text the filteredText would consist of three numbers
@@ -195,6 +191,12 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     // This function receive value from minute input and validate it
     // The valid format is MM(from 00 to 59). If the user input 9, it will be 09. If user try to change 09 to 99 it would skip the character
     const handleMinutesChange = (text) => {
+        const isOnlyNumericValue = /^\d+$/.test(text.trim());
+        // Skip if the user is pasting the text or use non numeric characters.
+        if (selectionMinute.start !== selectionMinute.end || !isOnlyNumericValue) {
+            return;
+        }
+
         // Remove non-numeric characters.
         const filteredText = text.replace(/[^0-9]/g, '');
 
@@ -230,6 +232,8 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
             if (filteredText.length < 2) {
                 newMinute = `0${text}`;
                 newSelection = 0;
+                setSelectionHour({start: 2, end: 2});
+                hourInputRef.current.focus();
             } else {
                 newMinute = `${text[0]}${text[1]}`;
                 newSelection = 2;
@@ -349,12 +353,22 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hours, minute, amPmValue]);
 
+    const handleSubmit = () => {
+        const time = `${hours}:${minute} ${amPmValue}`;
+        const isValid = ValidationUtils.isTimeAtLeastOneMinuteInFuture(time, defaultValue);
+
+        setError(!isValid);
+        if (isValid) {
+            onSubmit(time);
+        }
+    };
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer]}
+                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb8]}
                 >
                     <AmountTextInput
                         formattedAmount={hours}
@@ -404,23 +418,15 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                         showSoftInputOnFocus={false}
                     />
                 </View>
-                {errorText ? (
-                    <FormHelpMessage
-                        isError={!!errorText}
-                        message={errorText}
-                        containerMessageStyle={styles.flexReset}
-                    />
-                ) : (
-                    <View style={styles.formHelperMessage} />
-                )}
                 <View style={styles.timePickerSwitcherContainer}>
                     <Button
                         shouldEnableHapticFeedback
                         innerStyles={styleForAM}
                         medium={isExtraSmallScreenHeight}
-                        text={localize.translate('common.am')}
+                        text={translate('common.am')}
                         onLongPress={() => {}}
                         onPress={() => {
+                            validate();
                             setAmPmValue(CONST.TIME_PERIOD.AM);
                         }}
                         onPressOut={() => {}}
@@ -430,9 +436,10 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                         shouldEnableHapticFeedback
                         innerStyles={[...styleForPM, styles.ml1]}
                         medium={isExtraSmallScreenHeight}
-                        text={localize.translate('common.pm')}
+                        text={translate('common.pm')}
                         onLongPress={() => {}}
                         onPress={() => {
+                            validate();
                             setAmPmValue(CONST.TIME_PERIOD.PM);
                         }}
                         onPressOut={() => {}}
@@ -440,12 +447,29 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                     />
                 </View>
             </View>
+            {isError ? (
+                <FormHelpMessage
+                    isError={isError}
+                    message={translate('common.error.invalidTimeShouldBeFuture')}
+                    style={styles.pl5}
+                />
+            ) : (
+                <View style={styles.formHelperMessage} />
+            )}
             <View
-                style={[styles.pageWrapper, styles.pb4]}
+                style={[styles.numberPadWrapper, styles.pb4]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {numberPad()}
             </View>
+            <Button
+                success
+                medium={isExtraSmallScreenHeight}
+                style={[styles.mb5, styles.mh5]}
+                onPress={handleSubmit}
+                pressOnEnter
+                text={translate('common.save')}
+            />
         </View>
     );
 }
