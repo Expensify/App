@@ -155,6 +155,10 @@ export default {
         marginLeft: 32,
     },
 
+    ml9: {
+        marginLeft: 36,
+    },
+
     ml10: {
         marginLeft: 40,
     },
@@ -169,6 +173,10 @@ export default {
 
     mln8: {
         marginLeft: -32,
+    },
+
+    mt0: {
+        marginTop: 0,
     },
 
     mt1: {
@@ -195,8 +203,16 @@ export default {
         marginTop: 24,
     },
 
+    mt7: {
+        marginTop: 28,
+    },
+
     mt8: {
         marginTop: 32,
+    },
+
+    mt9: {
+        marginTop: 36,
     },
 
     mt11: {
@@ -245,6 +261,14 @@ export default {
 
     mb8: {
         marginBottom: 32,
+    },
+
+    mb9: {
+        marginBottom: 36,
+    },
+
+    mb10: {
+        marginBottom: 40,
     },
 
     mb15: {
@@ -457,6 +481,10 @@ export default {
         paddingTop: 24,
     },
 
+    pt8: {
+        paddingTop: 32,
+    },
+
     pt10: {
         paddingTop: 40,
     },
@@ -491,6 +519,10 @@ export default {
 
     pb8: {
         paddingBottom: 32,
+    },
+
+    pb14: {
+        paddingBottom: 56,
     },
 
     pb20: {

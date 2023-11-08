@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {Platform, StyleSheet} from 'react-native';
-import PropTypes from 'prop-types';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming, withDelay} from 'react-native-reanimated';
-import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from '../../reportPropTypes';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import themeColors from '../../../styles/themes/default';
+import reportPropTypes from '../../reportPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsView from './ReportActionsView';
-import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 
 const propTypes = {
     /** The report currently being looked at */

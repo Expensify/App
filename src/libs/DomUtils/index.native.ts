@@ -1,10 +1,7 @@
-import {BlurActiveElement, GetActiveElement} from './types';
-
-const blurActiveElement: BlurActiveElement = () => {};
+import GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 
 export default {
-    blurActiveElement,
     getActiveElement,
 };

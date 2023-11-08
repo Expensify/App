@@ -1,27 +1,28 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {Keyboard, View} from 'react-native';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
-import * as Policy from '../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import CONST from '../../../CONST';
-import Picker from '../../../components/Picker';
-import TextInput from '../../../components/TextInput';
-import WorkspacePageWithSections from '../WorkspacePageWithSections';
-import withPolicy, {policyPropTypes, policyDefaultProps} from '../withPolicy';
-import {withNetwork} from '../../../components/OnyxProvider';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import Form from '../../../components/Form';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import _ from 'underscore';
+import Form from '@components/Form';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import Picker from '@components/Picker';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
+import Navigation from '@libs/Navigation/Navigation';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Bank account attached to free plan */
@@ -86,7 +87,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     getNumericValue(value) {
-        const numValue = parseFloat(value.toString().replace(',', '.'));
+        const numValue = NumberUtils.parseFloatAnyLocale(value.toString());
         if (Number.isNaN(numValue)) {
             return NaN;
         }
@@ -137,7 +138,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
         if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (parseFloat(values.rate) <= 0) {
+        } else if (NumberUtils.parseFloatAnyLocale(values.rate) <= 0) {
             errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;
@@ -175,16 +176,16 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                aria-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                inputMode={CONST.INPUT_MODE.DECIMAL}
                                 maxLength={12}
                                 value={this.state.rate}
                                 onChangeText={(value) => this.setState({rate: value})}

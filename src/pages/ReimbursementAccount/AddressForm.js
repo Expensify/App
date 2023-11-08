@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import TextInput from '../../components/TextInput';
-import AddressSearch from '../../components/AddressSearch';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import StatePicker from '../../components/StatePicker';
+import AddressSearch from '@components/AddressSearch';
+import StatePicker from '@components/StatePicker';
+import TextInput from '@components/TextInput';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Translate key for Street name */
@@ -107,6 +107,7 @@ function AddressForm(props) {
                     hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    isLimitedToUSA
                 />
             </View>
             <TextInput
@@ -114,7 +115,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
                 accessibilityLabel={props.translate('common.city')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
@@ -137,14 +138,15 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}
                 errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                containerStyles={[styles.mt2]}
             />
         </>
     );

@@ -1,29 +1,28 @@
-import _ from 'underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import {subYears} from 'date-fns';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {subYears} from 'date-fns';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import DatePicker from '@components/DatePicker';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IdologyQuestions from './IdologyQuestions';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import CONST from '../../CONST';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import TextLink from '../../components/TextLink';
-import TextInput from '../../components/TextInput';
-import * as Wallet from '../../libs/actions/Wallet';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import AddressForm from '../ReimbursementAccount/AddressForm';
-import DatePicker from '../../components/DatePicker';
-import Form from '../../components/Form';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -148,6 +147,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
+                shouldShowOfflineIndicator={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
                 testID={AdditionalDetailsStep.displayName}
@@ -190,7 +190,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
@@ -199,7 +199,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
@@ -217,10 +217,10 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     <TextInput
                         inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
@@ -239,11 +239,10 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
-                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </Form>
             </View>
         </>

@@ -230,20 +230,20 @@ PODS:
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
   - lottie-ios (4.3.3)
-  - lottie-react-native (6.3.1):
-    - lottie-ios (~> 4.3.0)
+  - lottie-react-native (6.4.0):
+    - lottie-ios (~> 4.3.3)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - MapboxCommon (23.6.0)
-  - MapboxCoreMaps (10.14.0):
-    - MapboxCommon (~> 23.6)
-  - MapboxMaps (10.14.0):
-    - MapboxCommon (= 23.6.0)
-    - MapboxCoreMaps (= 10.14.0)
+  - MapboxCommon (23.8.3)
+  - MapboxCoreMaps (10.16.1):
+    - MapboxCommon (~> 23.8)
+  - MapboxMaps (10.16.1):
+    - MapboxCommon (= 23.8.3)
+    - MapboxCoreMaps (= 10.16.1)
     - MapboxMobileEvents (= 1.0.10)
     - Turf (~> 2.0)
   - MapboxMobileEvents (1.0.10)
@@ -263,14 +263,6 @@ PODS:
     - React-RCTFabric
     - ReactCommon/turbomodule/core
   - OpenSSL-Universal (1.1.1100)
-  - Permission-Camera (3.10.0):
-    - RNPermissions
-  - Permission-LocationAccuracy (3.10.0):
-    - RNPermissions
-  - Permission-LocationAlways (3.10.0):
-    - RNPermissions
-  - Permission-LocationWhenInUse (3.10.0):
-    - RNPermissions
   - Plaid (4.1.0)
   - PromisesObjC (2.3.1)
   - RCT-Folly (2021.07.22.00):
@@ -1450,14 +1442,22 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCClipboard (1.11.1):
-    - RCT-Folly
+  - RNCClipboard (1.12.1):
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNCPicker (2.4.8):
     - RCT-Folly
     - RCTRequired
@@ -1520,6 +1520,8 @@ PODS:
     - Firebase/Performance (= 8.8.0)
     - React-Core
     - RNFBApp
+  - RNFlashList (1.6.1):
+    - React-Core
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.12.0):
@@ -1535,18 +1537,28 @@ PODS:
     - React-Core
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps (10.1.0-beta.18):
+    - MapboxMaps (~> 10.16.1)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.0.11)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.0-beta.18)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps/DynamicLibrary (10.1.0-beta.18):
+    - hermes-engine
+    - MapboxMaps (~> 10.16.1)
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
     - React
+    - React-Codegen
     - React-Core
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
     - Turf
-  - RNPermissions (3.10.0):
+    - Yoga
+  - RNPermissions (3.9.3):
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
@@ -1562,7 +1574,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.0.0):
+  - RNReactNativeHapticFeedback (2.2.0):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1657,7 +1669,7 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (2.15.4):
+  - VisionCamera (2.16.2):
     - React
     - React-callinvoker
     - React-Core
@@ -1696,10 +1708,6 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - OpenSSL-Universal (= 1.1.1100)
-  - Permission-Camera (from `../node_modules/react-native-permissions/ios/Camera`)
-  - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
-  - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
-  - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -1770,6 +1778,7 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
+  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -1849,14 +1858,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
-  Permission-Camera:
-    :path: "../node_modules/react-native-permissions/ios/Camera"
-  Permission-LocationAccuracy:
-    :path: "../node_modules/react-native-permissions/ios/LocationAccuracy"
-  Permission-LocationAlways:
-    :path: "../node_modules/react-native-permissions/ios/LocationAlways"
-  Permission-LocationWhenInUse:
-    :path: "../node_modules/react-native-permissions/ios/LocationWhenInUse"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1991,6 +1992,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
+  RNFlashList:
+    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -2054,19 +2057,15 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
-  lottie-react-native: 576114bd026aa648814935463fae9fea4a97d654
-  MapboxCommon: 4a0251dd470ee37e7fadda8e285c01921a5e1eb0
-  MapboxCoreMaps: eb07203bbb0b1509395db5ab89cd3ad6c2e3c04c
-  MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209
+  lottie-react-native: bbaa5fac982f8ac7ee12b57a8bf7773f67c93386
+  MapboxCommon: b2c348867dfed7d7a23545e6c2024d712bfda10f
+  MapboxCoreMaps: c66f482b5ea983cf873122853c4ee94c159bec43
+  MapboxMaps: fdbe05e3899abd24f31a7f91789586e44e57f7fc
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
   onfido-react-native-sdk: 448b08db971604fb7bcbbd30a779421b5a4a2dd2
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Permission-Camera: c0988031cf68f80212d38b69c08bced8c7eb43b7
-  Permission-LocationAccuracy: 04af4541e0a593ccd4eeafe955db1de96b7ad799
-  Permission-LocationAlways: ea58f2c4e0fb619662f7346daba2fc5c40448676
-  Permission-LocationWhenInUse: 1ecad1bbfcd5989d2e51577c7172f51498966456
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -2110,7 +2109,7 @@ SPEC CHECKSUMS:
   React-perflogger: 496a1a3dc6737f964107cb3ddae7f9e265ddda58
   React-RCTActionSheet: 02904b932b50e680f4e26e7a686b33ebf7ef3c00
   React-RCTAnimation: 88feaf0a85648fb8fd497ce749829774910276d6
-  React-RCTAppDelegate: 15d2bd97e58b38b5375f9a70fa14ccf828d456dd
+  React-RCTAppDelegate: fd747bdb21fa6dce1b08758c9e6b660b442e2d60
   React-RCTBlob: 0dbc9e2a13d241b37d46b53e54630cbad1f0e141
   React-RCTFabric: 0d443ab3cc3f0af82442ec95747d503cee955f26
   React-RCTImage: b111645ab901f8e59fc68fbe31f5731bdbeef087
@@ -2126,7 +2125,7 @@ SPEC CHECKSUMS:
   ReactCommon: 4b2bdcb50a3543e1c2b2849ad44533686610826d
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCAsyncStorage: deda39ef298830cae67c4d01fb9d76fa228cc717
-  RNCClipboard: 472660b493222f5b351439c03e1874caafc5471e
+  RNCClipboard: cfd156015d22e432d557c8ddbc2bcc2f4c0a2bec
   RNCPicker: d7db5fb87007968ac14bd2266f96be30f8d738d6
   RNDateTimePicker: dfd5d503df5e040aaa1f67a470aa3b3e7d3f1066
   RNDeviceInfo: c7412c8706d7c92b27048f1ea6f52e5836e434fb
@@ -2136,13 +2135,14 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
+  RNFlashList: 236646d48f224a034f35baa0242e1b77db063b1e
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: d8224aad6d7081834ae6e6cf925397059485b69e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
-  RNPermissions: 2ab79ce96dd9cc60fa58debc66bf20e8f7423a44
-  RNReactNativeHapticFeedback: b4a73cb674ecae432b5b09a4a10f91f16dff3da6
+  rnmapbox-maps: 9bb023220b517f55c36b452ee72aa87d7dd4e1cc
+  RNPermissions: 0b211d60fce8538acca3a481789692bb517956dd
+  RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 0643b65384721180721a0a726a3b9233e9c4da09
   RNScreens: 8e13360d58411c3f6ef6ee6592f19a89655dfc57
   RNSVG: e136c0e3c70ff4fb98687fc5a887039c436c65e6
@@ -2150,10 +2150,10 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: d3ec8883417a6a4a0e3a6ba37d81d22db7611601
+  VisionCamera: 95f969b8950b411285579d633a1014782fe0e634
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0b424cc9e0e969dce790d1deb2009f24e7d839a7
+PODFILE CHECKSUM: 5ecd56eab406bf5010d64a6a1890a2fa94c2cada
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.11.3
