@@ -128,7 +128,7 @@ function getPlatformEquivalentForKeys(keys: string[]): string[] {
  */
 function subscribe(
     key: string,
-    callback: () => void,
+    callback: (event?: KeyboardEvent) => void,
     descriptionKey: string,
     modifiers: string[] = ['shift'],
     captureOnInputs = false,

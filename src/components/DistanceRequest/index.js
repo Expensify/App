@@ -150,13 +150,8 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
-        // Initially, both waypoints will be null, and if we give fallback value as empty string that will result in true condition, that's why different default values.
-        if (_.keys(waypoints).length === 2 && lodashGet(waypoints, 'waypoint0.address', 'address1') === lodashGet(waypoints, 'waypoint1.address', 'address2')) {
-            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
-        }
-
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.emptyWaypointsErrorMessage')};
+            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
     };
 

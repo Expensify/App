@@ -447,7 +447,7 @@ function MoneyRequestConfirmationList(props) {
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+            const activeRoute = Navigation.getActiveRouteWithoutParams();
 
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
@@ -762,6 +762,7 @@ function MoneyRequestConfirmationList(props) {
 
 MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
+MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default compose(
     withCurrentUserPersonalDetails,
