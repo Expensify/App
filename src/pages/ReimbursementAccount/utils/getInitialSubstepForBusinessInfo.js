@@ -10,40 +10,35 @@ const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
  * @returns {number}
  */
 function getInitialSubstepForBusinessInfo(data) {
-    if (data[businessInfoStepKeys.COMPANY_NAME] === undefined) {
+    if (data[businessInfoStepKeys.COMPANY_NAME] === '') {
         return 0;
     }
 
-    if (data[businessInfoStepKeys.COMPANY_TAX_ID] === undefined) {
+    if (data[businessInfoStepKeys.COMPANY_TAX_ID] === '') {
         return 1;
     }
 
-    if (data[businessInfoStepKeys.COMPANY_WEBSITE] === undefined) {
+    if (data[businessInfoStepKeys.COMPANY_WEBSITE] === '') {
         return 2;
     }
 
-    if (data[businessInfoStepKeys.COMPANY_PHONE] === undefined) {
+    if (data[businessInfoStepKeys.COMPANY_PHONE] === '') {
         return 3;
     }
 
-    if (
-        data[businessInfoStepKeys.STREET] === undefined ||
-        data[businessInfoStepKeys.CITY] === undefined ||
-        data[businessInfoStepKeys.STATE] === undefined ||
-        data[businessInfoStepKeys.ZIP_CODE] === undefined
-    ) {
+    if (data[businessInfoStepKeys.STREET] === '' || data[businessInfoStepKeys.CITY] === '' || data[businessInfoStepKeys.STATE] === '' || data[businessInfoStepKeys.ZIP_CODE] === '') {
         return 4;
     }
 
-    if (data[businessInfoStepKeys.INCORPORATION_TYPE] === undefined) {
+    if (data[businessInfoStepKeys.INCORPORATION_TYPE] === '') {
         return 5;
     }
 
-    if (data[businessInfoStepKeys.INCORPORATION_DATE] === undefined) {
+    if (data[businessInfoStepKeys.INCORPORATION_DATE] === '') {
         return 6;
     }
 
-    if (data[businessInfoStepKeys.INCORPORATION_STATE] === undefined) {
+    if (data[businessInfoStepKeys.INCORPORATION_STATE] === '') {
         return 7;
     }
 
