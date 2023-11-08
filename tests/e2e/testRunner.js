@@ -234,13 +234,13 @@ const runTests = async () => {
             result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
+        Logger.log(`[LISTENER] Test '${testResult.name}' measured ${result}`);
 
         if (!results[testResult.branch]) {
             results[testResult.branch] = {};
         }
 
-        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(testResult.duration);
+        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
     });
 
     // Run the tests
