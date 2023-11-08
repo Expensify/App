@@ -401,7 +401,7 @@ function getReportPreviewMessageForOptionList(report, reportAction, isPreviewMes
         shouldUseShortForm: !isPreviewMessageForParentChatReport,
     });
     const shouldShowActorName = shouldShowWorkspaceName || isPreviewMessageForParentChatReport || currentUserAccountID !== actorID;
-    const actorDisplayName = shouldShowActorName  && actor ? `${actor}${isPreviewMessageForParentChatReport ? ' ' : ': '}` : '';
+    const actorDisplayName = shouldShowActorName && actor ? `${actor}${isPreviewMessageForParentChatReport ? ' ' : ': '}` : '';
     const message = ReportUtils.getReportPreviewMessage(report, reportAction, true, isPreviewMessageForParentChatReport, true);
 
     return `${actorDisplayName}${message}`;
@@ -449,7 +449,8 @@ function getLastMessageTextForReport(report) {
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
-        const shouldShowLastActor = ReportUtils.isThread(report) && (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) && currentUserAccountID !== report.lastActorAccountID;
+        const shouldShowLastActor =
+            ReportUtils.isThread(report) && (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) && currentUserAccountID !== report.lastActorAccountID;
         const lastActorDisplayName = shouldShowLastActor ? `${ReportUtils.getDisplayNameForParticipant(report.lastActorAccountID, true)}: ` : '';
         lastMessageTextFromReport = report ? `${lastActorDisplayName}${report.lastMessageText}` : '';
 
