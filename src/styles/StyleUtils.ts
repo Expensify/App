@@ -1262,7 +1262,7 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
     const baseFontSize = variables.fontSizeXLarge;
     const baseLineHeight = variables.lineHeightXXLarge;
 
-    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4; 
 
     // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
     if (isSmallScreenWidth && windowWidth < 420) {
