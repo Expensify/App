@@ -1,8 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -84,13 +86,14 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
     const [videoConstraints, setVideoConstraints] = useState(null);
+    const isCameraActive = useIsFocused();
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        if (!Browser.isMobile()) {
+        if (!_.isEmpty(videoConstraints) || !isCameraActive || !Browser.isMobile()) {
             return;
         }
 
@@ -116,7 +119,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                 setVideoConstraints({deviceId: lastBackDeviceId});
             });
         });
-    }, []);
+    }, [isCameraActive]);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
