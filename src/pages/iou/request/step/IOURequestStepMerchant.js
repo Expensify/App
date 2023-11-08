@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -93,21 +94,22 @@ function IOURequestStepMerchant({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                onSubmit={(value) => updateMerchant(value)}
+                onSubmit={updateMerchant}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
+                        label={translate('common.merchant')}
                         defaultValue={merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
-                        label={translate('common.merchant')}
+                        ref={(el) => (inputRef.current = el)}
                         accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </FormProvider>
