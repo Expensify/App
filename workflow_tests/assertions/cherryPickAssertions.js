@@ -76,7 +76,7 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             'CHERRYPICK',
             'Creating Pull Request to manually finish CP',
             [],
-            [{key: 'GITHUB_TOKEN', value: '***'}],
+            [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}],
         ),
     ];
 
