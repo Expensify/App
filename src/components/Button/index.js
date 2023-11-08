@@ -116,7 +116,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Id to use for this button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
@@ -156,7 +156,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
-    nativeID: '',
+    id: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
 };
@@ -209,11 +209,11 @@ class Button extends Component {
         const textComponent = (
             <Text
                 numberOfLines={1}
-                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    styles.userSelectNone,
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
@@ -309,9 +309,9 @@ class Button extends Component {
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}
-                nativeID={this.props.nativeID}
+                id={this.props.id}
                 accessibilityLabel={this.props.accessibilityLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

@@ -14,7 +14,7 @@ function SignInButton() {
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             onPress={Session.signOutAndRedirectToSignIn}
         >
             <View style={styles.signInButtonAvatar}>
