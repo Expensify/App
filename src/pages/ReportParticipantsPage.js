@@ -106,7 +106,10 @@ function ReportParticipantsPage(props) {
                                 : 'common.details',
                         )}
                     />
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                    <View
+                        pointerEvents="box-none"
+                        style={[styles.containerWithSpaceBetween]}
+                    >
                         {Boolean(participants.length) && (
                             <OptionsList
                                 sections={[

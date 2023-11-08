@@ -17,8 +17,16 @@ const defaultPlugins = [
 ];
 
 const webpack = {
-    presets: defaultPresets,
-    plugins: defaultPlugins,
+    env: {
+        production: {
+            presets: defaultPresets,
+            plugins: [...defaultPlugins, 'transform-remove-console'],
+        },
+        development: {
+            presets: defaultPresets,
+            plugins: defaultPlugins,
+        },
+    },
 };
 
 const metro = {
@@ -70,11 +78,6 @@ const metro = {
             },
         ],
     ],
-    env: {
-        production: {
-            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
-        },
-    },
 };
 
 /*
@@ -99,19 +102,11 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
-module.exports = (api) => {
-    console.debug('babel.config.js');
-    console.debug('  - api.version:', api.version);
-    console.debug('  - api.env:', api.env());
-    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
-
+module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
-    const runningIn = api.caller((args = {}) => args.name);
-    console.debug('  - running in: ', runningIn);
-
+    const runningIn = caller((args = {}) => args.name);
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

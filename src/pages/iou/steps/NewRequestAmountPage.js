@@ -123,7 +123,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         }
 
         // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 

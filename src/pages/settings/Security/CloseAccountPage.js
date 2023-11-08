@@ -106,10 +106,10 @@ function CloseAccountPage(props) {
                         InputComponent={TextInput}
                         inputID="reasonForLeaving"
                         autoGrowHeight
+                        textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
-                        aria-label={props.translate('closeAccountPage.enterMessageHere')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputStyle={[styles.verticalAlignTop]}
+                        accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
@@ -120,11 +120,11 @@ function CloseAccountPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
-                        aria-label={props.translate('closeAccountPage.enterDefaultContact')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
-                        inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                        keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
                     />
                     <ConfirmModal
                         danger

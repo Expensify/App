@@ -417,7 +417,6 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }
 
     let lastWaypointIndex = -1;
-    let waypointIndex = -1;
 
     return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
         const previousWaypoint = waypointValues[lastWaypointIndex];
@@ -432,10 +431,9 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
 
-        lastWaypointIndex = index;
-        waypointIndex += 1;
+        lastWaypointIndex += 1;
 
         return validatedWaypoints;
     }, {});

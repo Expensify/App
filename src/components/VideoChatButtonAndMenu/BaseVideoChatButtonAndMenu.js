@@ -101,7 +101,7 @@ function BaseVideoChatButtonAndMenu(props) {
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Icon
                             src={Expensicons.Phone}

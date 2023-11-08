@@ -20,6 +20,7 @@ function EditedRenderer(props) {
     return (
         <Text>
             <Text
+                selectable={false}
                 style={styles.userSelectNone}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >

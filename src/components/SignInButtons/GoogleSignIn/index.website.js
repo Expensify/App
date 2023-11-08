@@ -5,7 +5,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import styles from '@styles/styles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */
@@ -75,7 +74,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={styles.googlePillButtonContainer}>
             <div
                 id={desktopId}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role="button"
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>
@@ -83,7 +82,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role="button"
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>

@@ -82,7 +82,7 @@ function EmojiReactionBubble(props) {
                 // Prevent text input blur when emoji reaction is left clicked
                 e.preventDefault();
             }}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.emojiCodes.join('')}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

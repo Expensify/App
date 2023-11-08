@@ -93,7 +93,7 @@ function TaskDescriptionPage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="description"
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}
@@ -109,7 +109,7 @@ function TaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
+                            textAlignVertical="top"
                         />
                     </View>
                 </FormProvider>

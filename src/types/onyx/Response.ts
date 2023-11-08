@@ -10,7 +10,6 @@ type Response = {
     authToken?: string;
     encryptedAuthToken?: string;
     message?: string;
-    shortLivedAuthToken?: string;
 };
 
 export default Response;

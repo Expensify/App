@@ -331,7 +331,6 @@ function BaseValidateCodeForm(props) {
                             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
-                            key="twoFactorAuthCode"
                         />
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
@@ -342,7 +341,7 @@ function BaseValidateCodeForm(props) {
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
                         <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>
@@ -361,7 +360,6 @@ function BaseValidateCodeForm(props) {
                         errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
-                        key="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -378,7 +376,7 @@ function BaseValidateCodeForm(props) {
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>

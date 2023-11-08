@@ -85,14 +85,14 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 forceActiveLabel
                 label={label}
                 accessibilityLabel={label}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 placeholder={placeholder}
                 errorText={errorText}
                 containerStyles={containerStyles}
                 textInputContainerStyles={[isPickerVisible && styles.borderColorFocus]}
                 onPress={showPicker}
-                readOnly
+                editable={false}
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={inputRef}

@@ -111,7 +111,10 @@ function SplitBillDetailsPage(props) {
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View
+                    pointerEvents="box-none"
+                    style={[styles.containerWithSpaceBetween]}
+                >
                     {isScanning && (
                         <MoneyRequestHeaderStatusBar
                             title={translate('iou.receiptStatusTitle')}

@@ -4,7 +4,6 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
@@ -104,7 +103,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const composerStyles = useMemo(() => {
+    const styles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -119,12 +118,13 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
+            textAlignVertical="center"
             smartInsertDelete={false}
             maxNumberOfLines={maxNumberOfLines}
-            style={[composerStyles, styles.verticalAlignMiddle]}
+            style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
-            readOnly={isDisabled}
+            editable={!isDisabled}
         />
     );
 }

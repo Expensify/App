@@ -43,9 +43,6 @@ type Message = {
 
     moderationDecision?: Decision;
     translationKey?: string;
-
-    /** ID of a task report */
-    taskReportID?: string;
 };
 
 type Person = {

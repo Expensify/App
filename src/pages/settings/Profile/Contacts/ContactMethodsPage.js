@@ -59,7 +59,6 @@ const defaultProps = {
 
 function ContactMethodsPage(props) {
     const loginNames = _.keys(props.loginList);
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -117,7 +116,7 @@ function ContactMethodsPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>

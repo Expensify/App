@@ -38,7 +38,6 @@ function EmojiPickerButtonDropdown(props) {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             shiftVertical: 4,
-            shouldUseTargetLocation: true,
         });
     };
 
@@ -49,9 +48,9 @@ function EmojiPickerButtonDropdown(props) {
                 style={styles.emojiPickerButtonDropdown}
                 disabled={props.isDisabled}
                 onPress={onPress}
-                id="emojiDropdownButton"
+                nativeID="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>

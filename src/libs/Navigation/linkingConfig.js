@@ -142,7 +142,7 @@ export default {
                                 exact: true,
                             },
                             Settings_ContactMethods: {
-                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
+                                path: ROUTES.SETTINGS_CONTACT_METHODS,
                                 exact: true,
                             },
                             Settings_ContactMethodDetails: {

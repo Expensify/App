@@ -103,7 +103,7 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
@@ -118,13 +118,13 @@ function NewContactMethodPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        enterKeyHint="done"
+                        returnKeyType="go"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>

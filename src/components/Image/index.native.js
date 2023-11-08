@@ -59,5 +59,4 @@ const ImageWithOnyx = withOnyx({
 })(Image);
 ImageWithOnyx.resizeMode = RESIZE_MODES;
 ImageWithOnyx.resolveDimensions = resolveDimensions;
-
 export default ImageWithOnyx;

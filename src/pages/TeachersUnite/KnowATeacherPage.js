@@ -116,7 +116,7 @@ function KnowATeacherPage(props) {
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -128,7 +128,7 @@ function KnowATeacherPage(props) {
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -140,8 +140,8 @@ function KnowATeacherPage(props) {
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         autoCapitalize="none"
                     />
                 </View>

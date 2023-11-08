@@ -40,7 +40,7 @@ function BaseSelectionList({
     textInputPlaceholder = '',
     textInputValue = '',
     textInputMaxLength,
-    inputMode = CONST.INPUT_MODE.TEXT,
+    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText,
     initiallyFocusedOptionKey = '',
     onScroll,
@@ -389,12 +389,12 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
                                     onChangeText={onChangeText}
-                                    inputMode={inputMode}
+                                    keyboardType={keyboardType}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
@@ -417,7 +417,7 @@ function BaseSelectionList({
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
-                                        role="button"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

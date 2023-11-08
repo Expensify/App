@@ -35,7 +35,7 @@ const GlobalNavigationMenuItem = React.forwardRef(({icon, title, isFocused, onPr
         onPress={() => !isFocused && onPress()}
         style={styles.globalNavigationItemContainer}
         ref={ref}
-        role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+        accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
         accessibilityLabel={title}
     >
         {({pressed}) => (

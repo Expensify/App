@@ -46,7 +46,7 @@ function ReportActionItemThread(props) {
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={props.onSecondaryInteraction}
             >
@@ -60,14 +60,16 @@ function ReportActionItemThread(props) {
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                         <Text
-                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap, styles.userSelectNone]}
+                            selectable={false}
+                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {`${numberOfRepliesText} ${replyText}`}
                         </Text>
                         <Text
+                            selectable={false}
                             numberOfLines={1}
-                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1, styles.userSelectNone]}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {timeStamp}

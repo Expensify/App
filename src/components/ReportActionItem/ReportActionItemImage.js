@@ -84,7 +84,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                             const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
                             Navigation.navigate(route);
                         }}
-                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     >
                         {receiptImageComponent}

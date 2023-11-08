@@ -157,24 +157,24 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
-                            inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            keyboardType="decimal-pad"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                         <TextInput
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
-                            inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            keyboardType="decimal-pad"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                         <TextInput
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
-                            inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            keyboardType="decimal-pad"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (

@@ -43,13 +43,14 @@ class CollapsibleSection extends React.Component {
                 <PressableWithFeedback
                     onPress={this.toggleSection}
                     style={[styles.pb4, styles.flexRow]}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={this.props.title}
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
                 >
                     <Text
-                        style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
+                        selectable={false}
+                        style={[styles.flex1, styles.textStrong]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {this.props.title}

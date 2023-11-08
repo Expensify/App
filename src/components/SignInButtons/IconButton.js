@@ -37,7 +37,7 @@ function IconButton({onPress, translate, provider}) {
         <PressableWithoutFeedback
             onPress={onPress}
             style={styles.signInIconButton}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            accessibilityRole="button"
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon

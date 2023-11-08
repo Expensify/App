@@ -78,7 +78,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);
@@ -86,7 +86,7 @@ function NewTaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
+                            textAlignVertical="top"
                         />
                     </View>
                 </FormProvider>

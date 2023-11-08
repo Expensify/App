@@ -36,15 +36,16 @@ function Default(args) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
+                    textAlignVertical="top"
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
-                    style={[styles.textInputCompose, styles.w100, styles.verticalAlignTop]}
+                    style={[styles.textInputCompose, styles.w100]}
                 />
             </View>
             <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>
                 <View
                     style={[styles.border, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.p5, styles.flex1]}
-                    id={CONST.REPORT.DROP_NATIVE_ID}
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
                 >
                     <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>

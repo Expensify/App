@@ -386,7 +386,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={styles.composerSizeButton}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
@@ -407,7 +407,7 @@ function ReportActionItemMessageEdit(props) {
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;
                             }}
-                            id={messageEditInput}
+                            nativeID={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -443,7 +443,7 @@ function ReportActionItemMessageEdit(props) {
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => focus(true)}
                             onEmojiSelected={addEmojiToTextBox}
-                            id={emojiButtonID}
+                            nativeID={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
                         />
                     </View>
@@ -454,7 +454,7 @@ function ReportActionItemMessageEdit(props) {
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

@@ -148,13 +148,13 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <Header
                     title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />
                 <Tooltip text={translate('common.search')}>
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >

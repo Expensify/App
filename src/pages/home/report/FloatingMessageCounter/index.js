@@ -75,7 +75,8 @@ function FloatingMessageCounter(props) {
                                 fill={themeColors.textLight}
                             />
                             <Text
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
+                                selectable={false}
+                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {translate('newMessages')}

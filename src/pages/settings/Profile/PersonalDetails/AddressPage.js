@@ -214,8 +214,6 @@ function AddressPage({privatePersonalDetails, route}) {
                         label={translate('common.addressLine', {lineNumber: 2})}
                         accessibilityLabel={translate('common.addressLine', {lineNumber: 2})}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        aria-label={translate('common.addressLine', {lineNumber: 2})}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -240,8 +238,8 @@ function AddressPage({privatePersonalDetails, route}) {
                         <TextInput
                             inputID="state"
                             label={translate('common.stateOrProvince')}
-                            aria-label={translate('common.stateOrProvince')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            accessibilityLabel={translate('common.stateOrProvince')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             value={state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             spellCheck={false}
@@ -252,8 +250,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="city"
                         label={translate('common.city')}
-                        aria-label={translate('common.city')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        accessibilityLabel={translate('common.city')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -263,8 +261,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="zipPostCode"
                         label={translate('common.zipPostCode')}
-                        aria-label={translate('common.zipPostCode')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        accessibilityLabel={translate('common.zipPostCode')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
                         value={zipcode || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}

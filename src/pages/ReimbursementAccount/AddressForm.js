@@ -115,7 +115,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
                 accessibilityLabel={props.translate('common.city')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
@@ -138,8 +138,8 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}

@@ -98,7 +98,7 @@ function AddReactionBubble(props) {
                     e.preventDefault();
                 }}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

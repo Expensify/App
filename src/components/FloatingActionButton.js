@@ -90,7 +90,7 @@ class FloatingActionButton extends PureComponent {
                             }
                         }}
                         accessibilityLabel={this.props.accessibilityLabel}
-                        role={this.props.role}
+                        accessibilityRole={this.props.accessibilityRole}
                         pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.

@@ -15,7 +15,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as Report from './Report';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -135,13 +134,9 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     // FOR TASK REPORT
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: {
-                errorFields: {
-                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
-                },
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -191,11 +186,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        value: {
-            [optimisticAddCommentReport.reportAction.reportActionID]: {
-                errors: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
-            },
-        },
+        value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
     });
 
     clearOutTaskInfo();
@@ -888,19 +879,7 @@ function canModifyTask(taskReport, sessionAccountID) {
 /**
  * @param {String} reportID
  */
-function clearTaskErrors(reportID) {
-    const report = ReportUtils.getReport(reportID);
-
-    // Delete the task preview in the parent report
-    if (lodashGet(report, 'pendingFields.createChat') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-            [report.parentReportActionID]: null,
-        });
-
-        Report.navigateToConciergeChatAndDeleteReport(reportID);
-        return;
-    }
-
+function clearEditTaskErrors(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: null,
         errorFields: null,
@@ -955,7 +934,7 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    clearTaskErrors,
+    clearEditTaskErrors,
     canModifyTask,
     getTaskReportActionMessage,
 };

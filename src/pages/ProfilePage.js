@@ -153,7 +153,10 @@ function ProfilePage(props) {
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
-            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+            <View
+                pointerEvents="box-none"
+                style={[styles.containerWithSpaceBetween]}
+            >
                 {hasMinimumDetails && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>
@@ -169,7 +172,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

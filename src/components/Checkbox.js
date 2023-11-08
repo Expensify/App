@@ -93,8 +93,8 @@ function Checkbox(props) {
             ref={props.forwardedRef}
             style={[StyleUtils.getCheckboxPressableStyle(props.containerBorderRadius + 2), props.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
-            role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-            ariaChecked={props.isChecked}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+            accessibilityState={{checked: props.isChecked}}
             accessibilityLabel={props.accessibilityLabel}
             pressDimmingValue={1}
         >

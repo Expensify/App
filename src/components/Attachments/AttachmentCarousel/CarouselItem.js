@@ -61,7 +61,8 @@ function CarouselItem({item, isFocused, onPress}) {
             onPress={() => setIsHidden(!isHidden)}
         >
             <Text
-                style={[styles.buttonSmallText, styles.userSelectNone]}
+                style={styles.buttonSmallText}
+                selectable={false}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
@@ -80,7 +81,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}

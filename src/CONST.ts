@@ -50,9 +50,6 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
-
-        // Allowed extensions for receipts
-        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     AUTO_AUTH_STATE: {
@@ -869,19 +866,14 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
+        PHONE_PAD: 'phone-pad',
+        NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
+        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
-    },
-
-    INPUT_MODE: {
-        NONE: 'none',
-        TEXT: 'text',
-        DECIMAL: 'decimal',
-        NUMERIC: 'numeric',
-        TEL: 'tel',
-        SEARCH: 'search',
-        EMAIL: 'email',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -1335,8 +1327,6 @@ const CONST = {
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
-
-        FIRST_SPACE: /.+?(?=\s)/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -2705,13 +2695,13 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'presentation',
+        TEXT: 'text',
         RADIO: 'radio',
-        IMAGEBUTTON: 'img button',
+        IMAGEBUTTON: 'imagebutton',
         CHECKBOX: 'checkbox',
         SWITCH: 'switch',
-        ADJUSTABLE: 'slider',
-        IMAGE: 'img',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',

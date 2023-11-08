@@ -215,7 +215,7 @@ function ReportDetailsPage(props) {
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));

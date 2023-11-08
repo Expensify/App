@@ -79,7 +79,7 @@ function ProfilePage(props) {
         {
             description: props.translate('contacts.contactMethod'),
             title: props.formatPhoneNumber(lodashGet(currentUserDetails, 'login', '')),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
         ...(Permissions.canUseCustomStatus(props.betas)

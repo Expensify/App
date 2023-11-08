@@ -69,5 +69,4 @@ const ImageWithOnyx = React.memo(
     imagePropsAreEqual,
 );
 ImageWithOnyx.resizeMode = RESIZE_MODES;
-
 export default ImageWithOnyx;

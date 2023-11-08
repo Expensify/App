@@ -73,7 +73,15 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
                 borderRadius: 12,
                 overflow: 'hidden',
                 width: variables.sideBarWidth,
@@ -97,7 +105,15 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -124,7 +140,15 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -149,7 +173,15 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
                 borderRadius: 12,
                 borderWidth: 0,
             };

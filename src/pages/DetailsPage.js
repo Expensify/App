@@ -126,7 +126,10 @@ function DetailsPage(props) {
         <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <View
+                    pointerEvents="box-none"
+                    style={[styles.containerWithSpaceBetween]}
+                >
                     {details ? (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
@@ -141,7 +144,7 @@ function DetailsPage(props) {
                                             style={[styles.noOutline]}
                                             onPress={show}
                                             accessibilityLabel={props.translate('common.details')}
-                                            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                 <Avatar

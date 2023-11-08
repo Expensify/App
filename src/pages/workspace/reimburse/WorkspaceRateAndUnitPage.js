@@ -176,16 +176,16 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                aria-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                inputMode={CONST.INPUT_MODE.DECIMAL}
+                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 maxLength={12}
                                 value={this.state.rate}
                                 onChangeText={(value) => this.setState({rate: value})}

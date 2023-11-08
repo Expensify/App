@@ -45,7 +45,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             onPress={showSettingsPage}
         >
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>

@@ -123,7 +123,7 @@ class ContactMethodDetailsPage extends Component {
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
 
@@ -236,8 +236,8 @@ class ContactMethodDetailsPage extends Component {
                     <FullPageNotFoundView
                         shouldShow
                         linkKey="contacts.goBackContactMethods"
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
-                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                     />
                 </ScreenWrapper>
             );
@@ -255,7 +255,7 @@ class ContactMethodDetailsPage extends Component {
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal

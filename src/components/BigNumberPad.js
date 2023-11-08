@@ -16,14 +16,14 @@ const propTypes = {
     longPressHandlerStateChanged: PropTypes.func,
 
     /** Used to locate this view from native classes. */
-    id: PropTypes.string,
+    nativeID: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     longPressHandlerStateChanged: () => {},
-    id: 'numPadView',
+    nativeID: 'numPadView',
 };
 
 const padNumbers = [
@@ -59,7 +59,7 @@ function BigNumberPad(props) {
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            id={props.id}
+            nativeID={props.nativeID}
         >
             {_.map(padNumbers, (row, rowIndex) => (
                 <View

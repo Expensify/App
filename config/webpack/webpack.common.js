@@ -13,7 +13,7 @@ const includeModules = [
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
-    'react-native-web',
+    '@expensify/react-native-web',
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
@@ -185,7 +185,8 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     resolve: {
         alias: {
             'react-native-config': 'react-web-config',
-            'react-native$': 'react-native-web',
+            'react-native$': '@expensify/react-native-web',
+            'react-native-web': '@expensify/react-native-web',
 
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias

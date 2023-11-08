@@ -59,7 +59,7 @@ function RadioButtonWithLabel(props) {
                     hasError={props.hasError}
                 />
                 <PressableWithFeedback
-                    tabIndex={-1}
+                    focusable={false}
                     accessible={false}
                     onPress={() => props.onPress()}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}

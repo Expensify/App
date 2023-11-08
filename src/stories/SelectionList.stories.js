@@ -148,7 +148,7 @@ WithTextInput.args = {
     textInputLabel: 'Option list',
     textInputPlaceholder: 'Search something...',
     textInputMaxLength: 4,
-    inputMode: CONST.INPUT_MODE.NUMERIC,
+    keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
     initiallyFocusedOptionKey: 'option-2',
     onSelectRow: () => {},
     onChangeText: () => {},

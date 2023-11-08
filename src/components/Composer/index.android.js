@@ -4,7 +4,6 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
@@ -104,7 +103,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const composerStyles = useMemo(() => {
+    const styles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -115,15 +114,16 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
+            textAlignVertical="center"
             // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
             // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
             // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
             // TODO: remove this comment once upstream PR is merged and available in a future release
             maxNumberOfLines={maxNumberOfLines}
-            style={[composerStyles, styles.verticalAlignMiddle]}
+            style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            readOnly={isDisabled}
+            editable={!isDisabled}
         />
     );
 }
