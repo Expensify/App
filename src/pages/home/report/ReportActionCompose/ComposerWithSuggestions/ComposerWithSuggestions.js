@@ -494,14 +494,14 @@ function ComposerWithSuggestions({
             }
 
             focus();
+
             // Reset cursor to last known location
             setSelection((prevSelection) => ({
                 start: prevSelection.start + 1,
                 end: prevSelection.end + 1,
             }));
-            replaceSelectionWithText(e.key);
         },
-        [checkComposerVisibility, focus, replaceSelectionWithText],
+        [checkComposerVisibility, focus],
     );
 
     const blur = useCallback(() => {
