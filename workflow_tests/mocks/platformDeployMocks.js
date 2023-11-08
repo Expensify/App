@@ -51,7 +51,12 @@ const PLATFORM_DEPLOY__ANDROID__FASTLANE_BETA__STEP_MOCK = utils.createMockStep(
 ]);
 const PLATFORM_DEPLOY__ANDROID__FASTLANE_PRODUCTION__STEP_MOCK = utils.createMockStep('Run Fastlane production', 'Running Fastlane production', 'ANDROID', null, ['VERSION']);
 const PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK = utils.createMockStep('Archive Android sourcemaps', 'Archiving Android sourcemaps', 'ANDROID', ['name', 'path']);
-const PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep('Upload Android version to GitHub artifacts', 'Upload Android version to GitHub artifacts', 'ANDROID', ['name', 'path']);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep(
+    'Upload Android version to GitHub artifacts',
+    'Upload Android version to GitHub artifacts',
+    'ANDROID',
+    ['name', 'path'],
+);
 const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK = utils.createMockStep(
     'Upload Android version to Browser Stack',
     'Uploading Android version to Browser Stack',
@@ -141,7 +146,12 @@ const PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK = utils.createMockStep('Run Fast
     'APPLE_DEMO_PASSWORD',
 ]);
 const PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK = utils.createMockStep('Archive iOS sourcemaps', 'Archiving sourcemaps', 'IOS', ['name', 'path']);
-const PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep('Upload iOS version to GitHub artifacts', 'Upload iOS version to GitHub artifacts', 'IOS', ['name', 'path']);
+const PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep(
+    'Upload iOS version to GitHub artifacts',
+    'Upload iOS version to GitHub artifacts',
+    'IOS',
+    ['name', 'path'],
+);
 const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = utils.createMockStep('Upload iOS version to Browser Stack', 'Uploading version to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
 const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = utils.createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__IOS__RELEASE_FASTLANE__STEP_MOCK = utils.createMockStep('Run Fastlane for App Store release', 'Running Fastlane for release', 'IOS', null, ['VERSION']);

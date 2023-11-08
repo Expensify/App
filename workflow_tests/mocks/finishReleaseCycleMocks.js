@@ -1,12 +1,7 @@
 const utils = require('../utils/utils');
 
 // validate
-const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = utils.createMockStep(
-    'Checkout',
-    'Checkout',
-    'VALIDATE',
-    ['ref', 'token'],
-);
+const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'VALIDATE', ['ref', 'token']);
 const FINISHRELEASECYCLE__VALIDATE__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
     'Setup Git for OSBotify',
     'Setup Git for OSBotify',

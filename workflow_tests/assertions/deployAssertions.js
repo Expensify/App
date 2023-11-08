@@ -6,7 +6,11 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
             {key: 'ref', value: 'staging'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_STAGING', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}, {key: 'OS_BOTIFY_APP_ID', value: '***'}, {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'}]),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_STAGING', 'Setting up git for OSBotify', [
+            {key: 'GPG_PASSPHRASE', value: '***'},
+            {key: 'OS_BOTIFY_APP_ID', value: '***'},
+            {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
+        ]),
         utils.createStepAssertion('Tag version', true, null, 'DEPLOY_STAGING', 'Tagging new version'),
         utils.createStepAssertion('🚀 Push tags to trigger staging deploy 🚀', true, null, 'DEPLOY_STAGING', 'Pushing tag to trigger staging deploy'),
     ];
@@ -26,7 +30,11 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
             {key: 'ref', value: 'production'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_PRODUCTION', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}, {key: 'OS_BOTIFY_APP_ID', value: '***'}, {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'}]),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_PRODUCTION', 'Setting up git for OSBotify', [
+            {key: 'GPG_PASSPHRASE', value: '***'},
+            {key: 'OS_BOTIFY_APP_ID', value: '***'},
+            {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
+        ]),
         utils.createStepAssertion('Get current app version', true, null, 'DEPLOY_PRODUCTION', 'Getting current app version'),
         utils.createStepAssertion('Get Release Pull Request List', true, null, 'DEPLOY_PRODUCTION', 'Getting release PR list', [
             {key: 'TAG', value: '1.2.3'},

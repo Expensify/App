@@ -26,7 +26,19 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             ],
             [],
         ),
-        utils.createStepAssertion('Setup git for OSBotify', true, null, 'CREATENEWVERSION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}, {key: 'OS_BOTIFY_APP_ID', value: '***'}, {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'}], []),
+        utils.createStepAssertion(
+            'Setup git for OSBotify',
+            true,
+            null,
+            'CREATENEWVERSION',
+            'Setup git for OSBotify',
+            [
+                {key: 'GPG_PASSPHRASE', value: '***'},
+                {key: 'OS_BOTIFY_APP_ID', value: '***'},
+                {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
+            ],
+            [],
+        ),
         utils.createStepAssertion(
             'Generate version',
             true,
