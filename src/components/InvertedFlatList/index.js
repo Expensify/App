@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList} from 'react-native';
-import _ from 'underscore';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
@@ -23,22 +22,14 @@ const propTypes = {
 // It's a HACK alert since FlatList has inverted scrolling on web
 function InvertedFlatList(props) {
     const {innerRef, contentContainerStyle} = props;
-    const listRef = React.createRef();
 
     const lastScrollEvent = useRef(null);
     const scrollEndTimeout = useRef(null);
     const updateInProgress = useRef(false);
     const eventHandler = useRef(null);
 
-    useEffect(() => {
-        if (!_.isFunction(innerRef)) {
-            // eslint-disable-next-line no-param-reassign
-            innerRef.current = listRef.current;
-        } else {
-            innerRef(listRef);
-        }
-
-        return () => {
+    useEffect(
+        () => () => {
             if (scrollEndTimeout.current) {
                 clearTimeout(scrollEndTimeout.current);
             }
@@ -46,8 +37,9 @@ function InvertedFlatList(props) {
             if (eventHandler.current) {
                 eventHandler.current.remove();
             }
-        };
-    }, [innerRef, listRef]);
+        },
+        [innerRef],
+    );
 
     /**
      * Emits when the scrolling is in progress. Also,
@@ -113,7 +105,7 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={listRef}
+            ref={innerRef}
             shouldMeasureItems
             contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}

@@ -24,6 +24,7 @@ import PendingMapView from './PendingMapView';
 import responder from './responder';
 import {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
+import './mapbox.css';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
     (
