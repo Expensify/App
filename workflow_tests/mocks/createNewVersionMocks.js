@@ -21,8 +21,9 @@ const CREATENEWVERSION__CREATENEWVERSION__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = ut
     'Setup git for OSBotify',
     'Setup git for OSBotify',
     'CREATENEWVERSION',
-    ['GPG_PASSPHRASE'],
+    ['GPG_PASSPHRASE', 'OS_BOTIFY_APP_ID', 'OS_BOTIFY_PRIVATE_KEY'],
     [],
+    {OS_BOTIFY_API_TOKEN: 'os_botify_api_token'},
 );
 const CREATENEWVERSION__CREATENEWVERSION__GENERATE_VERSION__STEP_MOCK = utils.createMockStep(
     'Generate version',
