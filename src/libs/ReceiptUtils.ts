@@ -66,11 +66,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    if (fileExtension === CONST.IOU.FILE_TYPES.PDF) {
-        return {thumbnail: image, image: path, isLocalFile: true};
-    }
-
-    return {thumbnail: null, image};
+    return {thumbnail: image, image: path, isLocalFile: true};
 }
 
 // eslint-disable-next-line import/prefer-default-export
