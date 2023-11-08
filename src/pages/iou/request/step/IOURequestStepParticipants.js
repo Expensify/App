@@ -65,7 +65,13 @@ function IOURequestStepParticipants({
     };
 
     const navigateBack = () => {
-        Navigation.goBack();
+        // The user needs to be taken back to the same tab that the request started on
+        const routesForRequestType = {
+            [CONST.IOU.REQUEST_TYPE.DISTANCE]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE,
+            [CONST.IOU.REQUEST_TYPE.MANUAL]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL,
+            [CONST.IOU.REQUEST_TYPE.SCAN]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN,
+        };
+        Navigation.goBack(routesForRequestType[iouRequestType].getRoute(iouType, transactionID, reportID));
     };
 
     return (
