@@ -62,7 +62,7 @@ function isChildOfComment(tnode) {
  * @returns {Boolean}
  */
 function isChildOfH1(tnode) {
-    return isChildOfNode(tnode, (node) => node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode.name === 'H1');
 }
 
 export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1};
