@@ -70,7 +70,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
     isLoadingInitialReportActions: false,

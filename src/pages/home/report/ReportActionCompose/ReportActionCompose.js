@@ -11,8 +11,7 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
-import participantPropTypes from '@components/participantPropTypes';
+import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -49,9 +48,6 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -84,7 +80,6 @@ const propTypes = {
 const defaultProps = {
     report: {},
     blockedFromConcierge: {},
-    personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
@@ -108,7 +103,6 @@ function ReportActionCompose({
     network,
     onSubmit,
     pendingAction,
-    personalDetails,
     report,
     reportID,
     reportActions,
@@ -120,7 +114,7 @@ function ReportActionCompose({
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
-
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     /**
      * Updates the Highlight state of the composer
      */
@@ -472,9 +466,6 @@ export default compose(
     withOnyx({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

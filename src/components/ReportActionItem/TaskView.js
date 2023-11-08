@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -53,6 +54,7 @@ function TaskView(props) {
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     return (
         <View>
@@ -147,7 +149,7 @@ function TaskView(props) {
                         <MenuItem
                             label={props.translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}

@@ -1,14 +1,13 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import _ from 'underscore';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -17,7 +16,6 @@ import personalDetailsPropType from '@pages/personalDetailsPropType';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
@@ -26,22 +24,20 @@ const propTypes = {
 
     /** Current user personal details */
     currentUserPersonalDetails: personalDetailsPropType.isRequired,
-
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType.isRequired,
 };
 
 function MentionUserRenderer(props) {
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
     const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     let accountID;
     let displayNameOrLogin;
     let navigationRoute;
 
     if (!_.isEmpty(htmlAttribAccountID)) {
-        const user = lodashGet(props.personalDetails, htmlAttribAccountID);
+        const user = lodashGet(personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
         displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
@@ -97,11 +93,4 @@ function MentionUserRenderer(props) {
 MentionUserRenderer.propTypes = propTypes;
 MentionUserRenderer.displayName = 'MentionUserRenderer';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-)(MentionUserRenderer);
+export default withCurrentUserPersonalDetails(MentionUserRenderer);

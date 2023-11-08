@@ -7,6 +7,7 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
@@ -20,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
@@ -47,15 +47,11 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
-
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    personalDetails: {},
     iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -69,16 +65,18 @@ function MoneyRequestConfirmPage(props) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, props.selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const [receiptFile, setReceiptFile] = useState();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     const participants = useMemo(
         () =>
             _.chain(props.iou.participants)
                 .map((participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 })
                 .filter((participant) => !!participant.login || !!participant.text)
                 .value(),
-        [props.iou.participants, props.personalDetails],
+        [props.iou.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
@@ -420,9 +418,6 @@ export default compose(
 
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,

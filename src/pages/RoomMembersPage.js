@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -27,13 +28,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
-    /** All personal details asssociated with user */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -67,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     session: {
         accountID: 0,
     },
@@ -82,6 +78,7 @@ function RoomMembersPage(props) {
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     /**
      * Get members for the current room
@@ -186,7 +183,7 @@ function RoomMembersPage(props) {
         let result = [];
 
         _.each(props.report.participantAccountIDs, (accountID) => {
-            const details = props.personalDetails[accountID];
+            const details = personalDetails[accountID];
 
             if (!details) {
                 Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
@@ -298,7 +295,7 @@ function RoomMembersPage(props) {
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
-                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || !didLoadRoomMembers}
+                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
@@ -318,9 +315,6 @@ export default compose(
     withWindowDimensions,
     withReportOrNotFound(),
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
