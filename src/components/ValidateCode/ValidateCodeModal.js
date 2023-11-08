@@ -81,6 +81,8 @@ function ValidateCodeModal(props) {
 
 ValidateCodeModal.propTypes = propTypes;
 ValidateCodeModal.defaultProps = defaultProps;
+ValidateCodeModal.displayName = 'ValidateCodeModal';
+
 export default compose(
     withLocalize,
     withOnyx({
