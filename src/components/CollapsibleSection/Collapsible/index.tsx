@@ -1,3 +1,3 @@
-import Collapsible from 'react-collapse';
+import {Collapse} from 'react-collapse';
 
-export default Collapsible;
+export default Collapse;
