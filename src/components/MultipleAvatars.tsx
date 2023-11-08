@@ -96,7 +96,7 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size]);
 
-    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => icon.name) : [''];
+    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
     const avatarSize = useMemo(() => {
         if (isFocusMode) {
             return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
