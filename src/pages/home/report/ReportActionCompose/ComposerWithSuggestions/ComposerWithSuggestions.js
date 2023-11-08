@@ -236,7 +236,7 @@ function ComposerWithSuggestions({
                 if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
                 } else {
-                    endIndex = currentIndex + newText.length
+                    endIndex = currentIndex + newText.length;
                 }
             }
 
