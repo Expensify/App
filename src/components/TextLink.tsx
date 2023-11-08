@@ -26,10 +26,7 @@ function TextLink({href, children, style, onPress, onMouseDown = (event) => even
     const openLink = () => {
         if (onPress) {
             onPress();
-            return;
-        }
-
-        if (href) {
+        } else if (href) {
             Link.openExternalLink(href);
         }
     };
