@@ -15,7 +15,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Id to use for the emoji picker button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     /** Unique id for emoji picker */
     emojiPickerID: PropTypes.string,
@@ -25,7 +25,7 @@ const propTypes = {
 
 const defaultProps = {
     isDisabled: false,
-    nativeID: '',
+    id: '',
     emojiPickerID: '',
 };
 
@@ -47,7 +47,7 @@ function EmojiPickerButton(props) {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }
                 }}
-                nativeID={props.nativeID}
+                id={props.id}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
             >
                 {({hovered, pressed}) => (

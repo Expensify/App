@@ -7,7 +7,6 @@ import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import refPropTypes from './refPropTypes';
 import Text from './Text';
 
 /**
@@ -55,7 +54,7 @@ const propTypes = {
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
-    forwardedRef: refPropTypes,
+    forwardedRef: PropTypes.func,
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -109,7 +108,7 @@ function CheckboxWithLabel(props) {
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
-                    focusable={false}
+                    tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}

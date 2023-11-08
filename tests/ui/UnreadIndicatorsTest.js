@@ -139,7 +139,8 @@ function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
-        .then(() => {
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
             const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);

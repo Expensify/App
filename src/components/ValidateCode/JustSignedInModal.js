@@ -51,4 +51,6 @@ function JustSignedInModal(props) {
 }
 
 JustSignedInModal.propTypes = propTypes;
+JustSignedInModal.displayName = 'JustSignedInModal';
+
 export default withLocalize(JustSignedInModal);

@@ -38,7 +38,7 @@ function RoomHeaderAvatars(props) {
                     <PressableWithoutFocus
                         style={[styles.noOutline]}
                         onPress={show}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={props.icons[0].name}
                     >
                         <Avatar
@@ -64,7 +64,7 @@ function RoomHeaderAvatars(props) {
         StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
-        <View pointerEvents="box-none">
+        <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
@@ -82,7 +82,7 @@ function RoomHeaderAvatars(props) {
                                 <PressableWithoutFocus
                                     style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                     onPress={show}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar

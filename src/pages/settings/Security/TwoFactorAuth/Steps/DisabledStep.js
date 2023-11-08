@@ -33,4 +33,6 @@ function DisabledStep() {
     );
 }
 
+DisabledStep.displayName = 'DisabledStep';
+
 export default DisabledStep;

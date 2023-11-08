@@ -94,10 +94,7 @@ function Avatar(props) {
     const avatarTestId = imageError ? 'AvatarIcon' : fallbackAvatarTestID;
 
     return (
-        <View
-            pointerEvents="none"
-            style={props.containerStyles}
-        >
+        <View style={[props.containerStyles, styles.pointerEventsNone]}>
             {_.isFunction(props.source) || _.isNumber(props.source) || (imageError && (_.isFunction(fallbackAvatar) || _.isNumber(fallbackAvatar))) ? (
                 <View style={iconStyle}>
                     <Icon
@@ -126,6 +123,9 @@ function Avatar(props) {
         </View>
     );
 }
+
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
+Avatar.displayName = 'Avatar';
+
 export default Avatar;

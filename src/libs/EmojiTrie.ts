@@ -24,11 +24,14 @@ type LocalizedEmojis = Record<string, LocalizedEmoji>;
 type Suggestion = {
     code: string;
     types?: string[];
-    name?: string;
+    name: string;
 };
 
 type EmojiMetaData = {
     suggestions?: Suggestion[];
+    code?: string;
+    types?: string[];
+    name?: string;
 };
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);

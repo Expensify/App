@@ -170,6 +170,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
 }
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     withOnyx({

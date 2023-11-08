@@ -226,8 +226,7 @@ function MultipleAvatars(props) {
                                         ]}
                                     >
                                         <Text
-                                            selectable={false}
-                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
@@ -290,8 +289,7 @@ function MultipleAvatars(props) {
                                 <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Text
-                                            selectable={false}
-                                            style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            style={(styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText)}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}

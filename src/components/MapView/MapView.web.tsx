@@ -11,6 +11,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import Direction from './Direction';
+import './mapbox.css';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import responder from './responder';
 import utils from './utils';
