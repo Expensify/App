@@ -393,14 +393,15 @@ function getReportPreviewMessageForOptionList(report, reportAction, isPreviewMes
     }
 
     const shouldShowWorkspaceName = ReportUtils.isExpenseReport(report) && isPreviewMessageForParentChatReport;
+    const actorID = report.managerID || reportAction.actorAccountID;
     const actor = ReportUtils.getActorNameForPreviewMessage({
         report,
         shouldShowWorkspaceName,
-        actorID: reportAction.actorAccountID,
+        actorID,
         shouldUseShortForm: !isPreviewMessageForParentChatReport,
     });
-    const shouldShowActorName = shouldShowWorkspaceName || isPreviewMessageForParentChatReport || currentUserAccountID !== reportAction.actorAccountID;
-    const actorDisplayName = shouldShowActorName ? `${actor}${isPreviewMessageForParentChatReport ? ' ' : ': '}` : '';
+    const shouldShowActorName = shouldShowWorkspaceName || isPreviewMessageForParentChatReport || currentUserAccountID !== actorID;
+    const actorDisplayName = shouldShowActorName  && actor ? `${actor}${isPreviewMessageForParentChatReport ? ' ' : ': '}` : '';
     const message = ReportUtils.getReportPreviewMessage(report, reportAction, true, isPreviewMessageForParentChatReport, true);
 
     return `${actorDisplayName}${message}`;
