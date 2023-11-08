@@ -189,6 +189,7 @@
     "@dword-design/eslint-plugin-import-alias": "^4.0.8",
     "@electron/notarize": "^2.1.0",
     "@jest/globals": "^29.5.0",
+    "@ngneat/falso": "^7.1.1",
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
