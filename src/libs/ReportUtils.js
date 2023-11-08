@@ -1812,6 +1812,11 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
+
+        if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptMissingDetails');
+        }
+
         const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
