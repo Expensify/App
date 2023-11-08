@@ -29,6 +29,27 @@ index 9557fdb..26825b5 100644
          versionCode 1
          versionName "1.0"
          ndk {
+diff --git a/node_modules/react-native-share-menu/android/src/main/java/com/meedan/ShareMenuModule.java b/node_modules/react-native-share-menu/android/src/main/java/com/meedan/ShareMenuModule.java
+index 09abd7b..058dd1c 100644
+--- a/node_modules/react-native-share-menu/android/src/main/java/com/meedan/ShareMenuModule.java
++++ b/node_modules/react-native-share-menu/android/src/main/java/com/meedan/ShareMenuModule.java
+@@ -112,6 +112,16 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
+     clearSharedText();
+   }
+ 
++  @ReactMethod
++  public void addListener(String eventName) {
++    // Required for RN built in Event Emitter Calls.
++  }
++
++  @ReactMethod
++  public void removeListeners(Integer count) {
++    // Required for RN built in Event Emitter Calls.
++  }
++
+   private void dispatchEvent(ReadableMap shared) {
+     if (mReactContext == null || !mReactContext.hasActiveCatalystInstance()) {
+       return;
 diff --git a/node_modules/react-native-share-menu/ios/Constants.swift b/node_modules/react-native-share-menu/ios/Constants.swift
 index 08385b7..e22bdfa 100644
 --- a/node_modules/react-native-share-menu/ios/Constants.swift
