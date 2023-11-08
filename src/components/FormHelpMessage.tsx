@@ -11,7 +11,7 @@ import Text from './Text';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
-    message?: string | ErrorsList;
+    message?: string | [string, ErrorsList];
 
     /** Children to render next to dot indicator */
     children?: React.ReactNode;
