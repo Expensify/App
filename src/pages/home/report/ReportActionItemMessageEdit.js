@@ -120,6 +120,7 @@ function ReportActionItemMessageEdit(props) {
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
+    const draftRef = useRef(draft);
 
     useEffect(() => {
         if (ReportActionsUtils.isDeletedAction(props.action) || props.draftMessage === props.action.message[0].html) {
@@ -245,7 +246,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+            const {text: newDraft, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -259,12 +260,14 @@ function ReportActionItemMessageEdit(props) {
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const remainder = ComposerUtils.getCommonSuffixLength(newDraftInput, newDraft);
+                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), selectionOverride.end);
                 setSelection({
-                    start: newDraft.length - remainder,
-                    end: newDraft.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
+
+            draftRef.current = newDraft;
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -275,7 +278,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {

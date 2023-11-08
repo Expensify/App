@@ -13,7 +13,8 @@ import emojisTrie from './EmojiTrie';
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
-type ReplacedEmoji = {text: string; emojis: Emoji[]};
+type Selection = {start: number; end: number};
+type ReplacedEmoji = {text: string; emojis: Emoji[]; selection: Selection};
 type UserReactions = {
     id: string;
     skinTones: Record<number, string>;
@@ -322,16 +323,17 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    const selection = {start: 0, end: 0};
     const trie = emojisTrie[lang];
     if (!trie) {
-        return {text, emojis: []};
+        return {text, emojis: [], selection};
     }
 
     let newText = text;
     const emojis: Emoji[] = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
-        return {text: newText, emojis};
+        return {text: newText, emojis, selection};
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
@@ -355,26 +357,32 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
-            if (i === emojiData.length - 1) {
+            if (newText.indexOf(emojiData[i]) + emojiData[i].length === newText.length) {
                 emojiReplacement += ' ';
             }
+
+            // Set the cursor to the end of the last replaced Emoji. Note that we position after
+            // the extra space, if we added one.
+            selection.start = newText.indexOf(emojiData[i]) + emojiReplacement.length;
+            selection.end = selection.start;
 
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
 
-    return {text: newText, emojis};
+    return {text: newText, emojis, selection};
 }
 
 /**
  * Find all emojis in a text and replace them with their code.
  */
 function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+    const {text: convertedText = '', emojis = [], selection} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
         text: convertedText,
         emojis: emojis.concat(extractEmojis(text)),
+        selection,
     };
 }
 
