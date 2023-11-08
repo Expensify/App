@@ -11,7 +11,7 @@ type RadioButtonProps = {
     isChecked: boolean;
 
     /** A function that is called when the box/label is pressed */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Specifies the accessibility label for the radio button */
     accessibilityLabel: string;
