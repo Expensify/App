@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import TextInput from '../../../../components/TextInput';
-import CONST from '../../../../CONST';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import subStepPropTypes from '../../subStepPropTypes';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import HelpLinks from '../HelpLinks';
-import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
+import {withOnyx} from 'react-native-onyx';
+import Form from '@components/Form';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

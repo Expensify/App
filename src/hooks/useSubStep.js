@@ -1,5 +1,5 @@
-import {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
+import {useCallback, useRef, useState} from 'react';
 
 const propTypes = {
     /** An array of substep components */

@@ -1,24 +1,24 @@
-import React, {memo} from 'react';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import React, {memo} from 'react';
+import avatarPropTypes from '@components/avatarPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import ZeroWidthView from '@components/ZeroWidthView';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import editedLabelStyles from '@styles/editedLabelStyles';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
-import RenderHTML from '../../../components/RenderHTML';
-import Text from '../../../components/Text';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import compose from '../../../libs/compose';
-import convertToLTR from '../../../libs/convertToLTR';
-import {withNetwork} from '../../../components/OnyxProvider';
-import CONST from '../../../CONST';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import avatarPropTypes from '../../../components/avatarPropTypes';
-import ZeroWidthView from '../../../components/ZeroWidthView';
 
 const propTypes = {
     /** Users accountID */
@@ -63,6 +63,12 @@ const propTypes = {
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage: PropTypes.bool,
 
+    /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
+    isApprovedOrSubmittedReportAction: PropTypes.bool,
+
+    /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
+    isFragmentContainingDisplayName: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -86,6 +92,8 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
+    isApprovedOrSubmittedReportAction: false,
+    isFragmentContainingDisplayName: false,
     displayAsGroup: false,
 };
 
@@ -152,8 +160,15 @@ function ReportActionItemFragment(props) {
                 </Text>
             );
         }
-        case 'TEXT':
-            return (
+        case 'TEXT': {
+            return props.isApprovedOrSubmittedReportAction ? (
+                <Text
+                    numberOfLines={props.isSingleLine ? 1 : undefined}
+                    style={[styles.chatItemMessage, styles.colorMuted]}
+                >
+                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                </Text>
+            ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
@@ -167,6 +182,7 @@ function ReportActionItemFragment(props) {
                     </Text>
                 </UserDetailsTooltip>
             );
+        }
         case 'LINK':
             return <Text>LINK</Text>;
         case 'INTEGRATION_COMMENT':

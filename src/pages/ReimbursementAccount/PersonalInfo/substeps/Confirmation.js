@@ -1,22 +1,22 @@
 import React, {useMemo} from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import subStepPropTypes from '../../subStepPropTypes';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import TextLink from '../../../../components/TextLink';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import Button from '../../../../components/Button';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
-import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
-import getPersonalInfoValues from '../../utils/getPersonalInfoValues';
+import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getPersonalInfoValues from '@pages/ReimbursementAccount/utils/getPersonalInfoValues';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

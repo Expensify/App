@@ -1,21 +1,20 @@
+import {subYears} from 'date-fns';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import {subYears} from 'date-fns';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import subStepPropTypes from '../../subStepPropTypes';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import HelpLinks from '../HelpLinks';
-import NewDatePicker from '../../../../components/NewDatePicker';
-import FormProvider from '../../../../components/Form/FormProvider';
-import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
+import FormProvider from '@components/Form/FormProvider';
+import NewDatePicker from '@components/NewDatePicker';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

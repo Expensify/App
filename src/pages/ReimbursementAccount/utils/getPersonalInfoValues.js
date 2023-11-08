@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import CONST from '../../../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Returns values for personal info step
