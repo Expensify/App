@@ -2,9 +2,7 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import {View, ViewProps} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 
-type FormElementProps = ViewProps;
-
-function FormElement(props: FormElementProps, ref: ForwardedRef<View | HTMLFormElement | null>) {
+function FormElement(props: ViewProps, ref: ForwardedRef<View | HTMLFormElement | null>) {
     return (
         <View
             role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
