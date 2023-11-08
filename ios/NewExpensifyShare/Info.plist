@@ -4,7 +4,7 @@
 <dict>
 	<key>HostAppBundleIdentifier</key>
 	<string>com.expensify.chat.dev</string>
-	<key>HostAppGroup</key>
+	<key>ReactNativeShareMenuAppGroup</key>
 	<string>group.com.chat.expensify.chat</string>
 	<key>HostAppURLScheme</key>
 	<string>new-expensify://</string>
