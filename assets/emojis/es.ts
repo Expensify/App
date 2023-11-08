@@ -1,4 +1,7 @@
-const esEmojis = {
+import {EmojisList} from './types';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+const esEmojis: EmojisList = {
     '😀': {
         name: 'sonriendo',
         keywords: ['cara', 'divertido', 'feliz', 'sonrisa', 'cara sonriendo'],

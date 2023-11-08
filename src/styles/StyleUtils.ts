@@ -522,9 +522,9 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
 function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonPressedBG};
+            return {backgroundColor: themeColors.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.highlightBG} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -652,7 +652,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -1071,7 +1071,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};
@@ -1097,7 +1097,7 @@ function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 

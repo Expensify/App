@@ -108,7 +108,7 @@ function PressableWithDelayToggle(
                     shouldRender
                 >
                     <PressableWithoutFeedback
-                        focusable={false}
+                        tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
                         style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
