@@ -88,27 +88,27 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
 
-    const waypointsCount = _.size(allWaypoints);
-    const filledWaypointsCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+    const waypointCount = _.size(allWaypoints);
+    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
-            case waypointsCount - 1:
+            case waypointCount - 1:
                 return 'distance.waypointDescription.finish';
             default:
                 return 'distance.waypointDescription.stop';
         }
-    }, [parsedWaypointIndex, waypointsCount]);
+    }, [parsedWaypointIndex, waypointCount]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     const isEditingWaypoint = Boolean(threadReportID);
     // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = waypointsCount > 2;
+    const shouldShowThreeDotsButton = waypointCount > 2;
     const shouldDisableEditor =
         isFocused &&
-        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointsCount || (filledWaypointsCount < 2 && parsedWaypointIndex >= waypointsCount));
+        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
     const validate = (values) => {
         const errors = {};
