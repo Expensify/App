@@ -102,10 +102,10 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    accessibilityLabel={translate('bankAccount.routingNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.routingNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
@@ -114,16 +114,16 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    accessibilityLabel={translate('bankAccount.accountNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.accountNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
                     LabelComponent={() => (
