@@ -182,7 +182,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: fontFamily.MONOSPACE,
-                fontSize: 13,
+                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
