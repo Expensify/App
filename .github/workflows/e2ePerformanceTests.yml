@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
           name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
-          path: android/app/build/outputs/apk/e2edelta/release/app-e2e-release.apk
+          path: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
 
 
   buildDelta:
