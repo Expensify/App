@@ -449,7 +449,9 @@ function getLastMessageTextForReport(report) {
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+        const shouldShowLastActor = ReportUtils.isThread(report) && (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) && currentUserAccountID !== report.lastActorAccountID;
+        const lastActorDisplayName = shouldShowLastActor ? `${ReportUtils.getDisplayNameForParticipant(report.lastActorAccountID, true)}: ` : '';
+        lastMessageTextFromReport = report ? `${lastActorDisplayName}${report.lastMessageText}` : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
         // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
