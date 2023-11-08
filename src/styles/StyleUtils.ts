@@ -17,6 +17,12 @@ import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+type AvatarStyle = {
+    width: number;
+    height: number;
+    borderRadius: number;
+    backgroundColor: string;
+};
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -210,7 +216,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): ViewStyle {
+function getAvatarStyle(size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -241,7 +247,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -1286,8 +1292,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
-    let containerStyles: Array<ViewStyle | CSSProperties>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
