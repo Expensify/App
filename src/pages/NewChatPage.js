@@ -9,7 +9,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -53,7 +53,6 @@ const defaultProps = {
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
-    const optionSelectorRef = React.createRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -216,7 +215,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setSearchTerm(text);
     }, []);
 
-    useDelayedInputFocus(optionSelectorRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -239,7 +238,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
-                            ref={optionSelectorRef}
+                            ref={inputCallbackRef}
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
@@ -260,6 +259,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
+                            autoFocus={false}
                         />
                     </View>
                     {isSmallScreenWidth && <OfflineIndicator />}

@@ -18,9 +18,8 @@ function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
     return (
         <Animated.Text
             ref={labelRef}
-            pointerEvents="none"
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(labelTranslateY, 0, labelScale)]}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(labelTranslateY, 0, labelScale), styles.pointerEventsNone]}
         >
             {label}
         </Animated.Text>

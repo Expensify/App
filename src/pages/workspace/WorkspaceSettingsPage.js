@@ -109,7 +109,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             shouldShowRightIcon
                             onPress={onPressPolicyName}
                         />
-                        <View style={[styles.mt4]}>
+                        <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}
