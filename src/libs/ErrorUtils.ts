@@ -111,4 +111,5 @@ function addErrorMessage(errors: ErrorsList, inputID?: string, message?: string)
     }
 }
 
+export type {ErrorsList};
 export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};

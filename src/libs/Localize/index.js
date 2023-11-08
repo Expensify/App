@@ -112,7 +112,7 @@ function translateLocal(phrase, variables) {
 /**
  * Return translated string for given error.
  *
- * @param {String|Array} message
+ * @param {String|Array|Object} message
  * @returns {String}
  */
 function translateIfPhraseKey(message) {

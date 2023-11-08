@@ -1,16 +1,17 @@
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import * as Localize from '@libs/Localize';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+import {ErrorsList} from '@src/libs/ErrorUtils';
+import {isEmptyObjectOrString} from '@src/types/utils/EmptyObject';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
-    message?: string | Array<string | Record<string, string>>;
+    message?: string | ErrorsList;
 
     /** Children to render next to dot indicator */
     children?: React.ReactNode;
@@ -23,11 +24,12 @@ type FormHelpMessageProps = {
 };
 
 function FormHelpMessage({message = '', children, isError = true, style}: FormHelpMessageProps) {
-    if (isEmpty(message) && isEmpty(children)) {
+    if (isEmptyObjectOrString(message) && isEmptyObjectOrString(children)) {
         return null;
     }
 
     const translatedMessage = Localize.translateIfPhraseKey(message);
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && (
