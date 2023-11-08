@@ -108,7 +108,7 @@ function CheckboxWithLabel(props) {
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
-                    focusable={false}
+                    tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}
