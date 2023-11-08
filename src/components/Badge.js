@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
-import CONST from '../CONST';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Text from './Text';
 
 const propTypes = {
     /** Is Success type */
@@ -59,8 +59,9 @@ function Badge(props) {
         <Wrapper
             style={props.pressable ? wrapperStyles : wrapperStyles(false)}
             onPress={props.onPress}
-            accessibilityRole={props.pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
-            accessibilityLabel={props.text}
+            role={props.pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
+            accessibilityLabel={props.pressable ? props.text : undefined}
+            aria-label={!props.pressable ? props.text : undefined}
         >
             <Text
                 style={[styles.badgeText, textStyles, ...props.textStyles]}

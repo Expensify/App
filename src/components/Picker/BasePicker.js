@@ -1,16 +1,16 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import FormHelpMessage from '../FormHelpMessage';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import {ScrollContext} from '../ScrollViewWithContext';
-import refPropTypes from '../refPropTypes';
+import _ from 'underscore';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
+import {ScrollContext} from '@components/ScrollViewWithContext';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** A forwarded ref */
@@ -232,14 +232,7 @@ function BasePicker(props) {
                     hasError && styles.borderColorDanger,
                 ]}
             >
-                {props.label && (
-                    <Text
-                        pointerEvents="none"
-                        style={[styles.pickerLabel, styles.textLabelSupporting]}
-                    >
-                        {props.label}
-                    </Text>
-                )}
+                {props.label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{props.label}</Text>}
                 <RNPickerSelect
                     onValueChange={onInputChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows

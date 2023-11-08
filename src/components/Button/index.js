@@ -1,21 +1,21 @@
+import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Text from '../Text';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import HapticFeedback from '../../libs/HapticFeedback';
-import withNavigationFallback from '../withNavigationFallback';
-import compose from '../../libs/compose';
-import * as Expensicons from '../Icon/Expensicons';
-import withNavigationFocus from '../withNavigationFocus';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import HapticFeedback from '@libs/HapticFeedback';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import validateSubmitShortcut from './validateSubmitShortcut';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
@@ -116,7 +116,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Id to use for this button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
@@ -156,7 +156,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
-    nativeID: '',
+    id: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
 };
@@ -209,11 +209,11 @@ class Button extends Component {
         const textComponent = (
             <Text
                 numberOfLines={1}
-                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    styles.userSelectNone,
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
@@ -309,9 +309,9 @@ class Button extends Component {
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}
-                nativeID={this.props.nativeID}
+                id={this.props.id}
                 accessibilityLabel={this.props.accessibilityLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

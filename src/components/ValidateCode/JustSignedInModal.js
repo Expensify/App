@@ -1,14 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
-import * as Expensicons from '../Icon/Expensicons';
-import * as Illustrations from '../Icon/Illustrations';
-import variables from '../../styles/variables';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -50,4 +50,6 @@ function JustSignedInModal(props) {
 }
 
 JustSignedInModal.propTypes = propTypes;
+JustSignedInModal.displayName = 'JustSignedInModal';
+
 export default withLocalize(JustSignedInModal);

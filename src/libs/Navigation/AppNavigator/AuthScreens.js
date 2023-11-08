@@ -1,40 +1,40 @@
-import React, {memo, useEffect, useRef} from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import CONST from '../../../CONST';
-import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as Pusher from '../../Pusher/pusher';
-import PusherConnectionManager from '../../PusherConnectionManager';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Timing from '../../actions/Timing';
-import NetworkConnection from '../../NetworkConnection';
-import CONFIG from '../../../CONFIG';
-import KeyboardShortcut from '../../KeyboardShortcut';
-import Navigation from '../Navigation';
-import * as User from '../../actions/User';
-import * as Modal from '../../actions/Modal';
-import * as Report from '../../actions/Report';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation from '@libs/Navigation/Navigation';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
+import * as SessionUtils from '@libs/SessionUtils';
+import DemoSetupPage from '@pages/DemoSetupPage';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import styles from '@styles/styles';
+import * as App from '@userActions/App';
+import * as Download from '@userActions/Download';
+import * as Modal from '@userActions/Modal';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import Timing from '@userActions/Timing';
+import * as User from '@userActions/User';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
-import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
-import * as App from '../../actions/App';
-import * as Download from '../../actions/Download';
-import * as Session from '../../actions/Session';
-import RightModalNavigator from './Navigators/RightModalNavigator';
-import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
-import NAVIGATORS from '../../../NAVIGATORS';
-import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedirectPage';
-import styles from '../../../styles/styles';
-import * as SessionUtils from '../../SessionUtils';
-import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
-import DemoSetupPage from '../../../pages/DemoSetupPage';
-import getCurrentUrl from '../currentUrl';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
@@ -155,9 +155,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
-        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
@@ -192,7 +192,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         } else {
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
-        App.setUpPoliciesAndNavigate(session, !isSmallScreenWidth);
+
+        App.setUpPoliciesAndNavigate(session);
+
         App.redirectThirdPartyDesktopSignIn();
 
         // Check if we should be running any demos immediately after signing in.

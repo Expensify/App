@@ -1,12 +1,12 @@
-import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import getButtonState from '../../../libs/getButtonState';
-import Text from '../../Text';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../CONST';
-import * as Browser from '../../../libs/Browser';
+import React, {PureComponent} from 'react';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import * as Browser from '@libs/Browser';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -100,7 +100,7 @@ class EmojiPickerMenuItem extends PureComponent {
                     styles.emojiItem,
                 ]}
                 accessibilityLabel={this.props.emoji}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
             </PressableWithoutFeedback>

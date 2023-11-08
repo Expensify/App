@@ -1,28 +1,28 @@
-import _ from 'underscore';
-import React, {useRef, useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import Logo from '../../../../assets/images/new-expensify.svg';
+import _ from 'underscore';
+import Logo from '@assets/images/new-expensify.svg';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import compose from '@libs/compose';
+import * as Environment from '@libs/Environment/Environment';
+import Navigation from '@libs/Navigation/Navigation';
+import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import pkg from '../../../../package.json';
-import * as Report from '../../../libs/actions/Report';
-import * as Link from '../../../libs/actions/Link';
-import compose from '../../../libs/compose';
-import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as Environment from '../../../libs/Environment/Environment';
-import MenuItemList from '../../../components/MenuItemList';
-import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -112,10 +112,7 @@ function AboutPage(props) {
                                         height={80}
                                         width={80}
                                     />
-                                    <Text
-                                        selectable
-                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
-                                    >
+                                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}>
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>

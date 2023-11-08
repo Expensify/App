@@ -1,29 +1,29 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import SectionList from '../SectionList';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import variables from '../../styles/variables';
-import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import Checkbox from '../Checkbox';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import FixedFooter from '../FixedFooter';
-import Button from '../Button';
-import useLocalize from '../../hooks/useLocalize';
-import Log from '../../libs/Log';
-import OptionsListSkeletonView from '../OptionsListSkeletonView';
-import useActiveElement from '../../hooks/useActiveElement';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
+import FixedFooter from '@components/FixedFooter';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import SectionList from '@components/SectionList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import useActiveElement from '@hooks/useActiveElement';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import themeColors from '../../styles/themes/default';
+import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -40,7 +40,7 @@ function BaseSelectionList({
     textInputPlaceholder = '',
     textInputValue = '',
     textInputMaxLength,
-    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
     onScroll,
@@ -58,6 +58,7 @@ function BaseSelectionList({
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
+    shouldStopPropagation = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -338,10 +339,24 @@ function BaseSelectionList({
         }, [shouldShowTextInput]),
     );
 
+    useEffect(() => {
+        // do not change focus on the first render, as it should focus on the selected item
+        if (firstLayoutRef.current) {
+            return;
+        }
+
+        // set the focus on the first item when the sections list is changed
+        if (sections.length > 0) {
+            updateAndScrollToFocusedIndex(0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sections]);
+
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
@@ -374,12 +389,12 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
                                     onChangeText={onChangeText}
-                                    keyboardType={keyboardType}
+                                    inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
@@ -402,7 +417,7 @@ function BaseSelectionList({
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

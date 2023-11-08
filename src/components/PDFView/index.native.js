@@ -1,19 +1,19 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import Text from '../Text';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import withLocalize from '../withLocalize';
-import CONST from '../../CONST';
+import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
 const propTypes = {
     ...pdfViewPropTypes,
@@ -180,7 +180,7 @@ class PDFView extends Component {
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
                 style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
                 {this.renderPDFView()}

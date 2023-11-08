@@ -1,5 +1,5 @@
-import getKeyEventModifiers from '../getKeyEventModifiers';
-import isEnterWhileComposition from '../isEnterWhileComposition';
+import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import BindHandlerToKeydownEvent from './types';
 
 /**
@@ -12,6 +12,11 @@ const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, ev
 
     const eventModifiers = getKeyEventModifiers(keyCommandEvent);
     const displayName = getDisplayName(keyCommandEvent.input, eventModifiers);
+
+    // If we didn't register any event handlers for a key we ignore it
+    if (!eventHandlers[displayName]) {
+        return;
+    }
 
     // Loop over all the callbacks
     Object.values(eventHandlers[displayName]).every((callback) => {
@@ -42,7 +47,9 @@ const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, ev
         if (callback.shouldPreventDefault) {
             event.preventDefault();
         }
-
+        if (callback.shouldStopPropagation) {
+            event.stopPropagation();
+        }
         // If the event should not bubble, short-circuit the loop
         return shouldBubble;
     });
