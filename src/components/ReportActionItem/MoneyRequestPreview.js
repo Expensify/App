@@ -31,7 +31,6 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -293,15 +292,7 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit &&
-                                                StyleUtils.getAmountFontSizeAndLineHeight(
-                                                    variables.fontSizeXLarge,
-                                                    variables.lineHeightXXLarge,
-                                                    isSmallScreenWidth,
-                                                    windowWidth,
-                                                    displayAmount.length,
-                                                    participantAvatars.length,
-                                                ),
+                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}

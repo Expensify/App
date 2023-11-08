@@ -126,6 +126,7 @@ function DebitCardPage(props) {
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <TextInput
+                    accessibilityLabel="Text input field"
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
@@ -134,6 +135,7 @@ function DebitCardPage(props) {
                     spellCheck={false}
                 />
                 <TextInput
+                    accessibilityLabel="Text input field"
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
@@ -144,6 +146,7 @@ function DebitCardPage(props) {
                 <View style={[styles.flexRow, styles.mt4]}>
                     <View style={[styles.flex1, styles.mr2]}>
                         <TextInput
+                            accessibilityLabel="Text input field"
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
@@ -155,6 +158,7 @@ function DebitCardPage(props) {
                     </View>
                     <View style={[styles.flex1]}>
                         <TextInput
+                            accessibilityLabel="Text input field"
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
@@ -175,6 +179,7 @@ function DebitCardPage(props) {
                     />
                 </View>
                 <TextInput
+                    accessibilityLabel="Text input field"
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}

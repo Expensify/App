@@ -98,6 +98,7 @@ function BankAccountManualStep(props) {
                     source={exampleCheckImage(preferredLocale)}
                 />
                 <TextInput
+                    accessibilityLabel="Text input field"
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
@@ -111,6 +112,7 @@ function BankAccountManualStep(props) {
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
                 <TextInput
+                    accessibilityLabel="Text input field"
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
