@@ -145,8 +145,8 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
-                        accessibilityLabel={props.translate('common.firstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('common.firstName')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
                         onChangeText={(value) => props.onFieldChange({firstName: value})}
@@ -158,8 +158,8 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
-                        accessibilityLabel={props.translate('common.lastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('common.lastName')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
                         onChangeText={(value) => props.onFieldChange({lastName: value})}
@@ -183,10 +183,10 @@ function IdentityForm(props) {
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
-                accessibilityLabel={props.translate('common.ssnLast4')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={props.translate('common.ssnLast4')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}
                 onChangeText={(value) => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
