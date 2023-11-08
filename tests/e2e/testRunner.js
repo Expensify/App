@@ -27,6 +27,7 @@ const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
 const sleep = require('./utils/sleep');
 const compare = require('./compare/compare');
+const uninstallOldApp = require('./utils/uninstallOldApp');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -203,8 +204,10 @@ const runTests = async () => {
         deltaAppPath = tempApkPath;
     }
 
-    // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing apps and reversing port');
+
+    await uninstallOldApp('android');
+
     await installApp('android', config.MAIN_APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
     await installApp('android', config.DELTA_APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
     await reversePort();

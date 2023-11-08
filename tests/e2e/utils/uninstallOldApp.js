@@ -10,16 +10,14 @@ const Logger = require('./logger');
  * @param {String} path
  * @returns {Promise<void>}
  */
-module.exports = function (platform = 'android', packageName, path) {
+module.exports = function (platform = 'android') {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
 
     // Uninstall first, then install
-    return execAsync(`adb uninstall ${packageName}`)
-        .catch((e) => {
-            // Ignore errors
-            Logger.warn('Failed to uninstall app:', e);
-        })
-        .finally(() => execAsync(`adb install ${path}`));
+    return execAsync(`adb uninstall com.expensify.chat.adhoc`).catch((e) => {
+        // Ignore errors
+        Logger.warn('Failed to uninstall app:', e);
+    });
 };
