@@ -236,7 +236,7 @@ function WorkspaceInitialPage(props) {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -256,7 +256,7 @@ function WorkspaceInitialPage(props) {
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
                                                     <Text
                                                         numberOfLines={1}

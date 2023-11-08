@@ -46,7 +46,7 @@ function Template(args) {
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
@@ -55,7 +55,7 @@ function Template(args) {
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
@@ -153,7 +153,7 @@ function WithNativeEventHandler(args) {
         <FormProvider {...args}>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
