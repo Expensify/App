@@ -18,10 +18,10 @@ type MultipleAvatarsProps = {
     icons: Icon[];
 
     /** Set the size of avatars */
-    size: ValueOf<typeof CONST.AVATAR_SIZE>;
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Style for Second Avatar */
-    secondAvatarStyle: StyleProp<ViewStyle>;
+    secondAvatarStyle?: StyleProp<ViewStyle>;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
