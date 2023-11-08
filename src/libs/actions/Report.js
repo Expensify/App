@@ -2034,6 +2034,8 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     // between Onyx report being null and Pusher's leavingStatus becoming true.
     broadcastUserIsLeavingRoom(reportID);
 
+    const participantAccountIDsOfReport = ReportUtils.getParticipantsIDs(report);
+    const remainUsers = _.difference(participantAccountIDsOfReport, [currentUserAccountID]);
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
     const optimisticData = [
@@ -2043,6 +2045,7 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                   key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                   value: {
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                      participantAccountIDs: remainUsers,
                   },
               }
             : {
@@ -2075,7 +2078,7 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: report,
+                    value: {...report, participantAccountIDs: remainUsers},
                 },
             ],
         },
