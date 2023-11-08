@@ -31,7 +31,6 @@ function canUseCommentLinking(betas: Beta[]): boolean {
  * See https://expensify.slack.com/archives/C01GTK53T8Q/p1641921996319400?thread_ts=1641598356.166900&cid=C01GTK53T8Q
  */
 function canUsePolicyRooms(betas: Beta[]): boolean {
-    return true;
     return betas?.includes(CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
 }
 
