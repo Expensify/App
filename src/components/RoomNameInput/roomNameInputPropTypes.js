@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import refPropTypes from "@components/refPropTypes";
+import refPropTypes from '@components/refPropTypes';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
