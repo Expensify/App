@@ -41,7 +41,6 @@ const defaultProps = {
 function AmountTextInput(props) {
     return (
         <TextInput
-            accessibilityLabel="Text input field"
             disableKeyboard
             autoGrow
             hideFocusedState
