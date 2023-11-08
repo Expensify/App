@@ -137,7 +137,6 @@ function MultipleAvatars({
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
-                    avatar: icons[0].source,
                 }}
             >
                 <View style={avatarContainerStyles}>
@@ -180,7 +179,6 @@ function MultipleAvatars({
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
-                                    avatar: icon.source,
                                 }}
                             >
                                 <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
@@ -252,7 +250,6 @@ function MultipleAvatars({
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
-                                avatar: icons[0].source,
                             }}
                         >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
@@ -275,7 +272,6 @@ function MultipleAvatars({
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,
-                                        avatar: icons[1].source,
                                     }}
                                 >
                                     <View>
