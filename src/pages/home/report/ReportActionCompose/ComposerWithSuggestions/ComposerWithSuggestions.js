@@ -507,13 +507,12 @@ function ComposerWithSuggestions({
             return;
         }
         // Focus composer when navigating from another screen
-        const focusTimeout = setTimeout(() => {
+        setTimeout(() => {
             if (!shouldAutoFocusRef.current) {
                 return;
             }
             textInputRef.current.focus();
         }, CONST.ANIMATED_TRANSITION);
-        return () => clearTimeout(focusTimeout);
     }, [isFocused, prevIsFocused]);
 
     useEffect(() => {
