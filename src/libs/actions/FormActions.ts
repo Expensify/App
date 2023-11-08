@@ -19,7 +19,7 @@ function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields
     Onyx.merge(formID, {errorFields} satisfies Form);
 }
 
-function setDraftValues<T extends OnyxFormKeyWithoutDraft>(formID: T, draftValues: NullishDeep<KeyValueMapping[`${T}Draft`]>) {
+function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {
     Onyx.merge(`${formID}Draft`, draftValues);
 }
 
