@@ -135,14 +135,15 @@ function LHNOptionsList({
     const renderItem = useCallback(
         ({item: reportID}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
-            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
-            const itemTransaction = `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(
+            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
+            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
+            const itemTransactions = lodashGet(
                 itemParentReportActions,
                 [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
                 '',
-            )}`;
+            )
+            const transactionsList = itemTransactions ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransactions}`] : transactions;
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
             return (
@@ -153,7 +154,7 @@ function LHNOptionsList({
                     parentReportActions={itemParentReportActions}
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
-                    transaction={itemTransaction}
+                    transaction={transactionsList}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
