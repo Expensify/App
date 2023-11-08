@@ -1,16 +1,16 @@
-import React, {memo, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
-import Tooltip from './Tooltip';
-import Text from './Text';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
-import variables from '../styles/variables';
 import avatarPropTypes from './avatarPropTypes';
+import Text from './Text';
+import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 const propTypes = {
@@ -227,8 +227,7 @@ function MultipleAvatars(props) {
                                         ]}
                                     >
                                         <Text
-                                            selectable={false}
-                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
@@ -293,8 +292,7 @@ function MultipleAvatars(props) {
                                 <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Text
-                                            selectable={false}
-                                            style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            style={(styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText)}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}

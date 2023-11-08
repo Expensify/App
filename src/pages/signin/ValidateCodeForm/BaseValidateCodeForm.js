@@ -1,32 +1,32 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
-import Button from '../../../components/Button';
-import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
-import * as Session from '../../../libs/actions/Session';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import * as User from '../../../libs/actions/User';
-import FormHelpMessage from '../../../components/FormHelpMessage';
-import MagicCodeInput from '../../../components/MagicCodeInput';
-import Terms from '../Terms';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import usePrevious from '../../../hooks/usePrevious';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import TextInput from '../../../components/TextInput';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MagicCodeInput from '@components/MagicCodeInput';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrevious from '@hooks/usePrevious';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
+import Terms from '@pages/signin/Terms';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +38,12 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+
+        /** Whether or not the user has SAML enabled on their account */
+        isSAMLEnabled: PropTypes.bool,
+
+        /** Whether or not SAML is required on the account */
+        isSAMLRequired: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -63,6 +69,9 @@ const propTypes = {
 
     /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
     setIsUsingRecoveryCode: PropTypes.func.isRequired,
+
+    /** Function to change `isUsingMagicCode` state when the user goes back to the login page */
+    setIsUsingMagicCode: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -199,6 +208,8 @@ function BaseValidateCodeForm(props) {
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
+        // Reset the user's preference for signing in with SAML versus magic codes
+        props.setIsUsingMagicCode(false);
         clearLocalSignInData();
         Session.clearSignInData();
     };
@@ -320,6 +331,7 @@ function BaseValidateCodeForm(props) {
                             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
+                            key="twoFactorAuthCode"
                         />
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
@@ -330,7 +342,7 @@ function BaseValidateCodeForm(props) {
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
                         <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>
@@ -349,6 +361,7 @@ function BaseValidateCodeForm(props) {
                         errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
+                        key="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -365,7 +378,7 @@ function BaseValidateCodeForm(props) {
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>

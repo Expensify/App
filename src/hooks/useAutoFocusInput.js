@@ -1,20 +1,24 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {useState, useEffect, useRef, useCallback} from 'react';
-import CONST from '../CONST';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
+import * as Expensify from '@src/Expensify';
 
 export default function useAutoFocusInput() {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
+    const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
+
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
             return;
         }
         inputRef.current.focus();
-    }, [isScreenTransitionEnded, isInputInitialized]);
+        setIsScreenTransitionEnded(false);
+    }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
 
     useFocusEffect(
         useCallback(() => {

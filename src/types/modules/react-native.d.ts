@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-empty-interface */
+
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '../../libs/BootSplash/types';
+import {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
@@ -33,7 +35,7 @@ declare module 'react-native' {
         'aria-haspopup'?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
         'aria-hidden'?: boolean;
         'aria-invalid'?: boolean;
-        'aria-keyshortcuts'?: string[];
+        'aria-keyshortcuts'?: string;
         'aria-label'?: string;
         'aria-labelledby'?: idRef;
         'aria-level'?: number;
@@ -83,7 +85,7 @@ declare module 'react-native' {
         accessibilityInvalid?: boolean;
         accessibilityKeyShortcuts?: string[];
         accessibilityLabel?: string;
-        accessibilityLabelledBy?: idRefList;
+        accessibilityLabelledBy?: idRef;
         accessibilityLevel?: number;
         accessibilityLiveRegion?: 'assertive' | 'none' | 'polite';
         accessibilityModal?: boolean;
@@ -310,7 +312,10 @@ declare module 'react-native' {
         readonly hovered: boolean;
         readonly pressed: boolean;
     }
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {}
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+        readonly isScreenReaderActive: boolean;
+        readonly isDisabled: boolean;
+    }
 
     // Extracted from react-native-web, packages/react-native-web/src/exports/Pressable/index.js
     interface WebPressableProps extends WebSharedProps {

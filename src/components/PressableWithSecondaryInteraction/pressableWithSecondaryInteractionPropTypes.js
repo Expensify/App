@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import refPropTypes from '../refPropTypes';
-import stylePropTypes from '../../styles/stylePropTypes';
+import refPropTypes from '@components/refPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** The function that should be called when this pressable is pressed */
