@@ -242,6 +242,181 @@ describe('Sidebar', () => {
             );
         });
 
+        it('reorders the reports to have a newly created task report on top', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 4);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 3);
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 2);
+
+            const taskReportName = 'Buy Grocery';
+            const taskReport = {
+                ...LHNTestUtils.getFakeReport([7, 8], 1),
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: taskReportName,
+                managerID: 2,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            };
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
+            LHNTestUtils.getDefaultRenderedSidebarLinks(taskReport.reportID);
+
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
+                        }),
+                    )
+
+                    // Then the order of the reports should be 4 > 3 > 2 > 1
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(4);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe(taskReportName);
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                    })
+            );
+        });
+
+        it('reorders the reports to have a newly created iou report on top', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 4);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 3);
+            const report3 = {
+                ...LHNTestUtils.getFakeReport([5, 6], 2),
+                hasOutstandingChildRequest: false,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const iouReport = {
+                ...LHNTestUtils.getFakeReport([7, 8], 1),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 2,
+                managerID: 2,
+                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            report3.iouReportID = iouReport.reportID;
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
+            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
+
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                        }),
+                    )
+
+                    // Then the order of the reports should be 4 > 3 > 2 > 1
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(4);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                    })
+            );
+        });
+
+        it('reorders the reports to have a newly created expense report on top', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 4);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 3);
+            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([5, 6], 2);
+            const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
+            const report3 = {
+                ...fakeReport,
+                hasOutstandingChildRequest: false,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport([7, 8], 1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 7,
+                managerID: 7,
+                policyName: 'Workspace',
+                hasOutstandingIOU: true,
+                total: -10000,
+                currency: 'USD',
+                state: CONST.REPORT.STATE.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                chatReportID: report3.reportID,
+                parentReportID: report3.reportID,
+            };
+            report3.iouReportID = expenseReport.reportID;
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
+            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
+
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                        }),
+                    )
+
+                    // Then the order of the reports should be 4 > 3 > 2 > 1
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(4);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Workspace owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                    })
+            );
+        });
+
         it('reorders the reports to keep draft reports on top', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // And the second report has a draft
