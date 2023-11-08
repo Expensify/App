@@ -4,6 +4,59 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 5847:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(5067);
+const core = __nccwpck_require__(2186);
+const github = __nccwpck_require__(5438);
+const ActionUtils = __nccwpck_require__(970);
+const GitUtils = __nccwpck_require__(669);
+const GithubUtils = __nccwpck_require__(7999);
+
+async function run() {
+    try {
+        const inputTag = core.getInput('TAG', {required: true});
+        const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
+        const deployEnv = isProductionDeploy ? 'production' : 'staging';
+
+        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
+
+        const completedDeploys = (
+            await GithubUtils.octokit.actions.listWorkflowRuns({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                workflow_id: 'platformDeploy.yml',
+                status: 'completed',
+                event: isProductionDeploy ? 'release' : 'push',
+            })
+        ).data.workflow_runs;
+
+        const inputTagIndex = _.findIndex(completedDeploys, (workflowRun) => workflowRun.head_branch === inputTag);
+        if (inputTagIndex < 0) {
+            throw new Error(`No completed deploy found for input tag ${inputTag}`);
+        }
+
+        const priorTag = completedDeploys[inputTagIndex + 1].head_branch;
+        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
+        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        console.log(`Found the pull request list: ${prList}`);
+        core.setOutput('PR_LIST', prList);
+    } catch (err) {
+        console.error(err.message);
+        core.setFailed(err);
+    }
+}
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
+
+
+/***/ }),
+
 /***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -19556,74 +19609,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
-const GitUtils = __nccwpck_require__(669);
-const GithubUtils = __nccwpck_require__(7999);
-
-const inputTag = core.getInput('TAG', {required: true});
-
-const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
-const itemToFetch = isProductionDeploy ? 'release' : 'tag';
-
-/**
- * Gets either releases or tags for a GitHub repo
- *
- * @param {boolean} fetchReleases
- * @returns {*}
- */
-function getTagsOrReleases(fetchReleases) {
-    if (fetchReleases) {
-        return GithubUtils.octokit.repos.listReleases({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-        });
-    }
-
-    return GithubUtils.octokit.repos.listTags({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-    });
-}
-
-console.log(`Fetching ${itemToFetch} list from github...`);
-getTagsOrReleases(isProductionDeploy)
-    .catch((githubError) => core.setFailed(githubError))
-    .then(({data}) => {
-        const keyToPluck = isProductionDeploy ? 'tag_name' : 'name';
-        const tags = _.pluck(data, keyToPluck);
-        const priorTagIndex = _.indexOf(tags, inputTag) + 1;
-
-        if (priorTagIndex === 0) {
-            console.log(`No ${itemToFetch} was found for input tag ${inputTag}. Comparing it to latest ${itemToFetch} ${tags[0]}`);
-        }
-
-        if (priorTagIndex === tags.length) {
-            const err = new Error("Somehow, the input tag was at the end of the paginated result, so we don't have the prior tag");
-            console.error(err.message);
-            core.setFailed(err);
-            return;
-        }
-
-        const priorTag = tags[priorTagIndex];
-        console.log(`Given ${itemToFetch}: ${inputTag}`);
-        console.log(`Prior ${itemToFetch}: ${priorTag}`);
-
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
-        console.log(`Found the pull request list: ${pullRequestList}`);
-        return core.setOutput('PR_LIST', pullRequestList);
-    })
-    .catch((error) => core.setFailed(error));
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(5847);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
