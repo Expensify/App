@@ -1,5 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
+<<<<<<< HEAD
 import {useCallback, useEffect, useRef, useState} from 'react';
+=======
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
+>>>>>>> 1149ca7 (Merge pull request #31063 from tienifr/fix/30976)
 import CONST from '@src/CONST';
 
 export default function useAutoFocusInput() {
@@ -13,9 +18,17 @@ export default function useAutoFocusInput() {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current) {
             return;
         }
+<<<<<<< HEAD
         inputRef.current.focus();
         setIsScreenTransitionEnded(false);
     }, [isScreenTransitionEnded, isInputInitialized]);
+=======
+        InteractionManager.runAfterInteractions(() => {
+            inputRef.current.focus();
+            setIsScreenTransitionEnded(false);
+        });
+    }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
+>>>>>>> 1149ca7 (Merge pull request #31063 from tienifr/fix/30976)
 
     useFocusEffect(
         useCallback(() => {
