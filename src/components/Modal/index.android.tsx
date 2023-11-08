@@ -20,7 +20,6 @@ function Modal(props: BaseModalProps) {
         <BaseModal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            useNativeDriver
         >
             {props.children}
         </BaseModal>
