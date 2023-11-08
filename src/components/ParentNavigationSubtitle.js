@@ -41,7 +41,7 @@ function ParentNavigationSubtitle(props) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.parentReportID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             style={[...props.pressableStyles]}
         >
             <Text

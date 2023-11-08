@@ -90,6 +90,8 @@ const defaultProps = {
     isCheckingPublicRoom: true,
 };
 
+const SplashScreenHiddenContext = React.createContext({});
+
 function Expensify(props) {
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -105,6 +107,14 @@ function Expensify(props) {
     }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+
+    const contextValue = useMemo(
+        () => ({
+            isSplashHidden,
+        }),
+        [isSplashHidden],
+    );
+
     const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
@@ -216,10 +226,12 @@ function Expensify(props) {
 
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
-                <NavigationRoot
-                    onReady={setNavigationReady}
-                    authenticated={isAuthenticated}
-                />
+                <SplashScreenHiddenContext.Provider value={contextValue}>
+                    <NavigationRoot
+                        onReady={setNavigationReady}
+                        authenticated={isAuthenticated}
+                    />
+                </SplashScreenHiddenContext.Provider>
             )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
@@ -251,3 +263,5 @@ export default compose(
         },
     }),
 )(Expensify);
+
+export {SplashScreenHiddenContext};

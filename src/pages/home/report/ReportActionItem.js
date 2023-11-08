@@ -444,8 +444,7 @@ function ReportActionItem(props) {
                                     onPress={() => updateHiddenState(!isHidden)}
                                 >
                                     <Text
-                                        style={styles.buttonSmallText}
-                                        selectable={false}
+                                        style={[styles.buttonSmallText, styles.userSelectNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
@@ -658,8 +657,8 @@ function ReportActionItem(props) {
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
-            pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
             ref={popoverAnchorRef}
+            style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
