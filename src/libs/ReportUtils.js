@@ -3698,8 +3698,8 @@ function getMoneyRequestOptions(report, reportParticipants) {
     const otherParticipants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
     const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
     const hasMultipleOtherParticipants = otherParticipants.length > 1;
-
     let options = [];
+
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
