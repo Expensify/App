@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
@@ -51,8 +52,9 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+
+    const {inputCallbackRef} = useAutoFocusInput();
     const {isSearchingForReports} = props;
-    const optionRef = useRef();
     const {isOffline} = useNetwork();
 
     const filteredReports = useMemo(() => {
@@ -127,7 +129,6 @@ function TaskShareDestinationSelectorModal(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskShareDestinationSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -151,7 +152,7 @@ function TaskShareDestinationSelectorModal(props) {
                             textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
                             isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
