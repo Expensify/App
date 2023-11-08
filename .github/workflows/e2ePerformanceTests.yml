@@ -30,21 +30,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
-        with:
-          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+      # - name: Check if there's an existing artifact for this baseline
+      #   id: checkForExistingArtifact
+      #   uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+      #   with:
+      #     name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+      # - name: Skip build if there's already an existing artifact for the baseline
+      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: |
-          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      # - name: Checkout "Baseline" commit (last release)
+      #   # if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: |
+      #     git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+      #     git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
