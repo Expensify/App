@@ -318,7 +318,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !ReportUtils.isMarkedAsDone(allReports[reportAction?.originalMessage?.IOUReportID])) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && allReports && !ReportUtils.isMarkedAsDone(allReports[reportAction?.originalMessage?.IOUReportID])) {
         return false;
     }
 
