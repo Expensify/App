@@ -10,7 +10,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 beforeAll(() =>
     Onyx.init({
@@ -49,9 +49,9 @@ const getMockedPoliciesMap = (length = 100) => {
     return Object.assign({}, ...mockPolicies) as Record<string, Policy>;
 };
 
-const mockedResponseMap = getMockedReportsMap(1000);
+const mockedResponseMap = getMockedReportsMap(10000);
 
-test('getOptionData on 1k reports', async () => {
+test('getOptionData on 10k reports', async () => {
     const report = LHNTestUtils.getFakeReportWithPolicy([1, 2], 1, true) as Report;
     const reportActions = ReportTestUtils.getMockedReportActionsMap();
     const personalDetails = LHNTestUtils.fakePersonalDetails;
@@ -67,7 +67,7 @@ test('getOptionData on 1k reports', async () => {
     await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, reportAction), {runs: 20});
 });
 
-test('getOrderedReportIDs on 1k reports', async () => {
+test('getOrderedReportIDs on 10k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReportsMap() as Record<string, Report>;
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
