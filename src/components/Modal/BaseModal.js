@@ -59,7 +59,7 @@ function BaseModal({
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
-    const removeOnClose = useRef(() => {});
+    const removeOnCloseListener = useRef(() => {});
 
     /**
      * Hides modal
@@ -86,12 +86,14 @@ function BaseModal({
         if (isVisible) {
             Modal.willAlertModalBecomeVisible(true);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            removeOnClose.current();
-            removeOnClose.current = Modal.setCloseModal(onClose);
+            removeOnCloseListener.current = Modal.setCloseModal(onClose);
         } else if (wasVisible && !isVisible) {
             Modal.willAlertModalBecomeVisible(false);
-            removeOnClose.current();
         }
+
+        return () => {
+            removeOnCloseListener.current();
+        };
     }, [isVisible, wasVisible, onClose]);
 
     useEffect(
@@ -103,7 +105,7 @@ function BaseModal({
             hideModal(true);
             Modal.willAlertModalBecomeVisible(false);
             // To prevent closing any modal already unmounted when this modal still remains as visible state
-            removeOnClose.current();
+            removeOnCloseListener.current();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],

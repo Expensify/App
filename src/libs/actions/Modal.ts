@@ -6,28 +6,27 @@ const closeModals: Array<(isNavigating: boolean) => void> = [];
 let onModalClose: null | (() => void);
 
 /**
- * Remove onClose function in list
- */
-function removeCloseModal(onClose: () => void) {
-    const index = closeModals.findIndex((o) => o === onClose);
-    if (index === -1) {
-        return;
-    }
-    closeModals.splice(index, 1);
-}
-
-/**
  * Allows other parts of the app to call modal close function
  */
 function setCloseModal(onClose: () => void) {
     closeModals.push(onClose);
-    return () => removeCloseModal(onClose);
+    return () => {
+        const index = closeModals.indexOf(onClose);
+        if (index === -1) {
+            return;
+        }
+        closeModals.splice(index, 1);
+    };
 }
 
 /**
  * Close modal in other parts of the app
  */
 function close(onModalCloseCallback: () => void, isNavigating = true) {
+    if (closeModals.length === 0) {
+        onModalCloseCallback();
+        return;
+    }
     onModalClose = onModalCloseCallback;
     const reverseCloseModals = [...closeModals].reverse();
     reverseCloseModals.forEach((onClose) => {
