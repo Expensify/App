@@ -136,6 +136,7 @@ function LHNOptionsList({
             const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+            const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
 
@@ -147,7 +148,7 @@ function LHNOptionsList({
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
-                    transactionID={transactionID}
+                    transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
