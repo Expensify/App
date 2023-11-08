@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
-    strategy:
-      fail-fast: false
     name: test GitHub Workflows
     steps:
       - name: Checkout
