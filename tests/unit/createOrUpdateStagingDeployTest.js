@@ -6,7 +6,7 @@ const fns = require('date-fns');
 const CONST = require('../../.github/libs/CONST');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
+const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy').default;
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();

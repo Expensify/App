@@ -1,6 +1,7 @@
+import {format} from 'date-fns';
+
 const _ = require('underscore');
 const core = require('@actions/core');
-const moment = require('moment');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const GitUtils = require('../../../libs/GitUtils');
@@ -118,7 +119,7 @@ async function run() {
         if (shouldCreateNewDeployChecklist) {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
-                title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+                title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
                 assignees: [CONST.APPLAUSE_BOT],
             });
