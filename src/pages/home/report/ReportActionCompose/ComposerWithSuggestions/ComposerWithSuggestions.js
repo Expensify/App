@@ -225,10 +225,8 @@ function ComposerWithSuggestions({
 
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
-                if (selection.end - selection.start > 0) {
+                if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
-                } else if (commonSuffixLength > 0) {
-                    endIndex = currentIndex + newText.length - prevText.length;
                 } else {
                     endIndex = currentIndex + newText.length;
                 }
