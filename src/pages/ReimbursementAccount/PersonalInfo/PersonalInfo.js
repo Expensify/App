@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
 import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForPersonalInfo';
 import getPersonalInfoValues from '@pages/ReimbursementAccount/utils/getPersonalInfoValues';
 import styles from '@styles/styles';

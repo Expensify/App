@@ -12,6 +12,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

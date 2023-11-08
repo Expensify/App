@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import subStepPropTypes from '../../subStepPropTypes';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
-import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import NewDatePicker from '../../../../components/NewDatePicker';
-import FormProvider from '../../../../components/Form/FormProvider';
-import reimbursementAccountDraftPropTypes from '../../ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountProps from '../../reimbursementAccountPropTypes';
+import FormProvider from '@components/Form/FormProvider';
+import NewDatePicker from '@components/NewDatePicker';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

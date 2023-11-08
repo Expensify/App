@@ -1,16 +1,16 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import CONST from '../../../../CONST';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import subStepPropTypes from '../../subStepPropTypes';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import {reimbursementAccountPropTypes, reimbursementAccountDefaultProps} from '../../reimbursementAccountPropTypes';
-import getDefaultStateForField from '../../utils/getDefaultStateForField';
-import AddressForm from '../../AddressForm';
+import Form from '@components/Form';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

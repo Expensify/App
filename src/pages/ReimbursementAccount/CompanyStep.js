@@ -1,16 +1,10 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import withLocalize from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import BusinessInfo from './BusinessInfo/BusinessInfo';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BusinessInfo from './BusinessInfo/BusinessInfo';
 
 const propTypes = {
     /* The workspace policyID */

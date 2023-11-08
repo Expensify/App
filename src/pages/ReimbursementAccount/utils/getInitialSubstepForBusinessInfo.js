@@ -1,4 +1,4 @@
-import CONST from '../../../CONST';
+import CONST from '@src/CONST';
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
