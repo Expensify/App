@@ -5,6 +5,7 @@ import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -51,7 +52,7 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
@@ -60,12 +61,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The transaction from the parent report action */
-    transactions: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the transaction */
-            transactionID: PropTypes.string,
-        }),
-    ),
+    transactions: transactionPropTypes,
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
     ...withCurrentReportIDPropTypes,
@@ -135,14 +131,10 @@ function LHNOptionsList({
     const renderItem = useCallback(
         ({item: reportID}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
             const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
-            const itemTransactions = lodashGet(
-                itemParentReportActions,
-                [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
-                '',
-            )
+            const itemTransactions = lodashGet(itemParentReportActions, [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '');
             const transactionsList = itemTransactions ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransactions}`] : transactions;
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
