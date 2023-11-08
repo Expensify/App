@@ -1,9 +1,9 @@
 import {Portal} from '@gorhom/portal';
 import React from 'react';
-import {propTypes} from './autoCompleteSuggestionsPropTypes';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
+import type {AutoCompleteSuggestionsProps} from './types';
 
-function AutoCompleteSuggestions({measureParentContainer, ...props}) {
+function AutoCompleteSuggestions({measureParentContainer, ...props}: AutoCompleteSuggestionsProps) {
     return (
         <Portal hostName="suggestions">
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
@@ -12,7 +12,6 @@ function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     );
 }
 
-AutoCompleteSuggestions.propTypes = propTypes;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;

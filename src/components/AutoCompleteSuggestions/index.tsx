@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
-import {propTypes} from './autoCompleteSuggestionsPropTypes';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
+import type {AutoCompleteSuggestionsProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -14,8 +14,8 @@ import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions({measureParentContainer, ...props}) {
-    const containerRef = React.useRef(null);
+function AutoCompleteSuggestions({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps) {
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
@@ -25,7 +25,7 @@ function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) {
-            return;
+            return () => {};
         }
         container.onpointerdown = (e) => {
             if (DeviceCapabilities.hasHoverSupport()) {
@@ -53,11 +53,13 @@ function AutoCompleteSuggestions({measureParentContainer, ...props}) {
 
     return (
         Boolean(width) &&
-        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, document.querySelector('body'))
+        ReactDOM.createPortal(
+            <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>,
+            document.querySelector('body') as unknown as HTMLBodyElement,
+        )
     );
 }
 
-AutoCompleteSuggestions.propTypes = propTypes;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;
