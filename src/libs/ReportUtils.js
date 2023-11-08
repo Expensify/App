@@ -1857,7 +1857,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 }
 
 /**
- * Get the proper message schema for modified expense message.
+ * Get the proper message schema for a modified field on the expense.
  *
  * @param {String} newValue
  * @param {String} oldValue
