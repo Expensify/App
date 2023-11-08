@@ -2,12 +2,12 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import participantPropTypes from '@components/participantPropTypes';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import _ from 'underscore';
 
 const propTypes = {
     /** React Navigation route */

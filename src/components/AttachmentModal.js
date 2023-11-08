@@ -41,6 +41,8 @@ import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import transactionPropTypes from './transactionPropTypes';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used

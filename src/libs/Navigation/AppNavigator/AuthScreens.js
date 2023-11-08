@@ -326,7 +326,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                     getComponent={loadReportAttachments}
                     listeners={modalScreenListeners}
                 />
-                 <RootStack.Screen
+                <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
                     options={{
                         headerShown: false,
