@@ -14,7 +14,7 @@ type CollapsibleSectionProps = ChildrenProps & {
     title: string;
 };
 
-function CollapsibleSection(props: CollapsibleSectionProps) {
+function CollapsibleSection({title, children}: CollapsibleSectionProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     /**
@@ -32,7 +32,7 @@ function CollapsibleSection(props: CollapsibleSectionProps) {
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                accessibilityLabel={props.title}
+                accessibilityLabel={title}
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}
             >
@@ -40,13 +40,13 @@ function CollapsibleSection(props: CollapsibleSectionProps) {
                     style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
-                    {props.title}
+                    {title}
                 </Text>
                 <Icon src={src} />
             </PressableWithFeedback>
             <View style={styles.collapsibleSectionBorder} />
             <Collapsible isOpened={isExpanded}>
-                <View>{props.children}</View>
+                <View>{children}</View>
             </Collapsible>
         </View>
     );
