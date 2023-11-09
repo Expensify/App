@@ -11,10 +11,10 @@ const propTypes = {
     html: PropTypes.string.isRequired,
 };
 
-function RenderCommentHTML(props) {
-    const html = props.html;
+function RenderCommentHTML({html, source}) {
+    const commentHtml = source === 'email' ? `<email-comment>${html}</email-comment>` : `<comment>${html}</comment>`;
 
-    return <RenderHTML html={props.source === 'email' ? `<email-comment>${html}</email-comment>` : `<comment>${html}</comment>`} />;
+    return <RenderHTML html={commentHtml}/>;
 }
 
 RenderCommentHTML.propTypes = propTypes;

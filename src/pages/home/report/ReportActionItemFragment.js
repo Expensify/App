@@ -107,10 +107,7 @@ function ReportActionItemFragment(props) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
-            // Does the fragment content represent an attachment?
-            const isFragmentAttachment = ReportUtils.isReportMessageAttachment(fragment);
-
-            if (isFragmentAttachment) {
+            if (ReportUtils.isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
                         source={props.source}
