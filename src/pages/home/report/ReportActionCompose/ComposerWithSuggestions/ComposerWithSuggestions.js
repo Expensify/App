@@ -532,11 +532,11 @@ function ComposerWithSuggestions({
                     autoFocus={shouldAutoFocus}
                     multiline
                     ref={setTextInputRef}
-                    textAlignVertical="top"
                     placeholder={inputPlaceholder}
                     placeholderTextColor={themeColors.placeholderText}
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
+                    textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
