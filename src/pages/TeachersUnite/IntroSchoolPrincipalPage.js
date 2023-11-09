@@ -36,7 +36,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
-    const {environment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     /**
      * @param {Object} values
@@ -45,7 +45,7 @@ function IntroSchoolPrincipalPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        const policyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
 
