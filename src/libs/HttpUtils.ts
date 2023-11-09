@@ -2,9 +2,9 @@ import Onyx from 'react-native-onyx';
 import alert from '@components/Alert';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Response from '@src/types/onyx/Response';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import type Response from '@types/onyx/Response';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -56,7 +56,8 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
                         status: response.status.toString(),
                         title: 'Issue connecting to Expensify site',
                     });
-                } else if (response.status === CONST.HTTP_STATUS.TOO_MANY_REQUESTS) {
+                }
+                if (response.status === CONST.HTTP_STATUS.TOO_MANY_REQUESTS) {
                     throw new HttpsError({
                         message: CONST.ERROR.THROTTLED,
                         status: response.status.toString(),
@@ -70,9 +71,9 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
                 });
             }
 
-            return response.json();
+            return response.json() as Promise<Response>;
         })
-        .then((response: Response) => {
+        .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
             if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
                 throw new HttpsError({
@@ -100,7 +101,7 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
                     alert('Too many auth writes', message);
                 }
             }
-            return response;
+            return response as Promise<Response>;
         });
 }
 
@@ -111,13 +112,13 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, string | Blob>, type: string = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
+function xhr(command: string, data: Record<string, unknown>, type: string = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
         if (!data[key]) {
             return;
         }
-        formData.append(key, data[key]);
+        formData.append(key, data[key] as string | Blob);
     });
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
