@@ -60,13 +60,29 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
  * @returns {Array} - Array of accountIDs according to passed logins
  */
 function getAccountIDsByLogins(logins) {
+    // console.log('duke personalDetails', personalDetails);
     return _.reduce(
         logins,
         (foundAccountIDs, login) => {
-            const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
+            let isUserWithNoLogin = false;
+            const currentDetail = _.find(personalDetails, (detail) => {
+                if (!_.isUndefined(detail.login)) {
+                    isUserWithNoLogin = true;
+                }
+                return detail.login === login;
+            });
             if (!currentDetail) {
-                // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID(login));
+                // If the account login match login and the account login is undefined, we check if account display name matches login
+                const currentDetailWithNoLogin = _.find(personalDetails, (detail) => detail.displayName === login);
+                if (isUserWithNoLogin && currentDetailWithNoLogin) {
+                    console.log('duke match');
+                    foundAccountIDs.push(Number(currentDetailWithNoLogin.accountID));
+                } else {
+                    // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+                    console.log('duke match then should not go here');
+
+                    foundAccountIDs.push(UserUtils.generateAccountID(login));
+                }
             } else {
                 foundAccountIDs.push(Number(currentDetail.accountID));
             }

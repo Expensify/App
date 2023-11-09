@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
@@ -86,8 +87,12 @@ const getPhoneNumber = (details) => {
 
 function DetailsPage(props) {
     const login = lodashGet(props.route.params, 'login', '');
-    let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
+    const currentReportID = Navigation.getTopmostReportId();
+    const currentReport = ReportUtils.getReport(currentReportID);
+    const participants = lodashGet(currentReport, 'participantAccountIDs', []);
+    console.log('duke topmost report ', participants);
 
+    let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
     if (!details) {
         if (login === CONST.EMAIL.CONCIERGE) {
             details = {
@@ -193,10 +198,11 @@ function DetailsPage(props) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${props.translate('common.message')}${details.displayName}`}
+                                    title={`${props.translate('common.message') + 999}${details.displayName}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
+                                    // onPress={() => Report.navigateToAndOpenReportWithAccountIDs(participants)}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />
