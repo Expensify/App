@@ -3,11 +3,11 @@ import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} 
 import {View} from 'react-native';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** A ref to this component */
