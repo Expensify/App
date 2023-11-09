@@ -9,6 +9,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 const TEST_NAMES = {
     AppStartTime: 'App start time',
     OpenSearchPage: 'Open search page TTI',
+    ReportTyping: 'Report typing',
 };
 
 /**
@@ -23,10 +24,7 @@ const TEST_NAMES = {
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat.adhoc',
 
-    APP_PATHS: {
-        baseline: './app-e2eRelease-baseline.apk',
-        compare: './app-e2eRelease-compare.apk',
-    },
+    APP_PATH: './app-e2eRelease-main.apk',
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
 
@@ -34,12 +32,9 @@ module.exports = {
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 30,
+    RUNS: 60,
 
     DEFAULT_BASELINE_BRANCH: 'main',
-
-    // The amount of runs that should happen without counting test results
-    WARM_UP_RUNS: 3,
 
     OUTPUT_DIR,
 
@@ -51,6 +46,12 @@ module.exports = {
 
     // The time in milliseconds after which an operation fails due to timeout
     INTERACTION_TIMEOUT: 300000,
+
+    // Period we wait between each test runs, to let the device cool down
+    BOOT_COOL_DOWN: 90 * 1000,
+
+    // Period we wait between each test runs, to let the device cool down
+    SUITE_COOL_DOWN: 10 * 1000,
 
     TEST_NAMES,
 
@@ -68,6 +69,12 @@ module.exports = {
         },
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
+        },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
         },
     },
 };

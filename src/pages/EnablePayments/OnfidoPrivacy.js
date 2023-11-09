@@ -1,21 +1,21 @@
+import lodashGet from 'lodash/get';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import styles from '../../styles/styles';
-import TextLink from '../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import Text from '../../components/Text';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import FormScrollView from '../../components/FormScrollView';
+import _ from 'underscore';
+import FixedFooter from '@components/FixedFooter';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormScrollView from '@components/FormScrollView';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -86,6 +86,7 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
 
 OnfidoPrivacy.propTypes = propTypes;
 OnfidoPrivacy.defaultProps = defaultProps;
+OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
 export default compose(
     withLocalize,

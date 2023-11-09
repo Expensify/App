@@ -21,7 +21,7 @@
 # To configure Mapbox, invoke this script by running the following command from the project's root directory:
 # npm run configure-mapbox
 
-# Use functions and varaibles from the utils script
+# Use functions and variables from the utils script
 source scripts/shellUtils.sh
 
 # Intro message

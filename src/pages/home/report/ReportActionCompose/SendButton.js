@@ -1,51 +1,31 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
-import useLocalize from '../../../../hooks/useLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the button is disabled */
     isDisabled: PropTypes.bool.isRequired,
 
-    /** Reference to the animated view */
-    animatedRef: PropTypes.func.isRequired,
-
-    /** Sets the isCommentEmpty flag to true */
-    setIsCommentEmpty: PropTypes.func.isRequired,
-
-    /** resets the composer to normal size */
-    resetFullComposerSize: PropTypes.func.isRequired,
-
-    /** Submits the form */
-    submitForm: PropTypes.func.isRequired,
+    /** Handle clicking on send button */
+    handleSendMessage: PropTypes.func.isRequired,
 };
 
-function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty, resetFullComposerSize, submitForm}) {
+function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
         .enabled()
         .onEnd(() => {
-            'worklet';
-
-            const viewTag = animatedRef();
-            const viewName = 'RCTMultilineTextInputView';
-            const updates = {text: ''};
-            // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-            runOnJS(setIsCommentEmpty)(true);
-            runOnJS(resetFullComposerSize)();
-            updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
-            runOnJS(submitForm)();
+            handleSendMessage();
         });
 
     return (
@@ -62,7 +42,7 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                             isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (

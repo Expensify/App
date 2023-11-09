@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
-type OverflowXHiddenStyles = Partial<Pick<CSSProperties, 'overflowX'>>;
+type OverflowXHiddenStyles = Pick<ViewStyle, 'overflowX'>;
 
 export default OverflowXHiddenStyles;

@@ -1,19 +1,21 @@
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import DateUtils from '../DateUtils';
-import * as UserUtils from '../UserUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
-import * as Localize from '../Localize';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as API from '@libs/API';
+import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as Report from './Report';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -70,7 +72,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `task for ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
@@ -133,9 +135,13 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     // FOR TASK REPORT
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: null,
+            value: {
+                errorFields: {
+                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -147,7 +153,6 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     if (assigneeChatReport) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
-            assigneeEmail,
             assigneeAccountID,
             taskReportID,
             assigneeChatReportID,
@@ -186,7 +191,11 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        value: {
+            [optimisticAddCommentReport.reportAction.reportActionID]: {
+                errors: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+            },
+        },
     });
 
     clearOutTaskInfo();
@@ -355,11 +364,9 @@ function reopenTask(taskReport) {
 
 /**
  * @param {object} report
- * @param {Number} ownerAccountID
  * @param {Object} editedTask
- * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
-function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}, assigneeChatReport = null) {
+function editTaskAndNavigate(report, {title, description}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -368,9 +375,6 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
 
     // Description can be unset, so we default to an empty string if so
     const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
-
-    let assigneeChatReportOnyxData;
-    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
 
     const optimisticData = [
         {
@@ -384,12 +388,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             value: {
                 reportName,
                 description: reportDescription,
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assignee || report.managerEmail,
                 pendingFields: {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
             },
         },
@@ -402,7 +403,6 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 pendingFields: {
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
-                    ...(assigneeAccountID && {managerID: null}),
                 },
             },
         },
@@ -419,29 +419,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             value: {
                 reportName: report.reportName,
                 description: report.description,
-                assignee: report.managerEmail,
-                assigneeAccountID: report.managerID,
             },
         },
     ];
-
-    // If we make a change to the assignee, we want to add a comment to the assignee's chat
-    // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
-            currentUserAccountID,
-            assignee,
-            assigneeAccountID,
-            report.reportID,
-            assigneeChatReportID,
-            report.parentReportID,
-            reportName,
-            assigneeChatReport,
-        );
-        optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
-        successData.push(...assigneeChatReportOnyxData.successData);
-        failureData.push(...assigneeChatReportOnyxData.failureData);
-    }
 
     API.write(
         'EditTask',
@@ -449,16 +429,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             taskReportID: report.reportID,
             title: reportName,
             description: reportDescription,
-            assignee: assignee || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
-            assigneeChatReportID,
-            assigneeChatReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
-                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
-                    : 0,
-            assigneeChatCreatedReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -473,6 +444,13 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
+    const optimisticReport = {
+        reportName,
+        managerID: assigneeAccountID || report.managerID,
+        pendingFields: {
+            ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        },
+    };
 
     const optimisticData = [
         {
@@ -483,14 +461,16 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                reportName,
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assigneeEmail || report.managerEmail,
-            },
+            value: optimisticReport,
         },
     ];
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {pendingFields: {...(assigneeAccountID && {managerID: null})}},
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -500,16 +480,20 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {managerID: report.managerID},
         },
     ];
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+        const participants = lodashGet(report, 'participantAccountIDs', []);
+        if (!participants.includes(assigneeAccountID)) {
+            optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+        }
+
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
-            assigneeEmail,
             assigneeAccountID,
             report.reportID,
             assigneeChatReportID,
@@ -526,8 +510,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         'EditTaskAssignee',
         {
             taskReportID: report.reportID,
-            assignee: assigneeEmail || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
+            assignee: assigneeEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
             assigneeChatReportActionID:
@@ -663,7 +646,9 @@ function setParentReportID(parentReportID) {
  */
 function clearOutTaskInfoAndNavigate(reportID) {
     clearOutTaskInfo();
-    setParentReportID(reportID);
+    if (reportID && reportID !== '0') {
+        setParentReportID(reportID);
+    }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
@@ -699,6 +684,11 @@ function getAssignee(assigneeAccountID, personalDetails) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs');
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
+
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
         const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
@@ -712,6 +702,8 @@ function getShareDestination(reportID, reports, personalDetails) {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
+        displayNamesWithTooltips,
+        shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
     };
 }
 
@@ -765,8 +757,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, optimisticReportActions).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions).created,
             },
         },
         {
@@ -896,7 +888,19 @@ function canModifyTask(taskReport, sessionAccountID) {
 /**
  * @param {String} reportID
  */
-function clearEditTaskErrors(reportID) {
+function clearTaskErrors(reportID) {
+    const report = ReportUtils.getReport(reportID);
+
+    // Delete the task preview in the parent report
+    if (lodashGet(report, 'pendingFields.createChat') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+            [report.parentReportActionID]: null,
+        });
+
+        Report.navigateToConciergeChatAndDeleteReport(reportID);
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: null,
         errorFields: null,
@@ -951,7 +955,7 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    clearEditTaskErrors,
+    clearTaskErrors,
     canModifyTask,
     getTaskReportActionMessage,
 };

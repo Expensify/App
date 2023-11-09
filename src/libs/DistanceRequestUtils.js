@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
@@ -89,9 +89,8 @@ const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, t
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === 1 ? singularDistanceUnit : distanceUnit;
-
-    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
-    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+    const ratePerUnit = rate ? PolicyUtils.getUnitRateValue({rate}, toLocaleDigit) : translate('common.tbd');
+    const currencySymbol = rate ? CurrencyUtils.getCurrencySymbol(currency) || `${currency} ` : '';
 
     return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 };
@@ -102,12 +101,12 @@ const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, t
  * @param {Number} distance - The distance traveled in meters
  * @param {'mi' | 'km'} unit - The unit of measurement for the distance
  * @param {Number} rate - Rate used for calculating the request amount
- * @returns {Number} The computed request amount.
+ * @returns {Number} The computed request amount (rounded) in "cents".
  */
 const getDistanceRequestAmount = (distance, unit, rate) => {
     const convertedDistance = convertDistanceUnit(distance, unit);
     const roundedDistance = convertedDistance.toFixed(2);
-    return roundedDistance * rate;
+    return Math.round(roundedDistance * rate);
 };
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};

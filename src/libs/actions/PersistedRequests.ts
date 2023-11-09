@@ -1,7 +1,7 @@
-import Onyx from 'react-native-onyx';
 import isEqual from 'lodash/isEqual';
-import ONYXKEYS from '../../ONYXKEYS';
-import {Request} from '../../types/onyx';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
 
@@ -18,12 +18,14 @@ function clear() {
 }
 
 function save(requestsToPersist: Request[]) {
+    let requests: Request[] = [];
     if (persistedRequests.length) {
-        persistedRequests = persistedRequests.concat(requestsToPersist);
+        requests = persistedRequests.concat(requestsToPersist);
     } else {
-        persistedRequests = requestsToPersist;
+        requests = requestsToPersist;
     }
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function remove(requestToRemove: Request) {
@@ -31,17 +33,21 @@ function remove(requestToRemove: Request) {
      * We only remove the first matching request because the order of requests matters.
      * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
-    const index = persistedRequests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
+    const requests = [...persistedRequests];
+    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
     if (index === -1) {
         return;
     }
-    persistedRequests.splice(index, 1);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    requests.splice(index, 1);
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function update(oldRequestIndex: number, newRequest: Request) {
-    persistedRequests.splice(oldRequestIndex, 1, newRequest);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    const requests = [...persistedRequests];
+    requests.splice(oldRequestIndex, 1, newRequest);
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function getAll(): Request[] {

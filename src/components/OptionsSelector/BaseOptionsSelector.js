@@ -1,22 +1,23 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
-import Button from '../Button';
-import FixedFooter from '../FixedFooter';
-import OptionsList from '../OptionsList';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
-import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
-import setSelection from '../../libs/setSelection';
-import compose from '../../libs/compose';
-import getPlatform from '../../libs/getPlatform';
+import React, {Component} from 'react';
+import {ScrollView, View} from 'react-native';
+import _ from 'underscore';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import OptionsList from '@components/OptionsList';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import setSelection from '@libs/setSelection';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -31,9 +32,11 @@ const propTypes = {
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -54,6 +57,7 @@ class BaseOptionsSelector extends Component {
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
+        this.updateSearchValue = this.updateSearchValue.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -63,6 +67,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            errorMessage: '',
         };
     }
 
@@ -70,7 +75,7 @@ class BaseOptionsSelector extends Component {
         this.subscribeToKeyboardShortcut();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
-            setTimeout(() => {
+            this.focusTimeout = setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
         }
@@ -108,8 +113,9 @@ class BaseOptionsSelector extends Component {
             });
             return;
         }
-
         const newFocusedIndex = this.props.selectedOptions.length;
+        const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -118,13 +124,13 @@ class BaseOptionsSelector extends Component {
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.props.value)) {
                     this.scrollToIndex(0);
                     return;
                 }
 
                 // Otherwise, scroll to the focused index (as long as it's in range)
-                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                if (this.state.allOptions.length <= this.state.focusedIndex || !isNewFocusedIndex) {
                     return;
                 }
                 this.scrollToIndex(this.state.focusedIndex);
@@ -164,6 +170,14 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    updateSearchValue(value) {
+        this.setState({
+            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+        });
+
+        this.props.onChangeText(value);
     }
 
     subscribeToKeyboardShortcut() {
@@ -315,7 +329,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -343,7 +357,7 @@ class BaseOptionsSelector extends Component {
      * @param {Object} option
      */
     addToSelection(option) {
-        if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+        if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
             this.textInput.focus();
             if (this.textInput.isFocused()) {
                 setSelection(this.textInput, 0, this.props.value.length);
@@ -364,14 +378,15 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                onChangeText={this.updateSearchValue}
+                errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
+                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
-                    if (!this.props.shouldFocusOnSelectRow) {
+                    if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
                         return;
                     }
                     this.relatedTarget = e.relatedTarget;
@@ -380,6 +395,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+                isLoading={this.props.isLoadingNewOptions}
             />
         );
         const optionsList = (
@@ -395,7 +411,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
@@ -411,13 +427,29 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                isLoadingNewOptions={this.props.isLoadingNewOptions}
+                shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
+                nestedScrollEnabled={this.props.nestedScrollEnabled}
+                bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
             />
         );
+
+        const optionsAndInputsBelowThem = (
+            <>
+                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                    {this.props.children}
+                    {this.props.shouldShowTextInput && textInput}
+                </View>
+            </>
+        );
+
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
@@ -427,19 +459,37 @@ class BaseOptionsSelector extends Component {
                 shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                    {this.props.shouldTextInputAppearBelowOptions ? (
-                        <>
-                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                                {this.props.children}
-                                {this.props.shouldShowTextInput && textInput}
-                            </View>
-                        </>
-                    ) : (
+                    {/*
+                     * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
+                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                     * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
+                     */}
+                    {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <ScrollView
+                                horizontal
+                                bounces={false}
+                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                            >
+                                {optionsAndInputsBelowThem}
+                            </ScrollView>
+                        </ScrollView>
+                    )}
+
+                    {this.props.shouldTextInputAppearBelowOptions && !this.props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+
+                    {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
                             </View>
                             {optionsList}
                         </>

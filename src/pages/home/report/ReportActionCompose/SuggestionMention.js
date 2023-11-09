@@ -1,16 +1,15 @@
-import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import MentionSuggestions from '../../../../components/MentionSuggestions';
-import * as UserUtils from '../../../../libs/UserUtils';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
-import useLocalize from '../../../../hooks/useLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import personalDetailsPropType from '../../../personalDetailsPropType';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MentionSuggestions from '@components/MentionSuggestions';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import * as SuggestionProps from './suggestionProps';
 
 /**
@@ -28,9 +27,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
@@ -38,7 +34,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     forwardedRef: null,
 };
 
@@ -48,14 +43,16 @@ function SuggestionMention({
     selection,
     setSelection,
     isComposerFullSize,
-    personalDetails,
     updateComment,
     composerHeight,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
+    isComposerFocused,
 }) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
+    const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
@@ -181,24 +178,24 @@ function SuggestionMention({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || selectionEnd < 1) {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
             const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
 
-            let indexOfLastNonWhitespaceCharAfterTheCursor;
-            if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
-                // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
-                indexOfLastNonWhitespaceCharAfterTheCursor = value.length;
+            let suggestionEndIndex;
+            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
+                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
+                suggestionEndIndex = value.length;
             } else {
-                indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + selectionEnd;
+                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
+            const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
@@ -229,15 +226,19 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.end);
+        if (value.length < previousValue.length) {
+            // A workaround to not show the suggestions list when the user deletes a character before the mention.
+            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
+            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
+            return;
+        }
 
-        // We want this hook to run only on selection change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selection]);
+        calculateMentionSuggestion(selection.end);
+    }, [selection, value, previousValue, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -259,6 +260,8 @@ function SuggestionMention({
         setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
     }, []);
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -266,8 +269,9 @@ function SuggestionMention({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -296,16 +300,14 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    React.forwardRef((props, ref) => (
-        <SuggestionMention
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
+
+export default SuggestionMentionWithRef;

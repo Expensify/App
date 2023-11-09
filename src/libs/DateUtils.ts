@@ -1,29 +1,31 @@
-import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
-import {es, enGB} from 'date-fns/locale';
 import {
-    formatDistanceToNow,
-    subMinutes,
     addDays,
-    subDays,
-    isBefore,
-    subMilliseconds,
-    startOfWeek,
+    eachDayOfInterval,
+    eachMonthOfInterval,
+    endOfDay,
     endOfWeek,
     format,
-    setDefaultOptions,
-    endOfDay,
-    isSameDay,
+    formatDistanceToNow,
     isAfter,
+    isBefore,
+    isSameDay,
     isSameYear,
+    isValid,
+    setDefaultOptions,
+    startOfWeek,
+    subDays,
+    subMilliseconds,
+    subMinutes,
 } from 'date-fns';
-
-import Onyx from 'react-native-onyx';
+import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
+import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as Localize from './Localize';
+import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
-import {Timezone} from '../types/onyx/PersonalDetails';
+import * as Localize from './Localize';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -73,7 +75,7 @@ function setLocale(localeString: string) {
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
- * Moment object for the given ISO-formatted datetime string
+ * Date object for the given ISO-formatted datetime string
  */
 function getLocalDateFromDatetime(locale: string, datetime: string, currentSelectedTimezone = timezone.selected): Date {
     setLocale(locale);
@@ -133,7 +135,13 @@ function isYesterday(date: Date, timeZone: string): boolean {
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZone = false, currentSelectedTimezone = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(
+    locale: 'en' | 'es' | 'es-ES' | 'es_ES',
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone = timezone.selected,
+    isLowercase = false,
+): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -255,6 +263,38 @@ function getCurrentTimezone(): Required<Timezone> {
     return timezone;
 }
 
+/**
+ * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ */
+function getMonthNames(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const fullYear = new Date().getFullYear();
+    const monthsArray = eachMonthOfInterval({
+        start: new Date(fullYear, 0, 1), // January 1st of the current year
+        end: new Date(fullYear, 11, 31), // December 31st of the current year
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * @returns [Monday, Thuesday, Wednesday, ...]
+ */
+function getDaysOfWeek(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return daysOfWeek.map((date) => format(date, 'eeee'));
+}
+
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = new Date();
 
@@ -336,6 +376,22 @@ function getStatusUntilDate(inputDate: string): string {
     return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
+/**
+ * Get a date and format this date using the UTC timezone.
+ * @param datetime
+ * @param dateFormat
+ * @returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ */
+function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+    const date = new Date(datetime);
+
+    if (isValid(date)) {
+        return tzFormat(utcToZonedTime(date, 'UTC'), dateFormat);
+    }
+
+    return '';
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -350,13 +406,16 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
-    setLocale,
     isToday,
     isTomorrow,
     isYesterday,
+    getMonthNames,
+    getDaysOfWeek,
+    formatWithUTCTimeZone,
 };
 
 export default DateUtils;
