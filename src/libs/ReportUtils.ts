@@ -683,6 +683,10 @@ function isChatThread(report: OnyxEntry<Report>): boolean {
     return isThread(report) && report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
+function isDM(report: OnyxEntry<Report>): boolean {
+    return isChatReport(report) && !getChatType(report);
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
@@ -712,13 +716,6 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
 function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean {
     const reportParticipants = report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID) ?? [];
     return reportParticipants.length === 1 && reportParticipants.some((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
-}
-
-/**
- * Returns true if report is a DM/Group DM chat.
- */
-function isDM(report: OnyxEntry<Report>): boolean {
-    return !getChatType(report);
 }
 
 /**
@@ -3560,12 +3557,17 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  * - in an open or submitted expense report tied to a policy expense chat the user owns
  *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
- * - in DM chat
+ * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, participants: number[]): boolean {
-    // User cannot request money in chat thread or in task report
-    if (isChatThread(report) || isTaskReport(report)) {
+function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[]): boolean {
+    // User cannot request money in chat thread or in task report or in chat room
+    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
+    }
+
+    // Users can only request money in DMs if they are a 1:1 DM
+    if (isDM(report)) {
+        return otherParticipants.length === 1;
     }
 
     // Prevent requesting money if pending IOU report waiting for their bank account already exists
@@ -3580,7 +3582,7 @@ function canRequestMoney(report: OnyxEntry<Report>, participants: number[]): boo
     }
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't request money from such report
-    if (participants.length === 0 && !isOwnPolicyExpenseChat) {
+    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
@@ -3618,7 +3620,6 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         return [];
     }
 
-    const participants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const isPolicyOwnedByExpensifyAccounts = report?.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report?.policyID ?? '')?.ownerAccountID ?? 0) : false;
@@ -3626,30 +3627,29 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         return [];
     }
 
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
+    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
+    const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
+    const hasMultipleOtherParticipants = otherParticipants.length > 1;
+    let options: Array<ValueOf<typeof CONST.IOU.TYPE>> = [];
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    // There is no Split Bill option for IOU or Expense reports which are threads
-    if (
-        (isChatRoom(report) && participants.length > 0) ||
-        (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
-        (isControlPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
-    ) {
-        return [CONST.IOU.TYPE.SPLIT];
+    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
+    // Your own workspace chats will have the split bill option.
+    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)) {
+        options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    // DM chats that only have 2 people will see the Send / Request money options.
-    // IOU and open or processing expense reports should show the Request option.
-    // Workspace chats should only see the Request money option or Split option in case of Control policies
-    return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
+    if (canRequestMoney(report, otherParticipants)) {
+        options = [...options, CONST.IOU.TYPE.REQUEST];
+    }
 
-        // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
-    ];
+    // Send money option should be visible only in 1:1 DMs
+    if (isDM(report) && hasSingleOtherParticipantInReport) {
+        options = [...options, CONST.IOU.TYPE.SEND];
+    }
+
+    return options;
 }
 
 /**

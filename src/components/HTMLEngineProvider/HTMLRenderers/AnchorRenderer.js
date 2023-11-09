@@ -70,7 +70,7 @@ function AnchorRenderer(props) {
         Link.openExternalLink(attrHref);
     };
 
-    if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
+    if (!HTMLEngineUtils.isChildOfComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
