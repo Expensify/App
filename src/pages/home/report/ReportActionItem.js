@@ -163,7 +163,7 @@ function ReportActionItem(props) {
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
             setIsHidden(isHiddenValue);
-            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message));
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message) || {});
             if (!isAttachment) {
                 return;
             }

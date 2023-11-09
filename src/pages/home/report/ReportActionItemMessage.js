@@ -38,7 +38,7 @@ const defaultProps = {
 
 function ReportActionItemMessage(props) {
     const messages = _.compact(props.action.previousMessage || props.action.message);
-    const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+    const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages) || {});
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     let iouMessage;
     if (isIOUReport) {
