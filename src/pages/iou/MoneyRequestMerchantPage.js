@@ -1,21 +1,22 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import TextInput from '../../components/TextInput';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as IOU from '../../libs/actions/IOU';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
@@ -47,7 +48,7 @@ const defaultProps = {
 
 function MoneyRequestMerchantPage({iou, route}) {
     const {translate} = useLocalize();
-    const inputRef = useRef(null);
+    const {inputCallbackRef} = useAutoFocusInput();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
@@ -92,7 +93,6 @@ function MoneyRequestMerchantPage({iou, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             testID={MoneyRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton
@@ -115,8 +115,8 @@ function MoneyRequestMerchantPage({iou, route}) {
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (inputRef.current = el)}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        ref={inputCallbackRef}
                     />
                 </View>
             </Form>

@@ -1,9 +1,9 @@
 import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
+import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
-import CONFIG from '../../../CONFIG';
 
 const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,

@@ -1,13 +1,13 @@
+import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
-
-import * as ModalStackNavigators from '../ModalStackNavigators';
-import RHPScreenOptions from '../RHPScreenOptions';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import styles from '../../../../styles/styles';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import styles from '@styles/styles';
 import Overlay from './Overlay';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 import {WindowDimensions} from '../../../../styles/getModalStyles';
 import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '../types';
 import NAVIGATORS from '../../../../NAVIGATORS';
@@ -62,6 +62,14 @@ function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, 
                     <Stack.Screen
                         name="Participants"
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomMembers"
+                        component={ModalStackNavigators.RoomMembersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomInvite"
+                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
                     />
                     <Stack.Screen
                         name="MoneyRequest"

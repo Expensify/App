@@ -12,11 +12,51 @@ type State = Omit<PartialState<StackNavigationState<ParamListBase>>, 'stale'> & 
 const isAtLeastOneCentralPaneNavigatorInState = (state: State): boolean => !!state.routes.find((r) => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
 /**
+ * @param {Object} state - react-navigation state
+ * @returns {String}
+ */
+const getTopMostReportIDFromRHP = (state) => {
+    if (!state) {
+        return '';
+    }
+    const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+    if (topmostRightPane) {
+        return getTopMostReportIDFromRHP(topmostRightPane.state);
+    }
+
+    const topmostRoute = lodashFindLast(state.routes);
+
+    if (topmostRoute.state) {
+        return getTopMostReportIDFromRHP(topmostRoute.state);
+    }
+
+    if (topmostRoute.params && topmostRoute.params.reportID) {
+        return topmostRoute.params.reportID;
+    }
+
+    return '';
+};
+/**
  * Adds report route without any specific reportID to the state.
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
  */
-const addCentralPaneNavigatorRoute = (state: State) => {
-    state.routes.splice(1, 0, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
+const addCentralPaneNavigatorRoute = (state) => {
+    const reportID = getTopMostReportIDFromRHP(state);
+    const centralPaneNavigatorRoute = {
+        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+        state: {
+            routes: [
+                {
+                    name: SCREENS.REPORT,
+                    params: {
+                        reportID,
+                    },
+                },
+            ],
+        },
+    };
+    state.routes.splice(1, 0, centralPaneNavigatorRoute);
     // eslint-disable-next-line no-param-reassign
     state.index = state.routes.length - 1;
 };

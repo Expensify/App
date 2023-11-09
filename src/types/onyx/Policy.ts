@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Policy = {
@@ -17,6 +17,9 @@ type Policy = {
 
     /** The email of the policy owner */
     owner: string;
+
+    /** The accountID of the policy owner */
+    ownerAccountID: number;
 
     /** The output currency for the policy */
     outputCurrency: string;

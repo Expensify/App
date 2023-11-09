@@ -8,8 +8,10 @@
  * See https://github.com/Expensify/App/issues/20836 for more details.
  *
  * @param {Object} input the input element
+ * @param {boolean} shouldAutoFocus
  */
-export default function updateMultilineInputRange(input) {
+// eslint-disable-next-line no-unused-vars
+export default function updateMultilineInputRange(input, shouldAutoFocus = true) {
     if (!input) {
         return;
     }

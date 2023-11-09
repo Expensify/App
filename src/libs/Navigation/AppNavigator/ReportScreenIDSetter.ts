@@ -1,11 +1,11 @@
 import {useEffect} from 'react';
 import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as ReportUtils from '../../ReportUtils';
-import * as App from '../../actions/App';
-import usePermissions from '../../../hooks/usePermissions';
-import CONST from '../../../CONST';
-import Navigation from '../Navigation';
+import usePermissions from '@hooks/usePermissions';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as App from '@userActions/App';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {Policy, Report} from '../../../types/onyx';
 import {ReportScreenWrapperProps} from './types';
 
@@ -31,10 +31,9 @@ const getLastAccessedReportID = (
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
 ): number | string => {
-    // If deeplink url is of an attachment, we should show the report that the attachment comes from.
+    // If deeplink url contains reportID params, we should show the report that has this reportID.
     const currentRoute = Navigation.getActiveRoute();
-    const matches = CONST.REGEX.ATTACHMENT_ROUTE.exec(currentRoute);
-    const reportID = matches?.[1] ?? null;
+    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
     if (reportID) {
         return reportID;
     }
@@ -43,7 +42,6 @@ const getLastAccessedReportID = (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore till ReportUtils file is migrated
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) as Report;
-
     return lastReport?.reportID;
 };
 

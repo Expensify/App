@@ -1,21 +1,21 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import policyMemberPropType from '../pages/policyMemberPropType';
+import _ from 'underscore';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as UserUtils from '@libs/UserUtils';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import ONYXKEYS from '@src/ONYXKEYS';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
-import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import {policyPropTypes} from '../pages/workspace/withPolicy';
-import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as UserUtils from '../libs/UserUtils';
-import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /* Onyx Props */

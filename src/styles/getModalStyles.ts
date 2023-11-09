@@ -1,16 +1,17 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
 import {ModalProps} from 'react-native-modal';
-import CONST from '../CONST';
-import variables from './variables';
-import themeColors from './themes/default';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import styles from './styles';
+import themeColors from './themes/default';
+import variables from './variables';
 
 function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
+
     return {
-        borderWidth: styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).borderWidth,
-        width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).marginHorizontal * 2,
+        borderWidth: modalStyles.borderWidth,
+        width: isSmallScreenWidth ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
     };
 }
 
@@ -26,7 +27,7 @@ type WindowDimensions = {
 
 type GetModalStyles = {
     modalStyle: ViewStyle;
-    modalContainerStyle: ViewStyle | Pick<CSSProperties, 'boxShadow'>;
+    modalContainerStyle: ViewStyle;
     swipeDirection: ModalProps['swipeDirection'];
     animationIn: ModalProps['animationIn'];
     animationOut: ModalProps['animationOut'];
@@ -72,15 +73,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 borderRadius: 12,
                 overflow: 'hidden',
                 width: variables.sideBarWidth,
@@ -104,15 +97,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -139,15 +124,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -172,15 +149,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 borderRadius: 12,
                 borderWidth: 0,
             };

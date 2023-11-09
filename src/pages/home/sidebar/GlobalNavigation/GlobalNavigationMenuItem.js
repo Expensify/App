@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import * as StyleUtils from '../../../../styles/StyleUtils';
-import Icon from '../../../../components/Icon';
-import CONST from '../../../../CONST';
-import variables from '../../../../styles/variables';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
+import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Icon to display */
@@ -35,7 +35,7 @@ const GlobalNavigationMenuItem = React.forwardRef(({icon, title, isFocused, onPr
         onPress={() => !isFocused && onPress()}
         style={styles.globalNavigationItemContainer}
         ref={ref}
-        accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+        role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
         accessibilityLabel={title}
     >
         {({pressed}) => (

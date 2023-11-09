@@ -1,12 +1,10 @@
+import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 import {Animated, View} from 'react-native';
-import {useCardAnimation} from '@react-navigation/stack';
-
-import styles from '../../../../styles/styles';
-
-import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import CONST from '../../../../CONST';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 type OverlayProps = {
     onPress: () => void;
@@ -31,7 +29,7 @@ function Overlay(props: OverlayProps) {
                     style={styles.draggableTopBar}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 />
                 <PressableWithoutFeedback
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -39,7 +37,7 @@ function Overlay(props: OverlayProps) {
                     style={styles.flex1}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     noDragArea
                 />
             </View>
