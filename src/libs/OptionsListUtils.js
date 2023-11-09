@@ -377,7 +377,7 @@ function getAllReportErrors(report, reportActions) {
  * Get the preview message to be displayed in the option list.
  * @param {Object} report
  * @param {Object} reportAction
- * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Boolean} [isPreviewMessageForParentChatReport]
  * @returns {String}
  */
 
