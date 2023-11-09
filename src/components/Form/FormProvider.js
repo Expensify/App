@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
+import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -99,7 +99,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
+const FormProvider = forwardRef(({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}, forwardedRef) => {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -201,6 +201,29 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
         onSubmit(inputValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
+
+    /**
+     * Resets the form
+     */
+    const resetForm = useCallback(
+        (optionalValue) => {
+            _.each(inputValues, (inputRef, inputID) => {
+                setInputValues((prevState) => {
+                    const copyPrevState = _.clone(prevState);
+
+                    touchedInputs.current[inputID] = false;
+                    copyPrevState[inputID] = optionalValue[inputID] || '';
+
+                    return copyPrevState;
+                });
+            });
+            setErrors({});
+        },
+        [inputValues],
+    );
+    useImperativeHandle(forwardedRef, () => ({
+        resetForm,
+    }));
 
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
@@ -324,7 +347,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             </FormWrapper>
         </FormContext.Provider>
     );
-}
+});
 
 FormProvider.displayName = 'Form';
 FormProvider.propTypes = propTypes;
