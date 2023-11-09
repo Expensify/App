@@ -1,5 +1,4 @@
-import Onyx from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -17,7 +16,7 @@ Onyx.connect({
 function getGroupChatName(report: Report): string {
     const participants = report.participantAccountIDs ?? [];
     const isMultipleParticipantReport = participants.length > 1;
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails || {});
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails ?? {});
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipantReport);
     return ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips);
 }
