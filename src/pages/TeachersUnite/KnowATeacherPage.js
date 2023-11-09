@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
@@ -36,6 +37,7 @@ const defaultProps = {
 
 function KnowATeacherPage(props) {
     const {translate} = useLocalize();
+    const {environment} = useEnvironment();
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
@@ -51,7 +53,10 @@ function KnowATeacherPage(props) {
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 
-        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName);
+
+        const policyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        const publicRoomReportID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
+        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName, policyID, publicRoomReportID);
     };
 
     /**
