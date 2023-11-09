@@ -3,7 +3,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -123,7 +124,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 title={localize.translate('statusPage.status')}
                 onBackButtonPress={navigateBackToPreviousScreen}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={styles.flexGrow1}
                 ref={formRef}
@@ -139,14 +140,16 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 </View>
                 <View style={[styles.mb2, styles.mt6]}>
                     <View style={[styles.mb4, styles.ph5]}>
-                        <EmojiPickerButtonDropdown
+                        <InputWrapper
+                            InputComponent={EmojiPickerButtonDropdown}
                             inputID={INPUT_IDS.EMOJI_CODE}
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             label={localize.translate('statusPage.message')}
@@ -177,7 +180,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                         />
                     )}
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
