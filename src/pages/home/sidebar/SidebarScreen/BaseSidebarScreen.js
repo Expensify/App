@@ -1,13 +1,13 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../../../../styles/styles';
-import SidebarLinksData from '../SidebarLinksData';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Timing from '../../../../libs/actions/Timing';
-import CONST from '../../../../CONST';
-import Performance from '../../../../libs/Performance';
+import ScreenWrapper from '@components/ScreenWrapper';
+import * as Browser from '@libs/Browser';
+import Performance from '@libs/Performance';
+import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import styles from '@styles/styles';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import sidebarPropTypes from './sidebarPropTypes';
-import * as Browser from '../../../../libs/Browser';
 
 /**
  * Function called when a pinned chat is selected.

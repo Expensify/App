@@ -11,10 +11,14 @@ type Response = {
     jsonCode?: number | string;
     onyxData?: OnyxUpdate[];
     requestID?: string;
+    shouldPauseQueue?: boolean;
+    authToken?: string;
+    encryptedAuthToken?: string;
     message?: string;
     title?: string;
     data?: Data;
     type?: string;
+    shortLivedAuthToken?: string;
 };
 
 export default Response;

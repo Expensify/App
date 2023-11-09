@@ -4,19 +4,19 @@ description: Best Practices for Conference Attendees
 redirect_from: articles/other/Expensify-Chat-For-Conference-Attendees/
 ---
 
-## Overview
+# Overview
 Expensify Chat is the best way to meet and network with other event attendees. No more hunting down your contacts by walking the floor or trying to find someone in crowds at a party. Instead, you can use Expensify Chat to network and collaborate with others throughout the conference.
 
 To help get you set up for a great event, we’ve created a guide to help you get the most out of using Expensify Chat at the event you’re attending.
 
-## Getting Started
+# Getting Started
 We’ve rounded up some resources to get you set up on Expensify Chat and ready to start connecting with your fellow attendees:
 
 - [How to get set up and start using Expensify Chat](https://help.expensify.com/articles/other/Everything-About-Chat#how-to-use-chat-in-expensify)
 - [How to format text in Expensify Chat](https://help.expensify.com/articles/other/Everything-About-Chat#how-to-format-text)
 - [How to flag content and/or users for moderation](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive)
 
-## Chat Best Practices
+# Chat Best Practices
 To get the most out of your experience at your conference and engage people in a meaningful conversation that will fulfill your goals instead of turning people off, here are some tips on what to do and not to do as an event attendee using Expensify Chat:
 
 **Do:**

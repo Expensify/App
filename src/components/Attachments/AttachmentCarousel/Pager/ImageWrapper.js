@@ -1,9 +1,8 @@
-/* eslint-disable es/no-optional-chaining */
+import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
-import styles from '../../../../styles/styles';
+import styles from '@styles/styles';
 
 const imageWrapperPropTypes = {
     children: PropTypes.node.isRequired,
@@ -19,6 +18,8 @@ function ImageWrapper({children}) {
         </Animated.View>
     );
 }
+
 ImageWrapper.propTypes = imageWrapperPropTypes;
+ImageWrapper.displayName = 'ImageWrapper';
 
 export default ImageWrapper;

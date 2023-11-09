@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
 import refPropTypes from './refPropTypes';
 
@@ -66,12 +66,6 @@ const propTypes = {
 
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
-
-    /** Function to fire when the right icon has been pressed */
-    onIconRightPress: PropTypes.func,
-
-    /** accessibilityLabel for the right icon when it's pressable */
-    iconRightAccessibilityLabel: PropTypes.string,
 
     /** A description text to show under the title */
     description: PropTypes.string,
@@ -159,6 +153,12 @@ const propTypes = {
 
     /** Should render component on the right */
     shouldShowRightComponent: PropTypes.bool,
+
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;
