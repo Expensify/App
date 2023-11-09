@@ -7,7 +7,7 @@ import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
-function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {
+const DatePicker = forwardRef(({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) => {
     const ref = useRef();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -70,10 +70,10 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
             )}
         </>
     );
-}
+});
 
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 DatePicker.displayName = 'DatePicker';
 
-export default forwardRef(DatePicker);
+export default DatePicker;
