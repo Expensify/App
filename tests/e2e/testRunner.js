@@ -234,7 +234,7 @@ const runTests = async () => {
             result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' measured ${result}`);
+        Logger.log(`[LISTENER] Test '${testResult.name}' on '${testResult.branch}' measured ${result}`);
 
         if (!results[testResult.branch]) {
             results[testResult.branch] = {};
