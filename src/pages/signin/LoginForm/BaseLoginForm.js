@@ -70,7 +70,6 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-
     isVisible: PropTypes.bool.isRequired,
 
     /** Whether navigation is focused */
