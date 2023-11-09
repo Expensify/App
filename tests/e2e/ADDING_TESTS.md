@@ -129,7 +129,7 @@ export default test;
 
 ### Last step: register the test in the e2e react native entry
 
-In `src/lib/E2E/reactNativeLaunchingTest.js` you have to add your newly created
+In `src/lib/E2E/reactNativeLaunchingTest.ts` you have to add your newly created
 test file:
 
 ```diff
