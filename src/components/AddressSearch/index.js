@@ -259,7 +259,7 @@ function AddressSearch(props) {
         if (!values.street && details.adr_address) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
             const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressFallback = _.get(adr_address, [1], null);
+            const streetAddressFallback = lodashGet(adr_address, [1], null);
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
             }
