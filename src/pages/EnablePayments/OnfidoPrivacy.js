@@ -86,6 +86,7 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
 
 OnfidoPrivacy.propTypes = propTypes;
 OnfidoPrivacy.defaultProps = defaultProps;
+OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
 export default compose(
     withLocalize,

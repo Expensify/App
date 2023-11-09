@@ -18,13 +18,11 @@ const propTypes = {
 function BackgroundImage(props) {
     return props.isSmallScreen ? (
         <MobileBackgroundImage
-            pointerEvents={props.pointerEvents}
             width={props.width}
             style={styles.signInBackground}
         />
     ) : (
         <DesktopBackgroundImage
-            pointerEvents={props.pointerEvents}
             width={props.width}
             style={styles.signInBackground}
         />

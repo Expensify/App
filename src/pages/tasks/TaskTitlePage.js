@@ -89,7 +89,7 @@ function TaskTitlePage(props) {
                         <View style={[styles.mb4]}>
                             <InputWrapper
                                 InputComponent={TextInput}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="title"
                                 name="title"
                                 label={props.translate('task.title')}
