@@ -1,9 +1,10 @@
+import { LinkingOptions } from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-export default {
+const linkingConfig: LinkingOptions<ReactNavigation.RootParamList> = {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -427,3 +428,5 @@ export default {
         },
     },
 };
+
+export default linkingConfig;
