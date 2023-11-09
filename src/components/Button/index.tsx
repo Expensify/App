@@ -35,10 +35,10 @@ type ButtonProps = {
     iconFill?: string;
 
     /** Any additional styles to pass to the left icon container. */
-    iconStyles?: Array<StyleProp<ViewStyle>>;
+    iconStyles?: StyleProp<ViewStyle>;
 
     /** Any additional styles to pass to the right icon container. */
-    iconRightStyles?: Array<StyleProp<ViewStyle>>;
+    iconRightStyles?: StyleProp<ViewStyle>;
 
     /** Small sized button */
     small?: boolean;
@@ -56,10 +56,10 @@ type ButtonProps = {
     isDisabled?: boolean;
 
     /** A function that is called when the button is clicked on */
-    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** A function that is called when the button is long pressed */
-    onLongPress?: (e?: GestureResponderEvent) => void;
+    onLongPress?: (event?: GestureResponderEvent) => void;
 
     /** A function that is called when the button is pressed */
     onPressIn?: () => void;
@@ -80,10 +80,10 @@ type ButtonProps = {
     style?: ViewStyle | ViewStyle[];
 
     /** Additional button styles. Specific to the OpacityView of the button */
-    innerStyles?: Array<StyleProp<ViewStyle>>;
+    innerStyles?: StyleProp<ViewStyle>;
 
     /** Additional text styles */
-    textStyles?: Array<StyleProp<TextStyle>>;
+    textStyles?: StyleProp<TextStyle>;
 
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
@@ -111,55 +111,54 @@ type ButtonProps = {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
-
-    /** A ref to forward the button */
-    forwardedRef?: React.ForwardedRef<View>;
 };
 
-function Button({
-    allowBubble = false,
-    text = '',
-    shouldShowRightIcon = false,
+function Button(
+    {
+        allowBubble = false,
+        text = '',
+        shouldShowRightIcon = false,
 
-    icon = null,
-    iconRight = Expensicons.ArrowRight,
-    iconFill = themeColors.textLight,
-    iconStyles = [],
-    iconRightStyles = [],
+        icon = null,
+        iconRight = Expensicons.ArrowRight,
+        iconFill = themeColors.textLight,
+        iconStyles = [],
+        iconRightStyles = [],
 
-    small = false,
-    large = false,
-    medium = false,
+        small = false,
+        large = false,
+        medium = false,
 
-    isLoading = false,
-    isDisabled = false,
+        isLoading = false,
+        isDisabled = false,
 
-    onPress = () => {},
-    onLongPress = () => {},
-    onPressIn = () => {},
-    onPressOut = () => {},
-    onMouseDown = undefined,
+        onPress = () => {},
+        onLongPress = () => {},
+        onPressIn = () => {},
+        onPressOut = () => {},
+        onMouseDown = undefined,
 
-    pressOnEnter = false,
-    enterKeyEventListenerPriority = 0,
+        pressOnEnter = false,
+        enterKeyEventListenerPriority = 0,
 
-    style = [],
-    innerStyles = [],
-    textStyles = [],
+        style = [],
+        innerStyles = [],
+        textStyles = [],
 
-    shouldUseDefaultHover = true,
-    success = false,
-    danger = false,
-    children = null,
+        shouldUseDefaultHover = true,
+        success = false,
+        danger = false,
+        children = null,
 
-    shouldRemoveRightBorderRadius = false,
-    shouldRemoveLeftBorderRadius = false,
-    shouldEnableHapticFeedback = false,
+        shouldRemoveRightBorderRadius = false,
+        shouldRemoveLeftBorderRadius = false,
+        shouldEnableHapticFeedback = false,
 
-    id = '',
-    accessibilityLabel = '',
-    forwardedRef = undefined,
-}: ButtonProps) {
+        id = '',
+        accessibilityLabel = '',
+    }: ButtonProps,
+    ref: ForwardedRef<View>,
+) {
     const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
@@ -197,7 +196,7 @@ function Button({
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
                     icon && styles.textAlignLeft,
-                    ...textStyles,
+                    textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -211,7 +210,7 @@ function Button({
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
-                            <View style={[styles.mr1, ...iconStyles]}>
+                            <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
                                     fill={iconFill}
@@ -222,7 +221,7 @@ function Button({
                         {textComponent}
                     </View>
                     {shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, ...iconRightStyles]}>
+                        <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
                                 fill={iconFill}
@@ -239,9 +238,9 @@ function Button({
 
     return (
         <PressableWithFeedback
-            ref={forwardedRef}
+            ref={ref}
             onPress={(event) => {
-                if (event && event.type === 'click') {
+                if (event?.type === 'click') {
                     const currentTarget = event?.currentTarget as HTMLElement;
                     currentTarget?.blur();
                 }
@@ -281,7 +280,7 @@ function Button({
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 icon || shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-                ...innerStyles,
+                innerStyles,
             ]}
             hoverStyle={[
                 shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -306,16 +305,4 @@ function Button({
 
 Button.displayName = 'Button';
 
-function ButtonWithRef(props: ButtonProps, ref: ForwardedRef<View>) {
-    return (
-        <Button
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    );
-}
-
-ButtonWithRef.displayName = 'ButtonWithRef';
-
-export default withNavigationFallback(React.forwardRef(ButtonWithRef));
+export default withNavigationFallback(React.forwardRef(Button));
