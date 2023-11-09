@@ -706,6 +706,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
 
     const params = {
         ...dataToIncludeInParams,
+        reportID: iouReport.reportID,
         transactionID,
     };
 
