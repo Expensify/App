@@ -28,9 +28,11 @@ Onyx.connect({
  * @param {String} partnerUserID
  * @param {String} firstName
  * @param {String} lastName
+ * @param {String} policyID
+ * @param {String} publicRoomReportID
  */
-function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.TEACHERS_UNITE.POLICY_ID);
+function referTeachersUniteVolunteer(partnerUserID, firstName, lastName, policyID, publicRoomReportID) {
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -52,7 +54,7 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
         },
         {optimisticData},
     );
-    Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
+    Navigation.dismissModal(publicRoomReportID);
 }
 
 /**
@@ -60,10 +62,10 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
  * @param {String} firstName
  * @param {String} partnerUserID
  * @param {String} lastName
+ * @param {String} policyID
  */
-function addSchoolPrincipal(firstName, partnerUserID, lastName) {
+function addSchoolPrincipal(firstName, partnerUserID, lastName, policyID) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
-    const policyID = CONST.TEACHERS_UNITE.POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData = {};
 
