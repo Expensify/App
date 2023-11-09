@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
@@ -11,7 +11,6 @@ import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
-    const removeOnClose = useRef(() => {});
 
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
@@ -26,18 +25,15 @@ function Popover(props) {
     );
 
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: removeOnClose.current,
-                onOpenCallback: () => {
-                    removeOnClose.current();
-                    removeOnClose.current = Modal.setCloseModal(() => props.onClose(props.anchorRef));
-                },
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -45,6 +41,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
