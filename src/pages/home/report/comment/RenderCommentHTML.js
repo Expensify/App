@@ -14,7 +14,7 @@ const propTypes = {
 function RenderCommentHTML({html, source}) {
     const commentHtml = source === 'email' ? `<email-comment>${html}</email-comment>` : `<comment>${html}</comment>`;
 
-    return <RenderHTML html={commentHtml}/>;
+    return <RenderHTML html={commentHtml} />;
 }
 
 RenderCommentHTML.propTypes = propTypes;
