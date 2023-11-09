@@ -530,7 +530,6 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                style={[styles.mt2]}
             />
         );
 
