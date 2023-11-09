@@ -15,6 +15,8 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
+// This promise is used to ensure pusher events are always processed in the order they are received,
+// even when such events are received over multiple separate pusher updates.
 let pusherEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
@@ -53,7 +55,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
             return promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
         }, pusherEventsPromise)
         .then(() => {
-            console.debug('[OnyxUpdateManager2] Done applying Pusher update');
+            console.debug('[OnyxUpdateManager] Done applying Pusher update');
         });
 
     return pusherEventsPromise;
