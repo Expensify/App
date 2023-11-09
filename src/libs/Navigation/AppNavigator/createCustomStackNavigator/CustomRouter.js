@@ -69,7 +69,7 @@ function CustomRouter(options) {
         ...stackRouter,
         getRehydratedState(partialState, {routeNames, routeParamList}) {
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
+            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getshouldUseNarrowLayout()) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
                 // eslint-disable-next-line no-param-reassign
                 partialState.stale = true;
