@@ -14,6 +14,7 @@ import * as Policy from '@userActions/Policy';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './kycWallPropTypes';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
@@ -100,7 +101,10 @@ class KYCWall extends React.Component {
             Navigation.navigate(this.props.addDebitCardRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             if (ReportUtils.isIOUReport(this.props.iouReport)) {
-                Policy.createWorkspaceFromIOUPayment(this.props.iouReport);
+                const policyID = Policy.createWorkspaceFromIOUPayment(this.props.iouReport);
+
+                // Navigate to the bank account set up flow for this specific policy
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
                 return;
             }
             Navigation.navigate(this.props.addBankAccountRoute);

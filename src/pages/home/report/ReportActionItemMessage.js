@@ -47,8 +47,6 @@ function ReportActionItemMessage(props) {
             iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
         }
     }
-<<<<<<< HEAD
-=======
 
     const isApprovedOrSubmittedReportAction = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
 
@@ -85,7 +83,6 @@ function ReportActionItemMessage(props) {
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
     };
 
->>>>>>> main
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {!props.isHidden ? (

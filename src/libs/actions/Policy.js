@@ -16,10 +16,8 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const allPolicies = {};
 Onyx.connect({
@@ -1463,6 +1461,14 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
+/**
+ * This flow is used for bottom up flow converting IOU report to an expense report. When user takes this action,
+ * we create a Collect type workspace when the person taking the action becomes an owner and an admin, while we
+ * add a new member to the workspace as an employee and convert the IOU report passed as a param into an expense report.
+ *
+ * @param {Object} iouReport
+ * @returns {String} policyID of the workspace we have created
+ */
 function createWorkspaceFromIOUPayment(iouReport) {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReport(iouReport)) {
@@ -1816,8 +1822,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         {optimisticData, successData, failureData},
     );
 
-    // Navigate to the bank account set up flow for this specific policy
-    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+    return policyID;
 }
 
 export {
