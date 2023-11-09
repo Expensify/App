@@ -322,7 +322,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
             return false;
         }
         const expenseReport = allReports[reportAction?.originalMessage?.IOUReportID];
-        return expenseReport && expenseReport.type === CONST.REPORT.TYPE.EXPENSE && expenseReport.statusNum === CONST.REPORT.STATUS.CLOSED && expenseReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+        return (
+            expenseReport !== null &&
+            expenseReport.type === CONST.REPORT.TYPE.EXPENSE &&
+            expenseReport.statusNum === CONST.REPORT.STATUS.CLOSED &&
+            expenseReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED
+        );
     }
 
     if (isPendingRemove(reportAction)) {

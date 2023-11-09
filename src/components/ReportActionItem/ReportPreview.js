@@ -188,7 +188,14 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !iouDone && !props.iouReport.isWaitingOnBankAccount && totalDisplaySpend !== 0;
+        : !_.isEmpty(props.iouReport) &&
+          isCurrentUserManager &&
+          !isReportDraft &&
+          !iouSettled &&
+          !iouCanceled &&
+          !iouDone &&
+          !props.iouReport.isWaitingOnBankAccount &&
+          totalDisplaySpend !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>

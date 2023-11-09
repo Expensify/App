@@ -188,9 +188,10 @@ function SettlementButton({
             return [
                 {
                     ...paymentMethods[paymentMethod],
-                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE
-                        ? paymentMethods[paymentMethod].text
-                        : translate('iou.pay'),
+                    text:
+                        paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE
+                            ? paymentMethods[paymentMethod].text
+                            : translate('iou.pay'),
                 },
             ];
         }

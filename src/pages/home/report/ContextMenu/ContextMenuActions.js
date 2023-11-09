@@ -282,7 +282,7 @@ export default [
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isDoneAction(reportAction)) {
-                    const displayMessage = "MEGAPOTATO";
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();

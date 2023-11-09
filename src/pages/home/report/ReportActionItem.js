@@ -414,9 +414,9 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)}/>;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && ReportUtils.isMarkedAsDone(props.report)) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUReportActionDisplayMessage(props.action)}/>;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUReportActionDisplayMessage(props.action)} />;
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (
