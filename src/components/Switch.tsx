@@ -21,25 +21,25 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch(props: SwitchProps) {
-    const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
+    const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
     useEffect(() => {
         Animated.timing(offsetX.current, {
-            toValue: props.isOn ? OFFSET_X.ON : OFFSET_X.OFF,
+            toValue: isOn ? OFFSET_X.ON : OFFSET_X.OFF,
             duration: 300,
             useNativeDriver,
         }).start();
-    }, [props.isOn]);
+    }, [isOn]);
 
     return (
         <PressableWithFeedback
-            style={[styles.switchTrack, !props.isOn && styles.switchInactive]}
-            onPress={() => props.onToggle(!props.isOn)}
-            onLongPress={() => props.onToggle(!props.isOn)}
+            style={[styles.switchTrack, !isOn && styles.switchInactive]}
+            onPress={() => onToggle(!isOn)}
+            onLongPress={() => onToggle(!isOn)}
             role={CONST.ACCESSIBILITY_ROLE.SWITCH}
-            aria-checked={props.isOn}
-            accessibilityLabel={props.accessibilityLabel}
+            aria-checked={isOn}
+            accessibilityLabel={accessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
