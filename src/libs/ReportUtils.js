@@ -4168,14 +4168,6 @@ function getRoom(type, policyID) {
     return room;
 }
 
-/**
- *
- * @returns {Object}
- */
-function getAllPersonalDetails() {
-    return allPersonalDetails;
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4336,5 +4328,4 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
-    getAllPersonalDetails,
 };
