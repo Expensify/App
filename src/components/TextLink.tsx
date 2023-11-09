@@ -1,32 +1,40 @@
 import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler, ReactElement} from 'react';
-import {GestureResponderEvent, Text as RNText, TextStyle} from 'react-native';
+import {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import Text from './Text';
 
-type TextLinkProps = {
+type LinkProps = {    
     /** Link to open in new tab */
-    href?: string;
+    href: string;
 
+    onPress?: undefined;
+}
+
+type PressProps = {
+    href?: undefined;
+
+    /** Overwrites the default link behavior with a custom callback */
+    onPress: () => void;
+}
+
+type TextLinkProps = (LinkProps | PressProps) & {
     /** Text content child */
     children: ReactElement;
 
     /** Additional style props */
-    style?: TextStyle;
-
-    /** Overwrites the default link behavior with a custom callback */
-    onPress?: () => void;
+    style?: StyleProp<TextStyle>;
 
     /** Callback that is called when mousedown is triggered */
     onMouseDown?: MouseEventHandler;
 };
 
-function TextLink({href, children, style, onPress, onMouseDown = (event) => event.preventDefault(), ...props}: TextLinkProps, ref: ForwardedRef<RNText>) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...props}: TextLinkProps, ref: ForwardedRef<RNText>) {
     const openLink = () => {
         if (onPress) {
             onPress();
-        } else if (href) {
+        } else {
             Link.openExternalLink(href);
         }
     };
