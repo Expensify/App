@@ -28,9 +28,8 @@ const defaultProps = {
     policy: {},
 };
 
-function SaveTheWorldPage(props) {
+function SaveTheWorldPage() {
     const {translate} = useLocalize();
-    const isTeacherAlreadyInvited = !_.isUndefined(props.policy) && props.policy.role === CONST.POLICY.ROLE.USER;
 
     return (
         <IllustratedHeaderPageLayout
@@ -51,13 +50,11 @@ function SaveTheWorldPage(props) {
                 onPress={() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)}
             />
 
-            {!isTeacherAlreadyInvited && (
-                <MenuItem
-                    shouldShowRightIcon
-                    title={translate('teachersUnitePage.iAmATeacher')}
-                    onPress={() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)}
-                />
-            )}
+            <MenuItem
+                shouldShowRightIcon
+                title={translate('teachersUnitePage.iAmATeacher')}
+                onPress={() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)}
+            />
         </IllustratedHeaderPageLayout>
     );
 }
@@ -66,8 +63,4 @@ SaveTheWorldPage.propTypes = propTypes;
 SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 
-export default withOnyx({
-    policy: {
-        key: () => `${ONYXKEYS.COLLECTION.POLICY}${CONST.TEACHERS_UNITE.POLICY_ID}`,
-    },
-})(SaveTheWorldPage);
+export default SaveTheWorldPage;
