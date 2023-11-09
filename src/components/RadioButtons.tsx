@@ -22,8 +22,6 @@ type RadioButtonsProps = {
 function RadioButtons({items, onPress, defaultCheckedValue = ''}: RadioButtonsProps) {
     const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
 
-    console.log(items, ' items');
-    console.log(checkedValue, ' checkedValue');
     return (
         <View>
             {items.map((item) => (
