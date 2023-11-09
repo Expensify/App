@@ -26,9 +26,9 @@ const SHOW_EVENT_NAME = 'keyboardDidShow';
 const HIDE_EVENT_NAME = 'keyboardDidHide';
 let previousVPHeight = window.visualViewport.height;
 
-const handleVPResize = () => {
+const handleViewportResize = () => {
     if (window.visualViewport.height < previousVPHeight) {
-        // this might mean virtual keyboard showed up
+        // This might mean virtual keyboard showed up
         // checking if any input element is in focus
         if (isInputKeyboardType(document.activeElement) && document.activeElement !== currentVisibleElement) {
             // input el is focused - v keyboard is up
@@ -48,12 +48,12 @@ const handleVPResize = () => {
 
 const startKeboardListeningService = () => {
     isKeyboardListenerRunning = true;
-    window.visualViewport.addEventListener('resize', handleVPResize);
+    window.visualViewport.addEventListener('resize', handleViewportResize);
 };
 
 const addListener = (eventName, callbackFn) => {
     if ((eventName !== SHOW_EVENT_NAME && eventName !== HIDE_EVENT_NAME) || !callbackFn) {
-        return;
+        throw new Error('Invalid eventName passed to addListener()');
     }
 
     if (eventName === SHOW_EVENT_NAME) {
@@ -78,7 +78,7 @@ const addListener = (eventName, callbackFn) => {
         }
 
         if (isKeyboardListenerRunning && !showListeners.length && !hideListeners.length) {
-            window.visualViewport.removeEventListener('resize', handleVPResize);
+            window.visualViewport.removeEventListener('resize', handleViewportResize);
             isKeyboardListenerRunning = false;
         }
     };
@@ -129,7 +129,7 @@ export default {
      */
     scheduleLayoutAnimation: nullFn,
     /**
-     * Return the metrics of the soft-keyboard if visible. Currently now working on web.
+     * Return the metrics of the soft-keyboard if visible. Currently not working on web.
      */
     metrics: nullFn,
 };

@@ -1,19 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import DomUtils from '@libs/DomUtils';
 import SwipeableViewProps from './types';
 
+// Min delta y in px to trigger swipe
 const MIN_DELTA_Y = 25;
-
-const isTextSelection = (): boolean => {
-    const focused = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
-    if (!focused) {
-        return false;
-    }
-    if (typeof focused.selectionStart === 'number' && typeof focused.selectionEnd === 'number') {
-        return focused.selectionStart !== focused.selectionEnd;
-    }
-    return false;
-};
 
 function SwipeableView({onSwipeUp, onSwipeDown, style, children}: SwipeableViewProps) {
     const ref = useRef<View | null>(null);
@@ -34,7 +25,7 @@ function SwipeableView({onSwipeUp, onSwipeDown, style, children}: SwipeableViewP
 
         const handleTouchEnd = (event: TouchEvent) => {
             const deltaY = event.changedTouches[0].clientY - startY.current;
-            const isSelecting = isTextSelection();
+            const isSelecting = DomUtils.isActiveTextSelection();
             let canSwipeDown = true;
             let canSwipeUp = true;
             if (scrollableChildRef.current) {
