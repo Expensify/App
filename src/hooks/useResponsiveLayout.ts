@@ -4,7 +4,7 @@ import useWindowDimensions from './useWindowDimensions';
 interface RouteParams extends ParamListBase {
     params: {isInRHP?: boolean};
 }
-type ResponsiveLayoutResult = {
+interface ResponsiveLayoutResult {
     shouldUseNarrowLayout: boolean;
 };
 /**
@@ -15,7 +15,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
     try {
         const {params} = useRoute<RouteProp<RouteParams, 'params'>>();
-        console.log(params);
         return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
     } catch (error) {
         return {
