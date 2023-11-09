@@ -13,6 +13,6 @@ function FormElement(props: ViewProps, ref: ForwardedRef<View | HTMLFormElement 
     );
 }
 
-FormElement.displayName = 'BaseForm';
+FormElement.displayName = 'FormElement';
 
 export default forwardRef(FormElement);
