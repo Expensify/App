@@ -79,6 +79,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                             return;
                         }
                         onError(errorMessage);
+                    }).catch(() => {
+                        onError(errorMessage);
                     });
                 } else {
                     onError(errorMessage);
