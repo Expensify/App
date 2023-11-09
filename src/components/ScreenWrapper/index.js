@@ -40,8 +40,8 @@ const ScreenWrapper = React.forwardRef(
             shouldDismissKeyboardBeforeClose,
             onEntryTransitionEnd,
             testID,
-    shouldDisableFocusTrap,
-    shouldEnableAutoFocus,
+            shouldDisableFocusTrap,
+            shouldEnableAutoFocus,
         },
         ref,
     ) => {
@@ -52,7 +52,7 @@ const ScreenWrapper = React.forwardRef(
         const {isOffline} = useNetwork();
         const navigation = useNavigation();
         const isFocused = useIsFocused();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+        const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
         const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
@@ -150,12 +150,12 @@ const ScreenWrapper = React.forwardRef(
                                         style={styles.flex1}
                                         enabled={shouldEnablePickerAvoiding}
                                     >
-                                    <FocusTrapView
-                                        style={[styles.flex1, styles.noSelect]}
-                                        isEnabled={!shouldDisableFocusTrap}
-                                        shouldEnableAutoFocus={shouldEnableAutoFocus}
-                                        isActive={isFocused}
-                                    >
+                                        <FocusTrapView
+                                            style={[styles.flex1, styles.noSelect]}
+                                            isEnabled={!shouldDisableFocusTrap}
+                                            shouldEnableAutoFocus={shouldEnableAutoFocus}
+                                            isActive={isFocused}
+                                        >
                                             <HeaderGap styles={headerGapStyles} />
                                             {isDevelopment && <TestToolsModal />}
                                             {isDevelopment && <CustomDevMenu />}
@@ -171,7 +171,7 @@ const ScreenWrapper = React.forwardRef(
                                             }
                                             {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                         </FocusTrapView>
-                                </PickerAvoidingView>
+                                    </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>
                         </View>
