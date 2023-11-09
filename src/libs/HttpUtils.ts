@@ -51,7 +51,7 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
                     CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
                     CONST.HTTP_STATUS.UNKNOWN_ERROR,
                 ];
-                if (serviceInterruptedStatuses.includes(response.status as ValueOf<typeof CONST.HTTP_STATUS>)) {
+                if (serviceInterruptedStatuses.some(status => status === response.status)) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status.toString(),
