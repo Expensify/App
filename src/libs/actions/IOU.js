@@ -346,6 +346,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
             },
@@ -556,8 +557,9 @@ function getMoneyRequestInformation(
         iouReport.parentReportActionID = reportPreviewAction.reportActionID;
     }
 
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
     // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = isNewChatReport
+    const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
@@ -619,12 +621,16 @@ function getMoneyRequestInformation(
  * @param {Boolean} [billable]
  */
 function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
+    // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
-        report,
+        currentChatReport,
         participant,
         comment,
         amount,
@@ -658,7 +664,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         },
         onyxData,
     );
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
@@ -1810,7 +1816,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedMoneyRequestReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
         });
         updatedChatReport.lastMessageText = messageText;
@@ -2055,7 +2061,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         updatedReportPreviewAction = {...reportPreviewAction};
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedIOUReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
         });
         updatedReportPreviewAction.message[0].text = messageText;
@@ -2110,6 +2116,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
                           hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
                           iouReportID: null,
                           lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
                           lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
@@ -2456,6 +2463,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
                 iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
@@ -2479,6 +2487,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
         },
@@ -2701,7 +2710,6 @@ function submitReport(expenseReport) {
         'SubmitReport',
         {
             reportID: expenseReport.reportID,
-            managerEmail: expenseReport.managerEmail,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
         },

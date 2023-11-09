@@ -592,8 +592,8 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
+            splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
@@ -640,11 +640,8 @@ export default {
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
-        headline: 'You qualify for access to our exclusive lounges.',
-        description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
-        coffeePromo: 'Great coffee and cocktails',
-        networkingPromo: 'Network with other members',
-        viewsPromo: 'Incredible views of San Francisco',
+        headline: 'The Expensify Lounge is closed.',
+        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
@@ -813,7 +810,6 @@ export default {
         title: 'Private notes',
         personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
-        notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
         myNote: 'My note',
     },
@@ -873,7 +869,7 @@ export default {
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
-        availableSpend: 'Remaining spending power',
+        availableSpend: 'Remaining limit',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',
@@ -1640,6 +1636,7 @@ export default {
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
+        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
@@ -1846,7 +1843,7 @@ export default {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     teachersUnitePage: {
-        teachersUnite: 'Teachers unite!',
+        teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
@@ -1909,8 +1906,5 @@ export default {
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
-    },
-    globalNavigationOptions: {
-        chats: 'Chats',
     },
 } satisfies TranslationBase;

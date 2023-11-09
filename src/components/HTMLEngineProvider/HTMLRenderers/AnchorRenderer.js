@@ -11,6 +11,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Url from '@libs/Url';
 import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +53,10 @@ function AnchorRenderer(props) {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath && hasSameOrigin) {
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(internalNewExpensifyPath)) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
@@ -65,7 +70,7 @@ function AnchorRenderer(props) {
         Link.openExternalLink(attrHref);
     };
 
-    if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
+    if (!HTMLEngineUtils.isChildOfComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.

@@ -105,13 +105,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
+                onLinkClick={onLinkClick}
                 insets={insets}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
-                onLinkClick={onLinkClick}
             />
         </View>
     );
@@ -143,6 +143,7 @@ const chatReportSelector = (report) =>
         total: report.total,
         nonReimbursableTotal: report.nonReimbursableTotal,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,

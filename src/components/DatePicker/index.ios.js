@@ -1,6 +1,6 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
+import {format, parseISO} from 'date-fns';
 import isFunction from 'lodash/isFunction';
-import moment from 'moment';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button, Keyboard, View} from 'react-native';
 import Popover from '@components/Popover';
@@ -13,8 +13,9 @@ import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
+    const dateValue = value || defaultValue;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(moment(value || defaultValue).toDate());
+    const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const initialValue = useRef(null);
@@ -65,8 +66,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
      */
     const selectDate = () => {
         setIsPickerVisible(false);
-        const asMoment = moment(selectedDate, true);
-        onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
     };
 
     /**
@@ -77,7 +77,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const dateAsText = dateValue ? format(parseISO(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -85,14 +85,14 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 forceActiveLabel
                 label={label}
                 accessibilityLabel={label}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 placeholder={placeholder}
                 errorText={errorText}
                 containerStyles={containerStyles}
                 textInputContainerStyles={[isPickerVisible && styles.borderColorFocus]}
                 onPress={showPicker}
-                editable={false}
+                readOnly
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={inputRef}

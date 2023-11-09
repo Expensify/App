@@ -4,9 +4,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -59,6 +63,9 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -70,6 +77,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
+    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -85,6 +93,7 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isSearchingForReports,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -92,6 +101,7 @@ function MoneyRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -234,7 +244,9 @@ function MoneyRequestParticipantsSelector({
             false,
             {},
             [],
-            true,
+            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+            !isDistanceRequest,
             true,
         );
         setNewChatOptions({
@@ -244,12 +256,47 @@ function MoneyRequestParticipantsSelector({
         });
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchTerm(text);
+    }, []);
+
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
-    // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
+    // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
-    const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+    const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
+
+    const handleConfirmSelection = useCallback(() => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        navigateToSplit();
+    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+
+    const footerContent = (
+        <View>
+            {shouldShowSplitBillErrorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                />
+            )}
+            <Button
+                success
+                text={translate('iou.addToSplit')}
+                onPress={handleConfirmSelection}
+                pressOnEnter
+                isDisabled={shouldShowSplitBillErrorMessage}
+            />
+        </View>
+    );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -262,18 +309,20 @@ function MoneyRequestParticipantsSelector({
                 selectedOptions={participants}
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
-                onChangeText={setSearchTerm}
+                onChangeText={setSearchTermAndSearchInServer}
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
-                confirmButtonText={translate('iou.addToSplit')}
-                onConfirmSelection={navigateToSplit}
+                shouldShowConfirmButton={isAllowedToSplit}
+                onConfirmSelection={handleConfirmSelection}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
+                footerContent={isAllowedToSplit && footerContent}
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
@@ -304,6 +353,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(MoneyRequestParticipantsSelectorWithRef);
