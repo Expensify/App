@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';

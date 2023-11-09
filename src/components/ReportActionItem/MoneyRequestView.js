@@ -19,7 +19,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
