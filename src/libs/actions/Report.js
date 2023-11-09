@@ -65,7 +65,6 @@ Onyx.connect({
 const currentReportData = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (data, key) => {
         if (!key || !data) {
             return;
@@ -328,6 +327,10 @@ function addActions(reportID, text = '', file) {
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
+
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
@@ -2007,7 +2010,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
                 });
                 return;
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
         });
     });
 }
