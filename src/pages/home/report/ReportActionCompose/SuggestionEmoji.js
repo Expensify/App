@@ -62,7 +62,7 @@ function SuggestionEmoji({
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
-    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
+    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
@@ -165,13 +165,13 @@ function SuggestionEmoji({
             const nextState = {
                 suggestedEmojis: [],
                 colonIndex,
-                shouldShowEmojiSuggestionMenu: false,
+                shouldShowSuggestionMenu: false,
             };
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;
-                nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+                nextState.shouldShowSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
             }
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));

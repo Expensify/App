@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,6 +10,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PopoverContext} from '@components/PopoverProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
@@ -158,9 +159,14 @@ function ReportScreen({
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
 
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const prevIsDraggingOver = usePrevious(isDraggingOver);
+
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
+
+    const {close: closePopover} = useContext(PopoverContext);
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
@@ -272,6 +278,15 @@ function ReportScreen({
         },
         [route],
     );
+
+    useEffect(() => {
+        if (prevIsDraggingOver === isDraggingOver) {
+            return;
+        }
+        if (isDraggingOver && closePopover) {
+            closePopover();
+        }
+    }, [isDraggingOver, closePopover, prevIsDraggingOver]);
 
     useEffect(() => {
         fetchReportIfNeeded();
@@ -409,7 +424,10 @@ function ReportScreen({
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}>
+                        <DragAndDropProvider
+                            isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}
+                            setIsDraggingOver={setIsDraggingOver}
+                        >
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
