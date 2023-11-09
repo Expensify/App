@@ -10,23 +10,25 @@ import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
-type ButtonProps = {
-    /** Should the press event bubble across multiple instances when Enter key triggers it. */
-    allowBubble?: boolean;
-
+type ButtonWithText = {
     /** The text for the button label */
-    text?: string;
+    text: string;
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
 
     /** The icon asset to display to the left of the text */
     icon?: React.FC<SvgProps> | null;
+};
+
+type ButtonProps = (ButtonWithText | ChildrenProps) & {
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
     iconRight?: React.FC<SvgProps>;
@@ -77,7 +79,7 @@ type ButtonProps = {
     enterKeyEventListenerPriority?: number;
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style?: ViewStyle | ViewStyle[];
+    style?: StyleProp<ViewStyle>;
 
     /** Additional button styles. Specific to the OpacityView of the button */
     innerStyles?: StyleProp<ViewStyle>;
@@ -93,9 +95,6 @@ type ButtonProps = {
 
     /** Whether we should use the danger theme color */
     danger?: boolean;
-
-    /** Children to replace all inner contents of the button */
-    children?: React.ReactNode;
 
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
@@ -116,10 +115,7 @@ type ButtonProps = {
 function Button(
     {
         allowBubble = false,
-        text = '',
-        shouldShowRightIcon = false,
 
-        icon = null,
         iconRight = Expensicons.ArrowRight,
         iconFill = themeColors.textLight,
         iconStyles = [],
@@ -148,7 +144,6 @@ function Button(
         shouldUseDefaultHover = true,
         success = false,
         danger = false,
-        children = null,
 
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
@@ -156,6 +151,7 @@ function Button(
 
         id = '',
         accessibilityLabel = '',
+        ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
 ) {
@@ -179,9 +175,11 @@ function Button(
     });
 
     const renderContent = () => {
-        if (children) {
-            return children;
+        if ('children' in rest) {
+            return rest.children;
         }
+
+        const {text = '', icon = null, shouldShowRightIcon = false} = rest;
 
         const textComponent = (
             <Text
@@ -265,7 +263,7 @@ function Button(
                 styles.buttonContainer,
                 shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                ...StyleUtils.parseStyleAsArray(style),
+                style,
             ]}
             style={[
                 styles.button,
@@ -279,7 +277,7 @@ function Button(
                 shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                icon || shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+                'text' in rest && (rest?.icon || rest?.shouldShowRightIcon) ? styles.alignItemsStretch : undefined,
                 innerStyles,
             ]}
             hoverStyle={[
