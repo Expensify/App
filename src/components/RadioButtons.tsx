@@ -12,13 +12,18 @@ type RadioButtonsProps = {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
+    /** Default checked value */
+    defaultCheckedValue?: string;
+
     /** Callback to fire when selecting a radio button */
     onPress: (value: string) => void;
 };
 
-function RadioButtons({items, onPress}: RadioButtonsProps) {
-    const [checkedValue, setCheckedValue] = useState('');
+function RadioButtons({items, onPress, defaultCheckedValue = ''}: RadioButtonsProps) {
+    const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
 
+    console.log(items, ' items');
+    console.log(checkedValue, ' checkedValue');
     return (
         <View>
             {items.map((item) => (

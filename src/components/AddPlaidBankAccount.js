@@ -20,6 +20,7 @@ import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
 import Picker from './Picker';
 import PlaidLink from './PlaidLink';
+import RadioButtons from './RadioButtons';
 import Text from './Text';
 
 const propTypes = {
@@ -55,6 +56,9 @@ const propTypes = {
 
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
+
+    /** Is displayed in new VBBA */
+    isDisplayedInNewVBBA: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -68,6 +72,7 @@ const defaultProps = {
     allowDebit: false,
     bankAccountID: 0,
     isPlaidDisabled: false,
+    isDisplayedInNewVBBA: false,
 };
 
 function AddPlaidBankAccount({
@@ -82,9 +87,19 @@ function AddPlaidBankAccount({
     bankAccountID,
     allowDebit,
     isPlaidDisabled,
+    isDisplayedInNewVBBA,
 }) {
+    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+    const defaultSelectedPlaidAccount = _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID);
+    const defaultSelectedPlaidAccountID = lodashGet(defaultSelectedPlaidAccount, 'plaidAccountID', '');
+    const defaultSelectedPlaidAccountMask = lodashGet(
+        _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID),
+        'mask',
+        '',
+    );
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
+    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = React.useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -160,16 +175,26 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
     const token = getPlaidLinkToken();
     const options = _.map(plaidBankAccounts, (account) => ({
         value: account.plaidAccountID,
-        label: `${account.addressName} ${account.mask}`,
+        label: account.addressName,
     }));
     const {icon, iconSize, iconStyles} = getBankIcon();
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
+
+    /**
+     * @param {String} plaidAccountID
+     *
+     * When user selects one of plaid accounts we need to set the mask in order to display it on UI
+     */
+    const handleSelectingPlaidAccount = (plaidAccountID) => {
+        const mask = _.find(plaidBankAccounts, (account) => account.plaidAccountID === plaidAccountID).mask;
+        setSelectedPlaidAccountMask(mask);
+        onSelect(plaidAccountID);
+    };
 
     if (isPlaidDisabled) {
         return (
@@ -223,6 +248,33 @@ function AddPlaidBankAccount({
                         receivedRedirectURI={receivedRedirectURI}
                     />
                 )}
+            </FullPageOfflineBlockingView>
+        );
+    }
+
+    if (isDisplayedInNewVBBA) {
+        return (
+            <FullPageOfflineBlockingView>
+                <Text style={[styles.mb5, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                    <Icon
+                        src={icon}
+                        height={iconSize}
+                        width={iconSize}
+                    />
+                    <View>
+                        <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                        {selectedPlaidAccountMask.length > 0 && (
+                            <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                        )}
+                    </View>
+                </View>
+                <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+                <RadioButtons
+                    items={options}
+                    defaultCheckedValue={defaultSelectedPlaidAccountID}
+                    onPress={handleSelectingPlaidAccount}
+                />
             </FullPageOfflineBlockingView>
         );
     }

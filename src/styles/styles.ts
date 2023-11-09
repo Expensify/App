@@ -4059,6 +4059,40 @@ const styles = (theme: ThemeColors) =>
         interactiveStepHeaderLockedStepLine: {
             backgroundColor: colors.darkBorders,
         },
+        confirmBankInfoCard: {
+            backgroundColor: colors.green800,
+            borderRadius: variables.componentBorderRadiusCard,
+            marginBottom: 20,
+            marginHorizontal: 16,
+            padding: 20,
+            width: 'auto',
+            textAlign: 'left',
+        },
+        confirmBankInfoText: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE,
+            color: colors.white,
+        },
+        confirmBankInfoCompanyIcon: {
+            height: 40,
+            width: 40,
+            backgroundColor: colors.darkIcons,
+            borderRadius: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        confirmBankInfoBankIcon: {
+            height: 40,
+            width: 40,
+            borderRadius: 50,
+        },
+        confirmBankInfoNumber: {
+            fontFamily: fontFamily.MONOSPACE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: colors.darkPrimaryText,
+            textAlignVertical: 'center',
+        },
     } satisfies Styles);
 
 const stylesGenerator = styles;

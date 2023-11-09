@@ -165,6 +165,30 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        BANK_INFO_STEP: {
+            INPUT_KEY: {
+                BANK_ACCOUNT_ID: 'bankAccountId',
+                ROUTING_NUMBER: 'routingNumber',
+                ACCOUNT_NUMBER: 'accountNumber',
+                PLAID_MASK: 'plaidMask',
+                IS_SAVINGS: 'isSavings',
+                BANK_NAME: 'bankName',
+                PLAID_ACCOUNT_ID: 'plaidAccountID',
+                PLAID_ACCESS_TOKEN: 'plaidAccessToken',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            INPUT_KEY: {
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'requestorAddressStreet',
+                CITY: 'requestorAddressCity',
+                STATE: 'requestorAddressState',
+                ZIP_CODE: 'requestorAddressZipCode',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
@@ -192,6 +216,7 @@ const CONST = {
         },
         SUBSTEP: {
             MANUAL: 'manual',
+            PLAID: 'plaid',
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',

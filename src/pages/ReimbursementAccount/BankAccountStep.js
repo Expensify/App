@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
+import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -76,6 +77,10 @@ function BankAccountStep(props) {
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
 
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        return <BankInfo />;
+    }
+
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
             <BankAccountManualStep
@@ -98,6 +103,7 @@ function BankAccountStep(props) {
         );
     }
 
+    // TODO Move initial screen where you select setup type to new ReimbursementAccount page as the begining of whole flow; also cleanup once this is done
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

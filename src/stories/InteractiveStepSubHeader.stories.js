@@ -1,8 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useRef} from 'react';
-import {View, Button} from 'react-native';
-
-import InteractiveStepSubHeader from '../components/InteractiveStepSubHeader';
+import {Button, View} from 'react-native';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
