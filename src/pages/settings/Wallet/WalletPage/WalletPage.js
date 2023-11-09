@@ -258,6 +258,10 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     };
 
     useEffect(() => {
+        PaymentMethods.openWalletPage();
+    }, []);
+
+    useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
         if (!network.isOffline) {
             updateShouldShowLoadingSpinner();
@@ -271,7 +275,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
         PaymentMethods.openWalletPage();
-    }, [network.isOffline, bankAccountList, cardList, fundList]);
+    }, [network.isOffline]);
 
     useEffect(() => {
         if (!shouldListenForResize) {
