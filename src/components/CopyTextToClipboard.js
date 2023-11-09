@@ -12,7 +12,7 @@ const propTypes = {
     /** Styles to apply to the text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
-
+    urlToCopy: PropTypes.string,
     ...withLocalizePropTypes,
 };
 
@@ -22,8 +22,8 @@ const defaultProps = {
 
 function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
-        Clipboard.setString(props.text);
-    }, [props.text]);
+        Clipboard.setString(props.urlToCopy ?? props.text);
+    }, [props.text, props.urlToCopy]);
 
     return (
         <PressableWithDelayToggle

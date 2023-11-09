@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -14,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
 const propTypes = {
@@ -26,15 +29,15 @@ const propTypes = {
     }).isRequired,
 };
 
-function ReferralDetailsPage({route}) {
+function ReferralDetailsPage({route, account}) {
     const {translate} = useLocalize();
     const {contentType} = route.params;
-
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
         return <NotFoundPage />;
     }
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body`);
+    const generatedURL = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${account.primaryLogin}`;
 
     return (
         <ScreenWrapper
@@ -53,8 +56,17 @@ function ReferralDetailsPage({route}) {
                     height={232}
                 />
                 <Text style={[styles.textHeadline, styles.mb3, styles.mt8]}>{contentHeader}</Text>
-                <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb5]}>{contentBody}</Text>
-                <TextLink href={CONST.REFERRAL_PROGRAM.LINK}>{translate('requestorStep.learnMore')}</TextLink>
+                <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
+                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFERRAL_FRIEND && (
+                    <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
+                        <CopyTextToClipboard
+                            text={translate('referralProgram.copyReferralLink')}
+                            textStyles={[styles.colorMuted]}
+                            urlToCopy={generatedURL}
+                        />
+                    </View>
+                )}
+                <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate('requestorStep.learnMore')}</TextLink>
             </View>
             <FixedFooter>
                 <Button
@@ -73,4 +85,6 @@ function ReferralDetailsPage({route}) {
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 ReferralDetailsPage.propTypes = propTypes;
 
-export default ReferralDetailsPage;
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(ReferralDetailsPage);

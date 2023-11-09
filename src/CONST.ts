@@ -469,7 +469,6 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
@@ -2820,7 +2819,8 @@ const CONST = {
             REFERRAL_FRIEND: 'referralFriend',
         },
         REVENUE: 250,
-        LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
     },
 } as const;
 
