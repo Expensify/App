@@ -43,45 +43,47 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
 
                 const os = getPlatform();
                 if (!_.isEmpty(errorMessage) && os === CONST.PLATFORM.IOS) {
-                    checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA]).then((statuses) => {
-                        const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
-                        const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
-                        let alertTitle = '';
-                        let alertMessage = '';
-                        if (!isMicAllowed) {
-                            alertTitle = 'onfidoStep.microphonePermissionsNotGranted';
-                            alertMessage = 'onfidoStep.microphoneRequestMessage';
-                        }
-                        if (!isCameraAllowed) {
-                            alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
-                            alertMessage = 'onfidoStep.cameraRequestMessage';
-                        }
+                    checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
+                        .then((statuses) => {
+                            const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
+                            const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
+                            let alertTitle = '';
+                            let alertMessage = '';
+                            if (!isMicAllowed) {
+                                alertTitle = 'onfidoStep.microphonePermissionsNotGranted';
+                                alertMessage = 'onfidoStep.microphoneRequestMessage';
+                            }
+                            if (!isCameraAllowed) {
+                                alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
+                                alertMessage = 'onfidoStep.cameraRequestMessage';
+                            }
 
-                        if (!_.isEmpty(alertTitle) && !_.isEmpty(alertMessage)) {
-                            Alert.alert(
-                                translate(alertTitle),
-                                translate(alertMessage),
-                                [
-                                    {
-                                        text: translate('common.cancel'),
-                                        onPress: () => onUserExit(),
-                                    },
-                                    {
-                                        text: translate('common.settings'),
-                                        onPress: () => {
-                                            onUserExit();
-                                            Linking.openSettings();
+                            if (!_.isEmpty(alertTitle) && !_.isEmpty(alertMessage)) {
+                                Alert.alert(
+                                    translate(alertTitle),
+                                    translate(alertMessage),
+                                    [
+                                        {
+                                            text: translate('common.cancel'),
+                                            onPress: () => onUserExit(),
                                         },
-                                    },
-                                ],
-                                {cancelable: false},
-                            );
-                            return;
-                        }
-                        onError(errorMessage);
-                    }).catch(() => {
-                        onError(errorMessage);
-                    });
+                                        {
+                                            text: translate('common.settings'),
+                                            onPress: () => {
+                                                onUserExit();
+                                                Linking.openSettings();
+                                            },
+                                        },
+                                    ],
+                                    {cancelable: false},
+                                );
+                                return;
+                            }
+                            onError(errorMessage);
+                        })
+                        .catch(() => {
+                            onError(errorMessage);
+                        });
                 } else {
                     onError(errorMessage);
                 }
