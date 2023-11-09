@@ -1,43 +1,39 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
-import _ from 'underscore';
+import React, {ForwardedRef, forwardRef, useEffect, useRef} from 'react';
+import {GestureResponderEvent, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as pressableWithSecondaryInteractionPropTypes from './types';
+import PressableWithSecondaryInteractionProps, {PressableWithSecondaryInteractionRef} from './types';
 
-/**
- * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
- */
+/** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
+function PressableWithSecondaryInteraction(
+    {
+        children,
+        onPress,
+        onPressOut,
+        inline = false,
+        style,
+        enableLongPressWithHover = false,
+        withoutFocusOnSecondaryInteraction = false,
+        needsOffscreenAlphaCompositing = false,
+        preventDefaultContextMenu = true,
+        onSecondaryInteraction,
+        activeOpacity = 1,
+        ...rest
+    }: PressableWithSecondaryInteractionProps,
+    ref: PressableWithSecondaryInteractionRef,
+) {
+    const pressableRef = useRef<HTMLDivElement | null>(null);
 
-function PressableWithSecondaryInteraction({
-    children,
-    inline,
-    style,
-    enableLongPressWithHover,
-    withoutFocusOnSecondaryInteraction,
-    preventDefaultContextMenu,
-    onSecondaryInteraction,
-    onPressIn,
-    onPress,
-    onPressOut,
-    activeOpacity,
-    forwardedRef,
-    ...rest
-}) {
-    const pressableRef = useRef(null);
-
-    /**
-     * @param {Event} e - the secondary interaction event
-     */
-    const executeSecondaryInteraction = (e) => {
+    const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         if (DeviceCapabilities.hasHoverSupport() && !enableLongPressWithHover) {
             return;
         }
         if (withoutFocusOnSecondaryInteraction && pressableRef.current) {
             pressableRef.current.blur();
         }
-        onSecondaryInteraction(e);
+        onSecondaryInteraction?.(event);
     };
 
     useEffect(() => {
@@ -45,32 +41,32 @@ function PressableWithSecondaryInteraction({
             return;
         }
 
-        if (forwardedRef) {
-            if (_.isFunction(forwardedRef)) {
-                forwardedRef(pressableRef.current);
-            } else if (_.isObject(forwardedRef)) {
+        if (ref) {
+            if (typeof ref === 'function') {
+                ref(pressableRef.current);
+            } else {
                 // eslint-disable-next-line no-param-reassign
-                forwardedRef.current = pressableRef.current;
+                ref.current = pressableRef.current;
             }
         }
 
         const element = pressableRef.current;
 
         /**
-         * @param {contextmenu} e - A right-click MouseEvent.
+         * @param event - A right-click MouseEvent.
          * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
          */
-        const executeSecondaryInteractionOnContextMenu = (e) => {
+        const executeSecondaryInteractionOnContextMenu = (event: MouseEvent) => {
             if (!onSecondaryInteraction) {
                 return;
             }
 
-            e.stopPropagation();
+            event.stopPropagation();
             if (preventDefaultContextMenu) {
-                e.preventDefault();
+                event.preventDefault();
             }
 
-            onSecondaryInteraction(e);
+            onSecondaryInteraction(event);
 
             /**
              * This component prevents the tapped element from capturing focus.
@@ -89,42 +85,28 @@ function PressableWithSecondaryInteraction({
         return () => {
             element.removeEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
         };
-    }, [forwardedRef, onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
+    }, [ref, onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
 
-    const defaultPressableProps = _.omit(rest, ['onLongPress']);
     const inlineStyle = inline ? styles.dInline : {};
 
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
             wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
-            onPressIn={onPressIn}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
-            onPressOut={onPressOut}
             onPress={onPress}
-            ref={pressableRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...defaultPressableProps}
+            ref={pressableRef as ForwardedRef<View>}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
+            needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
             {children}
         </PressableWithFeedback>
     );
 }
 
-PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
-PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-const PressableWithSecondaryInteractionWithRef = forwardRef((props, ref) => (
-    <PressableWithSecondaryInteraction
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-PressableWithSecondaryInteractionWithRef.displayName = 'PressableWithSecondaryInteractionWithRef';
-
-export default PressableWithSecondaryInteractionWithRef;
+export default forwardRef(PressableWithSecondaryInteraction);

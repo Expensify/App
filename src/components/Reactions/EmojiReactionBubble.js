@@ -69,7 +69,6 @@ function EmojiReactionBubble(props) {
 
                 props.onPress();
             }}
-            onLongPress={props.onReactionListOpen}
             onSecondaryInteraction={props.onReactionListOpen}
             ref={props.forwardedRef}
             enableLongPressWithHover={props.isSmallScreenWidth}

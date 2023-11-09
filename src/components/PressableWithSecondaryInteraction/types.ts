@@ -1,68 +1,65 @@
-import PropTypes from 'prop-types';
-import refPropTypes from '@components/refPropTypes';
-import stylePropTypes from '@styles/stylePropTypes';
+import {ForwardedRef} from 'react';
+import {GestureResponderEvent, StyleProp, Text, TextStyle, View, ViewStyle} from 'react-native';
+import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const propTypes = {
-    /** The function that should be called when this pressable is pressed */
-    onPress: PropTypes.func,
+type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps &
+    ChildrenProps & {
+        /** The function that should be called when this pressable is pressed */
+        onPress: (event?: GestureResponderEvent) => void;
 
-    /** The function that should be called when this pressable is pressedIn */
-    onPressIn: PropTypes.func,
+        /** The function that should be called when this pressable is pressedIn */
+        onPressIn?: (event?: GestureResponderEvent) => void;
 
-    /** The function that should be called when this pressable is pressedOut */
-    onPressOut: PropTypes.func,
+        /** The function that should be called when this pressable is pressedOut */
+        onPressOut?: (event?: GestureResponderEvent) => void;
 
-    /**
-     * The function that should be called when this pressable is LongPressed or right-clicked.
-     *
-     * This function should be stable, preferably wrapped in a `useCallback` so that it does not
-     * cause several re-renders.
-     */
-    onSecondaryInteraction: PropTypes.func,
+        /**
+         * The function that should be called when this pressable is LongPressed or right-clicked.
+         *
+         * This function should be stable, preferably wrapped in a `useCallback` so that it does not
+         * cause several re-renders.
+         */
+        onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-    /** The children which should be contained in this wrapper component. */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+        /** Prevent the default ContextMenu on web/Desktop */
+        preventDefaultContextMenu?: boolean;
 
-    /** The ref to the search input (may be null on small screen widths) */
-    forwardedRef: refPropTypes,
+        /** Use Text instead of Pressable to create inline layout.
+         * It has few limitations in comparison to Pressable.
+         *
+         * - No support for delayLongPress.
+         * - No support for pressIn and pressOut events.
+         * - No support for opacity
+         *
+         * Note: Web uses styling instead of Text due to no support of LongPress. Thus above pointers are not valid for web.
+         */
+        inline?: boolean;
 
-    /** Prevent the default ContextMenu on web/Desktop */
-    preventDefaultContextMenu: PropTypes.bool,
+        /** Disable focus trap for the element on secondary interaction  */
+        withoutFocusOnSecondaryInteraction?: boolean;
 
-    /** Use Text instead of Pressable to create inline layout.
-     * It has few limitations in comparison to Pressable.
-     *
-     * - No support for delayLongPress.
-     * - No support for pressIn and pressOut events.
-     * - No support for opacity
-     *
-     * Note: Web uses styling instead of Text due to no support of LongPress. Thus above pointers are not valid for web.
-     */
-    inline: PropTypes.bool,
+        /** Opacity to reduce to when active  */
+        activeOpacity?: number;
 
-    /** Disable focus trap for the element on secondary interaction  */
-    withoutFocusOnSecondaryInteraction: PropTypes.bool,
+        /** Used to apply styles to the Pressable */
+        style?: StyleProp<ViewStyle & TextStyle>;
 
-    /** Opacity to reduce to when active  */
-    activeOpacity: PropTypes.number,
+        /** Whether the view needs to be rendered offscreen (for Android only) */
+        needsOffscreenAlphaCompositing?: boolean;
 
-    /** Used to apply styles to the Pressable */
-    style: stylePropTypes,
+        /** Whether the long press with hover behavior is enabled */
+        enableLongPressWithHover?: boolean;
 
-    /** Whether the view needs to be rendered offscreen (for Android only) */
-    needsOffscreenAlphaCompositing: PropTypes.bool,
-};
+        /**
+         * Specifies the accessibility label for the component
+         * @example 'Search'
+         * @example 'Close'
+         */
+        accessibilityLabel: string;
+    };
 
-const defaultProps = {
-    forwardedRef: () => {},
-    onPressIn: () => {},
-    onPressOut: () => {},
-    preventDefaultContextMenu: true,
-    inline: false,
-    withoutFocusOnSecondaryInteraction: false,
-    activeOpacity: 1,
-    enableLongPressWithHover: false,
-    needsOffscreenAlphaCompositing: false,
-};
+type PressableWithSecondaryInteractionRef = ForwardedRef<View | Text>;
 
-export {propTypes, defaultProps};
+export default PressableWithSecondaryInteractionProps;
+export type {PressableWithSecondaryInteractionRef};

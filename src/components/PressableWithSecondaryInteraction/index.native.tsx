@@ -1,51 +1,46 @@
-import React, {forwardRef} from 'react';
-import _ from 'underscore';
+import React, {ForwardedRef, forwardRef} from 'react';
+import {GestureResponderEvent, Text as RNText, TextProps, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import * as pressableWithSecondaryInteractionPropTypes from './types';
+import PressableWithSecondaryInteractionProps, {PressableWithSecondaryInteractionRef} from './types';
 
-/**
- * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
- *
- * @param {Object} props
- * @returns {React.Component}
- */
-function PressableWithSecondaryInteraction(props) {
-    // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? Text : PressableWithFeedback;
-    const executeSecondaryInteraction = (e) => {
-        e.preventDefault();
-        props.onSecondaryInteraction(e);
+/** This is a special Pressable that calls onSecondaryInteraction when LongPressed. */
+function PressableWithSecondaryInteraction(
+    {children, onSecondaryInteraction, inline = false, needsOffscreenAlphaCompositing = false, ...rest}: PressableWithSecondaryInteractionProps,
+    ref: PressableWithSecondaryInteractionRef,
+) {
+    const executeSecondaryInteraction = (event: GestureResponderEvent) => {
+        event.preventDefault();
+        onSecondaryInteraction?.(event);
     };
 
+    // Use Text node for inline mode to prevent content overflow.
+    if (inline) {
+        return (
+            <Text
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(rest as TextProps)}
+                ref={ref as ForwardedRef<RNText>}
+                onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+            >
+                {children}
+            </Text>
+        );
+    }
+
     return (
-        <Node
-            ref={props.forwardedRef}
-            onPress={props.onPress}
-            onLongPress={props.onSecondaryInteraction ? executeSecondaryInteraction : undefined}
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
-            pressDimmingValue={props.activeOpacity}
+        <PressableWithFeedback
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'onLongPress')}
+            {...rest}
+            ref={ref as ForwardedRef<View>}
+            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+            needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
-            {props.children}
-        </Node>
+            {children}
+        </PressableWithFeedback>
     );
 }
 
-PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
-PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-const PressableWithSecondaryInteractionWithRef = forwardRef((props, ref) => (
-    <PressableWithSecondaryInteraction
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-PressableWithSecondaryInteractionWithRef.displayName = 'PressableWithSecondaryInteractionWithRef';
-
-export default PressableWithSecondaryInteractionWithRef;
+export default forwardRef(PressableWithSecondaryInteraction);

@@ -88,3 +88,4 @@ function PressableWithFeedback(
 PressableWithFeedback.displayName = 'PressableWithFeedback';
 
 export default forwardRef(PressableWithFeedback);
+export type {PressableWithFeedbackProps};
