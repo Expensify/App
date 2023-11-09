@@ -54,20 +54,15 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    isInTabNavigator: true,
 };
 
-function ReceiptSelector({route, transactionID, iou, report, isInTabNavigator}) {
+function ReceiptSelector({route, transactionID, iou, report}) {
     const iouType = lodashGet(route, 'params.iouType', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
@@ -203,7 +198,6 @@ function ReceiptSelector({route, transactionID, iou, report, isInTabNavigator}) 
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
                     cameraTabIndex={pageIndex}
-                    isInTabNavigator={isInTabNavigator}
                 />
             </View>
 
