@@ -17,7 +17,7 @@ const propTypes = {
 
 const defaultProps = {
     hasError: false,
-    onPress: undefined,
+    onPress: () => {},
 };
 
 // Create a component with the above instructions:
