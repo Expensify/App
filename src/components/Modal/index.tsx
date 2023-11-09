@@ -35,7 +35,7 @@ function Modal(props: BaseModalProps) {
             setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         }
 
-        props.onModalShow();
+        props.onModalShow?.();
     };
 
     return (
