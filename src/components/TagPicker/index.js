@@ -52,7 +52,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             return policyTagList;
         }
         const selectedNames = _.map(selectedOptions, (s) => s.name);
-        const tags = [...selectedOptions, ..._.filter(policyTagList, (tag) => tag.enabled && !selectedNames.includes(tag.name))];
+        const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
         return tags;
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
