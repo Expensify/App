@@ -114,39 +114,6 @@ function ExpensifyCardPage({
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                {details.pan ? (
-                                    <CardDetails
-                                        pan={details.pan}
-                                        expiration={details.expiration}
-                                        cvv={details.cvv}
-                                        privatePersonalDetails={{address: details.address}}
-                                        domain={domain}
-                                    />
-                                ) : (
-                                    <>
-                                        <MenuItemWithTopDescription
-                                            description={translate('cardPage.virtualCardNumber')}
-                                            title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                            interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                            shouldShowRightComponent
-                                            rightComponent={
-                                                <Button
-                                                    medium
-                                                    text={translate('cardPage.cardDetails.revealDetails')}
-                                                    onPress={handleRevealDetails}
-                                                    isDisabled={isLoading || isOffline}
-                                                    isLoading={isLoading}
-                                                />
-                                            }
-                                        />
-                                        <DotIndicatorMessage
-                                            messages={cardDetailsErrorObject}
-                                            type="error"
-                                            style={styles.ph4}
-                                        />
-                                    </>
-                                )}
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
