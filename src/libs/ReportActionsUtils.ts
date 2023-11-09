@@ -8,7 +8,6 @@ import {ActionName} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
-import * as ReportUtils from './ReportUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import Log from './Log';
@@ -318,8 +317,9 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && allReports && !ReportUtils.isMarkedAsDone(allReports[reportAction?.originalMessage?.IOUReportID])) {
-        return false;
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        const expenseReport = allReports[reportAction?.originalMessage?.IOUReportID];
+        return expenseReport && expenseReport.type === CONST.REPORT.TYPE.EXPENSE && expenseReport.statusNum === CONST.REPORT.STATUS.CLOSED && expenseReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
     }
 
     if (isPendingRemove(reportAction)) {

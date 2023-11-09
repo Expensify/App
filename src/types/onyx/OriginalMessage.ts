@@ -35,6 +35,17 @@ type OriginalMessageIOU = {
     };
 };
 
+type OriginalMessageDone = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
+    originalMessage: {
+        IOUReportID?: number;
+        amount: number;
+        comment?: string;
+        currency: string;
+        type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    };
+};
+
 type FlagSeverityName = ValueOf<
     Pick<
         typeof CONST.MODERATION,
@@ -192,6 +203,7 @@ type OriginalMessage =
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
+    | OriginalMessageDone
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
