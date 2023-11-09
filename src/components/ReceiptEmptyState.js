@@ -8,7 +8,7 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
-    /** Whether or not there is a violation error */
+    /** Whether or not there is an error */
     hasError: PropTypes.bool,
 
     /** Callback to be called on onPress */
