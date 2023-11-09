@@ -246,7 +246,12 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: (selection) => selection.replace('mailto:', ''),
+        getDescription: (selection) =>
+            selection.replace('mailto:', '').replace(
+                /([.@])/g,
+                // below: zero-width space (U+200B) character
+                '​$1',
+            ),
     },
     {
         isAnonymousAction: true,

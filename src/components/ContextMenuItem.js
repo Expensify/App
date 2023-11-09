@@ -96,7 +96,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}
             description={description}
-            descriptionTextStyle={styles.breakAll}
+            descriptionTextStyle={styles.breakWord}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
