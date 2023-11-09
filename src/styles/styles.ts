@@ -1547,12 +1547,10 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightXLarge,
             ...whiteSpace.noWrap,
         },
-
         optionDisplayNameCompact: {
-            minWidth: 'auto',
-            flexBasis: 'auto',
+            maxWidth: '80%',
             flexGrow: 1,
-            flexShrink: 1,
+            flexShrink: 0,
         },
 
         displayNameTooltipEllipsis: {
@@ -1566,11 +1564,8 @@ const styles = (theme: ThemeDefault) =>
             minHeight: variables.alternateTextHeight,
             lineHeight: variables.lineHeightXLarge,
         },
-
         optionAlternateTextCompact: {
             flexShrink: 1,
-            flexGrow: 20,
-            flexBasis: 40,
             ...optionAlternateTextPlatformStyles,
         },
 
