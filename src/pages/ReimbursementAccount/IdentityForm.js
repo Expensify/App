@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import InputWrapper from '@components/Form/InputWrapper';
 import NewDatePicker from '@components/NewDatePicker';
 import TextInput from '@components/TextInput';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
-import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     /** Style for wrapping View */

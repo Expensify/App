@@ -7,8 +7,8 @@ import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import Text from './Text';
 import refPropTypes from './refPropTypes';
+import Text from './Text';
 
 /**
  * Returns an error if the required props are not provided
