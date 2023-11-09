@@ -584,7 +584,7 @@ function ReportActionItem(props) {
                         </View>
                     </>
                 );
-            } 
+            }
             return (
                 <>
                     <AnimatedEmptyStateBackground />
