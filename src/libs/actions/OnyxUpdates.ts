@@ -48,12 +48,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    console.debug('[OnyxUpdateManager] Applying pusher update');
+    pusherEventsPromise = pusherEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying pusher update');
+    });
 
     pusherEventsPromise = updates
-        .reduce((promise, update) => {
-            return promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
-        }, pusherEventsPromise)
+        .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             console.debug('[OnyxUpdateManager] Done applying Pusher update');
         });
