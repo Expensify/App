@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useContext} from 'react';
 import refPropTypes from '@components/refPropTypes';
-import TextInput from "@components/TextInput";
+import TextInput from '@components/TextInput';
 import FormContext from './FormContext';
 
 const propTypes = {
