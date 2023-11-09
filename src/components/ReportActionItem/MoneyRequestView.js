@@ -177,12 +177,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && Permissions.canUseViolations() && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
-                        <ReceiptEmptyState
-                            hasError={hasErrors}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
-                        />
-                    </OfflineWithFeedback>
+                    <ReceiptEmptyState
+                        hasError={hasErrors}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                    />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription

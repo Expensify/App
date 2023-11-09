@@ -20,8 +20,7 @@ const defaultProps = {
     onPress: () => {},
 };
 
-// Create a component with the above instructions:
-
+// Returns an SVG icon indicating that the user should attach a receipt
 function ReceiptEmptyState({hasError, onPress}) {
     return (
         <PressableWithoutFeedback
