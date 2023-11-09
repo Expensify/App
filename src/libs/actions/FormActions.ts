@@ -23,8 +23,4 @@ function setDraftValues<T extends OnyxFormKeyWithoutDraft>(formID: T, draftValue
     Onyx.merge(`${formID}Draft`, draftValues);
 }
 
-function cleanDraftValues<T extends OnyxFormKeyWithoutDraft>(formID: T) {
-    Onyx.merge(`${formID}Draft`, null);
-}
-
-export {setDraftValues, setErrorFields, setErrors, setIsLoading, cleanDraftValues};
+export {setDraftValues, setErrorFields, setErrors, setIsLoading};
