@@ -42,20 +42,6 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function formatHour(hourText) {
-    let adjustedHour = '00';
-    if (hourText > 12 && hourText <= 24) {
-        adjustedHour = String(hourText - 12);
-    } else if (hourText > 24) {
-        adjustedHour = `0${hourText[1]}`;
-    } else {
-        adjustedHour = hourText;
-    }
-
-    // Convert to a string and pad with a 0 if needed
-    return adjustedHour.toString().padStart(2, '0');
-}
-
 function insertAtPosition(originalString, newSubstring, selectionPositionFrom, selectionPositionTo, fn) {
     // Check for invalid positions
     if (selectionPositionFrom < 0 || selectionPositionTo < 0 || selectionPositionFrom > originalString.length || selectionPositionTo > originalString.length) {
@@ -293,7 +279,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     );
 
     useEffect(() => {
-        minuteInputRef.current.focus();
+        // The first focus event on the input defaults to the end of the text. Subsequent focuses can occur at any position within the text input. Therefore, we need to ensure the hour input is focused correctly.
+        hourInputRef.current.focus();
+        setTimeout(() => {
+            minuteInputRef.current.focus();
+        }, 10);
     }, []);
 
     const arrowConfig = useMemo(
@@ -371,9 +361,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                     style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb8]}
                 >
                     <AmountTextInput
+                        placeholder={numberFormat(0)}
+                        maxLength={2}
                         formattedAmount={hours}
                         onChangeAmount={handleHourChange}
-                        placeholder={numberFormat(0)}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(ref) => {
                             if (typeof forwardedRef === 'function') {
                                 forwardedRef({refHour: ref, minuteRef: minuteInputRef.current});
@@ -383,22 +375,22 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             }
                             hourInputRef.current = ref;
                         }}
-                        maxLength={2}
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
-                        selection={selectionHour}
                         style={styles.timePickerInput}
                         containerStyles={[styles.timePickerHeight100]}
+                        selection={selectionHour}
                         showSoftInputOnFocus={false}
                     />
                     <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
-                        onKeyPress={handleFocusOnBackspace}
-                        autofocus
-                        formattedAmount={minute}
-                        onChangeAmount={handleMinutesChange}
                         placeholder={numberFormat(0)}
+                        maxLength={2}
+                        formattedAmount={minute}
+                        onKeyPress={handleFocusOnBackspace}
+                        onChangeAmount={handleMinutesChange}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(ref) => {
                             if (typeof forwardedRef === 'function') {
                                 forwardedRef({refHour: hourInputRef.current, minuteRef: ref});
@@ -408,13 +400,12 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             }
                             minuteInputRef.current = ref;
                         }}
-                        maxLength={2}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
-                        selection={selectionMinute}
                         style={styles.timePickerInput}
                         containerStyles={[styles.timePickerHeight100]}
+                        selection={selectionMinute}
                         showSoftInputOnFocus={false}
                     />
                 </View>

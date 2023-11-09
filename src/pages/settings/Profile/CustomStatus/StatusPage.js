@@ -142,15 +142,15 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                         <EmojiPickerButtonDropdown
                             inputID={INPUT_IDS.EMOJI_CODE}
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
                         />
                         <TextInput
                             inputID={INPUT_IDS.STATUS_TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             label={localize.translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                             autoFocus

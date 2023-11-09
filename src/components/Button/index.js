@@ -296,9 +296,9 @@ function Button({
                 return onPress(event);
             }}
             onLongPress={(event) => {
-              if (isLongPressDisabled) {
-                return;
-            }
+                if (isLongPressDisabled) {
+                    return;
+                }
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.longPress();
                 }

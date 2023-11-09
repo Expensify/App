@@ -2428,7 +2428,7 @@ const styles = (theme: ThemeColors) =>
         numberPadWrapper: {
             width: '100%',
             alignItems: 'center',
-            paddingHorizontal: 20
+            paddingHorizontal: 20,
         },
 
         avatarSectionWrapper: {
