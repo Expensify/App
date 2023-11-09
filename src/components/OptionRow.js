@@ -109,9 +109,20 @@ function OptionRow(props) {
         setIsDisabled(props.isDisabled);
     }, [props.isDisabled]);
 
+    const text = lodashGet(props.option, 'text', '');
+    const fullTitle = props.isMultilineSupported ? text.trimStart() : text;
+    const indentsLength = text.length - fullTitle.length;
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const textStyle = props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = props.boldStyle || props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style, styles.pre, isDisabled ? styles.optionRowDisabled : {});
+    const displayNameStyle = StyleUtils.combineStyles(
+        styles.optionDisplayName,
+        textUnreadStyle,
+        props.style,
+        styles.pre,
+        isDisabled ? styles.optionRowDisabled : {},
+        props.isMultilineSupported ? {paddingLeft} : {},
+    );
     const alternateTextStyle = StyleUtils.combineStyles(
         textStyle,
         styles.optionAlternateText,
@@ -177,7 +188,7 @@ function OptionRow(props) {
                             props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={props.hoverStyle}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
@@ -204,7 +215,7 @@ function OptionRow(props) {
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
-                                        fullTitle={props.option.text}
+                                        fullTitle={fullTitle}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled={props.showTitleTooltip}
                                         numberOfLines={props.isMultilineSupported ? 2 : 1}
@@ -252,7 +263,7 @@ function OptionRow(props) {
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />
@@ -292,6 +303,7 @@ function OptionRow(props) {
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
 export default React.memo(
     withLocalize(OptionRow),
