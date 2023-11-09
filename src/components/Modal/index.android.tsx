@@ -15,13 +15,14 @@ AppState.addEventListener('blur', () => {
 
 // Only want to use useNativeDriver on Android. It has strange flashes issue on IOS
 // https://github.com/react-native-modal/react-native-modal#the-modal-flashes-in-a-weird-way-when-animating
-function Modal(props: BaseModalProps) {
+function Modal({useNativeDriver = true, ...rest}: BaseModalProps) {
     return (
         <BaseModal
+            useNativeDriver={useNativeDriver}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
         >
-            {props.children}
+            {rest.children}
         </BaseModal>
     );
 }
