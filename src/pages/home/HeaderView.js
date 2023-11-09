@@ -179,7 +179,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -198,7 +198,7 @@ function HeaderView(props) {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar

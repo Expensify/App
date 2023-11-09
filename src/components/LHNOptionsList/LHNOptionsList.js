@@ -4,8 +4,10 @@ import React, {useCallback} from 'react';
 import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
@@ -55,12 +57,7 @@ const propTypes = {
     preferredLocale: PropTypes.string,
 
     /** The transaction from the parent report action */
-    transactions: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the transaction */
-            transactionID: PropTypes.string,
-        }),
-    ),
+    transactions: PropTypes.objectOf(transactionPropTypes),
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
     ...withCurrentReportIDPropTypes,
@@ -129,21 +126,22 @@ function LHNOptionsList({
         ({item: reportID}) => {
             const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
             const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`];
-            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`];
-            const itemTransaction = `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(
-                itemParentReportActions,
-                [itemFullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'],
-                '',
-            )}`;
+            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
+            const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
+            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
+            const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+            const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs);
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
-                    parentReportActions={itemParentReportActions}
+                    parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
+                    personalDetails={participantsPersonalDetails}
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
@@ -170,7 +168,7 @@ function LHNOptionsList({
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
-                initialNumToRender={5}
+                initialNumToRender={20}
                 maxToRenderPerBatch={5}
                 windowSize={5}
             />

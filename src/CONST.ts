@@ -869,14 +869,19 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+    },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
         URL: 'url',
-        DEFAULT: 'default',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -1330,6 +1335,8 @@ const CONST = {
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
+
+        FIRST_SPACE: /.+?(?=\s)/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -2698,13 +2705,13 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'text',
+        TEXT: 'presentation',
         RADIO: 'radio',
-        IMAGEBUTTON: 'imagebutton',
+        IMAGEBUTTON: 'img button',
         CHECKBOX: 'checkbox',
         SWITCH: 'switch',
-        ADJUSTABLE: 'adjustable',
-        IMAGE: 'image',
+        ADJUSTABLE: 'slider',
+        IMAGE: 'img',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -2775,12 +2782,10 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
-
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
-
     EVENTS: {
         SCROLLING: 'scrolling',
     },
@@ -2797,13 +2802,6 @@ const CONST = {
     LIST_COMPONENTS: {
         HEADER: 'header',
         FOOTER: 'footer',
-    },
-
-    GLOBAL_NAVIGATION_OPTION: {
-        HOME: 'home',
-        CHATS: 'chats',
-        SPEND: 'spend',
-        WORKSPACES: 'workspaces',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',

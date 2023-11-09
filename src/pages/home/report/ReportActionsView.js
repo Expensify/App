@@ -177,8 +177,8 @@ function ReportActionsView(props) {
      * displaying.
      */
     const loadOlderChats = () => {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.isLoadingOlderReportActions) {
+        // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
+        if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
 

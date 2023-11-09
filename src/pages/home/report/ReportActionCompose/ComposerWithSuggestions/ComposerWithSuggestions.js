@@ -127,7 +127,6 @@ function ComposerWithSuggestions({
         return draftComment;
     });
     const commentRef = useRef(value);
-    const lastTextRef = useRef(value);
 
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -205,50 +204,6 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
-    /**
-     * Find the newly added characters between the previous text and the new text based on the selection.
-     *
-     * @param {string} prevText - The previous text.
-     * @param {string} newText - The new text.
-     * @returns {object} An object containing information about the newly added characters.
-     * @property {number} startIndex - The start index of the newly added characters in the new text.
-     * @property {number} endIndex - The end index of the newly added characters in the new text.
-     * @property {string} diff - The newly added characters.
-     */
-    const findNewlyAddedChars = useCallback(
-        (prevText, newText) => {
-            let startIndex = -1;
-            let endIndex = -1;
-            let currentIndex = 0;
-
-            // Find the first character mismatch with newText
-            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
-                currentIndex++;
-            }
-
-            if (currentIndex < newText.length) {
-                startIndex = currentIndex;
-
-                // if text is getting pasted over find length of common suffix and subtract it from new text length
-                if (selection.end - selection.start > 0) {
-                    const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
-                    endIndex = newText.length - commonSuffixLength;
-                } else {
-                    endIndex = currentIndex + (newText.length - prevText.length);
-                }
-            }
-
-            return {
-                startIndex,
-                endIndex,
-                diff: newText.substring(startIndex, endIndex),
-            };
-        },
-        [selection.end, selection.start],
-    );
-
-    const insertWhiteSpace = (text, index) => `${text.slice(0, index)} ${text.slice(index)}`;
-
     const debouncedSaveReportComment = useMemo(
         () =>
             _.debounce((selectedReportID, newComment) => {
@@ -280,14 +235,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
-                isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
-                preferredSkinTone,
-                preferredLocale,
-            );
-
+            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -387,8 +335,14 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text) => {
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
+        (text, shouldAddTrailSpace = true) => {
+            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
+            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
+            setSelection((prevSelection) => ({
+                start: prevSelection.start + text.length + selectionSpaceLength,
+                end: prevSelection.start + text.length + selectionSpaceLength,
+            }));
         },
         [selection, updateComment],
     );
@@ -506,12 +460,7 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            // Reset cursor to last known location
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + 1,
-                end: prevSelection.end + 1,
-            }));
-            replaceSelectionWithText(e.key);
+            replaceSelectionWithText(e.key, false);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
@@ -575,10 +524,6 @@ function ComposerWithSuggestions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
-
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -620,11 +565,11 @@ function ComposerWithSuggestions({
                     autoFocus={shouldAutoFocus}
                     multiline
                     ref={setTextInputRef}
-                    textAlignVertical="top"
                     placeholder={inputPlaceholder}
                     placeholderTextColor={themeColors.placeholderText}
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
+                    textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}

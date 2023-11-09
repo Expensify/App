@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
+import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -31,11 +32,11 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The action from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The transaction from the parent report action */
-    transactionID: PropTypes.string,
+    transaction: transactionPropTypes,
 
     ...basePropTypes,
 };
@@ -44,8 +45,8 @@ const defaultProps = {
     isFocused: false,
     fullReport: {},
     policy: {},
-    parentReportActions: {},
-    transactionID: undefined,
+    parentReportAction: {},
+    transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
 };
@@ -56,12 +57,10 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale, comment, policy, receiptTransactions, parentReportActions, transaction, ...propsToForward}) {
+function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale, comment, policy, receiptTransactions, parentReportAction, transaction, ...propsToForward}) {
     const reportID = propsToForward.reportID;
-    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
-
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
