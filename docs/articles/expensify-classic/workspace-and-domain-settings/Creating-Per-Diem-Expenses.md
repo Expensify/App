@@ -18,10 +18,10 @@ To add per diem expenses, you need three pieces of information:
 ### Step 2: Select your travel destination from the Destination dropdown
 If your trip involves multiple stops, create a separate Per Diem expense for each destination. Remember, the times are relative to your home city.
 
-### Step 3:Select your Start date, End date, Start time, and End time
+### Step 3: Select your Start date, End date, Start time, and End time
 Expensify will automatically calculate the duration of your trip. We'll show you a breakdown of your days: the time between departure and midnight on the first day, the total days in between, and the time between midnight and your return time on the last day.
 
-### Step 4:  Select a Subrate based on the trip duration from the dropdown list
+### Step 4: Select a Subrate based on the trip duration from the dropdown list
 You can include meal deductions or overnight lodging costs if your jurisdiction permits.
 
 ### Step 5: Enter any other required coding and click “Save”
