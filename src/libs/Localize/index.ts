@@ -46,10 +46,10 @@ type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 type TranslationObject = {
-    key?: TranslationPaths,
-    params?: {[key:string]:string},
-    transformer?: (key:string) => string
-}
+    key?: TranslationPaths;
+    params?: {[key: string]: string};
+    transformer?: (key: string) => string;
+};
 
 /**
  * Return translated string for given locale and phrase
@@ -143,12 +143,12 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-function translateIfNeeded(translation: TranslationObject | string):string {
+function translateIfNeeded(translation: TranslationObject | string): string {
     if (typeof translation !== 'object') {
         return translation;
     }
     const {key, params, transformer} = translation;
-    const variables:Record<string, string> = {};
+    const variables: Record<string, string> = {};
 
     if (params) {
         Object.keys(params).forEach((k) => {
@@ -157,7 +157,7 @@ function translateIfNeeded(translation: TranslationObject | string):string {
             variables[k] = translateIfNeeded(params[k]);
         });
     }
-    const translatedPhrase = translateLocal(key, (variables as never));
+    const translatedPhrase = translateLocal(key, variables as never);
     if (transformer) {
         return transformer(translatedPhrase);
     }

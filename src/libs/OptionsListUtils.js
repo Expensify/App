@@ -390,7 +390,8 @@ function getLastMessageTextForReport(report) {
             key: report.lastMessageTranslationKey || 'common.attachment',
             transformer: (translatedPhrase) => `[${translatedPhrase}]`,
         };
-    } if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    }
+    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {

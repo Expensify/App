@@ -1,11 +1,11 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import * as RNLocalize from 'react-native-localize';
-import Log from '../Log';
+import _ from 'underscore';
 import Config from '../../CONFIG';
-import translations from '../../languages/translations';
 import CONST from '../../CONST';
+import translations from '../../languages/translations';
+import Log from '../Log';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
