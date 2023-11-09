@@ -347,20 +347,7 @@ function BaseSelectionList({
 
         // set the focus on the first item when the sections list is changed
         if (sections.length > 0) {
-            const selectedOptions = _.filter(flattenedSections.selectedOptions, (selectedOption) => selectedOption.isSelected === true);
-            if (!canSelectMultiple) {
-                if (_.isEmpty(selectedOptions)) {
-                    updateAndScrollToFocusedIndex(0);
-                }
-                else {
-                    const selectedOption = _.first(selectedOptions);
-                    const index = _.findIndex(flattenedSections.allOptions, (option) => option.text === selectedOption.text);
-                    updateAndScrollToFocusedIndex(index);
-                }
-            }
-            else {
-                // For Multiple options selectRow is handling focus.
-            }
+            updateAndScrollToFocusedIndex(0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sections]);
