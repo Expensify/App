@@ -17,6 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
@@ -126,7 +128,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
                 onBackButtonPress={onBackButtonPress}
                 shouldShowGetAssistanceButton
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
@@ -156,7 +158,8 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
                     inputKeys={INPUT_KEYS}
                     shouldSaveDraft
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
@@ -187,7 +190,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
                         {translate('common.termsOfService')}
                     </TextLink>
                 </Text>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

@@ -5,8 +5,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import DatePicker from '@components/DatePicker';
-import Form from '@components/Form';
+import NewDatePicker from '@components/NewDatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -23,6 +22,8 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IdologyQuestions from './IdologyQuestions';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -177,7 +178,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         {translate('additionalDetailsStep.helpLink')}
                     </TextLink>
                 </View>
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                     validate={validate}
                     onSubmit={activateWallet}
@@ -185,7 +186,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     submitButtonText={translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="legalFirstName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
@@ -194,7 +196,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="legalLastName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
@@ -214,7 +217,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.TEL}
@@ -225,7 +229,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <DatePicker
+                    <NewDatePicker
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
@@ -234,7 +238,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         maxDate={maxDate}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="ssn"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
@@ -243,7 +248,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
-                </Form>
+                </FormProvider>
             </View>
         </>
     );

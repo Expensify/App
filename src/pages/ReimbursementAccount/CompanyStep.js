@@ -7,8 +7,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DatePicker from '@components/DatePicker';
-import Form from '@components/Form';
+import NewDatePicker from '@components/NewDatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Picker from '@components/Picker';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +24,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AddressForm from './AddressForm';
 import StepPropTypes from './StepPropTypes';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     ...StepPropTypes,
@@ -151,7 +152,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
@@ -160,7 +161,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -188,7 +190,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     shouldSaveDraft
                     streetTranslationKey="common.companyAddress"
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="companyPhone"
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
@@ -199,7 +202,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     defaultValue={getDefaultStateForField('companyPhone')}
                     shouldSaveDraft
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="website"
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
@@ -210,7 +214,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     hint={translate('common.websiteExample')}
                     inputMode={CONST.INPUT_MODE.URL}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="companyTaxID"
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
@@ -224,7 +229,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     shouldUseDefaultValue={shouldDisableCompanyTaxID}
                 />
                 <View style={styles.mt4}>
-                    <Picker
+                    <InputWrapper
+                        InputComponent={Picker}
                         inputID="incorporationType"
                         label={translate('companyStep.companyType')}
                         items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`companyStep.incorporationTypes.${key}`)}))}
@@ -234,7 +240,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <DatePicker
+                    <NewDatePicker
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
@@ -243,15 +249,17 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker
+                    <InputWrapper
+                        InputComponent={StatePicker}
                         inputID="incorporationState"
                         label={translate('companyStep.incorporationState')}
                         defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
                     />
                 </View>
-                <CheckboxWithLabel
-                    accessibilityLabel={`${translate('companyStep.confirmCompanyIsNot')} ${translate('companyStep.listOfRestrictedBusinesses')}`}
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    aria-label={`${translate('companyStep.confirmCompanyIsNot')} ${translate('companyStep.listOfRestrictedBusinesses')}`}
                     inputID="hasNoConnectionToCannabis"
                     defaultValue={getDefaultStateForField('hasNoConnectionToCannabis', false)}
                     LabelComponent={() => (
@@ -268,7 +276,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     style={[styles.mt4]}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
