@@ -332,7 +332,7 @@ function AvatarWithImagePicker({
                     fallbackSource={fallbackIcon}
                 >
                     {({show}) => (
-                        <AttachmentPicker>
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
