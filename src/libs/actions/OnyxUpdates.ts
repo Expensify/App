@@ -15,7 +15,7 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-let pusherEventsQueuePromise = Promise.resolve();
+let pusherEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
@@ -48,15 +48,15 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
 
-    for (const update of updates) {
-        pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
-    }
+    pusherEventsPromise = updates
+        .reduce((promise, update) => {
+            return promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
+        }, pusherEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager2] Done applying Pusher update');
+        });
 
-    pusherEventsQueuePromise = pusherEventsQueuePromise.then(() => {
-        console.debug('[OnyxUpdateManager] Done applying Pusher update');
-    });
-
-    return pusherEventsQueuePromise;
+    return pusherEventsPromise;
 }
 
 /**
