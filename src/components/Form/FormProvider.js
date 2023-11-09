@@ -69,6 +69,8 @@ const propTypes = {
     shouldValidateOnBlur: PropTypes.bool,
 
     shouldValidateOnChange: PropTypes.bool,
+
+    shouldSetTouchedOnBlurOnly: PropTypes.bool,
 };
 
 const VALIDATE_DELAY = 200;
@@ -86,6 +88,7 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
+    shouldSetTouchedOnBlurOnly: false,
 };
 
 function getInitialValueByType(valueType) {
@@ -101,7 +104,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, shouldSetTouchedOnBlurOnly, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -248,17 +251,21 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    if (shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onTouched)) {
                         propsToParse.onTouched(event);
                     }
                 },
                 onPress: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    if (shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onPress)) {
                         propsToParse.onPress(event);
                     }
@@ -267,9 +274,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     // To prevent validating just pressed inputs, we need to set the touched input right after
                     // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
                     // as the onValidate is delayed
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    if (shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onPressIn)) {
                         propsToParse.onPressIn(event);
                     }

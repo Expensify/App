@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useContext} from 'react';
 import refPropTypes from '@components/refPropTypes';
+import TextInput from "@components/TextInput";
 import FormContext from './FormContext';
 
 const propTypes = {
@@ -18,8 +19,9 @@ const defaultProps = {
 function InputWrapper(props) {
     const {InputComponent, inputID, forwardedRef, ...rest} = props;
     const {registerInput} = useContext(FormContext);
+    const shouldSetTouchedOnBlurOnly = InputComponent === TextInput;
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InputComponent {...registerInput(inputID, {ref: forwardedRef, ...rest})} />;
+    return <InputComponent {...registerInput(inputID, {ref: forwardedRef, shouldSetTouchedOnBlurOnly, ...rest})} />;
 }
 
 InputWrapper.propTypes = propTypes;
