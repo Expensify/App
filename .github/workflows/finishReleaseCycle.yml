@@ -34,13 +34,13 @@ jobs:
             echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Reopen and comment on issue (not a team member)
         if: ${{ !fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) }}
         uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
             Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
@@ -51,14 +51,14 @@ jobs:
         id: checkDeployBlockers
         uses: Expensify/App/.github/actions/javascript/checkDeployBlockers@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue (has blockers)
         if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS || 'false') }}
         uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
             This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.

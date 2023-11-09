@@ -1,10 +1,10 @@
+import {format, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useRef} from 'react';
-import {format, isValid} from 'date-fns';
 import _ from 'underscore';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import * as Browser from '../../libs/Browser';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import TextInput from '@components/TextInput';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 import './styles.css';
 
 function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {
@@ -29,7 +29,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
             return;
         }
 
-        const date = new Date(text);
+        const date = parseISO(text);
         if (isValid(date)) {
             onInputChange(format(date, CONST.DATE.FNS_FORMAT_STRING));
         }
@@ -61,7 +61,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
             onFocus={showDatepicker}
             label={label}
             accessibilityLabel={label}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             onInputChange={setDate}
             value={value}
             placeholder={placeholder}
@@ -77,10 +77,14 @@ DatePicker.displayName = 'DatePicker';
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const DatePickerWithRef = React.forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;

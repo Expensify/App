@@ -1,16 +1,16 @@
-import React, {useState, useRef, useCallback, useEffect} from 'react';
-import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import isFunction from 'lodash/isFunction';
-import TextInput from '../TextInput';
-import Popover from '../Popover';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import useKeyboardState from '../../hooks/useKeyboardState';
-import useLocalize from '../../hooks/useLocalize';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Button, Keyboard, View} from 'react-native';
+import Popover from '@components/Popover';
+import TextInput from '@components/TextInput';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
     const dateValue = value || defaultValue;
@@ -77,7 +77,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = dateValue ? format(new Date(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const dateAsText = dateValue ? format(parseISO(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -85,14 +85,14 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 forceActiveLabel
                 label={label}
                 accessibilityLabel={label}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 placeholder={placeholder}
                 errorText={errorText}
                 containerStyles={containerStyles}
                 textInputContainerStyles={[isPickerVisible && styles.borderColorFocus]}
                 onPress={showPicker}
-                editable={false}
+                readOnly
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={inputRef}
@@ -138,10 +138,14 @@ DatePicker.displayName = 'DatePicker';
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default React.forwardRef((props, ref) => (
+const DatePickerWithRef = React.forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;

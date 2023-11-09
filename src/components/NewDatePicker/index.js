@@ -1,16 +1,16 @@
+import {setYear} from 'date-fns';
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {setYear} from 'date-fns';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import * as Expensicons from '../Icon/Expensicons';
-import {defaultProps as defaultBaseTextInputPropTypes, propTypes as baseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Expensicons from '@components/Icon/Expensicons';
+import TextInput from '@components/TextInput';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
-import InputWrapper from '../Form/InputWrapper';
 
 const propTypes = {
     /**
@@ -75,7 +75,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={value || selectedDate || ''}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}
@@ -83,7 +83,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     textInputContainerStyles={[styles.borderColorFocus]}
                     inputStyle={[styles.pointerEventsNone]}
                     disabled={disabled}
-                    editable={false}
+                    readOnly
                 />
             </View>
             <View style={[styles.datePickerPopover, styles.border]}>
@@ -100,5 +100,6 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
 
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
+NewDatePicker.displayName = 'NewDatePicker';
 
 export default withLocalize(NewDatePicker);

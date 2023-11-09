@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Session from '../../libs/actions/Session';
-import Navigation from '../../libs/Navigation/Navigation';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps as validateLinkDefaultProps, propTypes as validateLinkPropTypes} from './validateLinkPropTypes';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */

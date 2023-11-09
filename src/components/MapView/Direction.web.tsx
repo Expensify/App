@@ -2,13 +2,11 @@
 // This is why we have separate components for web and native to handle the specific implementations.
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
-
 import React from 'react';
-import {View} from 'react-native';
 import {Layer, Source} from 'react-map-gl';
+import {View} from 'react-native';
+import styles from '@styles/styles';
 import {DirectionProps} from './MapViewTypes';
-
-import styles from '../../styles/styles';
 
 function Direction({coordinates}: DirectionProps) {
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
@@ -44,5 +42,7 @@ function Direction({coordinates}: DirectionProps) {
         </View>
     );
 }
+
+Direction.displayName = 'Direction';
 
 export default Direction;

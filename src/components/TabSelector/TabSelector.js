@@ -1,13 +1,13 @@
-import {View} from 'react-native';
-import React, {useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import * as Expensicons from '../Icon/Expensicons';
+import * as Expensicons from '@components/Icon/Expensicons';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /* Navigation state provided by React Navigation */

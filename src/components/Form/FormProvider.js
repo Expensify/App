@@ -1,17 +1,18 @@
-import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Visibility from '../../libs/Visibility';
-import * as FormActions from '../../libs/actions/FormActions';
+import PropTypes from 'prop-types';
+import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import compose from '../../libs/compose';
-import {withNetwork} from '../OnyxProvider';
-import stylePropTypes from '../../styles/stylePropTypes';
-import networkPropTypes from '../networkPropTypes';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -100,7 +101,7 @@ function getInitialValueByType(valueType) {
 }
 
 function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
-    const inputRefs = useRef(null);
+    const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
     const [errors, setErrors] = useState({});
@@ -108,14 +109,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -186,11 +180,14 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
+        // Prepare values before submitting
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -199,13 +196,15 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
-        onSubmit(inputValues);
+        onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
-            const newRef = propsToParse.ref || createRef();
-            inputRefs[inputID] = newRef;
+            const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
+            if (inputRefs.current[inputID] !== newRef) {
+                inputRefs.current[inputID] = newRef;
+            }
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
@@ -229,7 +228,13 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             return {
                 ...propsToParse,
-                ref: newRef,
+                ref:
+                    typeof propsToParse.ref === 'function'
+                        ? (node) => {
+                              propsToParse.ref(node);
+                              newRef.current = node;
+                          }
+                        : newRef,
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,

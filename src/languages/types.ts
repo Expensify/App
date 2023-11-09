@@ -1,4 +1,4 @@
-import {ReportAction} from '../types/onyx';
+import {ReportAction} from '@src/types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -169,7 +169,7 @@ type UntilTimeParams = {time: string};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberOfWorkspaceParams = {login: string; workspace: string};
+type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
@@ -246,6 +246,7 @@ export type {
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
+    TranslationPaths,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
     ZipCodeExampleFormatParams,
@@ -303,7 +304,7 @@ export type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,

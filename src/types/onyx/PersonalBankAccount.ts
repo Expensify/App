@@ -15,6 +15,9 @@ type PersonalBankAccount = {
 
     /** Any reportID we should redirect to at the end of the flow */
     exitReportID?: string;
+
+    /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
+    onSuccessFallbackRoute?: string;
 };
 
 export default PersonalBankAccount;

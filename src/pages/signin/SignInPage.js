@@ -1,31 +1,31 @@
-import React, {useEffect, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import SignInPageLayout from './SignInPageLayout';
-import LoginForm from './LoginForm';
-import ValidateCodeForm from './ValidateCodeForm';
-import Performance from '../../libs/Performance';
-import * as App from '../../libs/actions/App';
-import UnlinkLoginForm from './UnlinkLoginForm';
-import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
-import * as Localize from '../../libs/Localize';
-import * as StyleUtils from '../../styles/StyleUtils';
-import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import Log from '../../libs/Log';
-import getPlatform from '../../libs/getPlatform';
-import CONST from '../../CONST';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import getPlatform from '@libs/getPlatform';
+import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as App from '@userActions/App';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
-import * as ActiveClientManager from '../../libs/ActiveClientManager';
-import * as Session from '../../libs/actions/Session';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
+import LoginForm from './LoginForm';
+import SignInPageLayout from './SignInPageLayout';
+import UnlinkLoginForm from './UnlinkLoginForm';
+import ValidateCodeForm from './ValidateCodeForm';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** The user's preferred locale */
+    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
+    preferredLocale: '',
 };
 
 /**
@@ -131,7 +135,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients}) {
+function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -153,8 +157,11 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
+        if (preferredLocale) {
+            return;
+        }
         App.setLocale(Localize.getDevicePreferredLocale());
-    }, []);
+    }, [preferredLocale]);
 
     const {
         shouldShowLoginForm,
@@ -243,16 +250,20 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        setIsUsingMagicCode={setIsUsingMagicCode}
-                    />
+                {isClientTheLeader && (
+                    <>
+                        {shouldShowValidateCodeForm && (
+                            <ValidateCodeForm
+                                isUsingRecoveryCode={isUsingRecoveryCode}
+                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                                setIsUsingMagicCode={setIsUsingMagicCode}
+                            />
+                        )}
+                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                    </>
                 )}
-                {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );
@@ -273,4 +284,7 @@ export default withOnyx({
     We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
 })(SignInPage);
