@@ -4,7 +4,6 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
@@ -120,7 +119,8 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
             // TODO: remove this comment once upstream PR is merged and available in a future release
             maxNumberOfLines={maxNumberOfLines}
-            style={[composerStyles, styles.verticalAlignMiddle]}
+            textAlignVertical="center"
+            style={[composerStyles]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}

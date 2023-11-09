@@ -182,7 +182,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: fontFamily.MONOSPACE,
-                fontSize: 13,
+                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -1352,7 +1352,7 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButtonContainer: {
             position: 'absolute',
-            left: 16,
+            right: 20,
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
@@ -3915,34 +3915,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             gap: 12,
             marginBottom: 16,
-        },
-
-        globalNavigation: {
-            width: variables.globalNavigationWidth,
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationMenuContainer: {
-            marginTop: 13,
-        },
-
-        globalAndSubNavigationContainer: {
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationSelectionIndicator: (isFocused: boolean) => ({
-            width: 4,
-            height: 52,
-            borderTopRightRadius: variables.componentBorderRadiusRounded,
-            borderBottomRightRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
-        }),
-
-        globalNavigationMenuItem: (isFocused: boolean) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
-
-        globalNavigationItemContainer: {
-            width: variables.globalNavigationWidth,
-            height: variables.globalNavigationWidth,
         },
 
         walletCard: {
