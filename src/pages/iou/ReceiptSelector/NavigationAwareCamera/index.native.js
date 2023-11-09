@@ -15,7 +15,7 @@ const propTypes = {
     /** Name of the selected receipt tab */
     selectedTab: PropTypes.string.isRequired,
 
-    /**  */
+    /** The tab animation from hook */
     tabAnimation: PropTypes.shape({
         addListener: PropTypes.func,
         removeListener: PropTypes.func,

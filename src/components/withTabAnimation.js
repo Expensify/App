@@ -21,6 +21,8 @@ export default function (WrappedComponent) {
         );
     }
 
+    WrappedComponentWithTabAnimation.displayName = `withAnimation(${getComponentDisplayName(WrappedComponent)})`;
+
     function WithTabAnimation(props, ref) {
         if (props.isInTabNavigator) {
             return (
