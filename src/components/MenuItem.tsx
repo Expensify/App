@@ -1,5 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {ForwardedRef, ReactNode, useEffect, useMemo} from 'react';
+import React, {ForwardedRef, ReactNode, forwardRef, useEffect, useMemo} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -236,9 +236,9 @@ const defaultProps = {
     shouldCheckActionAllowedOnPress: true,
 };
 
-const MenuItem = React.forwardRef(({badgeText,onPress,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
+function MenuItem({badgeText,onPress,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
         shouldCheckActionAllowedOnPress
-}: MenuItemProps, ref: ForwardedRef<View>) => {
+}: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
 
@@ -535,10 +535,8 @@ const MenuItem = React.forwardRef(({badgeText,onPress,style,wrapperStyle,titleSt
             )}
         </Hoverable>
     );
-});
+}
 
-MenuItem.propTypes = propTypes;
-MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
-export default MenuItem;
+export default forwardRef(MenuItem);
