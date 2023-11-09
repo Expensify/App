@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import useEnvironment from '@hooks/useEnvironment';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,6 +36,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
+    const {environment} = useEnvironment();
 
     /**
      * @param {Object} values
@@ -43,7 +45,8 @@ function IntroSchoolPrincipalPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim());
+        const policyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
 
     /**
