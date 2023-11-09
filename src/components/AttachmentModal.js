@@ -117,7 +117,7 @@ function AttachmentModal(props) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -393,6 +393,11 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
 
+    let headerTitle = props.headerTitle;
+    if (!_.isNull(isAttachmentReceipt)) {
+        headerTitle = translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment');
+    }
+
     return (
         <>
             <Modal
@@ -417,7 +422,7 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={headerTitle}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
                     onDownloadButtonPress={() => downloadAttachment(source)}
