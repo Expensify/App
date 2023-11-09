@@ -4,7 +4,7 @@ import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -142,9 +142,8 @@ const defaultProps = {
 };
 
 function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
-    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -261,9 +260,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+        <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
             <RootStack.Navigator
-                isSmallScreenWidth={isSmallScreenWidth}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 mode="modal"
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
                 // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on

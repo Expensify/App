@@ -4,7 +4,7 @@ import React, {useEffect, useRef} from 'react';
 import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
 import themeColors from '@styles/themes/default';
@@ -55,8 +55,7 @@ function NavigationRoot(props) {
     const firstRenderRef = useRef(true);
 
     const {updateCurrentReportID} = useCurrentReportID();
-    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -66,11 +65,11 @@ function NavigationRoot(props) {
             firstRenderRef.current = false;
             return;
         }
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             return;
         }
         Navigation.setShouldPopAllStateOnUP();
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (!navigationRef.isReady() || !props.authenticated) {
@@ -78,7 +77,7 @@ function NavigationRoot(props) {
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, props.authenticated]);
+    }, [shouldUseNarrowLayout, props.authenticated]);
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
