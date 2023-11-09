@@ -3,6 +3,29 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
 import CONST from '@src/CONST';
 
+/**
+ * Custom React hook to determine the focus status of a specific tab in a Material Top Tab Navigator, with additional
+ * conditions based on a selected tab state. It evaluates whether the specified tab is focused by combining the tab's
+ * animation position and the screen's focus status within a React Navigation environment.
+ *
+ * The hook is primarily intended for use with Material Top Tabs provided by '@react-navigation/material-top-tabs'.
+ * It utilizes the `useTabAnimation` hook from this package to track the animated position of the tabs and the
+ * `useIsFocused` hook from '@react-navigation/native' to determine if the current screen is focused. Additionally,
+ * it uses a `selectedTab` parameter to apply custom logic based on the currently selected tab.
+ *
+ * Note: This hook employs a conditional invocation of the `useTabAnimation` hook, which is generally against React's
+ * rules of hooks. This pattern is used here to handle scenarios where the hook might not be employed within a
+ * Material Top Tabs Navigator context. Ensure this hook is only used in appropriate scenarios to avoid potential issues.
+ *
+ * @param {Object} params - The parameters object.
+ * @param {number} params.tabIndex - The index of the tab for which focus status is being determined.
+ * @param {string} params.selectedTab - The tab identifier passed by <TopTab.Screen /> to the component. Used only on native platform
+ *
+ * @returns {boolean} Returns `true` if the specified tab is both animation-focused and screen-focused, otherwise `false`.
+ *
+ * @example
+ * const isTabFocused = useTabNavigatorFocus({ tabIndex: 1, selectedTab: 'home' });
+ */
 function useTabNavigatorFocus({tabIndex, selectedTab}) {
     let tabPositionAnimation = null;
     try {
