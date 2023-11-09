@@ -337,7 +337,9 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: _.isEmpty(transaction.receipt)
+                                  ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
                           [reportPreviewAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -346,7 +348,9 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: _.isEmpty(transaction.receipt)
+                                  ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
                       }),
             },
@@ -358,17 +362,17 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: _.isEmpty(transaction.receipt)
+                                  ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
                           [iouAction.reportActionID]: {
-                              errors: _.isEmpty(transaction.receipt)
-                                  ? ErrorUtils.getMicroSecondOnyxError(null)
-                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: !_.isEmpty(transaction.receipt)
+                              errors: _.isEmpty(transaction.receipt)
                                   ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
                                   : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
