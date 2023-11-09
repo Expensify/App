@@ -6,7 +6,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
 import styles from '@styles/styles';
@@ -303,4 +302,4 @@ function Button(
 
 Button.displayName = 'Button';
 
-export default withNavigationFallback(React.forwardRef(Button));
+export default React.forwardRef(Button);
