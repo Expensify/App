@@ -75,8 +75,8 @@ function ExpensifyCardPage({
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(virtualCard.cardID)
-            .then((val) => {
-                setDetails(val);
+            .then((value) => {
+                setDetails(value);
                 setCardDetailsError('');
             })
             .catch(setCardDetailsError)
