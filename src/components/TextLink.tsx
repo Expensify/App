@@ -5,19 +5,19 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import Text from './Text';
 
-type LinkProps = {    
+type LinkProps = {
     /** Link to open in new tab */
     href: string;
 
     onPress?: undefined;
-}
+};
 
 type PressProps = {
     href?: undefined;
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: () => void;
-}
+};
 
 type TextLinkProps = (LinkProps | PressProps) & {
     /** Text content child */
