@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,13 +45,13 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
 
             if (!response.ok) {
                 // Expensify site is down or there was an internal server error, or something temporary like a Bad Gateway, or unknown error occurred
-                const serviceInterruptedStatuses: number[] = [
+                const serviceInterruptedStatuses: Array<ValueOf<typeof CONST.HTTP_STATUS>> = [
                     CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR,
                     CONST.HTTP_STATUS.BAD_GATEWAY,
                     CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
                     CONST.HTTP_STATUS.UNKNOWN_ERROR,
                 ];
-                if (serviceInterruptedStatuses.includes(response.status)) {
+                if (serviceInterruptedStatuses.includes(response.status as ValueOf<typeof CONST.HTTP_STATUS>)) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status.toString(),
@@ -112,7 +113,7 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: string = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
+function xhr(command: string, data: Record<string, unknown>, type: 'get' | 'post' = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
         if (!data[key]) {

@@ -11,7 +11,7 @@ type RequestData = {
     command: string;
     commandName?: string;
     data?: Record<string, unknown>;
-    type?: string;
+    type?: 'get' | 'post';
     shouldUseSecure?: boolean;
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
