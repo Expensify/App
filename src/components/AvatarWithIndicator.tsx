@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as UserUtils from '../libs/UserUtils';
-import {AvatarSource} from '../libs/UserUtils';
-import styles from '../styles/styles';
+import * as UserUtils from '@libs/UserUtils';
+import {AvatarSource} from '@libs/UserUtils';
+import styles from '@styles/styles';
 import Avatar from './Avatar';
 import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';

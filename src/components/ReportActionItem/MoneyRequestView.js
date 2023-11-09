@@ -1,43 +1,43 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import reportPropTypes from '../../pages/reportPropTypes';
-import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
-import Permissions from '../../libs/Permissions';
-import Navigation from '../../libs/Navigation/Navigation';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as IOU from '../../libs/actions/IOU';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import * as CardUtils from '../../libs/CardUtils';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import useLocalize from '../../hooks/useLocalize';
-import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
-import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import transactionPropTypes from '../transactionPropTypes';
-import Text from '../Text';
-import Switch from '../Switch';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import categoryPropTypes from '@components/categoryPropTypes';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SpacerView from '@components/SpacerView';
+import Switch from '@components/Switch';
+import tagPropTypes from '@components/tagPropTypes';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as CardUtils from '@libs/CardUtils';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ReportActionItemImage from './ReportActionItemImage';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import categoryPropTypes from '../categoryPropTypes';
-import SpacerView from '../SpacerView';
-import tagPropTypes from '../tagPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -99,7 +99,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    if (isDistanceRequest && !formattedTransactionAmount) {
+    const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
+    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -118,7 +119,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const policyTagsList = lodashGet(policyTag, 'tags', {});
 
     // Flags for showing categories and tags
-    const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
@@ -206,7 +207,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={transactionMerchant}
+                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
                             interactive={canEdit && !isSettled}
                             shouldShowRightIcon={canEdit && !isSettled}
                             titleStyle={styles.flex1}
@@ -274,7 +275,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     </OfflineWithFeedback>
                 )}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
