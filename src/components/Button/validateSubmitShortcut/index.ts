@@ -11,11 +11,12 @@ import ValidateSubmitShortcut from './types';
  */
 
 const validateSubmitShortcut: ValidateSubmitShortcut = (isFocused, isDisabled, isLoading, event) => {
-    if (!isFocused || isDisabled || isLoading || (event && event.target.nodeName === 'TEXTAREA')) {
+    const eventTarget = event?.target as HTMLElement;
+    if (!isFocused || isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA') {
         return false;
     }
 
-    event.preventDefault();
+    event?.preventDefault();
     return true;
 };
 
