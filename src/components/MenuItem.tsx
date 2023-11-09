@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {ForwardedRef, ReactNode, useEffect, useMemo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
@@ -236,234 +236,236 @@ const defaultProps = {
     shouldCheckActionAllowedOnPress: true,
 };
 
-const MenuItem = React.forwardRef((props: MenuItemProps, ref: ForwardedRef<View>) => {
+const MenuItem = React.forwardRef(({badgeText,onPress,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
+        shouldCheckActionAllowedOnPress
+}: MenuItemProps, ref: ForwardedRef<View>) => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
 
-    const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
-    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const isDeleted = _.contains(style, styles.offlineFeedback.deleted);
+    const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
-            props.shouldShowBasicTitle ? undefined : styles.textStrong,
-            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            props.numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
+            icon && !_.isArray(icon) && (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
+            shouldShowBasicTitle ? undefined : styles.textStrong,
+            shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
+            numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
+            interactive && disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
-        props.titleStyle,
+        titleStyle,
     );
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
-        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        props.descriptionTextStyle,
+        icon && !_.isArray(icon) ? styles.ml3 : undefined,
+        title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);
 
-    const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     const titleRef = React.useRef('');
     useEffect(() => {
-        if (!props.title || (titleRef.current.length && titleRef.current === props.title) || !props.shouldParseTitle) {
+        if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
             return;
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(props.title));
-        titleRef.current = props.title;
-    }, [props.title, props.shouldParseTitle]);
+        setHtml(parser.replace(title));
+        titleRef.current = title;
+    }, [title, shouldParseTitle]);
 
     const getProcessedTitle = useMemo(() => {
         let title = '';
-        if (props.shouldRenderAsHTML) {
-            title = convertToLTR(props.title);
+        if (shouldRenderAsHTML) {
+            title = convertToLTR(title);
         }
 
-        if (props.shouldParseTitle) {
+        if (shouldParseTitle) {
             title = html;
         }
 
         return title ? `<comment>${title}</comment>` : '';
-    }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
 
-    const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+    const hasPressableRightComponent = iconRight || (rightComponent && shouldShowRightComponent);
 
     const renderTitleContent = () => {
-        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
+        if (titleWithTooltips && _.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
-                    fullTitle={props.title}
-                    displayNamesWithTooltips={props.titleWithTooltips}
+                    fullTitle={title}
+                    displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
                 />
             );
         }
 
-        return convertToLTR(props.title);
+        return convertToLTR(title);
     };
 
-    const onPressAction = (e) => {
-        if (props.disabled || !props.interactive) {
+    const onPressAction = (event: GestureResponderEvent | KeyboardEvent) => {
+        if (disabled || !interactive) {
             return;
         }
 
-        if (e && e.type === 'click') {
-            e.currentTarget.blur();
+        if (event && event.type === 'click') {
+            event.currentTarget.blur();
         }
 
-        props.onPress(e);
+        onPress(e);
     };
 
     return (
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
-                    onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                    onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
-                    onSecondaryInteraction={props.onSecondaryInteraction}
+                    onSecondaryInteraction={onSecondaryInteraction}
                     style={({pressed}) => [
-                        props.style,
-                        !props.interactive && styles.cursorDefault,
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
-                        (isHovered || pressed) && props.hoverAndPressStyle,
-                        ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
-                        props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
+                        style,
+                        !interactive && styles.cursorDefault,
+                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                        (isHovered || pressed) && hoverAndPressStyle,
+                        ...(_.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                        shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                     ]}
-                    disabled={props.disabled}
+                    disabled={disabled}
                     ref={ref}
                     role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title ? props.title.toString() : ''}
+                    accessibilityLabel={title ? title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
                             <View style={[styles.flexColumn, styles.flex1]}>
-                                {Boolean(props.label) && (
-                                    <View style={props.icon ? styles.mb2 : null}>
+                                {Boolean(label) && (
+                                    <View style={icon ? styles.mb2 : null}>
                                         <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>
-                                            {props.label}
+                                            {label}
                                         </Text>
                                     </View>
                                 )}
-                                <View style={[styles.flexRow, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
-                                    {Boolean(props.icon) && _.isArray(props.icon) && (
+                                <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
+                                    {Boolean(icon) && _.isArray(icon) && (
                                         <MultipleAvatars
                                             isHovered={isHovered}
                                             isPressed={pressed}
-                                            icons={props.icon}
-                                            size={props.avatarSize}
+                                            icons={icon}
+                                            size={avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
-                                                isHovered && !pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                                pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                                isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
                                             ]}
                                         />
                                     )}
-                                    {Boolean(props.icon) && !_.isArray(props.icon) && (
-                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
-                                            {props.iconType === CONST.ICON_TYPE_ICON && (
+                                    {Boolean(icon) && !_.isArray(icon) && (
+                                        <View style={[styles.popoverMenuIcon, ...iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
+                                            {iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
                                                     hovered={isHovered}
                                                     pressed={pressed}
-                                                    src={props.icon}
-                                                    width={props.iconWidth}
-                                                    height={props.iconHeight}
+                                                    src={icon}
+                                                    width={iconWidth}
+                                                    height={iconHeight}
                                                     fill={
-                                                        props.iconFill ||
+                                                        iconFill ||
                                                         StyleUtils.getIconFillColor(
-                                                            getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
+                                                            getButtonState(focused || isHovered, pressed, success, disabled, interactive),
                                                             true,
                                                         )
                                                     }
                                                 />
                                             )}
-                                            {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
-                                                    source={props.icon}
-                                                    fallbackIcon={props.fallbackIcon}
-                                                    name={props.title}
+                                                    source={icon}
+                                                    fallbackIcon={fallbackIcon}
+                                                    name={title}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
                                             )}
-                                            {props.iconType === CONST.ICON_TYPE_AVATAR && (
+                                            {iconType === CONST.ICON_TYPE_AVATAR && (
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
-                                                    source={props.icon}
-                                                    fallbackIcon={props.fallbackIcon}
-                                                    size={props.avatarSize}
+                                                    source={icon}
+                                                    fallbackIcon={fallbackIcon}
+                                                    size={avatarSize}
                                                 />
                                             )}
                                         </View>
                                     )}
-                                    {Boolean(props.secondaryIcon) && (
-                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                    {Boolean(secondaryIcon) && (
+                                        <View style={[styles.popoverMenuIcon, ...iconStyles]}>
                                             <Icon
-                                                src={props.secondaryIcon}
-                                                width={props.iconWidth}
-                                                height={props.iconHeight}
+                                                src={secondaryIcon}
+                                                width={iconWidth}
+                                                height={iconHeight}
                                                 fill={
-                                                    props.secondaryIconFill ||
-                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                    secondaryIconFill ||
+                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
                                                 }
                                             />
                                         </View>
                                     )}
-                                    <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
-                                        {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
+                                    <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                        {Boolean(description) && shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyle}
                                                 numberOfLines={2}
                                             >
-                                                {props.description}
+                                                {description}
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
+                                            {Boolean(title) && (Boolean(shouldRenderAsHTML) || (Boolean(shouldParseTitle) && Boolean(html.length))) && (
                                                 <View style={styles.renderHTMLTitle}>
                                                     <RenderHTML html={getProcessedTitle} />
                                                 </View>
                                             )}
-                                            {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
+                                            {!shouldRenderAsHTML && !shouldParseTitle && Boolean(title) && (
                                                 <Text
                                                     style={titleTextStyle}
-                                                    numberOfLines={props.numberOfLinesTitle || undefined}
-                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
+                                                    numberOfLines={numberOfLinesTitle || undefined}
+                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                 >
                                                     {renderTitleContent()}
                                                 </Text>
                                             )}
-                                            {Boolean(props.shouldShowTitleIcon) && (
+                                            {Boolean(shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
-                                                        src={props.titleIcon}
+                                                        src={titleIcon}
                                                         fill={themeColors.iconSuccessFill}
                                                     />
                                                 </View>
                                             )}
                                         </View>
-                                        {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
+                                        {Boolean(description) && !shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyle}
                                                 numberOfLines={2}
                                             >
-                                                {props.description}
+                                                {description}
                                             </Text>
                                         )}
-                                        {Boolean(props.error) && (
+                                        {Boolean(error) && (
                                             <View style={[styles.mt1]}>
-                                                <Text style={[styles.textLabelError]}>{props.error}</Text>
+                                                <Text style={[styles.textLabelError]}>{error}</Text>
                                             </View>
                                         )}
-                                        {Boolean(props.furtherDetails) && (
+                                        {Boolean(furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
-                                                    src={props.furtherDetailsIcon}
+                                                    src={furtherDetailsIcon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}
                                                     inline
@@ -472,7 +474,7 @@ const MenuItem = React.forwardRef((props: MenuItemProps, ref: ForwardedRef<View>
                                                     style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
                                                     numberOfLines={2}
                                                 >
-                                                    {props.furtherDetails}
+                                                    {furtherDetails}
                                                 </Text>
                                             </View>
                                         )}
@@ -480,52 +482,52 @@ const MenuItem = React.forwardRef((props: MenuItemProps, ref: ForwardedRef<View>
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                {Boolean(props.badgeText) && (
+                                {Boolean(badgeText) && (
                                     <Badge
-                                        text={props.badgeText}
+                                        text={badgeText}
                                         badgeStyles={[
                                             styles.alignSelfCenter,
-                                            props.brickRoadIndicator ? styles.mr2 : undefined,
-                                            props.focused || isHovered || pressed ? styles.hoveredButton : {},
+                                            brickRoadIndicator ? styles.mr2 : undefined,
+                                            focused || isHovered || pressed ? styles.hoveredButton : {},
                                         ]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(props.subtitle || props.subtitle === 0) && (
+                                {(subtitle || subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, style]}>{subtitle}</Text>
                                     </View>
                                 )}
-                                {!_.isEmpty(props.floatRightAvatars) && (
-                                    <View style={[styles.justifyContentCenter, props.brickRoadIndicator ? styles.mr2 : undefined]}>
+                                {!_.isEmpty(floatRightAvatars) && (
+                                    <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
                                             isPressed={pressed}
-                                            icons={props.floatRightAvatars}
-                                            size={props.floatRightAvatarSize || fallbackAvatarSize}
+                                            icons={floatRightAvatars}
+                                            size={floatRightAvatarSize || fallbackAvatarSize}
                                             fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                            shouldStackHorizontally={props.shouldStackHorizontally}
+                                            shouldStackHorizontally={shouldStackHorizontally}
                                         />
                                     </View>
                                 )}
-                                {Boolean(props.brickRoadIndicator) && (
+                                {Boolean(brickRoadIndicator) && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
+                                            fill={brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
                                     </View>
                                 )}
-                                {Boolean(props.shouldShowRightIcon) && (
-                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
+                                {Boolean(shouldShowRightIcon) && (
+                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
                                         <Icon
-                                            src={props.iconRight}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
+                                            src={iconRight}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                         />
                                     </View>
                                 )}
-                                {props.shouldShowRightComponent && props.rightComponent}
-                                {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
+                                {shouldShowRightComponent && rightComponent}
+                                {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                             </View>
                         </>
                     )}
