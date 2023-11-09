@@ -178,7 +178,7 @@ function Button({
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,
     });
-
+    console.log('hej');
     const renderContent = () => {
         if (children) {
             return children;
