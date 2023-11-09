@@ -2949,7 +2949,7 @@ function navigateToNextPage(iou, iouType, report, path = '') {
  * @returns {String}
  */
 function getIOUReportID(iou, route) {
-    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
+    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '0');
 }
 
 export {
