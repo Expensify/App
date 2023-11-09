@@ -4,7 +4,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import * as pressableWithSecondaryInteractionPropTypes from './types';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
