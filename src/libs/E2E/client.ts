@@ -3,6 +3,7 @@ import Routes from '../../../tests/e2e/server/routes';
 
 type TestResult = {
     name: string;
+    branch?: string;
     duration?: number;
     error?: string;
     renderCount?: number;

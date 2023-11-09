@@ -995,6 +995,7 @@ const openApp = (): Response => ({
                     count: 15,
                     keywords: ['face', 'kiss'],
                     lastUpdatedAt: 1669639079,
+                    name: 'kissing',
                 },
                 {
                     code: '\ud83d\ude1a',
@@ -1015,18 +1016,21 @@ const openApp = (): Response => ({
                     count: 11,
                     keywords: ['face', 'mouth', 'zipper'],
                     lastUpdatedAt: 1670346432,
+                    name: 'zipper_mouth_face',
                 },
                 {
                     code: '\ud83d\ude25',
                     count: 11,
                     keywords: ['disappointed', 'face', 'relieved', 'whew'],
                     lastUpdatedAt: 1669660257,
+                    name: 'disappointed_relieved',
                 },
                 {
                     code: '\ud83d\ude0e',
                     count: 11,
                     keywords: ['bright', 'cool', 'eye', 'eyewear', 'face', 'glasses', 'smile', 'sun', 'sunglasses', 'weather'],
                     lastUpdatedAt: 1669660252,
+                    name: 'sunglasses',
                 },
                 {
                     code: '\ud83d\ude36',
@@ -1040,12 +1044,14 @@ const openApp = (): Response => ({
                     count: 11,
                     keywords: ['expressionless', 'face', 'inexpressive', 'unexpressive'],
                     lastUpdatedAt: 1669640332,
+                    name: 'expressionless',
                 },
                 {
                     code: '\ud83d\ude0f',
                     count: 11,
                     keywords: ['face', 'smirk'],
                     lastUpdatedAt: 1666207075,
+                    name: 'smirk',
                 },
                 {
                     code: '\ud83e\udd70',
