@@ -37,7 +37,7 @@ const defaultProps = {
 
 function KnowATeacherPage(props) {
     const {translate} = useLocalize();
-    const {environment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
@@ -54,8 +54,8 @@ function KnowATeacherPage(props) {
         const lastName = values.lastName.trim();
 
 
-        const policyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-        const publicRoomReportID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
+        const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        const publicRoomReportID = isProduction ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
         TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName, policyID, publicRoomReportID);
     };
 
