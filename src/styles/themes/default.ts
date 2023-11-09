@@ -1,6 +1,6 @@
 import colors from '@styles/colors';
 import SCREENS from '@src/SCREENS';
-import type {ThemeBase} from './types';
+import {ThemeColors} from './types';
 
 const darkTheme = {
     // Figma keys
@@ -43,7 +43,7 @@ const darkTheme = {
     hoverComponentBG: colors.darkHighlightBackground,
     activeComponentBG: colors.darkBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.darkAppBackground,
+    sidebar: colors.darkHighlightBackground,
     sidebarHover: colors.darkAppBackground,
     heading: colors.darkPrimaryText,
     textLight: colors.darkPrimaryText,
@@ -83,19 +83,18 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
-    PAGE_BACKGROUND_COLORS: {},
     white: colors.white,
-} satisfies ThemeBase;
 
-darkTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: darkTheme.sidebar,
-    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
-    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-    [SCREENS.SETTINGS.STATUS]: colors.green700,
-    [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
-};
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.HOME]: colors.darkHighlightBackground,
+        [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+        [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
+        [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+        [SCREENS.SETTINGS.STATUS]: colors.green700,
+        [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
+    },
+} satisfies ThemeColors;
 
 export default darkTheme;
