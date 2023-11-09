@@ -163,7 +163,7 @@ function Button({
     const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
-        (event: GestureResponderEvent | KeyboardEvent) => {
+        (event?: GestureResponderEvent | KeyboardEvent) => {
             if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
                 return;
             }
