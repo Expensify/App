@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
