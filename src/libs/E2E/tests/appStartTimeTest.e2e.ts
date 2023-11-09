@@ -20,6 +20,7 @@ const test = () => {
         Promise.all(
             metrics.map((metric) =>
                 E2EClient.submitTestResults({
+                    branch: Config.E2E_BRANCH,
                     name: `App start ${metric.name}`,
                     duration: metric.duration,
                 }),

@@ -50,11 +50,11 @@ function AmountTextInput(props) {
             ref={props.forwardedRef}
             value={props.formattedAmount}
             placeholder={props.placeholder}
-            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             onKeyPress={props.onKeyPress}
         />
     );
