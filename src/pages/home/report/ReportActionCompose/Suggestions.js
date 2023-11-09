@@ -6,6 +6,8 @@ import usePrevious from '@hooks/usePrevious';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** A ref to this component */
@@ -125,6 +127,9 @@ function Suggestions({
     }, [isDraggingOver, prevIsDraggingOver, updateShouldShowSuggestionMenuToFalse]);
 
     useEffect(() => {
+        if (![CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform())) {
+            return;
+        }
         // hide popover on drag enter
         const listener = () => {
             updateShouldShowSuggestionMenuToFalse();
