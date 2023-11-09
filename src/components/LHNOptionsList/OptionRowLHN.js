@@ -58,7 +58,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHoverLHN,
+    hoverStyle: styles.sidebarLinkHover,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -112,7 +112,7 @@ function OptionRowLHN(props) {
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -199,13 +199,13 @@ function OptionRowLHN(props) {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            styles.sidebarLinkLHN,
-                            styles.sidebarLinkInnerLHN,
+                            styles.sidebarLink,
+                            styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                         needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >

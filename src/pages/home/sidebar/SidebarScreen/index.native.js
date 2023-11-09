@@ -3,6 +3,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
+import sidebarPropTypes from './sidebarPropTypes';
 
 function SidebarScreen(props) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -18,6 +19,7 @@ function SidebarScreen(props) {
     );
 }
 
+SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default SidebarScreen;

@@ -112,10 +112,7 @@ function AboutPage(props) {
                                         height={80}
                                         width={80}
                                     />
-                                    <Text
-                                        selectable
-                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
-                                    >
+                                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}>
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>

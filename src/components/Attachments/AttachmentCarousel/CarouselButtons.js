@@ -82,5 +82,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
 
 CarouselButtons.propTypes = propTypes;
 CarouselButtons.defaultProps = defaultProps;
+CarouselButtons.displayName = 'CarouselButtons';
 
 export default CarouselButtons;

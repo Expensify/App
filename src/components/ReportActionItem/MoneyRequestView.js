@@ -99,7 +99,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    if (isDistanceRequest && !formattedTransactionAmount) {
+    const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
+    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -206,7 +207,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={transactionMerchant}
+                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
                             interactive={canEdit && !isSettled}
                             shouldShowRightIcon={canEdit && !isSettled}
                             titleStyle={styles.flex1}
@@ -274,7 +275,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     </OfflineWithFeedback>
                 )}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}

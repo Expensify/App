@@ -466,6 +466,7 @@ function ReportActionCompose({
 
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
+ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default compose(
     withNetwork(),
