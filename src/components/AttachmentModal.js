@@ -443,21 +443,16 @@ function AttachmentModal(props) {
                     ) : (
                         Boolean(sourceForAttachmentView) &&
                         shouldLoadAttachment && (
-                            // We need the following View component on android native
-                            // So that the event will propagate properly and
-                            // the Password protected preview will be shown for pdf attachement we are about to send.
-                            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={sourceForAttachmentView}
-                                    isAuthTokenRequired={isAuthTokenRequired}
-                                    file={file}
-                                    onToggleKeyboard={updateConfirmButtonVisibility}
-                                    isWorkspaceAvatar={props.isWorkspaceAvatar}
-                                    fallbackSource={props.fallbackSource}
-                                    isUsedInAttachmentModal
-                                />
-                            </View>
+                            <AttachmentView
+                                containerStyles={[styles.mh5]}
+                                source={sourceForAttachmentView}
+                                isAuthTokenRequired={isAuthTokenRequired}
+                                file={file}
+                                onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
+                                isUsedInAttachmentModal
+                            />
                         )
                     )}
                 </View>
