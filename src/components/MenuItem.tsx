@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import React, {ForwardedRef, ReactNode, useEffect, useMemo} from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
@@ -13,6 +13,8 @@ import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import AvatarType from '@src/types/onyx/Avatar';
+import { AnimatedStyle } from 'react-native-reanimated';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
@@ -20,14 +22,164 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
-import menuItemPropTypes from './menuItemPropTypes';
 import MultipleAvatars from './MultipleAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
-const propTypes = menuItemPropTypes;
+type MenuItemProps = {
+    /** Text to be shown as badge near the right end. */
+    badgeText: string;
+    
+    /** Function to fire when component is pressed */
+    onPress?: (event: Event) => void;
+ 
+    /** Used to apply offline styles to child text components */
+    style?: StyleProp<ViewStyle>;
+
+    /** Any additional styles to apply */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Used to apply styles specifically to the title */
+    titleStyle?: StyleProp<ViewStyle>;
+
+    /** Icon to display on the left side of component */
+    icon: ReactNode | string | AvatarType;
+
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon: ReactNode;
+
+    /** Icon Width */
+    iconWidth: number;
+
+    /** Icon Height */
+    iconHeight: number;
+
+    /** Text to display for the item */
+    title: string;
+
+    /** Text that appears above the title */
+    label: string;
+
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon: boolean;
+
+    /** Icon to display at right side of title */
+    titleIcon: () => void;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: boolean;
+    
+    /** Should we make this selectable with a checkbox */
+    shouldShowSelectedState: boolean;
+    
+    /** Should the title show with normal font weight (not bold) */
+    shouldShowBasicTitle: boolean;
+    
+    /** Should the description be shown above the title (instead of the other way around) */
+    shouldShowDescriptionOnTop: boolean;
+    
+    /** Whether this item is selected */
+    isSelected: boolean;
+    
+    /** A boolean flag that gives the icon a green fill if true */
+    success: boolean;
+
+    /** Overrides the icon for shouldShowRightIcon */
+    iconRight: ReactNode;
+
+    /** A description text to show under the title */
+    description: string;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: Array<StyleProp<ViewStyle>>;
+
+    /** The fill color to pass into the icon. */
+    iconFill: string;
+
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill: string;
+
+    /** Whether item is focused or active */
+    focused: boolean;
+
+    /** Should we disable this menu item? */
+    disabled: boolean;
+
+    /** A right-aligned subtitle for this menu option */
+    subtitle: string | number;
+
+    /** Flag to choose between avatar image or an icon */
+    iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_WORKSPACE;
+
+    /** Whether the menu item should be interactive at all */
+    interactive: boolean;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon: string | (() => void);
+    
+    /** Avatars to show on the right of the menu item */
+    floatRightAvatars: AvatarType;
+    
+    /** The type of brick road indicator to show. */
+    brickRoadIndicator: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | typeof CONST.BRICK_ROAD_INDICATOR_STATUS.INFO | '';
+
+    /** Prop to identify if we should load avatars vertically instead of diagonally */
+    shouldStackHorizontally: boolean;
+
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: typeof CONST.AVATAR_SIZE;
+
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize: typeof CONST.AVATAR_SIZE;
+
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction: () => void;
+
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection: boolean;
+
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle: Array<StyleProp<AnimatedStyle<ViewStyle>>>,
+
+    /** Text to display under the main item */
+    furtherDetails: string;
+
+    /** An icon to display under the main item */
+    furtherDetailsIcon: ReactNode | string;
+
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: boolean;
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: boolean;
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: boolean;
+
+    /** Error to display below the title */
+    error: string;
+
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML: boolean;
+
+    /** Component to be displayed on the right */
+    rightComponent: ReactNode;
+
+    /** Should render component on the right */
+    shouldShowRightComponent: boolean;
+
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips: ReactNode[];
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: boolean;
+};
+
+// TODO: Destructure props
+// TODO: Adjust default values
+// TODO: Adjust () => void in AvatarProps - always just used () => void without checking the usage
 
 const defaultProps = {
     badgeText: undefined,
@@ -84,7 +236,7 @@ const defaultProps = {
     shouldCheckActionAllowedOnPress: true,
 };
 
-const MenuItem = React.forwardRef((props, ref) => {
+const MenuItem = React.forwardRef((props: MenuItemProps, ref: ForwardedRef<View>) => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
 
