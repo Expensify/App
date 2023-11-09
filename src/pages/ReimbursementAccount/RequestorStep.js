@@ -4,6 +4,8 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,8 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
