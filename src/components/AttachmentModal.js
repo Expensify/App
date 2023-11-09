@@ -453,7 +453,6 @@ function AttachmentModal(props) {
                                 fallbackSource={props.fallbackSource}
                                 isUsedInAttachmentModal
                             />
-                            
                         )
                     )}
                 </View>
