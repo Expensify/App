@@ -80,15 +80,19 @@ function TextCommentFragment(props) {
                 displayAsGroup={props.displayAsGroup}
             />
             <Text
-                selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, styleAsDeleted ? styles.offlineFeedback.deleted : undefined]}
+                style={[
+                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                    styles.ltr,
+                    ...props.style,
+                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                    !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                ]}
             >
                 {convertToLTR(props.iouMessage || text)}
             </Text>
             {Boolean(fragment.isEdited) && (
                 <>
                     <Text
-                        selectable={false}
                         style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
