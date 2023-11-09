@@ -1,4 +1,4 @@
-import {ChangeEvent, Component, ForwardedRef, ReactElement} from 'react';
+import {ChangeEvent, Component, ReactElement} from 'react';
 import {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
@@ -42,8 +42,6 @@ type PickerPlaceholder = {
 };
 
 type BasePickerProps = {
-    forwardedRef?: ForwardedRef<BasePickerHandle>;
-
     /** BasePicker label */
     label?: string | null;
 

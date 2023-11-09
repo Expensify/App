@@ -1,5 +1,5 @@
 import lodashDefer from 'lodash/defer';
-import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,31 +11,33 @@ import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
-function BasePicker({
-    items,
-    forwardedRef,
-    backgroundColor,
-    inputID,
-    value,
-    onInputChange,
-    label = '',
-    isDisabled = false,
-    errorText = '',
-    hintText = '',
-    containerStyles = [],
-    placeholder = {},
-    size = 'normal',
-    icon = (iconSize) => (
-        <Icon
-            src={Expensicons.DownArrow}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
-        />
-    ),
-    shouldFocusPicker = false,
-    onBlur = () => {},
-    additionalPickerEvents = () => {},
-}: BasePickerProps) {
+function BasePicker(
+    {
+        items,
+        backgroundColor,
+        inputID,
+        value,
+        onInputChange,
+        label = '',
+        isDisabled = false,
+        errorText = '',
+        hintText = '',
+        containerStyles = [],
+        placeholder = {},
+        size = 'normal',
+        icon = (iconSize) => (
+            <Icon
+                src={Expensicons.DownArrow}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+            />
+        ),
+        shouldFocusPicker = false,
+        onBlur = () => {},
+        additionalPickerEvents = () => {},
+    }: BasePickerProps,
+    ref: ForwardedRef<BasePickerHandle>,
+) {
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -83,7 +85,7 @@ function BasePicker({
         setIsHighlighted(false);
     };
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         /**
          * Focuses the picker (if configured to do so)
          *
@@ -124,7 +126,7 @@ function BasePicker({
 
     if (isDisabled) {
         return (
-            <View>
+            <View key={inputID}>
                 {Boolean(label) && (
                     <Text
                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -140,19 +142,12 @@ function BasePicker({
     }
 
     return (
-        <>
+        <View key={inputID}>
             <View
                 ref={root}
                 style={[styles.pickerContainer, isDisabled && styles.inputDisabled, containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
             >
-                {label && (
-                    <Text
-                        pointerEvents="none"
-                        style={[styles.pickerLabel, styles.textLabelSupporting]}
-                    >
-                        {label}
-                    </Text>
-                )}
+                {label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
@@ -188,18 +183,10 @@ function BasePicker({
             </View>
             <FormHelpMessage message={errorText} />
             {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
-        </>
+        </View>
     );
 }
 
 BasePicker.displayName = 'BasePicker';
 
-export default React.forwardRef<BasePickerHandle, BasePickerProps>((props, ref) => (
-    <BasePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        // Forward the ref to BasePicker, as we implement imperative methods there
-        forwardedRef={ref}
-        key={props.inputID}
-    />
-));
+export default forwardRef(BasePicker);
