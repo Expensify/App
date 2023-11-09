@@ -673,13 +673,13 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created] // Present when updated the date field
- * @param {Boolean} onlyIncludeChangedFieldsInAPIParams
+ * @param {Boolean} onlyIncludeChangedFields
  *                      // When 'true', then the returned params will only include the transaction details for the fields that were changed.
  *                      // When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
  *                      // This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  * @returns {object}
  */
-function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFieldsInAPIParams) {
+function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFields) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -702,7 +702,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     // This needs to be a JSON string since we're sending this to the MapBox API
     transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
 
-    const dataToIncludeInParams = onlyIncludeChangedFieldsInAPIParams ? _.pick(transactionDetails, _.keys(transactionChanges)) : transactionDetails;
+    const dataToIncludeInParams = onlyIncludeChangedFields ? _.pick(transactionDetails, _.keys(transactionChanges)) : transactionDetails;
 
     const params = {
         ...dataToIncludeInParams,
@@ -767,11 +767,12 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Optimistically modify the transaction
+    const optimisticTransaction = onlyIncludeChangedFields ? _.pick(updatedTransaction, _.keys(transactionChanges)) : updatedTransaction;
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...updatedTransaction,
+            ...optimisticTransaction,
             pendingFields,
             isLoading: _.has(transactionChanges, 'waypoints'),
             errorFields: null,
