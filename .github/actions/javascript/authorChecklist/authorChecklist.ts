@@ -1,5 +1,5 @@
-import core from '@actions/core';
-import github from '@actions/github';
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
 import CONST from '../../../libs/CONST';
 import GithubUtils from '../../../libs/GithubUtils';
