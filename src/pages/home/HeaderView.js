@@ -35,7 +35,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import PolicyUtils from '../../libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -93,7 +93,7 @@ function HeaderView(props) {
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
+    const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy));
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
@@ -293,6 +293,9 @@ export default memo(
             },
             session: {
                 key: ONYXKEYS.SESSION,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
             },
         }),
     )(HeaderView),

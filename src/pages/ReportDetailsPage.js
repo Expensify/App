@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
