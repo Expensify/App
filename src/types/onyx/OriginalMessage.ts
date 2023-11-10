@@ -91,6 +91,9 @@ type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
     originalMessage: {
         policyName: string;
+        IOUReportID?: number;
+        amount?: number;
+        currency?: string;
         reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
         lastModified?: string;
     };
