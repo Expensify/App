@@ -187,62 +187,42 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** The type of brick road indicator to show. */
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS[keyof typeof CONST.BRICK_ROAD_INDICATOR_STATUS];
 
-    // ------------------------------- VALID PROPS ABOVE
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML?: boolean;
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled?: boolean;
+
+    /** The action accept for anonymous user or not */
+    isAnonymousAction?: boolean;
+
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection?: boolean;
+
+    shouldParseTitle?: false;
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress?: boolean;
+
+    /** Text to display under the main item */
+    furtherDetails?: string;
     
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction: () => void;
 
-    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
-    shouldBlockSelection: boolean;
-
-    /** Text to display under the main item */
-    furtherDetails: string;
-
-    /** The action accept for anonymous user or not */
-    isAnonymousAction: boolean;
-
-    /** Should we grey out the menu item when it is disabled? */
-    shouldGreyOutWhenDisabled: boolean;
-
-    /** Should render the content in HTML format */
-    shouldRenderAsHTML: boolean;
-
     /** Array of objects that map display names to their corresponding tooltip */
     titleWithTooltips: ReactNode[];
-
-    /** Should check anonymous user in onPress function */
-    shouldCheckActionAllowedOnPress: boolean;
 };
-
-// TODO: Destructure props
-// TODO: Adjust default values
-// TODO: Adjust () => void in AvatarProps - always just used () => void without checking the usage
-
-const defaultProps = {
-    shouldParseTitle: false,
-    descriptionTextStyle: styles.breakWord,
-    shouldBlockSelection: false,
-    furtherDetails: '',
-    isAnonymousAction: false,
-    numberOfLinesTitle: 1,
-    shouldGreyOutWhenDisabled: true,
-    shouldRenderAsHTML: false,
-    titleWithTooltips: [],
-    shouldCheckActionAllowedOnPress: true,
-};
-
 function MenuItem({
     interactive = true, onPress, badgeText, style = styles.popoverMenuItem, wrapperStyle, titleStyle, hoverAndPressStyle,
     icon, iconFill, secondaryIcon, secondaryIconFill, iconType = CONST.ICON_TYPE_ICON, iconWidth, iconHeight, iconStyles, fallbackIcon = Expensicons.FallbackAvatar, shouldShowTitleIcon = false, titleIcon,
-    shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon,
+    shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon, furtherDetails,
     description, error, success = false, focused = false, disabled = false,
     title, subtitle, shouldShowBasicTitle, label, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false, shouldShowRightComponent = false, rightComponent,
     floatRightAvatars = [], floatRightAvatarSize, avatarSize = CONST.AVATAR_SIZE.DEFAULT, isSmallAvatarSubscriptMenu = false,
-    brickRoadIndicator,
-    // Props not validated below - Validate if required and default value
-    onSecondaryInteraction,shouldBlockSelection,furtherDetails,isAnonymousAction,shouldGreyOutWhenDisabled,shouldRenderAsHTML,titleWithTooltips,
-        shouldCheckActionAllowedOnPress
+    brickRoadIndicator, shouldRenderAsHTML = false, shouldGreyOutWhenDisabled = true, isAnonymousAction = false,
+    shouldBlockSelection = false, shouldParseTitle = false, shouldCheckActionAllowedOnPress = true, onSecondaryInteraction, titleWithTooltips
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
