@@ -15,3 +15,49 @@ index b4c7106..d5083d3 100644
          }
          classDirectories.setFrom(fileTree(
                  dir: 'build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/onfido/reactnative/sdk',
+diff --git a/node_modules/@onfido/react-native-sdk/android/publish.gradle b/node_modules/@onfido/react-native-sdk/android/publish.gradle
+index 216d52d..1f1c17f 100644
+--- a/node_modules/@onfido/react-native-sdk/android/publish.gradle
++++ b/node_modules/@onfido/react-native-sdk/android/publish.gradle
+@@ -4,41 +4,5 @@ afterEvaluate {
+         archiveClassifier = "sources"
+     }
+ 
+-    publishing {
+-        def packageJson = new groovy.json.JsonSlurper().parseText(file('../package.json').text)
+     
+-        publications {
+-            mavenJava(MavenPublication) {
+-                // The new gradle publish plugin doesn't allow the @onfido/ prefix
+-                artifactId = packageJson.name.replace("@onfido/", "onfido-")
+-                groupId = 'com.onfido.reactnative.sdk'
+-                version = packageJson.version
+-
+-                from components.release
+-
+-                artifact sourceJar
+-
+-                pom {
+-                    name = packageJson.title
+-                    description = packageJson.description
+-                    url = packageJson.repository.baseUrl
+-
+-                    licenses {
+-                        license {
+-                            name = packageJson.license
+-                            url = packageJson.repository.baseUrl + '/blob/master/' + packageJson.licenseFilename
+-                            distribution = 'repo'
+-                        }
+-                    }
+-
+-                    developers {
+-                        developer {
+-                            id = packageJson.author.email
+-                            name = packageJson.author.name
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-    }
+ }
