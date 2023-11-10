@@ -93,11 +93,12 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // Verification to reset billable with a default value, when value in IOU was changed
-        if (typeof props.iou.billable !== 'boolean') {
-            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
-        }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    const defaultBillable = lodashGet(props.policy, 'defaultBillable', false);
+    useEffect(() => {
+        IOU.setMoneyRequestBillable(defaultBillable);
+    }, [defaultBillable, isOffline]);
 
     useEffect(() => {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
@@ -412,9 +413,6 @@ export default compose(
         iou: {
             key: ONYXKEYS.IOU,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         report: {
             key: ({route, iou}) => {
                 const reportID = IOU.getIOUReportID(iou, route);
@@ -428,9 +426,6 @@ export default compose(
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },

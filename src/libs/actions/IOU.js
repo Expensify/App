@@ -1095,7 +1095,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         // For Control policy expense chats, if the report is already approved, create a new expense report
-        let oneOnOneIOUReport = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined);
+        let oneOnOneIOUReport = oneOnOneChatReport.iouReportID ? lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined) : undefined;
         const shouldCreateNewOneOnOneIOUReport =
             _.isUndefined(oneOnOneIOUReport) || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
@@ -1637,7 +1637,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([participant.accountID]);
         }
 
-        let oneOnOneIOUReport = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined);
+        let oneOnOneIOUReport = oneOnOneChatReport.iouReportID ? lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined) : undefined;
         const shouldCreateNewOneOnOneIOUReport =
             _.isUndefined(oneOnOneIOUReport) || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
@@ -2715,10 +2715,7 @@ function submitReport(expenseReport) {
  * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport) {
-    const recipient = {
-        login: iouReport.ownerEmail,
-        accountID: iouReport.ownerAccountID,
-    };
+    const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -2953,7 +2950,7 @@ function navigateToNextPage(iou, iouType, report, path = '') {
  * @returns {String}
  */
 function getIOUReportID(iou, route) {
-    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
+    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '0');
 }
 
 export {
