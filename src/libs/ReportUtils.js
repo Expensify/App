@@ -3166,7 +3166,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         '',
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction.reportActionID,
         moneyRequestReportID,
     );

@@ -1858,7 +1858,6 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             value: {
                 lastReadTime: currentTime,
                 lastVisibleActionCreated: currentTime,
-                lastMessageText: currentUserEmail,
             },
         },
         ...(!isScanning
@@ -1955,7 +1954,6 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             value: {
                 lastReadTime: transactionThread.lastReadTime,
                 lastVisibleActionCreated: transactionThread.lastVisibleActionCreated,
-                lastMessageText: transactionThread.lastMessageText,
             },
         },
     ];
