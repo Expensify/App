@@ -4,12 +4,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
 
-let deviceID;
+let deviceID: string | null = null;
 
 /**
- * @returns {Promise<String>}
+ * @returns - device ID string or null in case of failure
  */
-function getDeviceID() {
+function getDeviceID(): Promise<string | null> {
     return new Promise((resolve) => {
         if (deviceID) {
             return resolve(deviceID);
@@ -17,10 +17,10 @@ function getDeviceID() {
 
         const connectionID = Onyx.connect({
             key: ONYXKEYS.DEVICE_ID,
-            callback: (ID) => {
+            callback: (id) => {
                 Onyx.disconnect(connectionID);
-                deviceID = ID;
-                return resolve(ID);
+                deviceID = id;
+                return resolve(id);
             },
         });
     });
@@ -38,7 +38,7 @@ function setDeviceID() {
             throw new Error(existingDeviceID);
         })
         .then(generateDeviceID)
-        .then((uniqueID) => {
+        .then((uniqueID: string) => {
             Log.info('Got new deviceID', false, uniqueID);
             Onyx.set(ONYXKEYS.DEVICE_ID, uniqueID);
         })
@@ -47,9 +47,9 @@ function setDeviceID() {
 
 /**
  * Returns a string object with device info and uniqueID
- * @returns {Promise<string>}
+ * @returns - device info with ID
  */
-function getDeviceInfoWithID() {
+function getDeviceInfoWithID(): Promise<string> {
     return new Promise((resolve) => {
         getDeviceID().then((currentDeviceID) =>
             resolve(
