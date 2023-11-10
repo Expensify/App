@@ -1499,7 +1499,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    // Create the workspace chat for the employee
+    // Create the workspace chat for the employee whose IOU is being paid
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID});
     const newWorkspace = {
         id: policyID,
@@ -1705,6 +1705,13 @@ function createWorkspaceFromIOUPayment(iouReport) {
     };
 
     const oldChatReportID = iouReport.chatReportID;
+
+    // Next we need to convert the IOU report to Expense report.
+    // We need to change:
+    // - report type
+    // - change the sign of the report total
+    // - update its policyID and policyName
+    // - update the chatReportID to point to the new workspace chat
     const expenseReport = {
         ...iouReport,
         chatReportID: memberData.workspaceChatReportID,
@@ -1713,9 +1720,6 @@ function createWorkspaceFromIOUPayment(iouReport) {
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -iouReport.total,
     };
-
-    // Next we need to convert the IOU report to Expense report by changing its type in onyx,
-    // changing the sign of the report total to negative and updating the policyID.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
@@ -1727,7 +1731,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         value: iouReport,
     });
 
-    // The expense report transactions need to have the amount inverted too
+    // The expense report transactions need to have the amount reversed to negative values
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     _.each(reportTransactions, (transaction) => {
         optimisticData.push({
@@ -1746,8 +1750,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         });
     });
 
-    // We need to move the report preview action from the DM to the workspace chat and update its created
-    // timestamp to ensure its after the workspace chat got created.
+    // We need to move the report preview action from the DM to the workspace chat.
     const reportPreview = ReportActionsUtils.getParentReportAction(iouReport);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1759,6 +1762,8 @@ function createWorkspaceFromIOUPayment(iouReport) {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[reportPreview.reportActionID]: reportPreview},
     });
+
+    // Update the created timestamp of the report preview action to be after the workspace chat created timestamp.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,

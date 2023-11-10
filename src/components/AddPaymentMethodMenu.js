@@ -88,7 +88,7 @@ function AddPaymentMethodMenu(props) {
                           },
                       ]
                     : []),
-                ...(!ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
+                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
                     ? [
                           {
                               text: props.translate('common.businessBankAccount'),

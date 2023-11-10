@@ -623,7 +623,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromPayer(reportID: string, currentAccountID: number): boolean {
+function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
     if (!reportID) {
         return false;
     }
@@ -676,6 +676,6 @@ export {
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
-    hasRequestFromPayer,
+    hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
 };
