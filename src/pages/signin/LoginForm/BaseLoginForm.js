@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
@@ -18,7 +19,6 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -95,6 +95,8 @@ function LoginForm(props) {
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
+
+    const route = useRoute();
 
     const {translate} = props;
 
@@ -177,7 +179,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.route.params.isInRHP) {
+        if (route.params?.isInRHP) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
