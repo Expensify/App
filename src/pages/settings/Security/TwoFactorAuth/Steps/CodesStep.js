@@ -134,6 +134,7 @@ function CodesStep({account = defaultAccount}) {
 }
 
 CodesStep.propTypes = TwoFactorAuthPropTypes;
+CodesStep.displayName = 'CodesStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({

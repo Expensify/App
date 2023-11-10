@@ -103,15 +103,15 @@ function MoneyRequestConfirmPage(props) {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
             return;
         }
-        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
-            if (!file) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-            } else {
-                const receipt = file;
-                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                setReceiptFile(receipt);
-            }
-        });
+        const onSuccess = (file) => {
+            const receipt = file;
+            receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            setReceiptFile(receipt);
+        };
+        const onFailure = () => {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
+        };
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess, onFailure);
     }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID]);
 
     useEffect(() => {
@@ -217,7 +217,7 @@ function MoneyRequestConfirmPage(props) {
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
+                const onSuccess = (receipt) => {
                     IOU.startSplitBill(
                         selectedParticipants,
                         props.currentUserPersonalDetails.login,
@@ -226,7 +226,8 @@ function MoneyRequestConfirmPage(props) {
                         receipt,
                         existingSplitChatReportID,
                     );
-                });
+                };
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess);
                 return;
             }
 

@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -265,6 +266,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
+    // Do not group if one of previous / current action is report preview and another one is not report preview
+    if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
+        return false;
+    }
+
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
@@ -376,19 +382,10 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 
 /**
  */
-function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}, shouldExclude = (action: ReportAction) => !action): OnyxEntry<ReportAction> {
-    let reportActions: ReportActions;
-    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        reportActions = {...allReportActions?.[reportID]};
-        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
-    } else {
-        reportActions = allReportActions?.[reportID] ?? {};
-    }
-
+function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
     const parentReportAction = getParentReportAction(allReports?.[reportID] ?? null);
-    const visibleReportActions = Object.values(reportActions ?? {}).filter(
-        (action) => shouldReportActionBeVisibleAsLastAction(action) && !shouldExcludeModifiedAction(parentReportAction, action) && !shouldExclude(action),
-    );
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action) && !shouldExcludeModifiedAction(parentReportAction, action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return null;
@@ -396,8 +393,8 @@ function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = 
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}, shouldExclude = (action: ReportAction) => !action): LastVisibleMessage {
-    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge, shouldExclude);
+function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
     if (message && isReportMessageAttachment(message)) {
