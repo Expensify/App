@@ -45,7 +45,7 @@ function PressableWithSecondaryInteraction(
         if (ref) {
             if (typeof ref === 'function') {
                 ref(pressableRef.current);
-            } else {
+            } else if (typeof ref === 'object') {
                 // eslint-disable-next-line no-param-reassign
                 ref.current = pressableRef.current;
             }
