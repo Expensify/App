@@ -221,7 +221,6 @@ function LoginForm(props) {
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     returnKeyType="go"
                     autoCompleteType="username"
