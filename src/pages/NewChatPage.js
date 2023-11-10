@@ -4,12 +4,14 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -51,13 +53,13 @@ const defaultProps = {
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
-    const optionSelectorRef = React.createRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -213,12 +215,13 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setSearchTerm(text);
     }, []);
 
-    useDelayedInputFocus(optionSelectorRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
@@ -235,7 +238,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
-                            ref={optionSelectorRef}
+                            ref={inputCallbackRef}
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
@@ -256,8 +259,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
+                            autoFocus={false}
                         />
                     </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>

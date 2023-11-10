@@ -1,6 +1,6 @@
 import React from 'react';
 import Lottie from '@components/Lottie';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
@@ -34,6 +34,7 @@ function SignInHeroImage(props) {
             loop
             autoPlay
             style={[styles.alignSelfCenter, imageSize]}
+            webStyle={{...styles.alignSelfCenter, ...imageSize}}
         />
     );
 }

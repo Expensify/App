@@ -54,6 +54,26 @@ function splitRoutes(routes) {
 // We can't pass a component directly to the render method of the descriptor.
 const renderIFrame = () => <IFrame />;
 
+function reduceReportRoutes(routes) {
+    const result = [];
+    let count = 0;
+    const reverseRoutes = [...routes].reverse();
+
+    reverseRoutes.forEach((route) => {
+        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+            // Remove all report routes except the last 3. This will improve performance.
+            if (count < 3) {
+                result.push(route);
+                count++;
+            }
+        } else {
+            result.push(route);
+        }
+    });
+
+    return result.reverse();
+}
+
 function ResponsiveStackNavigator(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -109,6 +129,15 @@ function ResponsiveStackNavigator(props) {
         };
         return {newState, newDescriptors};
     }, [state, descriptors]);
+    const stateToRender = useMemo(() => {
+        const result = reduceReportRoutes(state.routes);
+
+        return {
+            ...state,
+            index: result.length - 1,
+            routes: [...result],
+        };
+    }, [state]);
 
     return (
         <NavigationContent>

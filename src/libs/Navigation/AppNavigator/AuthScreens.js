@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -14,7 +14,6 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import styles from '@styles/styles';
 import * as App from '@userActions/App';
@@ -143,13 +142,9 @@ const defaultProps = {
 };
 
 function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
-    const {selectedSubNavigationOption} = useContext(SidebarNavigationContext);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
     const isInitialRender = useRef(true);
-
-    const isScreenWithoutSubnavSelected = selectedSubNavigationOption === SCREENS.HOME_OLDDOT;
-
-    const screenOptions = useMemo(() => getRootNavigatorScreenOptions(isSmallScreenWidth, isScreenWithoutSubnavSelected), [isSmallScreenWidth, isScreenWithoutSubnavSelected]);
 
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
@@ -160,9 +155,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
-        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
@@ -265,7 +260,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth, isScreenWithoutSubnavSelected)}>
+        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
                 mode="modal"
