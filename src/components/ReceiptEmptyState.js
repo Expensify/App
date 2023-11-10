@@ -23,7 +23,7 @@ const defaultProps = {
 function ReceiptEmptyState({hasError, onPress}) {
     return (
         <PressableWithoutFeedback
-            accessibilityRole="button"
+            accessibilityRole="imagebutton"
             onPress={onPress}
             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
         >
