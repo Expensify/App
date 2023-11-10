@@ -559,11 +559,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        let emailCreatingAction = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+            emailCreatingAction = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
         }
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

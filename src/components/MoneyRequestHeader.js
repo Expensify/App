@@ -121,7 +121,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     report={{
                         ...report,
                         ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
-                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
                     }}
                     policy={policy}
                     personalDetails={personalDetails}
