@@ -107,11 +107,9 @@ function PopoverWithMeasuredContent(props) {
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = props.anchorPosition.vertical;
-
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: anchorLocationVertical - popoverHeight};
+                verticalConstraint = {top: props.anchorPosition.vertical - popoverHeight};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
