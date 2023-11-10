@@ -27,6 +27,7 @@ function createModalStackNavigator(screens) {
                         key={name}
                         name={name}
                         getComponent={getComponent}
+                        initialParams={{isInRHP: true}}
                     />
                 ))}
             </ModalStackNavigator.Navigator>

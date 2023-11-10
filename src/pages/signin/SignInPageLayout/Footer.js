@@ -20,11 +20,11 @@ import CONST from '@src/CONST';
 const propTypes = {
     ...withLocalizePropTypes,
     scrollPageToTop: PropTypes.func.isRequired,
-    shouldShowSmallScreen: PropTypes.bool,
+    shouldUseNarrowLayout: PropTypes.bool,
 };
 
 const defaultProps = {
-    shouldShowSmallScreen: false,
+    shouldUseNarrowLayout: false,
 };
 
 const navigateHome = (scrollPageToTop) => {
@@ -146,7 +146,7 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
-    const isVertical = props.shouldShowSmallScreen;
+    const isVertical = props.shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
