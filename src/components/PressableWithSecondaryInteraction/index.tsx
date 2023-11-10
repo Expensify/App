@@ -1,10 +1,11 @@
-import React, {ForwardedRef, forwardRef, useEffect, useRef} from 'react';
-import {GestureResponderEvent, View} from 'react-native';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import {GestureResponderEvent} from 'react-native';
+import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import PressableWithSecondaryInteractionProps, {PressableWithSecondaryInteractionRef} from './types';
+import PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
 function PressableWithSecondaryInteraction(
@@ -22,7 +23,7 @@ function PressableWithSecondaryInteraction(
         activeOpacity = 1,
         ...rest
     }: PressableWithSecondaryInteractionProps,
-    ref: PressableWithSecondaryInteractionRef,
+    ref: PressableRef,
 ) {
     const pressableRef = useRef<HTMLDivElement | null>(null);
 
@@ -98,7 +99,7 @@ function PressableWithSecondaryInteraction(
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             onPress={onPress}
-            ref={pressableRef as ForwardedRef<View>}
+            ref={pressableRef}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >

@@ -1,13 +1,24 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {GestureResponderEvent, Text as RNText, TextProps, View} from 'react-native';
+import React, {forwardRef} from 'react';
+import {GestureResponderEvent, TextProps} from 'react-native';
+import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import PressableWithSecondaryInteractionProps, {PressableWithSecondaryInteractionRef} from './types';
+import PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed. */
 function PressableWithSecondaryInteraction(
-    {children, onSecondaryInteraction, inline = false, needsOffscreenAlphaCompositing = false, ...rest}: PressableWithSecondaryInteractionProps,
-    ref: PressableWithSecondaryInteractionRef,
+    {
+        children,
+        onSecondaryInteraction,
+        inline = false,
+        needsOffscreenAlphaCompositing = false,
+        activeOpacity = 1,
+        preventDefaultContextMenu,
+        withoutFocusOnSecondaryInteraction,
+        enableLongPressWithHover,
+        ...rest
+    }: PressableWithSecondaryInteractionProps,
+    ref: PressableRef,
 ) {
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
@@ -20,7 +31,6 @@ function PressableWithSecondaryInteraction(
             <Text
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(rest as TextProps)}
-                ref={ref as ForwardedRef<RNText>}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             >
                 {children}
@@ -32,9 +42,10 @@ function PressableWithSecondaryInteraction(
         <PressableWithFeedback
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            ref={ref as ForwardedRef<View>}
+            ref={ref}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
+            pressDimmingValue={activeOpacity}
         >
             {children}
         </PressableWithFeedback>

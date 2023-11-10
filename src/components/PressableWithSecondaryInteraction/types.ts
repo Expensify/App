@@ -1,5 +1,4 @@
-import {ForwardedRef} from 'react';
-import {GestureResponderEvent, StyleProp, Text, TextStyle, View, ViewStyle} from 'react-native';
+import {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -45,21 +44,8 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps &
         /** Used to apply styles to the Pressable */
         style?: StyleProp<ViewStyle & TextStyle>;
 
-        /** Whether the view needs to be rendered offscreen (for Android only) */
-        needsOffscreenAlphaCompositing?: boolean;
-
         /** Whether the long press with hover behavior is enabled */
         enableLongPressWithHover?: boolean;
-
-        /**
-         * Specifies the accessibility label for the component
-         * @example 'Search'
-         * @example 'Close'
-         */
-        accessibilityLabel: string;
     };
 
-type PressableWithSecondaryInteractionRef = ForwardedRef<View | Text>;
-
 export default PressableWithSecondaryInteractionProps;
-export type {PressableWithSecondaryInteractionRef};
