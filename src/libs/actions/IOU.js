@@ -340,17 +340,14 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              pendingAction: null,
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                           [reportPreviewAction.reportActionID]: {
-                              pendingAction: null,
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
                           [reportPreviewAction.reportActionID]: {
-                              pendingAction: null,
                               created: reportPreviewAction.created,
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
@@ -364,17 +361,14 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              pendingAction: null,
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                           [iouAction.reportActionID]: {
-                              pendingAction: null,
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              pendingAction: null,
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
