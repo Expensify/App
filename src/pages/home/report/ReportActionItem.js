@@ -58,6 +58,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -74,7 +75,6 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
