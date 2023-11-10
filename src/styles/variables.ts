@@ -185,6 +185,5 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
-    cardNameWidth: 156,
-    iconImageHeight:112,
+    cardNameWidth: 156
 } as const;

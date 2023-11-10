@@ -2,25 +2,24 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import EReceiptThumbnail from '@components/EReceiptThumbnail';
-import Image from '@components/Image';
-import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import ThumbnailImage from '@components/ThumbnailImage';
-import transactionPropTypes from '@components/transactionPropTypes';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import EReceiptThumbnail from '../../components/EReceiptThumbnail';
+import Image from '../../components/Image';
+import PressableWithoutFocus from '../../components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext} from '../../components/ShowContextMenuContext';
+import ThumbnailImage from '../../components/ThumbnailImage';
+import transactionPropTypes from '../../components/transactionPropTypes';
+import useLocalize from '../../hooks/useLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
+import styles from '../../styles/styles';
+import CONST from '../../../src/CONST';
+import ROUTES from '../../../src/ROUTES';
 import Icon from '../../components/Icon';
-import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
+import variables from '../../styles/variables';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors'; 
-import useNetwork from '@hooks/useNetwork';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -56,33 +55,30 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
+function ReportActionItemImage({ thumbnail, image, enablePreviewModal, transaction, iconFill, fallbackIcon }) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
     const {isOffline} = useNetwork();
-    let heightStyle = StyleUtils.getHeight(variables.iconImageHeight);
 
     let receiptImageComponent;
 
-    if (isEReceipt) {
-        if (isOffline) {
-            receiptImageComponent = (
-                <Icon
-                    src={props.fallbackIcon}
-                    fill={props.iconFill}
-                    height={heightStyle.height}
-                    width={heightStyle.height}
-                />
-            );
-        } else {
-            receiptImageComponent = (
-                <View style={[styles.w100, styles.h100]}>
-                    <EReceiptThumbnail transactionID={transaction.transactionID} />
-                </View>
-            );
-        }
+    if (isOffline) {
+        receiptImageComponent = (
+            <Icon
+                src={fallbackIcon}
+                fill={iconFill}
+                height={variables.eReceiptIconHeightMedium}
+                width={variables.eReceiptIconWidthMedium}
+            />
+        );
+    } else if (isEReceipt) {
+        receiptImageComponent = (
+            <View style={[styles.w100, styles.h100]}>
+                <EReceiptThumbnail transactionID={transaction.transactionID} />
+            </View>
+        );
     } else if (thumbnail) {
         receiptImageComponent = (
             <ThumbnailImage
