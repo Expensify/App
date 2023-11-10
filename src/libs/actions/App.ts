@@ -1,11 +1,10 @@
 // Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import 'moment/locale/es';
-import {AppState} from 'react-native';
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import {AppState, AppStateStatus} from 'react-native';
+import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
 import Log from '@libs/Log';
@@ -17,48 +16,56 @@ import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as OnyxTypes from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
-let currentUserAccountID;
-let currentUserEmail;
+type PolicyParamsForOpenOrReconnect = {
+    policyIDList: string[];
+};
+
+type Locale = ValueOf<typeof CONST.LOCALES>;
+
+let currentUserAccountID: number | string;
+let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = val?.accountID ?? '';
+        currentUserEmail = val?.email ?? '';
     },
 });
 
-let isSidebarLoaded;
+let isSidebarLoaded: boolean | null;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
-let preferredLocale;
+let preferredLocale: string | null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val),
 });
 
-let priorityMode;
+let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (nextPriorityMode) => {
         // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
         if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
-            // eslint-disable-next-line no-use-before-define
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             openApp();
         }
         priorityMode = nextPriorityMode;
     },
 });
 
-let resolveIsReadyPromise;
-const isReadyToOpenApp = new Promise((resolve) => {
+let resolveIsReadyPromise: () => void;
+const isReadyToOpenApp = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
@@ -66,22 +73,14 @@ function confirmReadyToOpenApp() {
     resolveIsReadyPromise();
 }
 
-/**
- * @param {Array} policies
- * @return {Array<String>} array of policy ids
- */
-function getNonOptimisticPolicyIDs(policies) {
-    return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .pluck('id')
-        .compact()
-        .value();
+function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
+    return Object.values(policies ?? {})
+        .filter((policy) => policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .map((policy) => policy?.id)
+        .filter((id): id is string => !!id);
 }
 
-/**
- * @param {String} locale
- */
-function setLocale(locale) {
+function setLocale(locale: Locale) {
     if (locale === preferredLocale) {
         return;
     }
@@ -93,7 +92,7 @@ function setLocale(locale) {
     }
 
     // Optimistically change preferred locale
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -101,19 +100,18 @@ function setLocale(locale) {
         },
     ];
 
-    API.write(
-        'UpdatePreferredLocale',
-        {
-            value: locale,
-        },
-        {optimisticData},
-    );
+    type UpdatePreferredLocaleParams = {
+        value: Locale;
+    };
+
+    const parameters: UpdatePreferredLocaleParams = {
+        value: locale,
+    };
+
+    API.write('UpdatePreferredLocale', parameters, {optimisticData});
 }
 
-/**
- * @param {String} locale
- */
-function setLocaleAndNavigate(locale) {
+function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
     Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
@@ -128,7 +126,7 @@ function setSidebarLoaded() {
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
-let appState;
+let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
@@ -138,9 +136,8 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
- * @returns {Promise}
  */
-function getPolicyParamsForOpenOrReconnect() {
+function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
             const connectionID = Onyx.connect({
@@ -157,11 +154,9 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
- * @param {Boolean} isOpenApp
- * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
-    const defaultData = {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
+    const defaultData: Required<OnyxData> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -219,20 +214,31 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params = {enablePriorityModeFilter: true, ...policyParams};
+    getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
+        type OpenAppParams = PolicyParamsForOpenOrReconnect & {
+            enablePriorityModeFilter: boolean;
+        };
+
+        const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
+
         API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
 /**
  * Fetches data when the app reconnects to the network
- * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params = {...policyParams};
+        type ReconnectParams = {
+            mostRecentReportActionLastModified?: string;
+            updateIDFrom?: number;
+        };
+        type ReconnectAppParams = PolicyParamsForOpenOrReconnect & ReconnectParams;
+
+        const params: ReconnectAppParams = {...policyParams};
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
         // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
@@ -257,12 +263,13 @@ function reconnectApp(updateIDFrom = 0) {
  * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
- * @return {Promise}
  */
-function finalReconnectAppAfterActivatingReliableUpdates() {
+function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params = {...policyParams};
+        type ReconnectAppParams = PolicyParamsForOpenOrReconnect & {mostRecentReportActionLastModified?: string};
+
+        const params: ReconnectAppParams = {...policyParams};
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
         // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
@@ -284,37 +291,39 @@ function finalReconnectAppAfterActivatingReliableUpdates() {
 
 /**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
- * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
- * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
- * @return {Promise}
+ * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    type GetMissingOnyxMessagesParams = {
+        updateIDFrom: number;
+        updateIDTo: number;
+    };
+
+    const parameters: GetMissingOnyxMessagesParams = {
+        updateIDFrom,
+        updateIDTo,
+    };
 
     // It is SUPER BAD FORM to return promises from action methods.
     // DO NOT FOLLOW THIS PATTERN!!!!!
     // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(
-        'GetMissingOnyxMessages',
-        {
-            updateIDFrom,
-            updateIDTo,
-        },
-        getOnyxDataForOpenOrReconnect(),
-    );
+    return API.makeRequestWithSideEffects('GetMissingOnyxMessages', parameters, getOnyxDataForOpenOrReconnect());
 }
 
 /**
  * This promise is used so that deeplink component know when a transition is end.
  * This is necessary because we want to begin deeplink redirection after the transition is end.
  */
-let resolveSignOnTransitionToFinishPromise;
-const signOnTransitionToFinishPromise = new Promise((resolve) => {
+let resolveSignOnTransitionToFinishPromise: () => void;
+const signOnTransitionToFinishPromise = new Promise<void>((resolve) => {
     resolveSignOnTransitionToFinishPromise = resolve;
 });
 
-function waitForSignOnTransitionToFinish() {
+function waitForSignOnTransitionToFinish(): Promise<void> {
     return signOnTransitionToFinishPromise;
 }
 
@@ -325,10 +334,10 @@ function endSignOnTransition() {
 /**
  * Create a new draft workspace and navigate to it
  *
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param [policyName] Optional, custom policy name we will use for created workspace
+ * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false) {
     const policyID = Policy.generatePolicyID();
@@ -348,12 +357,12 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
 /**
  * Create a new workspace and delete the draft
  *
- * @param {String} [policyID] the ID of the policy to use
- * @param {String} [policyName] custom policy name we will use for created workspace
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [policyID] the ID of the policy to use
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
@@ -375,23 +384,22 @@ function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = 
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
- * @param {Object} session
  */
-function setUpPoliciesAndNavigate(session) {
+function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = url.searchParams.get('ownerEmail');
-    const makeMeAdmin = url.searchParams.get('makeMeAdmin');
-    const policyName = url.searchParams.get('policyName');
+    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
+    const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
+    const policyName = url.searchParams.get('policyName') ?? '';
 
     // Sign out the current user if we're transitioning with a different user
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
@@ -427,51 +435,53 @@ function redirectThirdPartyDesktopSignIn() {
     }
 }
 
-function openProfile(personalDetails) {
-    const oldTimezoneData = personalDetails.timezone || {};
+function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
+    const oldTimezoneData = personalDetails.timezone ?? {};
     let newTimezoneData = oldTimezoneData;
 
-    if (lodashGet(oldTimezoneData, 'automatic', true)) {
+    if (oldTimezoneData?.automatic ?? true) {
         newTimezoneData = {
             automatic: true,
             selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
     }
 
-    API.write(
-        'OpenProfile',
-        {
-            timezone: JSON.stringify(newTimezoneData),
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: newTimezoneData,
-                        },
+    type OpenProfileParams = {
+        timezone: string;
+    };
+
+    const parameters: OpenProfileParams = {
+        timezone: JSON.stringify(newTimezoneData),
+    };
+
+    API.write('OpenProfile', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        timezone: newTimezoneData,
                     },
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: oldTimezoneData,
-                        },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        timezone: oldTimezoneData,
                     },
                 },
-            ],
-        },
-    );
+            },
+        ],
+    });
 }
 
 /**
- * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // There's no support for anonymous users on desktop
@@ -486,8 +496,14 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
         return;
     }
 
+    type OpenOldDotLinkParams = {
+        shouldRetry: boolean;
+    };
+
+    const parameters: OpenOldDotLinkParams = {shouldRetry: false};
+
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+    API.makeRequestWithSideEffects('OpenOldDotLink', parameters, {}).then((response) => {
         if (!response) {
             Log.alert(
                 'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
@@ -502,16 +518,20 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
 }
 
 /**
- * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
     waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
-function handleRestrictedEvent(eventName) {
-    API.write('HandleRestrictedEvent', {
-        eventName,
-    });
+function handleRestrictedEvent(eventName: string) {
+    type HandleRestrictedEventParams = {
+        eventName: string;
+    };
+
+    const parameters: HandleRestrictedEventParams = {eventName};
+
+    API.write('HandleRestrictedEvent', parameters);
 }
 
 export {

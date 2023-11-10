@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import DeviceInfo from 'react-native-device-info';
+import GenerateDeviceID from './types';
 
 const deviceID = DeviceInfo.getDeviceId();
 const uniqueID = Str.guid(deviceID);
@@ -22,11 +23,7 @@ const uniqueID = Str.guid(deviceID);
  *
  * Furthermore, the deviceID prefix is not unique to a specific device, but is likely to change from one type of device to another.
  * Including this prefix will tell us with a reasonable degree of confidence if the user just uninstalled and reinstalled the app, or if they got a new device.
- *
- * @returns {Promise<String>}
  */
-function generateDeviceID() {
-    return Promise.resolve(uniqueID);
-}
+const generateDeviceID: GenerateDeviceID = () => Promise.resolve(uniqueID);
 
 export default generateDeviceID;
