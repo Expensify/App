@@ -1,10 +1,10 @@
 import {ParamListBase, RouteProp, useRoute} from '@react-navigation/native';
 import useWindowDimensions from './useWindowDimensions';
 
-interface RouteParams extends ParamListBase {
+type RouteParams = ParamListBase & {
     params: {isInRHP?: boolean};
-}
-interface ResponsiveLayoutResult {
+};
+type ResponsiveLayoutResult = {
     shouldUseNarrowLayout: boolean;
 };
 /**

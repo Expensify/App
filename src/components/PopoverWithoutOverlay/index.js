@@ -16,11 +16,11 @@ function Popover(props) {
         {
             windowWidth: props.windowWidth,
             windowHeight: props.windowHeight,
-            isSmallScreenWidth: false,
         },
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
+        false,
     );
 
     React.useEffect(() => {

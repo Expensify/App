@@ -91,7 +91,6 @@ const defaultProps = {
 };
 
 function LoginForm(props) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const input = useRef();
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
@@ -178,7 +177,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (shouldUseNarrowLayout) {
+        if (props.route.params.isInRHP) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
