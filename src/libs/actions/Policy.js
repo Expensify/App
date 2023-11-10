@@ -1049,7 +1049,7 @@ function generateCustomUnitID() {
  * @returns {Object}
  */
 function buildOptimisticCustomUnits(currency) {
-    const customUnitID = generateCustomUnitID(); 
+    const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
     const customUnits = {
         [customUnitID]: {
