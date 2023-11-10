@@ -11,9 +11,9 @@ type ResponsiveLayoutResult = {
  * Hook to determine if we are on mobile devices or in the RHP
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
-    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
     const {isSmallScreenWidth} = useWindowDimensions();
     try {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const {params} = useRoute<RouteProp<RouteParams, 'params'>>();
         return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
     } catch (error) {

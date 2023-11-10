@@ -179,7 +179,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (route.params?.isInRHP) {
+        if (_.get(route, 'params.isInRHP', false)) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
