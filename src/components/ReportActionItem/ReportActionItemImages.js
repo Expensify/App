@@ -15,7 +15,7 @@ const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
         PropTypes.shape({
-            thumbnail: PropTypes.string,
+            thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             transaction: transactionPropTypes,
         }),
