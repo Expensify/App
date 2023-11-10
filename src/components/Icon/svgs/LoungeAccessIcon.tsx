@@ -1,26 +1,25 @@
-import PropTypes from 'prop-types';
 import * as React from 'react';
 import Svg, {G, Path, Polygon} from 'react-native-svg';
 import themeColors from '@styles/themes/default';
 
-const propTypes = {
+type LoungeAccessIconProps = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
-    fill: PropTypes.string,
+    fill?: string;
 
     /** Is icon hovered */
-    hovered: PropTypes.string,
+    hovered?: string;
 
     /** Is icon pressed */
-    pressed: PropTypes.string,
+    pressed?: string;
+
+    /** Icon's width */
+    width?: number;
+
+    /** Icon's height */
+    height?: number;
 };
 
-const defaultProps = {
-    fill: themeColors.icon,
-    hovered: 'false',
-    pressed: 'false',
-};
-
-function LoungeAccessIcon(props) {
+function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed = 'false', width, height}: LoungeAccessIconProps) {
     return (
         <Svg
             id="Layer_1"
@@ -33,8 +32,11 @@ function LoungeAccessIcon(props) {
                 enableBackground: 'new 0 0 40 40',
             }}
             xmlSpace="preserve"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            fill={fill}
+            hovered={hovered}
+            pressed={pressed}
+            width={width}
+            height={height}
         >
             <G>
                 <Path
@@ -44,13 +46,13 @@ function LoungeAccessIcon(props) {
             </G>
             <G>
                 <Path
-                    fill={props.hovered === 'true' || props.pressed === 'true' ? props.fill : themeColors.starDefaultBG}
+                    fill={hovered === 'true' || pressed === 'true' ? fill : themeColors.starDefaultBG}
                     className="st1"
                     d="M31,9.8c-0.1-0.2-0.2-0.4-0.5-0.4h-2.1l-0.8-2C27.4,7,27.1,7,27,7c-0.1,0-0.4,0-0.6,0.4l-0.8,1.9h-2.1 c-0.4,0-0.5,0.4-0.5,0.4c0,0.1-0.1,0.4,0.1,0.6l1.6,1.8l-0.6,1.9c-0.1,0.3,0.1,0.5,0.2,0.7c0.1,0,0.3,0.2,0.7,0.1l2-1.1l2,1.2 c0.3,0.2,0.6,0,0.7-0.1c0.1-0.1,0.3-0.3,0.2-0.7l-0.6-2l1.5-1.7C31,10.3,31,10,31,9.8z"
                 />
                 <Polygon
-                    className="st1"
                     points="28.5,7 28.5,7 28.5,7  "
+                    className="st1"
                 />
             </G>
             <G>
@@ -64,7 +66,4 @@ function LoungeAccessIcon(props) {
 }
 
 LoungeAccessIcon.displayName = 'LoungeAccessIcon';
-LoungeAccessIcon.propTypes = propTypes;
-LoungeAccessIcon.defaultProps = defaultProps;
-
 export default LoungeAccessIcon;
