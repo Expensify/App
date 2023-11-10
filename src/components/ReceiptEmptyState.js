@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import Icon from './Icon';
@@ -26,15 +25,14 @@ function ReceiptEmptyState({hasError, onPress}) {
         <PressableWithoutFeedback
             accessibilityRole="button"
             onPress={onPress}
+            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
         >
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}>
-                <Icon
-                    src={Expensicons.EmptyStateAttachReceipt}
-                    width={variables.iconSizeUltraLarge}
-                    height={variables.iconSizeUltraLarge}
-                    fill="transparent"
-                />
-            </View>
+            <Icon
+                src={Expensicons.EmptyStateAttachReceipt}
+                width={variables.eReceiptIconWidth}
+                height={variables.eReceiptIconHeight}
+                fill="transparent"
+            />
         </PressableWithoutFeedback>
     );
 }
