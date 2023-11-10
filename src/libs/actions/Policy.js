@@ -174,11 +174,11 @@ function deleteWorkspace(policyID, reports, policyName) {
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerAccountID}) => {
             // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
-            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            let emailClosingReport = CONST.POLICY.OWNER_EMAIL_FAKE;
             if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
-                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+                emailClosingReport = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
             }
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {

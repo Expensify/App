@@ -2715,10 +2715,7 @@ function submitReport(expenseReport) {
  * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport) {
-    const recipient = {
-        login: iouReport.ownerEmail,
-        accountID: iouReport.ownerAccountID,
-    };
+    const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -2953,7 +2950,7 @@ function navigateToNextPage(iou, iouType, report, path = '') {
  * @returns {String}
  */
 function getIOUReportID(iou, route) {
-    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
+    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '0');
 }
 
 export {
