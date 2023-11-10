@@ -1,9 +1,9 @@
-import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler, ReactElement} from 'react';
+import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler} from 'react';
 import {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import Text from './Text';
+import Text, { TextProps } from './Text';
 
 type LinkProps = {
     /** Link to open in new tab */
@@ -19,10 +19,7 @@ type PressProps = {
     onPress: () => void;
 };
 
-type TextLinkProps = (LinkProps | PressProps) & {
-    /** Text content child */
-    children: ReactElement;
-
+type TextLinkProps = (LinkProps | PressProps) & TextProps & {
     /** Additional style props */
     style?: StyleProp<TextStyle>;
 
@@ -30,7 +27,7 @@ type TextLinkProps = (LinkProps | PressProps) & {
     onMouseDown?: MouseEventHandler;
 };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...props}: TextLinkProps, ref: ForwardedRef<RNText>) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
     const openLink = () => {
         if (onPress) {
             onPress();
@@ -65,7 +62,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
             ref={ref}
             suppressHighlighting
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
         >
             {children}
         </Text>
