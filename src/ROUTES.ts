@@ -2,8 +2,16 @@ import {ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
+ * This is a file containing constants for all the routes we want to be able to go to
  */
+
+/**
+ * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
+ */
+function getUrlWithBackToParam(url: string, backTo?: string): string {
+    const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
+    return url + backToParam;
+}
 
 export default {
     HOME: '',
@@ -20,10 +28,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo = '') => {
-            const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
-            return `a/${accountID}${backToParam}`;
-        },
+        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -49,10 +54,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => {
-            const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
-            return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
-        },
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
 
     SETTINGS: 'settings',
@@ -90,6 +92,10 @@ export default {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
+        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged`,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:domain/activate',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
@@ -100,15 +106,12 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => {
-            let route = `settings/profile/personal-details/address/country?country=${country}`;
-            if (backTo) {
-                route += `&backTo=${encodeURIComponent(backTo)}`;
-            }
-            return route;
-        },
+        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
-    SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
+    SETTINGS_CONTACT_METHODS: {
+        route: 'settings/profile/contact-methods',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
+    },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,
@@ -209,8 +212,16 @@ export default {
         route: 'r/:reportID/notes/:accountID/edit',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
+    ROOM_MEMBERS: {
+        route: 'r/:reportID/members',
+        getRoute: (reportID: string) => `r/${reportID}/members`,
+    },
+    ROOM_INVITE: {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
+    },
 
-    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
@@ -292,6 +303,11 @@ export default {
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
 
+    ERECEIPT: {
+        route: 'eReceipt/:transactionID',
+        getRoute: (transactionID: string) => `eReceipt/${transactionID}`,
+    },
+
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
@@ -347,17 +363,4 @@ export default {
     SAASTR: 'saastr',
     SBE: 'sbe',
     MONEY2020: 'money2020',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'home',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'expenses',
-    REPORTS_OLDDOT: 'reports',
-    INSIGHTS_OLDDOT: 'insights',
-
-    // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspaces',
-    GROUPS_OLDDOT: 'group_workspaces',
-    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;

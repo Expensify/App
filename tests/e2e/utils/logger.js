@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const {LOG_FILE} = require('../config');
 
 let isVerbose = true;
@@ -12,6 +13,9 @@ const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE ||
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
+const COLOR_RED = '\x1b[31m';
+const COLOR_BLUE = '\x1b[34m';
+const COLOR_GREEN = '\x1b[32m';
 
 const log = (...args) => {
     if (isVerbose) {
@@ -20,11 +24,46 @@ const log = (...args) => {
 
     // Write to log file
     if (!fs.existsSync(LOG_FILE)) {
+        // Check that the directory exists
+        const logDir = path.dirname(LOG_FILE);
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir);
+        }
+
         fs.writeFileSync(LOG_FILE, '');
     }
     const time = new Date();
     const timeStr = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} ${time.getMilliseconds()}`;
     fs.appendFileSync(LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
+};
+
+const info = (...args) => {
+    log('> ', ...args);
+};
+
+const important = (...args) => {
+    const lines = [`🟦 ${COLOR_BLUE}`, ...args, `${COLOR_RESET}\n`];
+    log(...lines);
+};
+
+const success = (...args) => {
+    const lines = [`🟦 ${COLOR_GREEN}`, ...args, `${COLOR_RESET}\n`];
+    log(...lines);
+};
+
+const warn = (...args) => {
+    const lines = [`\n${COLOR_YELLOW}⚠️`, ...args, `${COLOR_RESET}\n`];
+    log(...lines);
+};
+
+const note = (...args) => {
+    const lines = [`${COLOR_DIM}`, ...args, `${COLOR_RESET}\n`];
+    log(...lines);
+};
+
+const error = (...args) => {
+    const lines = [`\n🔴 ${COLOR_RED}`, ...args, `${COLOR_RESET}\n`];
+    log(...lines);
 };
 
 const progressInfo = (textParam) => {
@@ -51,27 +90,13 @@ const progressInfo = (textParam) => {
         },
         done: () => {
             clearInterval(timer);
-            process.stdout.write(`\r✅ ${text} ${getTimeText()}\n`);
+            success(`\r✅ ${text} ${getTimeText()}\n`);
         },
         error: () => {
             clearInterval(timer);
-            process.stdout.write(`\r❌ ${text} ${getTimeText()}\n`);
+            error(`\r❌ ${text} ${getTimeText()}\n`);
         },
     };
-};
-
-const info = (...args) => {
-    log('> ', ...args);
-};
-
-const warn = (...args) => {
-    const lines = [`\n${COLOR_YELLOW}⚠️`, ...args, `${COLOR_RESET}\n`];
-    log(...lines);
-};
-
-const note = (...args) => {
-    const lines = [`\n💡${COLOR_DIM}`, ...args, `${COLOR_RESET}\n`];
-    log(...lines);
 };
 
 module.exports = {
@@ -79,6 +104,9 @@ module.exports = {
     info,
     warn,
     note,
+    error,
+    success,
+    important,
     progressInfo,
     setLogLevelVerbose,
 };

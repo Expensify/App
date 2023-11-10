@@ -1,8 +1,8 @@
-import {render, fireEvent, within} from '@testing-library/react-native';
-import {subYears, addYears} from 'date-fns';
-import DateUtils from '../../src/libs/DateUtils';
+import {fireEvent, render, within} from '@testing-library/react-native';
+import {addYears, subYears} from 'date-fns';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
 const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
@@ -11,14 +11,20 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-        preferredLocale="en"
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+                preferredLocale="en"
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({

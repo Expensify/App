@@ -1,36 +1,36 @@
-import React from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Button from '../Button';
-import Icon from '../Icon';
-import Text from '../Text';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import ControlSelection from '../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import useLocalize from '../../hooks/useLocalize';
-import SettlementButton from '../SettlementButton';
-import * as IOU from '../../libs/actions/IOU';
-import refPropTypes from '../refPropTypes';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import themeColors from '../../styles/themes/default';
-import reportPropTypes from '../../pages/reportPropTypes';
-import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import * as ReportActionUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import refPropTypes from '@components/refPropTypes';
+import SettlementButton from '@components/SettlementButton';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
@@ -123,27 +123,38 @@ function ReportPreview(props) {
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
+    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
-    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
+    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
-    const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    const previewSubtitle = hasOnlyOneReceiptRequest
-        ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
-        : props.translate('iou.requestCount', {
-              count: numberOfRequests,
-              scanningReceipts: numberOfScanningReceipts,
-          });
+    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
+    if (hasPendingWaypoints) {
+        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
+    }
+    const previewSubtitle =
+        formattedMerchant ||
+        props.translate('iou.requestCount', {
+            count: numberOfRequests,
+            scanningReceipts: numberOfScanningReceipts,
+        });
 
     const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
+        if (hasPendingWaypoints) {
+            return props.translate('common.tbd');
+        }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+        if (hasOnlyDistanceRequests) {
+            return props.translate('common.tbd');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -188,7 +199,7 @@ function ReportPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                accessibilityRole="button"
+                role="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
@@ -241,9 +252,14 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
+                                shouldShowPaymentOptions
                                 style={[styles.mt3]}
-                                anchorAlignment={{
+                                kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                }}
+                                paymentMethodDropdownAnchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                 }}
                             />

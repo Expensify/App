@@ -1,13 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import UnorderedList from '../../../components/UnorderedList';
-import Section from '../../../components/Section';
-import ConnectBankAccountButton from '../../../components/ConnectBankAccountButton';
+import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import UnorderedList from '@components/UnorderedList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** The policy ID currently being configured */

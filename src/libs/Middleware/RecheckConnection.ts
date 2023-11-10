@@ -1,5 +1,5 @@
-import CONST from '../../CONST';
-import NetworkConnection from '../NetworkConnection';
+import NetworkConnection from '@libs/NetworkConnection';
+import CONST from '@src/CONST';
 import Middleware from './types';
 
 /**
