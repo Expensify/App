@@ -15,7 +15,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     try {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const {params} = useRoute<RouteProp<RouteParams, 'params'>>();
-        console.log(params);
         return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
     } catch (error) {
         return {
