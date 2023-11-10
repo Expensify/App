@@ -159,7 +159,7 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        let paymentMethod = nvp_lastPaymentMethod[policyID] || '';
+        const paymentMethod = nvp_lastPaymentMethod[policyID] || '';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
