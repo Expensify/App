@@ -2,18 +2,17 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import MobileBackgroundImage from '@assets/images/money-stack.svg';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -24,6 +23,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const INPUT_IDS = {
     EMOJI_CODE: 'emojiCode',
@@ -37,9 +37,9 @@ const propTypes = {
 const initialEmoji = '💬';
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
-    const localize = useLocalize();
-    const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
+    const {translate} = useLocalize();
     const formRef = useRef(null);
+    const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
     const currentUserClearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
@@ -97,6 +97,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
 
+    // <<<<<<< HEAD
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
             User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
@@ -115,28 +116,33 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return {};
     }, [brickRoadIndicator]);
     return (
-        <ScreenWrapper
-            testID={StatusPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <HeaderPageLayout
+            title={translate('statusPage.status')}
+            onBackButtonPress={navigateBackToPreviousScreen}
+            headerContent={
+                <MobileBackgroundImage
+                    pointerEvents="none"
+                    style={styles.staticHeaderImage}
+                />
+            }
+            headerContainerStyles={[styles.staticHeaderImage]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
+            childrenContainerStyles={[styles.flex1]}
+            scrollViewContainerStyles={[styles.flex1]}
         >
-            <HeaderWithBackButton
-                title={localize.translate('statusPage.status')}
-                onBackButtonPress={navigateBackToPreviousScreen}
-            />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
-                style={styles.flexGrow1}
+                style={[styles.flexGrow1, styles.flex1]}
                 ref={formRef}
-                submitButtonText={localize.translate('statusPage.save')}
-                submitButtonStyles={[styles.mh5]}
+                submitButtonText={translate('statusPage.save')}
+                submitButtonStyles={[styles.mh5, styles.flexGrow1]}
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
             >
-                <View style={styles.mh5}>
-                    <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
-                    <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
+                <View style={[styles.mh5, styles.mb5]}>
+                    <Text style={[styles.textHeadline]}>{translate('statusPage.setStatusTitle')}</Text>
+                    <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
                 <View style={[styles.mb2, styles.mt6]}>
                     <View style={[styles.mb4, styles.ph5]}>
@@ -152,7 +158,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            label={localize.translate('statusPage.message')}
+                            label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
@@ -162,7 +168,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     </View>
                     <MenuItemWithTopDescription
                         title={customClearAfter}
-                        description={localize.translate('statusPage.clearAfter')}
+                        description={translate('statusPage.clearAfter')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
                         containerStyle={styles.pr2}
@@ -171,7 +177,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
-                            title={localize.translate('statusPage.clearStatus')}
+                            title={translate('statusPage.clearStatus')}
                             titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
@@ -179,9 +185,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                             wrapperStyle={[styles.pl2]}
                         />
                     )}
+                    <View style={[styles.flexGrow1]} />
                 </View>
             </FormProvider>
-        </ScreenWrapper>
+        </HeaderPageLayout>
     );
 }
 
@@ -189,7 +196,6 @@ StatusPage.displayName = 'StatusPage';
 StatusPage.propTypes = propTypes;
 
 export default compose(
-    withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
         draftStatus: {
