@@ -1910,7 +1910,4 @@ export default {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
-    },
 } satisfies TranslationBase;
