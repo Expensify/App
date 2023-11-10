@@ -97,7 +97,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
 
-    // <<<<<<< HEAD
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
             User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
@@ -185,7 +184,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                             wrapperStyle={[styles.pl2]}
                         />
                     )}
-                    <View style={[styles.flexGrow1]} />
                 </View>
             </FormProvider>
         </HeaderPageLayout>
