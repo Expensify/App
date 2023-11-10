@@ -8,7 +8,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import PressableProps from './types';
+import PressableProps, {PressableRef} from './types';
 
 /**
  * Returns the cursor style based on the state of Pressable
@@ -49,7 +49,7 @@ function GenericPressable(
         accessible = true,
         ...rest
     }: PressableProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
@@ -125,7 +125,7 @@ function GenericPressable(
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
-            ref={ref}
+            ref={ref as ForwardedRef<View>}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
