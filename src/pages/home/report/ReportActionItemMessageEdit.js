@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -22,6 +21,7 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import {htmlToMarkdown} from '@libs/parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -88,8 +88,7 @@ function ReportActionItemMessageEdit(props) {
     const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
-            const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(props.draftMessage).trim();
+            return htmlToMarkdown(props.draftMessage).trim();
         }
         // We need to decode saved draft message because it's escaped before saving.
         return Str.htmlDecode(props.draftMessage);

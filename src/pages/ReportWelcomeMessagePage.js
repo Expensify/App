@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -13,6 +12,7 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import {htmlToMarkdown} from '@libs/parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import styles from '@styles/styles';
@@ -45,8 +45,7 @@ const defaultProps = {
 };
 
 function ReportWelcomeMessagePage(props) {
-    const parser = new ExpensiMark();
-    const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
+    const [welcomeMessage, setWelcomeMessage] = useState(() => htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 

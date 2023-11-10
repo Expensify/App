@@ -18,6 +18,7 @@ import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
+import * as Parser from './parser';
 import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -2255,14 +2256,13 @@ function getParsedComment(text) {
  * @returns {Object}
  */
 function buildOptimisticAddCommentReportAction(text, file) {
-    const parser = new ExpensiMark();
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
     const htmlForNewComment = isAttachment ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : Parser.htmlToText(htmlForNewComment);
 
     return {
         commentText,

@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import _ from 'underscore';
@@ -11,6 +10,7 @@ import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import Navigation from '@libs/Navigation/Navigation';
+import {htmlToMarkdown, htmlToText} from '@libs/parser';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -282,11 +282,10 @@ export default [
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (content) {
-                    const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
+                        Clipboard.setString(htmlToMarkdown(content));
                     } else {
-                        const plainText = parser.htmlToText(content);
+                        const plainText = htmlToText(content);
                         Clipboard.setHtml(content, plainText);
                     }
                 }

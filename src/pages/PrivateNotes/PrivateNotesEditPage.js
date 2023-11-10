@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -18,6 +17,7 @@ import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import {htmlToMarkdown} from '@libs/parser';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -53,9 +53,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
     const {translate} = useLocalize();
 
     // We need to edit the note in markdown format, but display it in HTML format
-    const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        () => Report.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+        () => Report.getDraftPrivateNote(report.reportID).trim() || htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
     );
 
     /**
@@ -95,7 +94,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
         if (privateNote.trim() !== originalNote.trim()) {
-            const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
+            const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), htmlToMarkdown(originalNote).trim());
             Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         }
 

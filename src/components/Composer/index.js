@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -15,6 +14,7 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import {htmlToMarkdown} from '@libs/parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -251,8 +251,7 @@ function Composer({
      */
     const handlePastedHTML = useCallback(
         (html) => {
-            const parser = new ExpensiMark();
-            paste(parser.htmlToMarkdown(html));
+            paste(htmlToMarkdown(html));
         },
         [paste],
     );
