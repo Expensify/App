@@ -9,6 +9,7 @@ To get started with Expensify on your mobile device, you need to download the ap
 1. Visit the App Store (iOS) or Google Play Store (Android).
 2. Search for "Expensify" and select the official Expensify app.
 3. Tap "Download" or "Install."
+   
 Once the app is installed, open it and log in with your Expensify credentials. If you don't have an Expensify account, you can create one during the sign-up process.
 # How to enable on push notifications
 Push notifications keep you informed about expense approvals, reimbursements, and more. To enable push notifications:
@@ -16,12 +17,14 @@ Push notifications keep you informed about expense approvals, reimbursements, an
 2. Go to "Settings" or "Preferences."
 3. Find the "Receive realtime alerts" toggle
 4. Toggle realtime alerts on to begin receiving notifications
+   
 # Deep dive
 ## Using SmartScan on the App
 ### Capture receipts
 1. Open the Expensify mobile app. 
 2. Tap the green camera button to take a photo of a receipt.
 3. The receipt will be SmartScanned automatically.
+   
 If you have multiple receipts tap the Rapid Fire Mode button in the bottom right hand corner to snap multiple pictures. You can also upload an existing photo from your gallery.
 ### SmartScan analysis 
 After capturing or uploading a receipt, Expensify's SmartScan technology goes to work. It analyzes the receipt to extract key details such as the merchant's name, transaction date, transaction currency, and total amount spent. SmartScan inputs all the data for you, so you don’t have to type a thing.
