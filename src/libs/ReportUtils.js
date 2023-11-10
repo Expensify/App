@@ -3166,7 +3166,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         '',
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportAction.reportActionID,
         moneyRequestReportID,
     );
@@ -3319,7 +3319,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     ) {
         return false;
     }
-
     if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
