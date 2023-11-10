@@ -974,6 +974,7 @@ function generateCustomUnitID() {
 }
 
 /**
+ * @param {String} currency
  * @returns {Object}
  */
 function buildOptimisticCustomUnits(currency) {
@@ -1014,7 +1015,7 @@ function buildOptimisticCustomUnits(currency) {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD)
+    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
     const {customUnits} = buildOptimisticCustomUnits(outputCurrency);
 
     const optimisticData = [
