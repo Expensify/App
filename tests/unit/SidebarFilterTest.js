@@ -517,7 +517,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedReport.reportID}`]: {[archivedReportAction.reportActionID]: archivedReportAction},
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedPolicyRoomReport.reportID}`]: {[archivedPolicyRoomReportAction.reportActionID]: archivedPolicyRoomReportAction},
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedUserCreatedPolicyRoomReport.reportID}`]: {[archivedUserCreatedPolicyRoomReportAction.reportActionID]: archivedUserCreatedPolicyRoomReportAction},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedUserCreatedPolicyRoomReport.reportID}`]: {
+                                [archivedUserCreatedPolicyRoomReportAction.reportActionID]: archivedUserCreatedPolicyRoomReportAction,
+                            },
                         }),
                     )
 
