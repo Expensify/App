@@ -17,10 +17,10 @@ function Popover(props) {
             windowWidth: props.windowWidth,
             windowHeight: props.windowHeight,
         },
+        false,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
-        false,
     );
 
     React.useEffect(() => {

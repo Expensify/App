@@ -145,10 +145,10 @@ function BaseModal({
                     windowWidth,
                     windowHeight,
                 },
+                shouldUseNarrowLayout,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
-                shouldUseNarrowLayout,
             ),
         [innerContainerStyle, shouldUseNarrowLayout, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
     );

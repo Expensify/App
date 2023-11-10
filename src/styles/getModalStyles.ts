@@ -41,10 +41,10 @@ type GetModalStyles = {
 export default function getModalStyles(
     type: ModalType,
     windowDimensions: WindowDimensions,
+    shouldUseNarrowLayout: boolean,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},
     outerStyle: ViewStyle = {},
-    shouldUseNarrowLayout: boolean,
 ): GetModalStyles {
     const {windowWidth} = windowDimensions;
 
