@@ -77,7 +77,7 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, action}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -136,7 +136,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (isSettled) {
+        if(props.action && props.action.originalMessage.cancellationReason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
             amountDescription += ` • ${translate('iou.pending')}`;

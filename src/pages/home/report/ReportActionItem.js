@@ -415,7 +415,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
@@ -572,6 +572,7 @@ function ReportActionItem(props) {
             content = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
+                        action={props.action}
                         report={props.report}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
