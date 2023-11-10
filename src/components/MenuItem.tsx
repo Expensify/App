@@ -72,7 +72,22 @@ type NoRightIconProps = {
     iconRight?: IconType;
 }
 
-type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | NoTitleIconProps) & (RightIconProps | NoRightIconProps) &{
+type RightComponent = {
+    /** Should render component on the right */
+    shouldShowRightComponent: true;
+
+    /** Component to be displayed on the right */
+    rightComponent: ReactNode;
+}
+
+type NoRightComponent = {
+    shouldShowRightComponent?: false;
+
+    rightComponent?: undefined;
+}
+
+type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | NoTitleIconProps) &
+(RightIconProps | NoRightIconProps) & (RightComponent | NoRightComponent) & {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
  
@@ -145,6 +160,9 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** A right-aligned subtitle for this menu option */
     subtitle?: string | number;
 
+    /** Should the title show with normal font weight (not bold) */
+    shouldShowBasicTitle?: boolean;
+
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
 
@@ -154,23 +172,23 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: boolean;
 
-    // ------------------------------- VALID PROPS ABOVE
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize?: typeof CONST.AVATAR_SIZE;
 
-    /** Should the title show with normal font weight (not bold) */
-    shouldShowBasicTitle: boolean;
-    
     /** Avatars to show on the right of the menu item */
-    floatRightAvatars: AvatarType;
+    floatRightAvatars?: AvatarType[];
+
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize?: typeof CONST.AVATAR_SIZE;    
+
+/**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu?: boolean;
+
+    // ------------------------------- VALID PROPS ABOVE
     
     /** The type of brick road indicator to show. */
     brickRoadIndicator: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | typeof CONST.BRICK_ROAD_INDICATOR_STATUS.INFO | '';
-
-    /** Prop to represent the size of the float right avatar images to be shown */
-    floatRightAvatarSize: typeof CONST.AVATAR_SIZE;
-
-    /** Prop to represent the size of the avatar images to be shown */
-    avatarSize: typeof CONST.AVATAR_SIZE;
-
+    
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction: () => void;
 
@@ -183,20 +201,11 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** The action accept for anonymous user or not */
     isAnonymousAction: boolean;
 
-    /**  Whether we should use small avatar subscript sizing the for menu item */
-    isSmallAvatarSubscriptMenu: boolean;
-
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: boolean;
 
     /** Should render the content in HTML format */
     shouldRenderAsHTML: boolean;
-
-    /** Component to be displayed on the right */
-    rightComponent: ReactNode;
-
-    /** Should render component on the right */
-    shouldShowRightComponent: boolean;
 
     /** Array of objects that map display names to their corresponding tooltip */
     titleWithTooltips: ReactNode[];
@@ -210,8 +219,6 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
 // TODO: Adjust () => void in AvatarProps - always just used () => void without checking the usage
 
 const defaultProps = {
-    shouldShowBasicTitle: false,
-    shouldShowHeaderTitle: false,
     shouldParseTitle: false,
     descriptionTextStyle: styles.breakWord,
     interactive: true,
@@ -221,11 +228,9 @@ const defaultProps = {
     shouldBlockSelection: false,
     furtherDetails: '',
     isAnonymousAction: false,
-    isSmallAvatarSubscriptMenu: false,
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
     shouldRenderAsHTML: false,
-    shouldShowRightComponent: false,
     titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
 };
@@ -235,10 +240,11 @@ function MenuItem({
     icon, iconFill, secondaryIcon, secondaryIconFill, iconType = CONST.ICON_TYPE_ICON, iconWidth, iconHeight, iconStyles, fallbackIcon = Expensicons.FallbackAvatar, shouldShowTitleIcon = false, titleIcon,
     shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon,
     description, error, success = false, focused = false, disabled = false,
-    title, subtitle, label, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
-    shouldShowDescriptionOnTop = false,
+    title, subtitle, shouldShowBasicTitle, label, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
+    shouldShowDescriptionOnTop = false, shouldShowRightComponent = false, rightComponent,
+    floatRightAvatars = [], floatRightAvatarSize, avatarSize = CONST.AVATAR_SIZE.DEFAULT, isSmallAvatarSubscriptMenu = false,
     // Props not validated below - Validate if required and default value
-    shouldShowBasicTitle,interactive,floatRightAvatars,brickRoadIndicator = '',floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,furtherDetails,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
+    interactive,brickRoadIndicator = '',avatarSize,onSecondaryInteraction,shouldBlockSelection,furtherDetails,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,shouldRenderAsHTML,titleWithTooltips,
         shouldCheckActionAllowedOnPress
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -252,7 +258,6 @@ function MenuItem({
             styles.popoverMenuText,
             icon && !_.isArray(icon) && (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             shouldShowBasicTitle ? undefined : styles.textStrong,
-            shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
