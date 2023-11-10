@@ -413,9 +413,6 @@ export default compose(
         iou: {
             key: ONYXKEYS.IOU,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         report: {
             key: ({route, iou}) => {
                 const reportID = IOU.getIOUReportID(iou, route);
@@ -429,9 +426,6 @@ export default compose(
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
