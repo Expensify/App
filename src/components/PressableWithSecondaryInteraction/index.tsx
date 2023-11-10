@@ -11,8 +11,6 @@ import PressableWithSecondaryInteractionProps from './types';
 function PressableWithSecondaryInteraction(
     {
         children,
-        onPress,
-        onPressOut,
         inline = false,
         style,
         enableLongPressWithHover = false,
@@ -98,7 +96,6 @@ function PressableWithSecondaryInteraction(
             wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
-            onPress={onPress}
             ref={pressableRef}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
