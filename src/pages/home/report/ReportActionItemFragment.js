@@ -202,7 +202,7 @@ function ReportActionItemFragment(props) {
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>props.fragment.text</Text>;
+            return <Text>{props.fragment.text}</Text>;
     }
 }
 

@@ -560,7 +560,7 @@ function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boole
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
+    return reportAction?.message?.[0]?.html.length === 0 ?? false;
 }
 
 /**
