@@ -21482,12 +21482,35 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core_1 = __importDefault(__nccwpck_require__(2186));
-const github_1 = __importDefault(__nccwpck_require__(5438));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
 const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
 const CONST_1 = __importDefault(__nccwpck_require__(4097));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
@@ -21495,7 +21518,7 @@ const newComponentCategory_1 = __importDefault(__nccwpck_require__(8750));
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
 const checklistEndsWith = '\r\n### Screenshots/Videos';
-const prNumber = github_1.default.context.payload.pull_request?.number;
+const prNumber = github.context.payload.pull_request?.number;
 const CHECKLIST_CATEGORIES = {
     NEW_COMPONENT: newComponentCategory_1.default,
 };
@@ -21547,14 +21570,14 @@ function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist)
         return;
     }
     console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-    core_1.default.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
+    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
 }
 async function generateDynamicChecksAndCheckForCompletion() {
     // Generate dynamic checks
     const dynamicChecks = await getChecklistCategoriesForPullRequest();
     let isPassing = true;
     let didChecklistChange = false;
-    const body = github_1.default.context.payload.pull_request?.body ?? '';
+    const body = github.context.payload.pull_request?.body ?? '';
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
     for (const check of dynamicChecks) {
@@ -21603,7 +21626,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     if (!isPassing) {
         const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
         console.error(err);
-        core_1.default.setFailed(err);
+        core.setFailed(err);
     }
     // check for completion
     try {
@@ -21613,7 +21636,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     catch (error) {
         console.error(error);
         if (error instanceof Error) {
-            core_1.default.setFailed(error.message);
+            core.setFailed(error.message);
         }
     }
 }
