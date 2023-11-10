@@ -28,12 +28,23 @@ import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
-type MenuItemProps = {
-    /** Text to be shown as badge near the right end. */
-    badgeText: string;
-    
+type ResponsiveProps = {
     /** Function to fire when component is pressed */
-    onPress?: (event: Event) => void;
+    onPress: (event: GestureResponderEvent | KeyboardEvent) => void;
+
+    interactive?: true;
+}
+
+type UnresponsiveProps = {
+    onPress?: undefined;
+
+    /** Whether the menu item should be interactive at all */
+    interactive: false;
+}
+
+type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
+    /** Text to be shown as badge near the right end. */
+    badgeText?: string;
  
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
@@ -113,9 +124,6 @@ type MenuItemProps = {
     /** Flag to choose between avatar image or an icon */
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_WORKSPACE;
 
-    /** Whether the menu item should be interactive at all */
-    interactive: boolean;
-
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: string | (() => void);
     
@@ -182,7 +190,6 @@ type MenuItemProps = {
 // TODO: Adjust () => void in AvatarProps - always just used () => void without checking the usage
 
 const defaultProps = {
-    badgeText: undefined,
     shouldShowRightIcon: false,
     shouldShowSelectedState: false,
     shouldShowBasicTitle: false,
@@ -236,7 +243,9 @@ const defaultProps = {
     shouldCheckActionAllowedOnPress: true,
 };
 
-function MenuItem({badgeText,onPress,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
+function MenuItem({badgeText, onPress,
+    // Props not validated below - Validate if required and default value
+    ,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
         shouldCheckActionAllowedOnPress
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -313,11 +322,11 @@ function MenuItem({badgeText,onPress,style,wrapperStyle,titleStyle,icon,secondar
             return;
         }
 
-        if (event && event.type === 'click') {
-            event.currentTarget.blur();
+        if (event && event.type === 'click' && event.currentTarget instanceof EventTarget) {
+            (event.currentTarget as HTMLElement).blur();
         }
 
-        onPress(e);
+        onPress(event);
     };
 
     return (
