@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import * as StyleUtils from '../../styles/StyleUtils';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
-import CONST from '../../CONST';
+import React from 'react';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Text from '@components/Text';
+import {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /**
@@ -82,7 +82,7 @@ function EmojiReactionBubble(props) {
                 // Prevent text input blur when emoji reaction is left clicked
                 e.preventDefault();
             }}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.emojiCodes.join('')}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

@@ -1,29 +1,29 @@
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import {useRoute} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import CONST from '../../../CONST';
-import InvertedFlatList from '../../../components/InvertedFlatList';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useNetwork from '../../../hooks/useNetwork';
-import useLocalize from '../../../hooks/useLocalize';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import DateUtils from '../../../libs/DateUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Report from '../../../libs/actions/Report';
-import compose from '../../../libs/compose';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import reportPropTypes from '../../reportPropTypes';
+import InvertedFlatList from '@components/InvertedFlatList';
+import {withPersonalDetails} from '@components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useReportScrollManager from '@hooks/useReportScrollManager';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import reportActionPropTypes from './reportActionPropTypes';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -319,14 +319,19 @@ function ReportActionsList({
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
+        let markerFound = false;
         _.each(sortedReportActions, (reportAction, index) => {
             if (!shouldDisplayNewMarker(reportAction, index)) {
                 return;
             }
+            markerFound = true;
             if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
+        if (!markerFound) {
+            setCurrentUnreadMarker(null);
+        }
     }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
@@ -349,7 +354,7 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
-    const hideComposer = ReportUtils.shouldDisableWriteActions(report);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const contentContainerStyle = useMemo(
@@ -360,9 +365,10 @@ function ReportActionsList({
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
 
     const listFooterComponent = useCallback(() => {
-        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
-        // Therefore showing the skeleton on footer might be misleading
-        if (!hasFooterRendered.current) {
+        // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
+        // Therefore showing the skeleton on footer might be misleading.
+        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present
+        if (!isOffline && !hasFooterRendered.current) {
             hasFooterRendered.current = true;
             return null;
         }
@@ -375,7 +381,7 @@ function ReportActionsList({
                 lastReportActionName={lastReportAction.actionName}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -385,17 +391,18 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (!hasHeaderRendered.current) {
+        if (!isOffline && !hasHeaderRendered.current) {
             hasHeaderRendered.current = true;
             return null;
         }
+
         return (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
             />
         );
-    }, [isLoadingNewerReportActions]);
+    }, [isLoadingNewerReportActions, isOffline]);
 
     return (
         <>
@@ -407,6 +414,7 @@ function ReportActionsList({
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
+                    testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
@@ -423,8 +431,8 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onScrollToIndexFailed={() => {}}
                     extraData={extraData}
-                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

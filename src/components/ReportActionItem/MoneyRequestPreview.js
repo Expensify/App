@@ -1,42 +1,42 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import MultipleAvatars from '../MultipleAvatars';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Report from '../../libs/actions/Report';
-import themeColors from '../../styles/themes/default';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
-import ControlSelection from '../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as IOUUtils from '../../libs/IOUUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import refPropTypes from '../refPropTypes';
-import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
-import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
+import refPropTypes from '@components/refPropTypes';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
-import transactionPropTypes from '../transactionPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -175,6 +175,8 @@ function MoneyRequestPreview(props) {
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
+    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
+
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
             return props.translate('common.done');
@@ -223,7 +225,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -274,7 +276,9 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
+                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                </Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -317,7 +321,9 @@ function MoneyRequestPreview(props) {
                             </View>
                             {shouldShowMerchant && (
                                 <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
+                                    </Text>
                                 </View>
                             )}
                             <View style={[styles.flexRow, styles.mt1]}>

@@ -155,6 +155,10 @@ export default {
         marginLeft: 32,
     },
 
+    ml9: {
+        marginLeft: 36,
+    },
+
     ml10: {
         marginLeft: 40,
     },
@@ -471,10 +475,6 @@ export default {
 
     pt5: {
         paddingTop: 20,
-    },
-
-    pt6: {
-        paddingTop: 24,
     },
 
     pt8: {

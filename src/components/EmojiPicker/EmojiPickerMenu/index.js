@@ -1,28 +1,28 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, FlatList} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import emojiAssets from '../../../../assets/emojis';
-import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../Text';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import compose from '../../../libs/compose';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
-import * as User from '../../../libs/actions/User';
-import EmojiSkinToneList from '../EmojiSkinToneList';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as Browser from '../../../libs/Browser';
-import CategoryShortcutBar from '../CategoryShortcutBar';
-import TextInput from '../../TextInput';
-import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FlatList, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import emojiAssets from '@assets/emojis';
+import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
+import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
+import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -471,15 +471,18 @@ function EmojiPickerMenu(props) {
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
         <View
-            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}
-            // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-            pointerEvents={arePointerEventsDisabled ? 'none' : 'auto'}
+            style={[
+                styles.emojiPickerContainer,
+                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
+                arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
+            ]}
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}
@@ -520,7 +523,7 @@ function EmojiPickerMenu(props) {
                 stickyHeaderIndices={headerIndices}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
-                ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
             />
             <EmojiSkinToneList
                 updatePreferredSkinTone={updatePreferredSkinTone}

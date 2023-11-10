@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 import Checkbox from './Checkbox';
-import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
-import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Text from './Text';
 
 /**
  * Returns an error if the required props are not provided
@@ -108,7 +108,7 @@ function CheckboxWithLabel(props) {
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
-                    focusable={false}
+                    tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}

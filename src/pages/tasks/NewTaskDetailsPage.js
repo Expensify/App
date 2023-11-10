@@ -1,24 +1,24 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import TextInput from '../../components/TextInput';
-import Permissions from '../../libs/Permissions';
-import ROUTES from '../../ROUTES';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
-import * as Browser from '../../libs/Browser';
-import useAutoFocusInput from '../../hooks/useAutoFocusInput';
-import FormProvider from '../../components/Form/FormProvider';
-import InputWrapper from '../../components/Form/InputWrapper';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import styles from '@styles/styles';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -99,7 +99,7 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
@@ -110,14 +110,14 @@ function NewTaskDetailsPage(props) {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />

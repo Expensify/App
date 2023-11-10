@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
-import getOperatingSystem from '../getOperatingSystem';
-import CONST from '../../CONST';
 
 const operatingSystem = getOperatingSystem();
 
@@ -13,16 +13,19 @@ type EventHandler = {
     shouldPreventDefault: boolean;
     shouldBubble: boolean | (() => void);
     excludedNodes: string[];
+    shouldStopPropagation: boolean;
 };
 
 // Handlers for the various keyboard listeners we set up
 const eventHandlers: Record<string, EventHandler[]> = {};
 
+type ShortcutModifiers = readonly ['CTRL'] | readonly ['CTRL', 'SHIFT'] | readonly [];
+
 type Shortcut = {
     displayName: string;
     shortcutKey: string;
     descriptionKey: string;
-    modifiers: string[];
+    modifiers: ShortcutModifiers;
 };
 
 // Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
@@ -101,13 +104,13 @@ function unsubscribe(displayName: string, callbackID: string) {
 /**
  * Return platform specific modifiers for keys like Control (CMD on macOS)
  */
-function getPlatformEquivalentForKeys(keys: string[]): string[] {
+function getPlatformEquivalentForKeys(keys: ShortcutModifiers): string[] {
     return keys.map((key) => {
         if (!(key in CONST.PLATFORM_SPECIFIC_KEYS)) {
             return key;
         }
 
-        const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key as keyof typeof CONST.PLATFORM_SPECIFIC_KEYS];
+        const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
         return platformModifiers?.[operatingSystem as keyof typeof platformModifiers] ?? platformModifiers.DEFAULT ?? key;
     });
 }
@@ -127,14 +130,15 @@ function getPlatformEquivalentForKeys(keys: string[]): string[] {
  */
 function subscribe(
     key: string,
-    callback: () => void,
+    callback: (event?: KeyboardEvent) => void,
     descriptionKey: string,
-    modifiers: string[] = ['shift'],
+    modifiers: ShortcutModifiers = ['CTRL'],
     captureOnInputs = false,
     shouldBubble = false,
     priority = 0,
     shouldPreventDefault = true,
-    excludedNodes = [],
+    excludedNodes: string[] = [],
+    shouldStopPropagation = false,
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
@@ -150,6 +154,7 @@ function subscribe(
         shouldPreventDefault,
         shouldBubble,
         excludedNodes,
+        shouldStopPropagation,
     });
 
     if (descriptionKey) {
@@ -187,4 +192,4 @@ const KeyboardShortcut = {
 };
 
 export default KeyboardShortcut;
-export type {EventHandler};
+export type {EventHandler, Shortcut};

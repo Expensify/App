@@ -1,10 +1,10 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};

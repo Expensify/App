@@ -1,22 +1,22 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
-import BigNumberPad from '../../../components/BigNumberPad';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import Button from '../../../components/Button';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import useLocalize from '../../../hooks/useLocalize';
-import CONST from '../../../CONST';
-import FormHelpMessage from '../../../components/FormHelpMessage';
-import refPropTypes from '../../../components/refPropTypes';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
-import * as Browser from '../../../libs/Browser';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import BigNumberPad from '@components/BigNumberPad';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import refPropTypes from '@components/refPropTypes';
+import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -88,11 +88,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Event occurs when a user presses a mouse button over an DOM element.
      *
      * @param {Event} event
-     * @param {Array<string>} nativeIds
+     * @param {Array<string>} ids
      */
-    const onMouseDown = (event, nativeIds) => {
+    const onMouseDown = (event, ids) => {
         const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
-        if (!_.contains(nativeIds, relatedTargetId)) {
+        if (!_.contains(ids, relatedTargetId)) {
             return;
         }
         event.preventDefault();
@@ -240,7 +240,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
-                nativeID={AMOUNT_VIEW_ID}
+                id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
                 style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
@@ -279,11 +279,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
-                nativeID={NUM_PAD_CONTAINER_VIEW_ID}
+                id={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {canUseTouchScreen ? (
                     <BigNumberPad
-                        nativeID={NUM_PAD_VIEW_ID}
+                        id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />

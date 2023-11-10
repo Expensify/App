@@ -1,24 +1,24 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as IOU from '../../src/libs/actions/IOU';
-import * as TestHelper from '../utils/TestHelper';
-import DateUtils from '../../src/libs/DateUtils';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import * as ReportActions from '../../src/libs/actions/ReportActions';
-import * as ReportUtils from '../../src/libs/ReportUtils';
-import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import * as PolicyActions from '../../src/libs/actions/Policy';
-import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
+import * as Report from '../../src/libs/actions/Report';
+import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as User from '../../src/libs/actions/User';
-import PusherHelper from '../utils/PusherHelper';
+import DateUtils from '../../src/libs/DateUtils';
 import Navigation from '../../src/libs/Navigation/Navigation';
+import * as NumberUtils from '../../src/libs/NumberUtils';
+import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import ROUTES from '../../src/ROUTES';
+import PusherHelper from '../utils/PusherHelper';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -77,6 +77,8 @@ describe('actions/IOU', () => {
                                     const chatReport = chatReports[0];
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
+
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     // They should be linked together
                                     expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
@@ -242,6 +244,8 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     iouReportID = iouReport.reportID;
+
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     // They should be linked together
                                     expect(chatReport.iouReportID).toBe(iouReportID);
@@ -571,6 +575,8 @@ describe('actions/IOU', () => {
                                         chatReportID = chatReport.reportID;
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport.reportID;
+
+                                        expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
                                         expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
@@ -982,6 +988,7 @@ describe('actions/IOU', () => {
                                     expect(carlosChatReport.hasOutstandingIOU).toBe(true);
                                     expect(carlosChatReport.iouReportID).toBe(carlosIOUReport.reportID);
                                     expect(carlosIOUReport.chatReportID).toBe(carlosChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     expect(julesChatReport.hasOutstandingIOU).toBe(true);
                                     expect(julesChatReport.iouReportID).toBe(julesIOUReport.reportID);
@@ -990,6 +997,7 @@ describe('actions/IOU', () => {
                                     expect(vitChatReport.hasOutstandingIOU).toBe(true);
                                     expect(vitChatReport.iouReportID).toBe(vitIOUReport.reportID);
                                     expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     resolve();
                                 },
@@ -1528,8 +1536,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(updatedChatReport).toEqual(
                                         expect.objectContaining({
-                                            lastMessageHtml: 'undefined owes $200.00',
-                                            lastMessageText: 'undefined owes $200.00',
+                                            lastMessageHtml: `${CARLOS_EMAIL} owes $200.00`,
+                                            lastMessageText: `${CARLOS_EMAIL} owes $200.00`,
                                         }),
                                     );
                                     resolve();
@@ -2171,6 +2179,8 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
@@ -2248,6 +2258,9 @@ describe('actions/IOU', () => {
 
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             jest.advanceTimersByTime(10);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
@@ -2331,6 +2344,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2544,6 +2559,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,

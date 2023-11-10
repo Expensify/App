@@ -1,16 +1,16 @@
-import React, {useEffect, useMemo, useCallback} from 'react';
-import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
-import Button from '../../../../components/Button';
-import Text from '../../../../components/Text';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import themeColors from '../../../../styles/themes/default';
-import useLocalize from '../../../../hooks/useLocalize';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {Animated, View} from 'react-native';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
-import useNativeDriver from '../../../../libs/useNativeDriver';
 
 const propTypes = {
     /** Whether the New Messages indicator is active */
@@ -75,8 +75,7 @@ function FloatingMessageCounter(props) {
                                 fill={themeColors.textLight}
                             />
                             <Text
-                                selectable={false}
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}
+                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {translate('newMessages')}

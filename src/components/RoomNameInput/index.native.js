@@ -1,11 +1,11 @@
 import React from 'react';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import TextInput from '../TextInput';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
-import getOperatingSystem from '../../libs/getOperatingSystem';
 
 function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
@@ -33,7 +33,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
             onChange={setModifiedRoomName}

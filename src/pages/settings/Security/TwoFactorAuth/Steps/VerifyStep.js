@@ -1,25 +1,25 @@
-import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import * as Session from '../../../../../libs/actions/Session';
-import styles from '../../../../../styles/styles';
-import Button from '../../../../../components/Button';
-import Text from '../../../../../components/Text';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import TextLink from '../../../../../components/TextLink';
-import Clipboard from '../../../../../libs/Clipboard';
-import FixedFooter from '../../../../../components/FixedFooter';
-import * as Expensicons from '../../../../../components/Icon/Expensicons';
-import PressableWithDelayToggle from '../../../../../components/Pressable/PressableWithDelayToggle';
-import TwoFactorAuthForm from '../TwoFactorAuthForm';
-import QRCode from '../../../../../components/QRCode';
-import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
-import CONST from '../../../../../CONST';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
-import useLocalize from '../../../../../hooks/useLocalize';
-import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
+import React, {useEffect} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
+import QRCode from '@components/QRCode';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import Clipboard from '@libs/Clipboard';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
+import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
+import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
@@ -150,6 +150,7 @@ VerifyStep.propTypes = {
     }),
 };
 VerifyStep.defaultProps = defaultProps;
+VerifyStep.displayName = 'VerifyStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
