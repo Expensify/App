@@ -1,4 +1,4 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -151,16 +151,6 @@ function ReportActionsList({
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
-
-    // This hook fixes the position of the FlatList when the user is at the bottom of the list and returns from other screens after deleting list items
-    useFocusEffect(
-        useCallback(() => {
-            if (scrollingVerticalOffset.current !== 0) {
-                return;
-            }
-            reportScrollManager.scrollToBottom();
-        }, [reportScrollManager]),
-    );
 
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
