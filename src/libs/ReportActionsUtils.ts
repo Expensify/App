@@ -322,7 +322,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         if (!allReports) {
             return false;
         }
-        const expenseReport = allReports[reportAction?.originalMessage?.IOUReportID];
+        const expenseReport = allReports[reportAction?.originalMessage?.IOUReportID ?? 0];
         return (
             expenseReport !== null &&
             expenseReport.type === CONST.REPORT.TYPE.EXPENSE &&
