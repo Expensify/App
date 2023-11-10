@@ -173,7 +173,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     shouldStackHorizontally: boolean;
 
     /** Prop to represent the size of the avatar images to be shown */
-    avatarSize?: typeof CONST.AVATAR_SIZE;
+    avatarSize?: typeof CONST.AVATAR_SIZE[keyof typeof CONST.AVATAR_SIZE];
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars?: AvatarType[];
@@ -181,13 +181,13 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** Prop to represent the size of the float right avatar images to be shown */
     floatRightAvatarSize?: typeof CONST.AVATAR_SIZE;    
 
-/**  Whether we should use small avatar subscript sizing the for menu item */
+    /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu?: boolean;
 
-    // ------------------------------- VALID PROPS ABOVE
-    
     /** The type of brick road indicator to show. */
-    brickRoadIndicator: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | typeof CONST.BRICK_ROAD_INDICATOR_STATUS.INFO | '';
+    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS[keyof typeof CONST.BRICK_ROAD_INDICATOR_STATUS];
+
+    // ------------------------------- VALID PROPS ABOVE
     
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction: () => void;
@@ -221,10 +221,6 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
 const defaultProps = {
     shouldParseTitle: false,
     descriptionTextStyle: styles.breakWord,
-    interactive: true,
-    brickRoadIndicator: '',
-    floatRightAvatars: [],
-    avatarSize: CONST.AVATAR_SIZE.DEFAULT,
     shouldBlockSelection: false,
     furtherDetails: '',
     isAnonymousAction: false,
@@ -236,15 +232,16 @@ const defaultProps = {
 };
 
 function MenuItem({
-    badgeText, onPress, style = styles.popoverMenuItem, wrapperStyle, titleStyle, hoverAndPressStyle,
+    interactive = true, onPress, badgeText, style = styles.popoverMenuItem, wrapperStyle, titleStyle, hoverAndPressStyle,
     icon, iconFill, secondaryIcon, secondaryIconFill, iconType = CONST.ICON_TYPE_ICON, iconWidth, iconHeight, iconStyles, fallbackIcon = Expensicons.FallbackAvatar, shouldShowTitleIcon = false, titleIcon,
     shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon,
     description, error, success = false, focused = false, disabled = false,
     title, subtitle, shouldShowBasicTitle, label, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false, shouldShowRightComponent = false, rightComponent,
     floatRightAvatars = [], floatRightAvatarSize, avatarSize = CONST.AVATAR_SIZE.DEFAULT, isSmallAvatarSubscriptMenu = false,
+    brickRoadIndicator,
     // Props not validated below - Validate if required and default value
-    interactive,brickRoadIndicator = '',avatarSize,onSecondaryInteraction,shouldBlockSelection,furtherDetails,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,shouldRenderAsHTML,titleWithTooltips,
+    onSecondaryInteraction,shouldBlockSelection,furtherDetails,isAnonymousAction,shouldGreyOutWhenDisabled,shouldRenderAsHTML,titleWithTooltips,
         shouldCheckActionAllowedOnPress
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -301,7 +298,7 @@ function MenuItem({
     const hasPressableRightComponent = iconRight || (rightComponent && shouldShowRightComponent);
 
     const renderTitleContent = () => {
-        if (titleWithTooltips && _.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
+        if (titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
                     fullTitle={title}
@@ -312,7 +309,7 @@ function MenuItem({
             );
         }
 
-        return convertToLTR(title);
+        return title ? convertToLTR(title) : '';
     };
 
     const onPressAction = (event: GestureResponderEvent | KeyboardEvent) => {
