@@ -74,7 +74,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
