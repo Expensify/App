@@ -36,9 +36,6 @@ type Report = {
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
 
-    /** The email address of the report owner */
-    ownerEmail?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
