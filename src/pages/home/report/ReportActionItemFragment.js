@@ -60,7 +60,7 @@ const propTypes = {
     isThreadParentMessage: PropTypes.bool,
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
-    displayAsGroup: PropTypes.bool.isRequired,
+    displayAsGroup: PropTypes.bool,
 
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
     isApprovedOrSubmittedReportAction: PropTypes.bool,
@@ -90,6 +90,7 @@ const defaultProps = {
     isThreadParentMessage: false,
     isApprovedOrSubmittedReportAction: false,
     isFragmentContainingDisplayName: false,
+    displayAsGroup: false,
 };
 
 function ReportActionItemFragment(props) {
