@@ -3,7 +3,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {computeHorizontalShift, computeVerticalShift} from '@styles/getPopoverWithMeasuredContentStyles';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -37,9 +36,6 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
-
-    /** Whether we should use the target location from anchor element directly */
-    shouldUseTargetLocation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -55,7 +51,6 @@ const defaultProps = {
         width: 0,
     },
     withoutOverlay: false,
-    shouldUseTargetLocation: false,
 };
 
 /**
@@ -95,9 +90,6 @@ function PopoverWithMeasuredContent(props) {
         setIsContentMeasured(true);
     };
 
-    const {x: horizontal, y: vertical} = props.anchorRef.current ? getClickedTargetLocation(props.anchorRef.current) : {};
-    const clickedTargetLocation = props.anchorRef.current && props.shouldUseTargetLocation ? {horizontal, vertical} : props.anchorPosition;
-
     const adjustedAnchorPosition = useMemo(() => {
         let horizontalConstraint;
         switch (props.anchorAlignment.horizontal) {
@@ -111,11 +103,11 @@ function PopoverWithMeasuredContent(props) {
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: clickedTargetLocation.horizontal};
+                horizontalConstraint = {left: props.anchorPosition.horizontal};
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = clickedTargetLocation.vertical;
+        const anchorLocationVertical = props.anchorPosition.vertical;
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
@@ -138,7 +130,7 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [props.anchorPosition, props.anchorAlignment, clickedTargetLocation.vertical, clickedTargetLocation.horizontal, popoverWidth, popoverHeight]);
+    }, [props.anchorPosition, props.anchorAlignment, popoverWidth, popoverHeight]);
 
     const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
