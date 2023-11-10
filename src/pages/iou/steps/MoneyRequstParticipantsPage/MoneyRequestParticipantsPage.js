@@ -1,15 +1,18 @@
 import lodashGet from 'lodash/get';
+import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
@@ -36,14 +39,18 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+
+    /** Transaction that stores the distance request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    transaction: {},
     selectedTab: undefined,
 };
 
-function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();
@@ -54,7 +61,9 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
@@ -85,10 +94,12 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     }, []);
 
     useEffect(() => {
+        const isInvalidDistanceRequest = !isDistanceRequest || isInvalidWaypoint;
+
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest) {
+            if (iou.id && isInvalidDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
@@ -100,14 +111,14 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (isInvalidDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack, isInvalidWaypoint]);
 
     return (
         <ScreenWrapper
@@ -149,5 +160,8 @@ export default withOnyx({
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+    transaction: {
+        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(iou, 'transactionID', 0)}`,
     },
 })(MoneyRequestParticipantsPage);

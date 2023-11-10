@@ -111,10 +111,7 @@ function SplitBillDetailsPage(props) {
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
-                <View
-                    pointerEvents="box-none"
-                    style={[styles.containerWithSpaceBetween]}
-                >
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
                         <MoneyRequestHeaderStatusBar
                             title={translate('iou.receiptStatusTitle')}
@@ -174,9 +171,6 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         transaction: {
             key: ({route, reportActions}) => {
                 const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
