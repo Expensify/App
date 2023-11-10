@@ -1,4 +1,4 @@
-import React, {useState, useRef, ForwardedRef, useMemo} from 'react';
+import React, {ForwardedRef, useMemo, useRef, useState} from 'react';
 import {NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
