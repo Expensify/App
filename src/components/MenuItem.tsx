@@ -55,6 +55,8 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     /** Used to apply styles specifically to the title */
     titleStyle?: StyleProp<ViewStyle>;
 
+    // ------------------------------- VALID PROPS ABOVE
+
     /** Icon to display on the left side of component */
     icon: ReactNode | string | AvatarType;
 
@@ -196,9 +198,6 @@ const defaultProps = {
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
     shouldParseTitle: false,
-    wrapperStyle: [],
-    style: styles.popoverMenuItem,
-    titleStyle: {},
     shouldShowTitleIcon: false,
     titleIcon: () => {},
     descriptionTextStyle: styles.breakWord,
@@ -217,7 +216,6 @@ const defaultProps = {
     isSelected: false,
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
-    onPress: () => {},
     onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
@@ -243,9 +241,9 @@ const defaultProps = {
     shouldCheckActionAllowedOnPress: true,
 };
 
-function MenuItem({badgeText, onPress,
+function MenuItem({badgeText, onPress, style = styles.popoverMenuItem, wrapperStyle, titleStyle,
     // Props not validated below - Validate if required and default value
-    ,style,wrapperStyle,titleStyle,icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
+    icon,secondaryIcon,iconWidth,iconHeight,title,label,shouldShowTitleIcon,titleIcon,shouldShowRightIcon,shouldShowSelectedState,shouldShowBasicTitle,shouldShowDescriptionOnTop,isSelected,success,iconRight,description,iconStyles,iconFill,secondaryIconFill,focused,disabled,subtitle,iconType,interactive,fallbackIcon,floatRightAvatars,brickRoadIndicator = '',shouldStackHorizontally,floatRightAvatarSize,avatarSize,onSecondaryInteraction,shouldBlockSelection,hoverAndPressStyle,furtherDetails,furtherDetailsIcon,isAnonymousAction,isSmallAvatarSubscriptMenu,shouldGreyOutWhenDisabled,error,shouldRenderAsHTML,rightComponent,shouldShowRightComponent,titleWithTooltips,
         shouldCheckActionAllowedOnPress
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
