@@ -37,6 +37,7 @@ import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
 import ReportNextStep from './ReportNextStep';
 import Request from './Request';
+import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
 import SecurityGroup from './SecurityGroup';
 import Session from './Session';
@@ -96,6 +97,7 @@ export type {
     ReportMetadata,
     ReportNextStep,
     Request,
+    Response,
     ScreenShareRequest,
     SecurityGroup,
     Session,

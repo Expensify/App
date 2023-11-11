@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -122,7 +121,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     report={{
                         ...report,
                         ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
-                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
                     }}
                     policy={policy}
                     personalDetails={personalDetails}
@@ -162,26 +160,21 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    parentReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : 0}`,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+        canEvict: false,
+    },
+    transaction: {
+        key: ({report, parentReportActions}) => {
+            const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
         },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
-        },
-    }),
-)(MoneyRequestHeader);
+    },
+})(MoneyRequestHeader);

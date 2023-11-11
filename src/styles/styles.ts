@@ -6,6 +6,7 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
@@ -2578,7 +2579,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3976,12 +3977,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
