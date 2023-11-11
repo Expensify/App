@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import React, { useCallback } from 'react';
-import { ScrollView, View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,7 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import withLocalize, { withLocalizePropTypes } from '@components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -23,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import reportPropTypes from './reportPropTypes';
-
 
 const propTypes = {
     /** Array of report actions for this report */
