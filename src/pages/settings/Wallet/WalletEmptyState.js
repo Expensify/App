@@ -14,6 +14,13 @@ import SCREENS from '@src/SCREENS';
 const propTypes = {
     /** The function that is called when a menu item is pressed */
     onAddPaymentMethod: PropTypes.func.isRequired,
+
+    /** React ref being forwarded to the WalletEmptyState Button */
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+};
+
+const defaultProps = {
+    buttonRef: () => {},
 };
 
 const WALLET_FEATURES = [
@@ -45,6 +52,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
                     success
                     text={translate('paymentMethodList.addPaymentMethod')}
                     onPress={onAddPaymentMethod}
+                    ref={buttonRef}
                 />
             }
         >
@@ -59,5 +67,6 @@ function WalletEmptyState({onAddPaymentMethod}) {
 
 WalletEmptyState.displayName = 'WalletEmptyState';
 WalletEmptyState.propTypes = propTypes;
+WalletEmptyState.defaultProps = defaultProps;
 
 export default WalletEmptyState;
