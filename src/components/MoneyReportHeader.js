@@ -160,6 +160,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions={shouldShowPaymentOptions}
                             formattedAmount={formattedAmount}
+                            nextStep={nextStep}
                         />
                     </View>
                 )}
