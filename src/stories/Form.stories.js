@@ -10,7 +10,6 @@ import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -178,28 +177,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values) => {
         const errors = {};
-        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
+        if (!values.routingNumber) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
+        if (!values.accountNumber) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
+        if (!values.street) {
             errors.street = 'Please enter an address';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
+        if (!values.dob) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
+        if (!values.pickFruit) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
+        if (!values.pickAnotherFruit) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
+        if (!values.state) {
             errors.state = 'Please select a state';
         }
-        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
+        if (!values.checkbox) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;
