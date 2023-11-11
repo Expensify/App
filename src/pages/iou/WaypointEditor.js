@@ -1,29 +1,29 @@
-import React, {useMemo, useRef, useState} from 'react';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
-import AddressSearch from '../../components/AddressSearch';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
-import Form from '../../components/Form';
-import styles from '../../styles/styles';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as Transaction from '../../libs/actions/Transaction';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ROUTES from '../../ROUTES';
-import transactionPropTypes from '../../components/transactionPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import AddressSearch from '@components/AddressSearch';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as Transaction from '@userActions/Transaction';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Route params */
@@ -45,6 +45,9 @@ const propTypes = {
 
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
@@ -52,7 +55,7 @@ const propTypes = {
             geometry: PropTypes.shape({
                 /** Data about the location */
                 location: PropTypes.shape({
-                    /** Lattitude of the location */
+                    /** Latitude of the location */
                     lat: PropTypes.number,
 
                     /** Longitude of the location */
@@ -83,10 +86,12 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const waypointCount = _.keys(allWaypoints).length;
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
 
-    const wayPointDescriptionKey = useMemo(() => {
+    const waypointCount = _.size(allWaypoints);
+    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+
+    const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
@@ -99,9 +104,11 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     const isEditingWaypoint = Boolean(threadReportID);
-    const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
     // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = totalWaypoints > 2;
+    const shouldShowThreeDotsButton = waypointCount > 2;
+    const shouldDisableEditor =
+        isFocused &&
+        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
     const validate = (values) => {
         const errors = {};
@@ -110,7 +117,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
-        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
@@ -119,15 +126,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => {
-        if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        } else {
-            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
-        }
-    };
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
@@ -163,8 +162,9 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
+            name: values.name,
         };
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+        saveWaypoint(waypoint);
 
         if (isEditingWaypoint) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
@@ -180,9 +180,9 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
+            <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={translate(wayPointDescriptionKey)}
+                    title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
@@ -264,6 +264,7 @@ export default withOnyx({
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
             _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                name: waypoint.name,
                 description: waypoint.address,
                 geometry: {
                     location: {

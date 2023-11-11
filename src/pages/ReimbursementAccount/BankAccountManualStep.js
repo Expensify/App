@@ -1,23 +1,23 @@
-import React, {useCallback} from 'react';
-import _ from 'underscore';
-import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CONST from '../../CONST';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Text from '../../components/Text';
-import TextInput from '../../components/TextInput';
-import styles from '../../styles/styles';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import TextLink from '../../components/TextLink';
-import useLocalize from '../../hooks/useLocalize';
-import {withLocalizePropTypes} from '../../components/withLocalize';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
+import React, {useCallback} from 'react';
+import {Image} from 'react-native';
+import _ from 'underscore';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
-import Form from '../../components/Form';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -102,10 +102,10 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    accessibilityLabel={translate('bankAccount.routingNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.routingNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
@@ -114,16 +114,16 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    accessibilityLabel={translate('bankAccount.accountNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.accountNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
                     LabelComponent={() => (
