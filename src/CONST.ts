@@ -1366,10 +1366,6 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
-
-        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
