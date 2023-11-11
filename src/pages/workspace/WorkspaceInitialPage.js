@@ -89,12 +89,16 @@ function WorkspaceInitialPage(props) {
 
             reports.push(report);
 
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && !ReportUtils.isThread(report) && report.reportID) {
+            if (!report.reportID || ReportUtils.isThread(report)) {
+                return;
+            }
+
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
                 admins = report;
                 return;
             }
 
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE && !ReportUtils.isThread(report) && report.reportID) {
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE) {
                 announce = report;
             }
         });
@@ -105,11 +109,11 @@ function WorkspaceInitialPage(props) {
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policy.id, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [policy.id, policy.name, policyReports]);
+    }, [policyID, policy.name, policyReports]);
 
     useEffect(() => {
         const policyDraftId = lodashGet(props.policyDraft, 'id', null);
@@ -133,10 +137,10 @@ function WorkspaceInitialPage(props) {
      * Call update workspace currency and hide the modal
      */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        Policy.updateGeneralSettings(policyID, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policy.id);
-    }, [policy.id, policy.name]);
+        ReimbursementAccount.navigateToBankAccountRoute(policyID);
+    }, [policyID, policy.name]);
 
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
