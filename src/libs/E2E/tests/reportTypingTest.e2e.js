@@ -1,3 +1,4 @@
+import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForKeyboard from '@libs/E2E/actions/waitForKeyboard';
 import E2EClient from '@libs/E2E/client';
@@ -42,6 +43,7 @@ const test = () => {
                             const rerenderCount = getRerenderCount();
 
                             E2EClient.submitTestResults({
+                                branch: Config.E2E_BRANCH,
                                 name: 'Composer typing rerender count',
                                 renderCount: rerenderCount,
                             }).then(E2EClient.submitTestDone);
