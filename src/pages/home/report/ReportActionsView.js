@@ -103,11 +103,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
+    const timeoutIdCatted = useRef(null);
+    const timeoutIdExtended = useRef(null);
 
     const [isLinkingToCattedMessage, setLinkingToCattedMessage] = useState(false);
     const [isLinkingToExtendedMessage, setLinkingToExtendedMessage] = useState(false);
     const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
-
 
     const {catted: reportActionsBeforeAndIncludingLinked, expanded: reportActionsBeforeAndIncludingLinkedExpanded} = useMemo(() => {
         if (reportActionID && allReportActions?.length) {
@@ -125,8 +126,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (
             reportActionID &&
             !isLinkingToCattedMessage &&
-            isLinkingToExtendedMessage &&
-            reportActionsBeforeAndIncludingLinkedExpanded.length !== reportActionsBeforeAndIncludingLinked.length
+            isLinkingToExtendedMessage
         ) {
             return reportActionsBeforeAndIncludingLinkedExpanded;
         }
@@ -142,6 +142,22 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     ]);
 
     useEffect(() => {
+        if (isLoadingLinkedMessage) {
+            return;
+        }
+        if (scrollToBottom) {
+            scrollToBottom();
+        }
+
+        timeoutIdCatted.current = setTimeout(() => {
+            setLinkingToCattedMessage(false);
+        }, 100);
+        timeoutIdExtended.current = setTimeout(() => {
+            setLinkingToExtendedMessage(false);
+        }, 200);
+    }, [isLoadingLinkedMessage, scrollToBottom]);
+
+    useEffect(() => {
         if (!reportActionID) {
             return;
         }
@@ -152,20 +168,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         setLinkingToExtendedMessage(true);
         fetchReport();
 
-        const timeoutIdCatted = setTimeout(() => {
-            setLinkingToCattedMessage(false);
-        }, 100);
-        const timeoutIdExtended = setTimeout(() => {
-            setLinkingToExtendedMessage(false);
-        }, 200);
-
-        return () => {
-            if (!timeoutIdCatted && !timeoutIdExtended) {
-                return;
-            }
-            clearTimeout(timeoutIdCatted);
-            clearTimeout(timeoutIdExtended);
-        };
     }, [route, reportActionID, fetchReport, scrollToBottom]);
 
     const isReportActionArrayCatted = useMemo(() => {
@@ -202,6 +204,14 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     useEffect(() => {
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        return () => {
+            if (!timeoutIdCatted && !timeoutIdExtended) {
+                return;
+            }
+            clearTimeout(timeoutIdCatted.current);
+            clearTimeout(timeoutIdExtended.current);
+        };
     }, []);
 
     useEffect(() => {

@@ -259,7 +259,7 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
  * returns {Object}
  * getSlicedRangeFromArrayByID([{id:1}, ..., {id: 100}], 50) => { catted: [{id:1}, ..., {id: 50}], expanded: [{id: 45}, ..., {id: 55}] }
  */
-function getSlicedRangeFromArrayByID(array: ReportAction[], id: string):SlicedResult {
+function getSlicedRangeFromArrayByID(array: ReportAction[], id: string): SlicedResult {
     let index;
     if (id) {
         index = array.findIndex((obj) => obj.reportActionID === id);
@@ -271,18 +271,11 @@ function getSlicedRangeFromArrayByID(array: ReportAction[], id: string):SlicedRe
         return {catted: [], expanded: []};
     }
 
-    const cattedEnd = array.length - index > 50 ? index + 50 : array.length;
-    const expandedStart = Math.max(0, index - 5);
+    const amountOfItemsBeforeLinkedOne = 25;
+    const expandedStart = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
 
-    const catted: ReportAction[] = [];
-    const expanded: ReportAction[] = [];
-
-    for (let i = expandedStart; i < cattedEnd; i++) {
-        if (i >= index) {
-            catted.push(array[i]);
-        }
-        expanded.push(array[i]);
-    }
+    const catted: ReportAction[] = array.slice(index, array.length);
+    const expanded: ReportAction[] = array.slice(expandedStart, array.length);
     // We need the expanded version to prevent jittering of list. So when user navigate to linked message we show to him the catted version. After that we show the expanded version.
     // Then we can show all reports.
     return {catted, expanded};
