@@ -166,7 +166,7 @@ function ReportScreen({
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
-    const {close: closePopover, isOpen} = useContext(PopoverContext);
+    const {close: closePopover} = useContext(PopoverContext);
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
@@ -283,10 +283,10 @@ function ReportScreen({
         if (prevIsDraggingOver === isDraggingOver) {
             return;
         }
-        if (isDraggingOver && closePopover && isOpen) {
+        if (isDraggingOver && closePopover) {
             closePopover();
         }
-    }, [isDraggingOver, closePopover, prevIsDraggingOver, isOpen]);
+    }, [isDraggingOver, closePopover, prevIsDraggingOver]);
 
     useEffect(() => {
         fetchReportIfNeeded();
