@@ -1,6 +1,7 @@
+import React from 'react';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
 
-const DragAndDropContext = {};
+const DragAndDropContext = React.createContext({});
 
 function DragAndDropProvider({children}) {
     return children;
