@@ -66,7 +66,7 @@ function RoomInvitePage(props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
-    const [userToInvite, setUserToInvite] = useState(null);
+    const [usersToInvite, setUsersToInvite] = useState([]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => [...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], [props.report]);
@@ -82,19 +82,59 @@ function RoomInvitePage(props) {
     }, []);
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
+        let emails = _.compact(
+            searchTerm
+                .trim()
+                .replace(/\s*,\s*/g, ',')
+                .split(','),
+        );
 
-        // Update selectedOptions with the latest personalDetails information
-        const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
-        const newSelectedOptions = [];
-        _.forEach(selectedOptions, (option) => {
-            newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
+        if (emails.length === 0) {
+            emails = [''];
+        }
+
+        console.log(emails)
+
+        const newUsersToInviteDict = {};
+        const newPersonalDetailsDict = {};
+        const newSelectedOptionsDict = {};
+
+        _.each(emails, (email) => {
+            const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
+
+            // Update selectedOptions with the latest personalDetails information
+            const detailsMap = {};
+            _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+            const newSelectedOptions = [];
+            _.forEach(selectedOptions, (option) => {
+                newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
+            });
+
+            const userToInvite = inviteOptions.userToInvite;
+
+            // Only add the user to the invites list if it is valid
+            if (userToInvite) {
+                newUsersToInviteDict[userToInvite.accountID] = userToInvite;
+            }
+
+            // Add all personal details to the new dict
+            _.each(inviteOptions.personalDetails, (details) => {
+                newPersonalDetailsDict[details.accountID] = details;
+            });
+
+            // Add all selected options to the new dict
+            _.each(newSelectedOptions, (option) => {
+                newSelectedOptionsDict[option.accountID] = option;
+            });
         });
 
-        setUserToInvite(inviteOptions.userToInvite);
-        setPersonalDetails(inviteOptions.personalDetails);
-        setSelectedOptions(newSelectedOptions);
+        // Strip out dictionary keys and update arrays
+        setUsersToInvite(_.values(newUsersToInviteDict));
+        setPersonalDetails(_.values(newPersonalDetailsDict));
+        setSelectedOptions(_.values(newSelectedOptionsDict));
+
+        console.log(_.values(newUsersToInviteDict))
+
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
 
@@ -114,7 +154,6 @@ function RoomInvitePage(props) {
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
         const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
-        const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
             title: translate('common.contacts'),
@@ -124,14 +163,18 @@ function RoomInvitePage(props) {
         });
         indexOffset += personalDetailsFormatted.length;
 
-        if (hasUnselectedUserToInvite) {
-            sections.push({
-                title: undefined,
-                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
-                shouldShow: true,
-                indexOffset,
-            });
-        }
+        _.each(usersToInvite, (userToInvite) => {
+            const userIsUnselected = !_.contains(selectedLogins, userToInvite.login);
+
+            if (userIsUnselected) {
+                sections.push({
+                    title: undefined,
+                    data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
+                    shouldShow: true,
+                    indexOffset,
+                });
+            }
+        });
 
         return sections;
     };
@@ -185,14 +228,14 @@ function RoomInvitePage(props) {
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
-        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
-        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails, reportName]);
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
+    }, [excludedUsers, translate, searchTerm, usersToInvite, personalDetails, reportName]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
