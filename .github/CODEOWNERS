@@ -1,2 +1,5 @@
 # Every PR gets a review from an internal Expensify engineer
 * @Expensify/pullerbear
+
+# Every PR that touches redirects gets reviewed by ring0
+docs/redirects.csv @Expensify/infra

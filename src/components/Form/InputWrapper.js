@@ -1,13 +1,12 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useContext} from 'react';
-import refPropTypes from '@components/refPropTypes';
 import FormContext from './FormContext';
 
 const propTypes = {
     InputComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.elementType]).isRequired,
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
-    forwardedRef: refPropTypes,
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {

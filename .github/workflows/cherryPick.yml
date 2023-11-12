@@ -41,6 +41,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Set up git for OSBotify
+        id: setupGitForOSBotify
         uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -119,7 +120,7 @@ jobs:
              **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
         uses: 8398a7/action-slack@v3
