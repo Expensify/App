@@ -32,12 +32,7 @@ async function run() {
             })
         ).data.workflow_runs;
 
-        const inputTagIndex = _.findIndex(completedDeploys, (workflowRun) => workflowRun.head_branch === inputTag);
-        if (inputTagIndex < 0) {
-            throw new Error(`No completed deploy found for input tag ${inputTag}`);
-        }
-
-        const priorTag = completedDeploys[inputTagIndex + 1].head_branch;
+        const priorTag = _.first(completedDeploys).head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log(`Found the pull request list: ${prList}`);
