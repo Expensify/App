@@ -60,7 +60,7 @@ function AppDownloadLinksPage(props) {
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             />
-            <ScrollView style={[styles.mt5]}>
+            <ScrollView style={[styles.mt3]}>
                 {_.map(menuItems, (item) => (
                     <MenuItem
                         key={item.translationKey}

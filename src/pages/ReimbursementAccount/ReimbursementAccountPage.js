@@ -441,7 +441,7 @@ class ReimbursementAccountPage extends React.Component {
                         subtitle={policyName}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
-                    <View style={[styles.m5, styles.flex1]}>
+                    <View style={[styles.mh5, styles.mv3, styles.flex1]}>
                         <Text>{errorText}</Text>
                     </View>
                 </ScreenWrapper>

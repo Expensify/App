@@ -223,7 +223,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
-                            containerStyles={[styles.mt4]}
+                            containerStyles={[styles.mt3]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
                             onPress={selectWaypoint}
