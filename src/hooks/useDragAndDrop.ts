@@ -106,7 +106,7 @@ export default function useDragAndDrop({
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop],
+        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop, onDragEnter],
     );
 
     useEffect(() => {
