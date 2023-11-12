@@ -94,7 +94,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        // hide popover on drag enter
         const listener = () => {
             closePopover();
         };

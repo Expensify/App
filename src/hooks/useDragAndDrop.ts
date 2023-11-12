@@ -11,6 +11,7 @@ const DROP_EVENT = 'drop';
 type DragAndDropParams = {
     dropZone: React.MutableRefObject<HTMLDivElement | null>;
     onDrop?: (event?: DragEvent) => void;
+    onDragEnter?: (event?: DragEvent) => void;
     shouldAllowDrop?: boolean;
     isDisabled?: boolean;
     shouldAcceptDrop?: (event?: DragEvent) => boolean;
@@ -23,7 +24,14 @@ type DragAndDropOptions = {
 /**
  * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
+export default function useDragAndDrop({
+    dropZone,
+    onDrop = () => {},
+    onDragEnter = () => {},
+    shouldAllowDrop = true,
+    isDisabled = false,
+    shouldAcceptDrop = () => true,
+}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -75,6 +83,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                 case DRAG_ENTER_EVENT:
                     dragCounter.current++;
                     setDropEffect(event);
+                    onDragEnter(event);
                     if (isDraggingOver) {
                         return;
                     }
