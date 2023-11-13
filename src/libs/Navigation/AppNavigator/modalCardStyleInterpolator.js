@@ -2,11 +2,11 @@ import {Animated} from 'react-native';
 import getCardStyles from '@styles/cardStyles';
 import variables from '@styles/variables';
 
-export default (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}) => {
+export default (shouldUseNarrowLayout, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}) => {
     const translateX = Animated.multiply(
         progress.interpolate({
             inputRange: [0, 1],
-            outputRange: [isSmallScreenWidth ? screen.width : variables.sideBarWidth, 0],
+            outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
             extrapolate: 'clamp',
         }),
         inverted,
@@ -14,7 +14,7 @@ export default (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inv
 
     const cardStyle = getCardStyles(screen.width);
 
-    if (!isFullScreenModal || isSmallScreenWidth) {
+    if (!isFullScreenModal || shouldUseNarrowLayout) {
         cardStyle.transform = [{translateX}];
     }
 

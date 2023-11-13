@@ -17,10 +17,10 @@ function insertText(text: string, selection: Selection, textToInsert: string): s
 /**
  * Check whether we can skip trigger hotkeys on some specific devices.
  */
-function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boolean): boolean {
+function canSkipTriggerHotkeys(shouldUseNarrowLayout: boolean, isKeyboardShown: boolean): boolean {
     // Do not trigger actions for mobileWeb or native clients that have the keyboard open
     // because for those devices, we want the return key to insert newlines rather than submit the form
-    return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
+    return (shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
 /**

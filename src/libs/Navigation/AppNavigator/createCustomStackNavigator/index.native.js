@@ -2,12 +2,12 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import {StackView} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CustomRouter from './CustomRouter';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
+    shouldUseNarrowLayout: PropTypes.bool.isRequired,
 
     /* Children for the useNavigationBuilder hook */
     children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
@@ -26,18 +26,18 @@ const defaultProps = {
 };
 
 function ResponsiveStackNavigator(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    const shouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
 
-    isSmallScreenWidthRef.current = isSmallScreenWidth;
+    shouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
-        // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
-        getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
+        // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of shouldUseNarrowLayout.
+        getShouldUseNarrowLayout: () => shouldUseNarrowLayoutRef.current,
     });
 
     return (

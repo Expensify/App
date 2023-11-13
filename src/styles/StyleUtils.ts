@@ -449,17 +449,17 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: boolean): ViewStyle {
+function getSignInWordmarkWidthStyle(environment: string, shouldUseNarrowLayout: boolean): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
     if (environment === CONST.ENVIRONMENT.STAGING) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
     if (environment === CONST.ENVIRONMENT.PRODUCTION) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
     }
-    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
 }
 
 /**
@@ -617,8 +617,8 @@ function getCodeFontSize(isInsideH1: boolean) {
 /**
  * Gives the width for Emoji picker Widget
  */
-function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
+function getEmojiPickerStyle(shouldUseNarrowLayout: boolean): ViewStyle {
+    if (shouldUseNarrowLayout) {
         return {
             width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
@@ -662,9 +662,9 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
     };
 }
 
-function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
+function getPaymentMethodMenuWidth(shouldUseNarrowLayout: boolean): ViewStyle {
     const margin = 20;
-    return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
+    return {width: !shouldUseNarrowLayout ? variables.sideBarWidth - margin * 2 : undefined};
 }
 
 /**
@@ -888,10 +888,10 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout: boolean, isMoneyReport = false): ViewStyle {
     const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
@@ -909,9 +909,9 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+function getReportWelcomeTopMarginStyle(shouldUseNarrowLayout: boolean, isMoneyReport = false): ViewStyle {
     const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
@@ -943,9 +943,9 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(shouldUseNarrowLayout: boolean, isMoneyReport = false): ViewStyle {
     const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
@@ -1263,10 +1263,10 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, shouldUseNarrowLayout: boolean, windowWidth: number): TextStyle {
     let toSubtract = 0;
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
         switch (true) {
             case widthDifference > 450:

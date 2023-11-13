@@ -44,7 +44,7 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, shouldUseNarrowLayout, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {
@@ -67,7 +67,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
 
     return (
         <View style={styles.datePickerRoot}>
-            <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
+            <View style={[shouldUseNarrowLayout ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={inputID}

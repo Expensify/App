@@ -313,7 +313,7 @@ function MockedSidebarLinks({currentReportID}) {
                     right: 0,
                     bottom: 0,
                 }}
-                isSmallScreenWidth={false}
+                shouldUseNarrowLayout={false}
                 currentReportID={currentReportID}
             />
         </ComposeProviders>

@@ -16,7 +16,6 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Permissions from '@libs/Permissions';
@@ -30,6 +29,7 @@ import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -77,7 +77,7 @@ const defaultProps = {
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -246,7 +246,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </Form>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {shouldUseNarrowLayout && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

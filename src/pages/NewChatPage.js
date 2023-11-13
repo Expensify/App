@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** Beta features list */
@@ -59,7 +59,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -262,7 +262,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             autoFocus={false}
                         />
                     </View>
-                    {isSmallScreenWidth && <OfflineIndicator />}
+                    {shouldUseNarrowLayout && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
