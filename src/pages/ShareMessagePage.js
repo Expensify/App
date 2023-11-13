@@ -13,7 +13,7 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as Share from '@libs/Share';
+import Share from '@libs/Share';
 import * as Report from '@userActions/Report';
 import compose from '@libs/compose';
 import styles from '@styles/styles';
