@@ -16,6 +16,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
+                ref={ref}
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -28,4 +29,4 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default React.forwardRef(RequestorStep);
+export default RequestorStep;
