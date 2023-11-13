@@ -7,11 +7,11 @@ import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
 
-function Modal(props: BaseModalProps) {
+function Modal({fullscreen, onModalHide, type, onModalShow, children, ...rest}: BaseModalProps) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
     const setStatusBarColor = (color = themeColors.appBG) => {
-        if (!props.fullscreen) {
+        if (!fullscreen) {
             return;
         }
 
@@ -20,14 +20,13 @@ function Modal(props: BaseModalProps) {
 
     const hideModal = () => {
         setStatusBarColor(previousStatusBarColor);
-        props.onModalHide();
+        onModalHide();
     };
 
     const showModal = () => {
         const statusBarColor = StatusBar.getBackgroundColor();
 
-        const isFullScreenModal =
-            props.type === CONST.MODAL.MODAL_TYPE.CENTERED || props.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || props.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+        const isFullScreenModal = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
 
         if (statusBarColor) {
             setPreviousStatusBarColor(statusBarColor);
@@ -35,18 +34,20 @@ function Modal(props: BaseModalProps) {
             setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         }
 
-        props.onModalShow?.();
+        onModalShow?.();
     };
 
     return (
         <BaseModal
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}
             avoidKeyboard={false}
+            fullscreen={fullscreen}
+            type={type}
         >
-            {props.children}
+            {children}
         </BaseModal>
     );
 }
