@@ -1,6 +1,6 @@
 import type NoDropZoneProps from './types';
 
-const NoDropZone = (props: NoDropZoneProps) => props.children;
+const NoDropZone = ({children}: NoDropZoneProps) => children;
 
 NoDropZone.displayName = 'NoDropZone';
 
