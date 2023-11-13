@@ -27,7 +27,7 @@ Grasp the core features and functionalities of Expensify.
 Ensure you're equipped to serve your clients using Expensify to its fullest.
 Once completed, you’ll be prompted to schedule a call with your Partner Manager. **This call is required to earn your certification.** 
 
-# 3. Once you successfully complete the course, you'll unlock:
+3. Once you successfully complete the course, you'll unlock:
 - A dedicated Partner Manager - assigned to you after you have completed the course!
 - A dedicated Client Setup Specialist
 - Membership to the ExpensifyApproved! Partner Program.
