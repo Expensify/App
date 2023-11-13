@@ -2555,6 +2555,7 @@ export {
     readNewestAction,
     openReport,
     openReportFromDeepLink,
+    navigateToAndOpenShare,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
