@@ -5,7 +5,7 @@ import themeColors from '@styles/themes/default';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 const propTypes = {
-    /**  */
+    /** Whether enable animtaion */
     shouldAnimate: PropTypes.bool,
 };
 
