@@ -478,6 +478,7 @@ function AddressSearch(props) {
                             },
                             maxLength: props.maxInputLength,
                             spellCheck: false,
+                            selectTextOnFocus: true,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
