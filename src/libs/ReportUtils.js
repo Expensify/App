@@ -1425,6 +1425,10 @@ function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
         return false;
     }
 
+    if (option.requiresUserAction) {
+        return true;
+    }
+
     if (isArchivedRoom(option)) {
         return false;
     }
