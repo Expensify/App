@@ -16,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -222,12 +223,6 @@ function WorkspaceInitialPage(props) {
     }, [adminsRoom, announceRoom, translate]);
 
     const prevPolicy = usePrevious(policy);
-
-    useEffect(() => {
-        if (PolicyUtils.isPendingDeletePolicy(policy) && !PolicyUtils.isPendingDeletePolicy(prevPolicy)) {
-            Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-        }
-    }, [policy, prevPolicy]);
 
     return (
         <ScreenWrapper
