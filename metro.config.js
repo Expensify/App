@@ -23,7 +23,7 @@ const e2eSourceExts = ['e2e.js', 'e2e.ts'];
  */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultAssetExts, (ext) => ext !== 'svg'),
+        assetExts: [..._.filter(defaultAssetExts, (ext) => ext !== 'svg'), 'lottie'],
         // When we run the e2e tests we want files that have the extension e2e.js to be resolved as source files
         sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultSourceExts, 'jsx', 'svg'],
         resolveRequest: (context, moduleName, platform) => {
