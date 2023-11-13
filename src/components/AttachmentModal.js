@@ -191,7 +191,7 @@ function AttachmentModal(props) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, file.name);
+        fileDownload(sourceURL, lodashGet(file, 'name', ''));
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -391,7 +391,7 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // isAttachmentReceipt will be null until its certain what the file is, in which case it will then be true|false.
