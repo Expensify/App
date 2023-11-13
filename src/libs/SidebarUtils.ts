@@ -299,10 +299,7 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
-    // TODO: Clarify typing
-    nextStep: {
-        requiresUserAction: boolean;
-    },
+    nextStep: Record<string, unknown>,
 ): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -387,7 +384,7 @@ function getOptionData(
     result.notificationPreference = report.notificationPreference ?? null;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
-    result.requiresUserAction = nextStep && nextStep.requiresUserAction;
+    result.requiresUserAction = Boolean(nextStep.requiresUserAction);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
