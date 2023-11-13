@@ -44,7 +44,22 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, shouldUseNarrowLayout, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function NewDatePicker({
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    shouldUseNarrowLayout,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    translate,
+    value,
+}) {
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {

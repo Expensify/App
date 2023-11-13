@@ -2,8 +2,8 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import {StackView} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
-import CustomRouter from './CustomRouter';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import CustomRouter from './CustomRouter';
 
 const propTypes = {
     /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
