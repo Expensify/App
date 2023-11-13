@@ -136,7 +136,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (action && action.originalMessage.cancellationReason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+        if (action && action.originalMessage && action.originalMessage.cancellationReason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
