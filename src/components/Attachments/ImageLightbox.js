@@ -16,8 +16,8 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import styles from '@styles/styles';
-import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
-import ImageWrapper from './ImageWrapper';
+import AttachmentCarouselPagerContext from './AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import ImageWrapper from './AttachmentCarousel/Pager/ImageWrapper';
 
 const MIN_ZOOM_SCALE_WITHOUT_BOUNCE = 1;
 const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 20;
@@ -39,7 +39,7 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-const imageTransformerPropTypes = {
+const imageLightboxPropTypes = {
     imageWidth: PropTypes.number,
     imageHeight: PropTypes.number,
     imageScaleX: PropTypes.number,
@@ -50,7 +50,7 @@ const imageTransformerPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const imageTransformerDefaultProps = {
+const imageLightboxDefaultProps = {
     imageWidth: 0,
     imageHeight: 0,
     imageScaleX: 1,
@@ -59,8 +59,23 @@ const imageTransformerDefaultProps = {
     scaledImageHeight: 0,
 };
 
-function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
-    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
+function ImageLightbox({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+
+    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} =
+        attachmentCarouselPagerContext != null
+            ? attachmentCarouselPagerContext
+            : {
+                  canvasWidth: 0,
+                  canvasHeight: 0,
+                  onTap: null,
+                  onSwipe: null,
+                  onSwipeSuccess: null,
+                  pagerRef: null,
+                  shouldPagerScroll: null,
+                  isScrolling: null,
+                  onPinchGestureChange: null,
+              };
 
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
     const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
@@ -572,8 +587,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         </View>
     );
 }
-ImageTransformer.propTypes = imageTransformerPropTypes;
-ImageTransformer.defaultProps = imageTransformerDefaultProps;
-ImageTransformer.displayName = 'ImageTransformer';
+ImageLightbox.propTypes = imageLightboxPropTypes;
+ImageLightbox.defaultProps = imageLightboxDefaultProps;
+ImageLightbox.displayName = 'ImageLightbox';
 
-export default ImageTransformer;
+export default ImageLightbox;

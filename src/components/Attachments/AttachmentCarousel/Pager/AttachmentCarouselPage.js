@@ -2,10 +2,10 @@
 import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import ImageLightbox from '@components/Attachments/ImageLightbox';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import Image from '@components/Image';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
-import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
@@ -68,7 +68,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
         <>
             {isActive && (
                 <View style={StyleSheet.absoluteFill}>
-                    <ImageTransformer
+                    <ImageLightbox
                         isActive
                         imageWidth={dimensions?.imageWidth}
                         imageHeight={dimensions?.imageHeight}
@@ -122,11 +122,11 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 }
                             }}
                         />
-                    </ImageTransformer>
+                    </ImageLightbox>
                 </View>
             )}
 
-            {/* Keep rendering the image without gestures as fallback while ImageTransformer is loading the image */}
+            {/* Keep rendering the image without gestures as fallback while ImageLightbox is loading the image */}
             {(showFallback || !isActive) && (
                 <ImageWrapper>
                     <Image
@@ -171,7 +171,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                 </ImageWrapper>
             )}
 
-            {/* Show activity indicator while ImageTransfomer is still loading the image. */}
+            {/* Show activity indicator while ImageLightbox is still loading the image. */}
             {isActive && isFallbackLoading && !isImageLoaded.current && (
                 <ActivityIndicator
                     size="large"
