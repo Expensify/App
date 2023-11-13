@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
@@ -192,7 +193,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
  *
  * @deprecated Use withOnyx() or Onyx.connect() instead
  */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | Record<string, never> {
+function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
@@ -376,7 +377,7 @@ function hasRoute(transaction: Transaction): boolean {
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | Record<string, never> {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | EmptyObject {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
