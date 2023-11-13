@@ -169,6 +169,7 @@ function MagicCodeInput(props) {
         // on complete, it will call the onFulfill callback.
         blurMagicCodeInput();
         props.onFulfill(props.value);
+        lastValue.current = '';
     };
 
     useNetwork({onReconnect: validateAndSubmit});
@@ -231,7 +232,8 @@ function MagicCodeInput(props) {
             return;
         }
 
-        const addedValue = value.slice(lastValue.current.length, value.length) || value;
+        const addedValue =
+            value.length - 1 === lastValue.current.length && value.slice(0, value.length - 1) === lastValue.current ? value.slice(lastValue.current.length, value.length) : value;
         lastValue.current = value;
         // Updates the focused input taking into consideration the last input
         // edited and the number of digits added by the user.
