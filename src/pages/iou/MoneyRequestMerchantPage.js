@@ -117,7 +117,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
                 </View>

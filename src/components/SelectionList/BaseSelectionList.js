@@ -387,7 +387,7 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}

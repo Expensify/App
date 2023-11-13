@@ -144,7 +144,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="privateNotes"
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}

@@ -103,7 +103,7 @@ function BankAccountManualStep(props) {
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
                     aria-label={translate('bankAccount.routingNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
@@ -115,7 +115,7 @@ function BankAccountManualStep(props) {
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
                     aria-label={translate('bankAccount.accountNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}

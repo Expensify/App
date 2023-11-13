@@ -216,7 +216,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
