@@ -1,7 +1,9 @@
 name: PR Author Checklist
 
 on:
-  pull_request:
+  # We use pull_request_target here so that the GitHub token will have read/write access and be able to modify the PR description if needed.
+  # Warning: – when using the pull_request_target event, DO NOT checkout code from an untrusted branch: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
     types: [opened, edited, reopened, synchronize]
 
 jobs:
@@ -16,4 +18,4 @@ jobs:
       - name: authorChecklist.js
         uses: ./.github/actions/javascript/authorChecklist
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
