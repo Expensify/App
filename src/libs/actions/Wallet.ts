@@ -6,6 +6,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {WalletAdditionalQuestionsDetails} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
+type WalletTerms = {
+    hasAcceptedTerms: boolean;
+    chatReportID: number;
+};
+
+type WalletQuestion = {
+    question: string;
+    answer: string;
+};
+
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
  * - The sdkToken is used to initialize the Onfido SDK client
@@ -91,9 +101,6 @@ type PersonalDetails = {
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: PersonalDetails) {
-    if (!personalDetails) {
-        return;
-    }
     const firstName = personalDetails.legalFirstName ?? '';
     const lastName = personalDetails.legalLastName ?? '';
     const dob = personalDetails.dob ?? '';
@@ -220,11 +227,6 @@ function verifyIdentity(parameters: IdentityVerification) {
     });
 }
 
-type WalletTerms = {
-    hasAcceptedTerms: boolean;
-    chatReportID: number;
-};
-
 /**
  * Complete the "Accept Terms" step of the wallet activation flow.
  *
@@ -270,12 +272,12 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    type WalletTermsParameters = {
+    type AcceptWalletTermsParams = {
         hasAcceptedTerms: boolean;
         reportID: number;
     };
 
-    const requestParams: WalletTermsParameters = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID};
+    const requestParams: AcceptWalletTermsParams = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID};
 
     API.write('AcceptWalletTerms', requestParams, {optimisticData, successData, failureData});
 }
@@ -298,7 +300,7 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
-function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
+function answerQuestionsForWallet(answers: WalletQuestion[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
     const optimisticData: OnyxUpdate[] = [
