@@ -183,6 +183,8 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
+    }),
+    withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
