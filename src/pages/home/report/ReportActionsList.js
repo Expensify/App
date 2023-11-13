@@ -365,9 +365,10 @@ function ReportActionsList({
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
 
     const listFooterComponent = useCallback(() => {
-        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
-        // Therefore showing the skeleton on footer might be misleading
-        if (!hasFooterRendered.current) {
+        // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
+        // Therefore showing the skeleton on footer might be misleading.
+        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present
+        if (!isOffline && !hasFooterRendered.current) {
             hasFooterRendered.current = true;
             return null;
         }
@@ -380,7 +381,7 @@ function ReportActionsList({
                 lastReportActionName={lastReportAction.actionName}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -390,17 +391,18 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (!hasHeaderRendered.current) {
+        if (!isOffline && !hasHeaderRendered.current) {
             hasHeaderRendered.current = true;
             return null;
         }
+
         return (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
             />
         );
-    }, [isLoadingNewerReportActions]);
+    }, [isLoadingNewerReportActions, isOffline]);
 
     return (
         <>
@@ -429,6 +431,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                 />
             </Animated.View>
