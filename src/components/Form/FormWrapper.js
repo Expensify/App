@@ -171,6 +171,7 @@ function FormWrapper(props) {
             onSubmit,
             submitButtonStyles,
             style,
+            submitButtonStyles,
             submitButtonText,
         ],
     );
