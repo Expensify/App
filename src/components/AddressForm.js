@@ -16,12 +16,22 @@ import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
 const propTypes = {
-    /** User home address */
+    /** Address city field */
     city: PropTypes.string,
+
+    /** Address country field */
     country: PropTypes.string,
+
+    /** Address state field */
     state: PropTypes.string,
+
+    /** Address street line 1 field */
     street1: PropTypes.string,
+
+    /** Address street line 2 field */
     street2: PropTypes.string,
+
+    /** Address zip code field */
     zip: PropTypes.string,
 
     /** Callback which is executed when the user changes address, city or state */
