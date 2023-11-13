@@ -9,6 +9,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
+    CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -78,7 +79,6 @@ import type {
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     ZipCodeExampleFormatParams,
-    CanceledRequestParams,
 } from './types';
 
 type StateValue = {

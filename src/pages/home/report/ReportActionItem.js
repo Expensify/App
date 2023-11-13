@@ -34,6 +34,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,7 +59,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
