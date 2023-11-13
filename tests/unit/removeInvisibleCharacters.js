@@ -117,4 +117,14 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         expect(StringUtils.removeInvisibleCharacters('\u200D')).toBe('');
         expect(StringUtils.removeInvisibleCharacters('⁠')).toBe('');
     });
+    it('check multiline', () => {
+        expect(StringUtils.removeInvisibleCharacters('test\ntest')).toBe('test\ntest');
+        expect(StringUtils.removeInvisibleCharacters('test\n')).toBe('test');
+        expect(StringUtils.removeInvisibleCharacters('\ntest')).toBe('test');
+    });
+    it('check markdown styling', () => {
+        expect(StringUtils.removeInvisibleCharacters('# test\n** test **')).toBe('# test\n** test **');
+        expect(StringUtils.removeInvisibleCharacters('# test\n** test **\n')).toBe('# test\n** test **');
+        expect(StringUtils.removeInvisibleCharacters('# test\n**test**\n~~test~~')).toBe('# test\n**test**\n~~test~~');
+    });
 });
