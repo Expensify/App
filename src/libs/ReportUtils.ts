@@ -1510,8 +1510,7 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
+    if (Boolean('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
         return true;
     }
 
@@ -1536,7 +1535,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return allTransactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): number {
+function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport: OnyxEntry<Report> | undefined;
     if (isMoneyRequestReport(report)) {
