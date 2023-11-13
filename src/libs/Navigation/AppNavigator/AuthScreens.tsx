@@ -1,9 +1,9 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import KeyCommand from 'react-native-key-command';
+import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -12,6 +12,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import {AuthScreensStackParamList} from '@navigation/AppNavigator/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -30,27 +31,46 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import * as OnyxTypes from '@src/types/onyx';
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
-const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
-const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
-const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
-const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
-const loadConciergePage = () => require('../../../pages/ConciergePage').default;
+type AuthScreensProps = {
+    /** Session of currently logged in user */
+    session: OnyxEntry<OnyxTypes.Session>;
 
-let timezone;
-let currentAccountID;
-let isLoadingApp;
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: OnyxEntry<string>;
+
+    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
+    isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
+
+    /** The last Onyx update ID was applied to the client */
+    lastUpdateIDAppliedToClient: OnyxEntry<number>;
+
+    /** Information about any currently running demos */
+    demoInfo: OnyxEntry<OnyxTypes.DemoInfo>;
+};
+
+const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
+const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default as React.ComponentType;
+const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
+const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
+const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
+
+let timezone: Timezone | null;
+let currentAccountID: number;
+let isLoadingApp: boolean;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val hasn't accountID
-        if (!_.has(val, 'accountID')) {
+        if (!val?.accountID) {
             timezone = null;
             return;
         }
@@ -71,12 +91,12 @@ Onyx.connect({
             return;
         }
 
-        timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
+        timezone = val?.[currentAccountID]?.timezone ?? {};
         const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+        if (timezone?.automatic && timezone?.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
@@ -89,11 +109,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (val) => {
-        isLoadingApp = val;
+        isLoadingApp = !!val;
     },
 });
 
-const RootStack = createCustomStackNavigator();
+const RootStack = createCustomStackNavigator<AuthScreensStackParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
@@ -108,40 +128,7 @@ const modalScreenListeners = {
     },
 };
 
-const propTypes = {
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: PropTypes.string,
-
-    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
-    isUsingMemoryOnlyKeys: PropTypes.bool,
-
-    /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: PropTypes.number,
-
-    /** Information about any currently running demos */
-    demoInfo: PropTypes.shape({
-        money2020: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-    }),
-};
-
-const defaultProps = {
-    isUsingMemoryOnlyKeys: false,
-    session: {
-        email: null,
-    },
-    lastOpenedPublicRoomID: null,
-    lastUpdateIDAppliedToClient: null,
-    demoInfo: {},
-};
-
-function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
+function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient = null, session = {email: undefined}, lastOpenedPublicRoomID = null, demoInfo = null}: AuthScreensProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
     const isInitialRender = useRef(true);
@@ -156,7 +143,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session?.email ?? '');
         const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -193,6 +180,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
 
+        // TODO: remove when App is merged
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
@@ -221,7 +211,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
-            shortcutsOverviewShortcutConfig.modifiers,
+            shortcutsOverviewShortcutConfig.modifiers as unknown as string[],
             true,
         );
 
@@ -234,7 +224,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
-            shortcutsOverviewShortcutConfig.modifiers,
+            shortcutsOverviewShortcutConfig.modifiers as unknown as string[],
             true,
         );
 
@@ -244,7 +234,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
-            chatShortcutConfig.modifiers,
+            chatShortcutConfig.modifiers as unknown as string[],
             true,
         );
 
@@ -263,12 +253,10 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
-                mode="modal"
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
                 // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
                 // a header will briefly open and close the keyboard and crash Android.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyboardHandlingEnabled={false}
+                screenOptions={{keyboardHandlingEnabled: false, presentation: 'modal'}}
             >
                 <RootStack.Screen
                     name={SCREENS.HOME}
@@ -345,12 +333,10 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
 }
 
 AuthScreens.displayName = 'AuthScreens';
-AuthScreens.propTypes = propTypes;
-AuthScreens.defaultProps = defaultProps;
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-export default withOnyx({
+export default withOnyx<AuthScreensProps, AuthScreensProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },

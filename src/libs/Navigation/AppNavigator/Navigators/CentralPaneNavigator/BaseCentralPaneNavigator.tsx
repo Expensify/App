@@ -1,11 +1,12 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
+import type {CentralPaneStackParamList} from '@libs/Navigation/AppNavigator/types';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import styles from '@styles/styles';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<CentralPaneStackParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;

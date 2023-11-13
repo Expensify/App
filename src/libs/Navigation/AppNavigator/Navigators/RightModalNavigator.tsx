@@ -1,22 +1,19 @@
 import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '@libs/Navigation/AppNavigator/types';
 import styles from '@styles/styles';
+import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
-import {WindowDimensions} from '../../../../styles/getModalStyles';
-import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '../types';
-import NAVIGATORS from '../../../../NAVIGATORS';
 
 const Stack = createStackNavigator<RightModalNavigatorStackParamList>();
 
 function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>) {
-    // TODO: remove type assertion when useWindowDimensions is migrated to TS
-    const {isSmallScreenWidth} = useWindowDimensions() as WindowDimensions;
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <NoDropZone>

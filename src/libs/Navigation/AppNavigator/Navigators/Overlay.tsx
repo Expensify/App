@@ -10,7 +10,7 @@ type OverlayProps = {
     onPress: () => void;
 };
 
-function Overlay(props: OverlayProps) {
+function Overlay({onPress}: OverlayProps) {
     const {current} = useCardAnimation();
     // TODO: remove type assertion when useLocalize is migrated
     const {translate} = useLocalize() as unknown as {translate: (phrase: string) => string};
@@ -23,19 +23,14 @@ function Overlay(props: OverlayProps) {
                     we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
                     everything behaves normally like one big pressable */}
                 <PressableWithoutFeedback
-                    // TODO: Remove when PressableWithoutFeedback is migrated
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     style={styles.draggableTopBar}
-                    onPress={props.onPress}
+                    onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 />
                 <PressableWithoutFeedback
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     style={styles.flex1}
-                    onPress={props.onPress}
+                    onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     noDragArea

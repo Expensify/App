@@ -47,7 +47,7 @@ function PublicScreens() {
                 component={GoogleSignInDesktopPage}
             />
             <RootStack.Screen
-                name="SAMLSignIn"
+                name={SCREENS.SAML_SIGN_IN}
                 options={defaultScreenOptions}
                 component={SAMLSignInPage}
             />

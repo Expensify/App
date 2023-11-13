@@ -1,7 +1,7 @@
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
-import styles from '../../../styles/styles';
-import SCREENS from '../../../SCREENS';
+import styles from '@styles/styles';
+import SCREENS from '@src/SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -18,17 +18,24 @@ type Screens = Record<string, () => React.ComponentType>;
  */
 function createModalStackNavigator(screens: Screens): () => React.JSX.Element {
     const ModalStackNavigator = createStackNavigator();
-    return () => (
-        <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
-            {Object.keys(screens).map((name) => (
-                <ModalStackNavigator.Screen
-                    key={name}
-                    name={name}
-                    getComponent={screens[name]}
-                />
-            ))}
-        </ModalStackNavigator.Navigator>
-    );
+
+    function ModalStack() {
+        return (
+            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+                {Object.keys(screens).map((name) => (
+                    <ModalStackNavigator.Screen
+                        key={name}
+                        name={name}
+                        getComponent={screens[name]}
+                    />
+                ))}
+            </ModalStackNavigator.Navigator>
+        );
+    }
+
+    ModalStack.displayName = 'ModalStack';
+
+    return ModalStack;
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
@@ -52,7 +59,9 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SPLIT_DETAILS_ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
+    [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default as React.ComponentType,
+    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator({
@@ -87,6 +96,14 @@ const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator({
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator({
     [SCREENS.REPORT_PARTICIPANTS_ROOT]: () => require('../../../pages/ReportParticipantsPage').default as React.ComponentType,
+});
+
+const RoomMembersModalStackNavigator = createModalStackNavigator({
+    [SCREENS.ROOM_MEMBERS_ROOT]: () => require('../../../pages/RoomMembersPage').default as React.ComponentType,
+});
+
+const RoomInviteModalStackNavigator = createModalStackNavigator({
+    [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
 const SearchModalStackNavigator = createModalStackNavigator({
@@ -141,7 +158,10 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_DOMAIN_CARDS]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: () => require('../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
@@ -151,6 +171,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS.STATUS_SET]: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default as React.ComponentType,
@@ -163,6 +184,8 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default as React.ComponentType,
+    [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator({
@@ -223,4 +246,6 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    RoomInviteModalStackNavigator,
 };

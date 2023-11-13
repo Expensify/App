@@ -1,10 +1,9 @@
-import {StackScreenProps, StackNavigationOptions, StackNavigationEventMap} from '@react-navigation/stack';
-import {DefaultNavigatorOptions, ParamListBase, StackNavigationState, DefaultRouterOptions, NavigatorScreenParams} from '@react-navigation/native';
+import {DefaultNavigatorOptions, DefaultRouterOptions, NavigatorScreenParams, ParamListBase, StackNavigationState} from '@react-navigation/native';
+import {StackNavigationEventMap, StackNavigationOptions, StackScreenProps} from '@react-navigation/stack';
 import {ValueOf} from 'type-fest';
-
-import SCREENS from '../../../SCREENS';
-import NAVIGATORS from '../../../NAVIGATORS';
 import CONST from '../../../CONST';
+import NAVIGATORS from '../../../NAVIGATORS';
+import SCREENS from '../../../SCREENS';
 
 type AccountValidationParams = {
     /** AccountID associated with the validation link */
@@ -41,6 +40,7 @@ type PublicScreensStackParamList = {
     [SCREENS.UNLINK_LOGIN]: AccountValidationParams;
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
+    [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
 type AuthScreensStackParamList = {
@@ -59,6 +59,7 @@ type AuthScreensStackParamList = {
         source: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [CONST.DEMO_PAGES.MONEY2020]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorStackParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
 };

@@ -40,6 +40,9 @@ export default {
         WALLET_TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
         WALLET_CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
         WALLET_ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+        WALLET_CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
+        WALLET_REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
+        WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         PREFERENCES_PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
@@ -47,6 +50,7 @@ export default {
         CLOSE: 'Settings_Close',
         STATUS_SET: 'Settings_Status_Set',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
+        REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -73,6 +77,8 @@ export default {
         EDIT_REQUEST: 'EditRequest',
         SIGN_IN: 'SignIn',
         PRIVATE_NOTES: 'Private_Notes',
+        ROOM_MEMBERS: 'RoomMembers',
+        ROOM_INVITE: 'RoomInvite',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -147,6 +153,7 @@ export default {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        CURRENCY: 'Workspace_Settings_Currency',
     },
 
     EDIT_REQUEST: {
@@ -163,16 +170,26 @@ export default {
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
-    SPLIT_DETAILS_ROOT: 'SplitDetails_Root',
+
+    SPLIT_DETAILS: {
+        ROOT: 'SplitDetails_Root',
+        EDIT_REQUEST: 'SplitDetails_Edit_Request',
+        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
+    ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
+    ROOM_INVITE_ROOT: 'RoomInvite_Root',
     SEARCH_ROOT: 'Search_Root',
     NEW_CHAT_ROOT: 'NewChat_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
+
+    KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'Home_OLDDOT',

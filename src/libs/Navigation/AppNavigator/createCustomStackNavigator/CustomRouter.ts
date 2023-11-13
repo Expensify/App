@@ -1,6 +1,7 @@
-import {StackRouter, RouterConfigOptions, ParamListBase, StackNavigationState, PartialState} from '@react-navigation/native';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import {ResponsiveStackNavigatorRouterOptions} from '../types';
+import {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
+import {ResponsiveStackNavigatorRouterOptions} from '@libs/Navigation/AppNavigator/types';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
 type MutableState = {
     index: number;
@@ -12,26 +13,39 @@ type State = Omit<PartialState<StackNavigationState<ParamListBase>>, 'stale'> & 
 const isAtLeastOneCentralPaneNavigatorInState = (state: State): boolean => !!state.routes.find((r) => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
 /**
- * @param {Object} state - react-navigation state
- * @returns {String}
+ * @param state - react-navigation state
+ * @returns
  */
-const getTopMostReportIDFromRHP = (state) => {
+const getTopMostReportIDFromRHP = (state: State): string => {
     if (!state) {
         return '';
     }
-    const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    const topmostRightPane = [...state.routes].reverse().find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
     if (topmostRightPane) {
+        // TODO: fix TS issue
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return getTopMostReportIDFromRHP(topmostRightPane.state);
     }
 
-    const topmostRoute = lodashFindLast(state.routes);
+    const topmostRoute = state.routes[state.routes.length - 1];
 
     if (topmostRoute.state) {
+        // TODO: fix TS issue
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return getTopMostReportIDFromRHP(topmostRoute.state);
     }
 
-    if (topmostRoute.params && topmostRoute.params.reportID) {
+    // TODO: fix TS issue
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (topmostRoute.params?.reportID) {
+        // TODO: fix TS issue
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return topmostRoute.params.reportID;
     }
 
@@ -41,7 +55,7 @@ const getTopMostReportIDFromRHP = (state) => {
  * Adds report route without any specific reportID to the state.
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
  */
-const addCentralPaneNavigatorRoute = (state) => {
+const addCentralPaneNavigatorRoute = (state: State) => {
     const reportID = getTopMostReportIDFromRHP(state);
     const centralPaneNavigatorRoute = {
         name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,

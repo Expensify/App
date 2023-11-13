@@ -3,11 +3,10 @@ import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Policy, Report} from '../../../types/onyx';
-import {ReportScreenWrapperProps} from './types';
+import type {Policy, Report} from '@src/types/onyx';
+import type {ReportScreenWrapperProps} from './types';
 
 type ReportScreenIDSetterComponentProps = {
     /** Available reports that would be displayed in this navigator */
@@ -16,6 +15,7 @@ type ReportScreenIDSetterComponentProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<Policy>;
 
+    /** Whether user is a new user */
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>;
 };
 
@@ -33,7 +33,8 @@ const getLastAccessedReportID = (
 ): number | string => {
     // If deeplink url contains reportID params, we should show the report that has this reportID.
     const currentRoute = Navigation.getActiveRoute();
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
+    // TODO: get rid of assertion when ReportUtils is migrated to TS
+    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute) as {reportID: string};
     if (reportID) {
         return reportID;
     }
@@ -47,8 +48,7 @@ const getLastAccessedReportID = (
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
 function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation}: ReportScreenIDSetterProps): null {
-    // TODO: remove  type assertion when usePermissions is migrated
-    const {canUseDefaultRooms} = usePermissions() as {canUseDefaultRooms: boolean};
+    const {canUseDefaultRooms} = usePermissions();
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -79,21 +79,14 @@ ReportScreenIDSetter.displayName = 'ReportScreenIDSetter';
 export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponentProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-        // TODO: I think we need to update onyx mapping types to include allowStaleData/initialValue keys
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         allowStaleData: true,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         allowStaleData: true,
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         initialValue: false,
     },
 })(ReportScreenIDSetter);

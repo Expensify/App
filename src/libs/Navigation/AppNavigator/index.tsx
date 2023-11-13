@@ -5,8 +5,8 @@ type AppNavigatorProps = {
     authenticated: boolean;
 };
 
-function AppNavigator(props: AppNavigatorProps) {
-    if (props.authenticated) {
+function AppNavigator({authenticated}: AppNavigatorProps) {
+    if (authenticated) {
         const AuthScreens = require('./AuthScreens').default;
 
         // These are the protected screens and only accessible when an authToken is present
