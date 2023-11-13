@@ -1,3 +1,4 @@
+import Config from 'react-native-config';
 import _ from 'underscore';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import E2EClient from '@libs/E2E/client';
@@ -20,6 +21,7 @@ const test = () => {
         Promise.all(
             _.map(metrics, (metric) =>
                 E2EClient.submitTestResults({
+                    branch: Config.E2E_BRANCH,
                     name: `App start ${metric.name}`,
                     duration: metric.duration,
                 }),
