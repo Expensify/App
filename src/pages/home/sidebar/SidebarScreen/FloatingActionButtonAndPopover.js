@@ -228,7 +228,7 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
                         : []),
@@ -238,7 +238,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
@@ -281,7 +281,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isLoading: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         demoInfo: {
             key: ONYXKEYS.DEMO_INFO,

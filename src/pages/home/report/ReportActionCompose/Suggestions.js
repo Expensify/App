@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
@@ -45,7 +46,23 @@ function Suggestions({
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
 
-    const getSuggestions = useCallback(() => suggestionEmojiRef.current.getSuggestions() || suggestionMentionRef.current.getSuggestions(), []);
+    const getSuggestions = useCallback(() => {
+        if (suggestionEmojiRef.current && suggestionEmojiRef.current.getSuggestions) {
+            const emojiSuggestions = suggestionEmojiRef.current.getSuggestions();
+            if (emojiSuggestions.length > 0) {
+                return emojiSuggestions;
+            }
+        }
+
+        if (suggestionMentionRef.current && suggestionMentionRef.current.getSuggestions) {
+            const mentionSuggestions = suggestionMentionRef.current.getSuggestions();
+            if (mentionSuggestions.length > 0) {
+                return mentionSuggestions;
+            }
+        }
+
+        return [];
+    }, []);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -108,7 +125,7 @@ function Suggestions({
     };
 
     return (
-        <>
+        <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -120,7 +137,7 @@ function Suggestions({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-        </>
+        </View>
     );
 }
 
