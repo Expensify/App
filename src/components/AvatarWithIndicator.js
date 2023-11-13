@@ -33,7 +33,9 @@ function AvatarWithIndicator(props) {
     return (
         <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>
-                {!props.isLoading ? (
+                {props.isLoading ? (
+                    <AvatarSkeleton />
+                ) : (
                     <>
                         <Avatar
                             source={UserUtils.getSmallSizeAvatar(props.source)}
@@ -41,8 +43,6 @@ function AvatarWithIndicator(props) {
                         />
                         <Indicator />
                     </>
-                ) : (
-                    <AvatarSkeleton shouldAnimate />
                 )}
             </View>
         </Tooltip>

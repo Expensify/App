@@ -1,22 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Circle} from 'react-native-svg';
 import themeColors from '@styles/themes/default';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
-const propTypes = {
-    /** Whether enable animtaion */
-    shouldAnimate: PropTypes.bool,
-};
-
-const defaultTypes = {
-    shouldAnimate: true,
-};
-
-function AvatarSkeleton(props) {
+function AvatarSkeleton() {
     return (
         <SkeletonViewContentLoader
-            animate={props.shouldAnimate}
+            animate
             height={40}
             backgroundColor={themeColors.skeletonLHNIn}
             foregroundColor={themeColors.skeletonLHNOut}
@@ -30,7 +20,5 @@ function AvatarSkeleton(props) {
     );
 }
 
-AvatarSkeleton.propTypes = propTypes;
-AvatarSkeleton.defaultProps = defaultTypes;
 AvatarSkeleton.displayName = 'AvatarSkeleton';
 export default AvatarSkeleton;
