@@ -19,6 +19,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
@@ -4179,13 +4180,13 @@ function getRoom(type, policyID) {
     return room;
 }
 /**
- * We want policy owners and admins to be able to modify the welcome message only when the report is not a thread chat
+ *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
  * @param {Object} report
  * @param {Object} policy
  * @return {Boolean}
  */
-function checkShouldDisableWelcomeMessage(report, policy) {
-    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || _.isEmpty(policy) || policy.role !== CONST.POLICY.ROLE.ADMIN || isChatThread(report);
+function shouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
 export {
@@ -4349,5 +4350,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
-    checkShouldDisableWelcomeMessage,
+    shouldDisableWelcomeMessage,
 };
