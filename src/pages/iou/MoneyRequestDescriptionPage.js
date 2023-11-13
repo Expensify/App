@@ -140,7 +140,8 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
-                            containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            inputStyle={[styles.verticalAlignTop]}
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>
