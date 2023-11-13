@@ -234,8 +234,8 @@ PODS:
     - libwebp/demux
   - libwebp/webp (1.2.4)
   - lottie-ios (4.3.3)
-  - lottie-react-native (6.4.0):
-    - lottie-ios (~> 4.3.3)
+  - lottie-react-native (6.3.1):
+    - lottie-ios (~> 4.3.0)
     - React-Core
   - MapboxCommon (23.6.0)
   - MapboxCoreMaps (10.14.0):

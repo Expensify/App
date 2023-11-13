@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -89,7 +89,7 @@ function AddPlaidBankAccount({
     isPlaidDisabled,
     isDisplayedInNewVBBA,
 }) {
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
     const defaultSelectedPlaidAccount = _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID);
     const defaultSelectedPlaidAccountID = lodashGet(defaultSelectedPlaidAccount, 'plaidAccountID', '');
     const defaultSelectedPlaidAccountMask = lodashGet(
@@ -99,7 +99,7 @@ function AddPlaidBankAccount({
     );
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
-    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = React.useState(defaultSelectedPlaidAccountMask);
+    const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
