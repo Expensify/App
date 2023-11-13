@@ -28,14 +28,14 @@ const defaultProps = {
     report: {},
 };
 
-function ReportAttachments(props) {
-    const reportID = _.get(props, ['route', 'params', 'reportID']);
-    const source = decodeURI(_.get(props, ['route', 'params', 'source']));
+function ReportAttachments({report, route}) {
+    const reportID = _.get(route, ['params', 'reportID']);
+    const source = decodeURI(_.get(route, ['params', 'source']));
 
     const onCarouselAttachmentChange = useCallback(
         (attachment) => {
-            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
-            Navigation.navigate(route);
+            const attachmentRoute = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            Navigation.navigate(attachmentRoute);
         },
         [reportID],
     );
@@ -44,7 +44,7 @@ function ReportAttachments(props) {
         <AttachmentModal
             allowDownload
             defaultOpen
-            report={props.report}
+            report={report}
             source={source}
             onModalHide={() => Navigation.dismissModal()}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
