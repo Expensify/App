@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -40,7 +40,7 @@ function BaseSelectionList({
     textInputPlaceholder = '',
     textInputValue = '',
     textInputMaxLength,
-    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
     onScroll,
@@ -144,6 +144,9 @@ function BaseSelectionList({
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
+    // initialFocusedIndex is needed only on component did mount event, don't need to update value
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initialFocusedIndex = useMemo(() => (focusedIndex > -1 ? focusedIndex : undefined), []);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -307,14 +310,9 @@ function BaseSelectionList({
             />
         );
     };
-
-    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
-        if (!firstLayoutRef.current) {
-            return;
-        }
-        scrollToIndex(focusedIndex, false);
+    const handleFirstLayout = useCallback(() => {
         firstLayoutRef.current = false;
-    }, [focusedIndex, scrollToIndex]);
+    }, []);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -338,6 +336,19 @@ function BaseSelectionList({
             };
         }, [shouldShowTextInput]),
     );
+
+    useEffect(() => {
+        // do not change focus on the first render, as it should focus on the selected item
+        if (firstLayoutRef.current) {
+            return;
+        }
+
+        // set the focus on the first item when the sections list is changed
+        if (sections.length > 0) {
+            updateAndScrollToFocusedIndex(0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sections]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -376,12 +387,12 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
                                     onChangeText={onChangeText}
-                                    keyboardType={keyboardType}
+                                    inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
@@ -404,7 +415,7 @@ function BaseSelectionList({
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -441,7 +452,8 @@ function BaseSelectionList({
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     style={[styles.flexGrow0]}
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={handleFirstLayout}
+                                    initialScrollIndex={initialFocusedIndex}
                                 />
                                 {children}
                             </>
