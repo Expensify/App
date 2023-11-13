@@ -257,27 +257,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
-    // TODO: REMOVE THIS AFTER TESTING
-    useEffect(() => {
-        if (cardList[234523452345]) {
-            return;
-        }
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(`cardList`, {
-            234523452345: {
-                key: '234523452345',
-                cardID: 234523452345,
-                state: 2,
-                bank: 'Expensify Card',
-                availableSpend: 10000,
-                domainName: 'expensify.com',
-                lastFourPAN: '2345',
-                isVirtual: false,
-                fraud: null,
-            },
-        });
-    }, [cardList]);
-
     useEffect(() => {
         PaymentMethods.openWalletPage();
     }, []);
