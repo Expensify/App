@@ -112,13 +112,18 @@ describe('EmojiTest', () => {
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
-        const text = 'Hi :smile::wave:space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋space after last emoji');
+        const text = 'Hi :smile::wave:no space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋no space after last emoji');
     });
 
-    it('will return correct caret position', () => {
+    it('will return correct cursor position', () => {
         const text = 'Hi :smile: there :wave:!';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'selection')).toStrictEqual({start: 14, end: 14});
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(14);
+    });
+
+    it('will return undefined cursor position when no emoji is replaced', () => {
+        const text = 'Hi there!';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(undefined);
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {

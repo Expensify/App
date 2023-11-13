@@ -215,7 +215,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -232,7 +232,7 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), selectionOverride.end);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
                     start: position,
                     end: position,
