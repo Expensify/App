@@ -4,7 +4,8 @@ import {FlatList as NativeFlatlist, View} from 'react-native';
 import _ from 'underscore';
 import FlatList from '@components/FlatList';
 import * as CollectionUtils from '@libs/CollectionUtils';
-import variables from '@styles/variables';
+
+const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -136,7 +137,7 @@ function BaseInvertedFlatList(props) {
             windowSize={15}
             maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
-                autoscrollToTopThreshold: variables.listItemHeightNormal,
+                autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
             }}
             inverted
         />
