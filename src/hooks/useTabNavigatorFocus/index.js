@@ -1,6 +1,7 @@
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
+import DomUtils from '@libs/DomUtils';
 
 /**
  * Custom React hook to determine the focus status of a tab in a Material Top Tab Navigator.
@@ -15,9 +16,6 @@ import {useEffect, useState} from 'react';
  * which is typically an anti-pattern in React. This is done to account for scenarios where the hook
  * might not be used within a Material Top Tabs Navigator context. Proper usage should ensure that
  * this hook is only used where appropriate.
- *
- * Note: This hook is almost identical to native implementation, except for the `selectedTab` parameter
- * and the fact that it uses requestAnimationFrame to mitigate issues when updating the isTabFocused state.
  *
  * @param {Object} params - The parameters object.
  * @param {number} params.tabIndex - The index of the tab for which focus status is being determined.
@@ -50,7 +48,7 @@ function useTabNavigatorFocus({tabIndex}) {
 
         const listenerId = tabPositionAnimation.addListener(({value}) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
-            requestAnimationFrame(() => {
+            DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(value > index - 1 && value < index + 1);
             });
         });
@@ -62,7 +60,7 @@ function useTabNavigatorFocus({tabIndex}) {
         const initialTabPositionValue = tabPositionAnimation.__getValue();
 
         if (typeof initialTabPositionValue === 'number') {
-            requestAnimationFrame(() => {
+            DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(initialTabPositionValue > index - 1 && initialTabPositionValue < index + 1);
             });
         }
