@@ -607,6 +607,12 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
 
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
+/**
+ * Returns the font size for the HTML code tag renderer.
+ */
+function getCodeFontSize(isInsideH1: boolean) {
+    return isInsideH1 ? 15 : 13;
+}
 
 /**
  * Gives the width for Emoji picker Widget
@@ -1287,8 +1293,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
-    let containerStyles: Array<ViewStyle | CSSProperties>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
@@ -1378,6 +1384,7 @@ export {
     getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
+    getCodeFontSize,
     getFontSizeStyle,
     getGoogleListViewStyle,
     getHeightOfMagicCodeInput,
