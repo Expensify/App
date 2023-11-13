@@ -48,7 +48,7 @@ const propTypes = {
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
     /** Whether the input is disabled or not */
-    disabled: PropTypes.bool.isRequired,
+    disabled: PropTypes.bool,
 
     /** Whether the full composer is available or not */
     isFullComposerAvailable: PropTypes.bool.isRequired,
@@ -97,6 +97,7 @@ const defaultProps = {
     reportActions: [],
     forwardedRef: null,
     measureParentContainer: () => {},
+    disabled: false,
 };
 
 export {propTypes, defaultProps};

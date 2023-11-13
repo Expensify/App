@@ -1103,15 +1103,15 @@ function getWorkspaceIcon(report, policy = undefined) {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
- * @param {Object} passedPersonalDetails
  * @param {*} [defaultIcon]
  * @param {String} [defaultName]
  * @param {Number} [defaultAccountID]
  * @param {Object} [policy]
+ * @param {Object} passedPersonalDetails
  * @returns {Array<*>}
  */
-function getIcons(report, passedPersonalDetails, defaultIcon = null, defaultName = '', defaultAccountID = -1, policy = undefined) {
-    const personalDetails = passedPersonalDetails || allPersonalDetails;
+function getIcons(report, defaultIcon = null, defaultName = '', defaultAccountID = -1, policy = undefined, passedPersonalDetails = allPersonalDetails) {
+    const personalDetails = passedPersonalDetails;
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,

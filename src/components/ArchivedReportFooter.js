@@ -46,14 +46,14 @@ const defaultProps = {
 
 function ArchivedReportFooter(props) {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [props.report.ownerAccountID, 'displayName']);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault([props.report.ownerAccountID, 'displayName']);
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = props.reportClosedAction.originalMessage.newAccountID;
         const oldAccountID = props.reportClosedAction.originalMessage.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [newAccountID, 'displayName']);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [oldAccountID, 'displayName']);
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault([newAccountID, 'displayName']);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault([oldAccountID, 'displayName']);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;

@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashExtend from 'lodash/extend';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -110,7 +110,7 @@ const defaultProps = {
     isWorkspaceAvatar: false,
 };
 
-function AttachmentModal(props) {
+const AttachmentModal = forwardRef((props, ref) => {
     const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
@@ -394,7 +394,7 @@ function AttachmentModal(props) {
     }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
 
     useImperativeHandle(
-        props.forwardedRef,
+        ref,
         () => ({
             displayFileInModal: validateAndDisplayFileToUpload,
         }),
@@ -514,21 +514,11 @@ function AttachmentModal(props) {
                 })}
         </>
     );
-}
+});
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-
-const AttachmentModalWithRef = React.forwardRef((props, ref) => (
-    <AttachmentModal
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-AttachmentModalWithRef.displayName = 'AttachmentModalWithRef';
 
 export default compose(
     withWindowDimensions,
@@ -558,4 +548,4 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-)(memo(AttachmentModalWithRef));
+)(memo(AttachmentModal));

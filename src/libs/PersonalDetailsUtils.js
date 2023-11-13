@@ -17,13 +17,13 @@ Onyx.connect({
 });
 
 /**
- * @param {Object | Null} passedPersonalDetails
  * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
+ * @param {Object | Null} passedPersonalDetails optional default personal details object
  * @returns {String}
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
-    const displayName = lodashGet(passedPersonalDetails || allPersonalDetails, pathToDisplayName);
+function getDisplayNameOrDefault(pathToDisplayName, defaultValue = '', passedPersonalDetails = allPersonalDetails) {
+    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
@@ -203,6 +203,14 @@ function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
 
+/**
+ * Get personal details object
+ * @returns {PersonalDetail} personal detail object
+ */
+function getPersonalDetails() {
+    return allPersonalDetails || {};
+}
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -213,4 +221,5 @@ export {
     getPersonalDetailsByAccountID,
     getWhisperedToPersonalDetails,
     isPersonalDetailsEmpty,
+    getPersonalDetails,
 };

@@ -425,7 +425,7 @@ function getOptionData(
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault('displayName', '', lastActorDetails),
                 });
                 break;
             }
@@ -515,7 +515,7 @@ function getOptionData(
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy, personalDetails);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

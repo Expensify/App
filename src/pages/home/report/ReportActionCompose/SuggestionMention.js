@@ -1,16 +1,15 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MentionSuggestions from '@components/MentionSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as SuggestionProps from './suggestionProps';
 
 /**
@@ -38,20 +37,6 @@ const defaultProps = {
     forwardedRef: null,
 };
 
-/**
- * We only need the personalDetails once because as long as the
- * user is in the ReportScreen, these details won't be changing,
- * hence we don't have to use it with `withOnyx`.
- */
-let allPersonalDetails = {};
-// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        allPersonalDetails = val;
-    },
-});
-
 function SuggestionMention({
     value,
     setValue,
@@ -65,7 +50,12 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
 }) {
-    const personalDetails = allPersonalDetails;
+    /**
+     * We only need the personalDetails once because as long as the
+     * user is in the ReportScreen, these details won't be changing,
+     * hence we don't have to use it with `withOnyx`.
+     */
+    const personalDetails = PersonalDetailsUtils.getPersonalDetails();
     const {translate} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);

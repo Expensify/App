@@ -137,6 +137,8 @@ export default compose(
             prevProps.isEmptyChat === nextProps.isEmptyChat &&
             prevProps.lastReportAction === nextProps.lastReportAction &&
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
+            prevProps.windowWidth === nextProps.windowWidth &&
+            prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth &&
             prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
     ),
 );
