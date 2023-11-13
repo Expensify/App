@@ -169,6 +169,7 @@ function FormWrapper(props) {
             isSubmitActionDangerous,
             isSubmitButtonVisible,
             onSubmit,
+            submitButtonStyles,
             style,
             submitButtonStyles,
             submitButtonText,

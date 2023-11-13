@@ -141,7 +141,7 @@ function IdentityForm(props) {
         <View style={props.style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInput accessibilityLabel="Text input field"
+                    <TextInput
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
@@ -154,7 +154,7 @@ function IdentityForm(props) {
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInput accessibilityLabel="Text input field"
+                    <TextInput
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
@@ -179,7 +179,7 @@ function IdentityForm(props) {
                 minDate={minDate}
                 maxDate={maxDate}
             />
-            <TextInput accessibilityLabel="Text input field"
+            <TextInput
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}

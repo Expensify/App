@@ -209,7 +209,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         />
                     </View>
                     <View style={styles.formSpaceVertical} />
-                    <TextInput accessibilityLabel="Text input field"
+                    <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
                         aria-label={translate('common.addressLine', {lineNumber: 2})}
@@ -235,7 +235,7 @@ function AddressPage({privatePersonalDetails, route}) {
                             />
                         </View>
                     ) : (
-                        <TextInput accessibilityLabel="Text input field"
+                        <TextInput
                             inputID="state"
                             label={translate('common.stateOrProvince')}
                             aria-label={translate('common.stateOrProvince')}
@@ -247,7 +247,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         />
                     )}
                     <View style={styles.formSpaceVertical} />
-                    <TextInput accessibilityLabel="Text input field"
+                    <TextInput
                         inputID="city"
                         label={translate('common.city')}
                         aria-label={translate('common.city')}
@@ -258,7 +258,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         onValueChange={handleAddressChange}
                     />
                     <View style={styles.formSpaceVertical} />
-                    <TextInput accessibilityLabel="Text input field"
+                    <TextInput
                         inputID="zipPostCode"
                         label={translate('common.zipPostCode')}
                         aria-label={translate('common.zipPostCode')}
