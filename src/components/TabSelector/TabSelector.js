@@ -85,7 +85,8 @@ const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
 
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
+    const length = state.routes ? state.routes.length : 0;
+    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length}, (v, i) => i), [length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     React.useEffect(() => {
