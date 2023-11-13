@@ -303,25 +303,25 @@ function LoginForm(props) {
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
                             CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
-                                    <View style={[getSignInWithStyles()]}>
-                                        <Text
-                                            accessibilityElementsHidden
-                                            importantForAccessibility="no-hide-descendants"
-                                            style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}
-                                        >
-                                            {props.translate('common.signInWith')}
-                                        </Text>
+                                <View style={[getSignInWithStyles()]}>
+                                    <Text
+                                        accessibilityElementsHidden
+                                        importantForAccessibility="no-hide-descendants"
+                                        style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}
+                                    >
+                                        {props.translate('common.signInWith')}
+                                    </Text>
 
-                                        <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                            <View onMouseDown={(e) => e.preventDefault()}>
-                                                <AppleSignIn />
-                                            </View>
-                                            <View onMouseDown={(e) => e.preventDefault()}>
-                                                <GoogleSignIn />
-                                            </View>
+                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <AppleSignIn />
+                                        </View>
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <GoogleSignIn />
                                         </View>
                                     </View>
-                                )
+                                </View>
+                            )
                         }
                     </View>
                 )
