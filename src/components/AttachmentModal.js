@@ -191,7 +191,7 @@ function AttachmentModal(props) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, file.name);
+        fileDownload(sourceURL, lodashGet(file, 'name', ''));
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -391,7 +391,7 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
 
     useImperativeHandle(
         props.forwardedRef,
@@ -451,21 +451,16 @@ function AttachmentModal(props) {
                     ) : (
                         Boolean(sourceForAttachmentView) &&
                         shouldLoadAttachment && (
-                            // We need the following View component on android native
-                            // So that the event will propagate properly and
-                            // the Password protected preview will be shown for pdf attachement we are about to send.
-                            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={sourceForAttachmentView}
-                                    isAuthTokenRequired={isAuthTokenRequired}
-                                    file={file}
-                                    onToggleKeyboard={updateConfirmButtonVisibility}
-                                    isWorkspaceAvatar={props.isWorkspaceAvatar}
-                                    fallbackSource={props.fallbackSource}
-                                    isUsedInAttachmentModal
-                                />
-                            </View>
+                            <AttachmentView
+                                containerStyles={[styles.mh5]}
+                                source={sourceForAttachmentView}
+                                isAuthTokenRequired={isAuthTokenRequired}
+                                file={file}
+                                onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
+                                isUsedInAttachmentModal
+                            />
                         )
                     )}
                 </View>
