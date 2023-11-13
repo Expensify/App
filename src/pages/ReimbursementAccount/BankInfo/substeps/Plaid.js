@@ -53,7 +53,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, []);
 
     useEffect(() => {
-        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
@@ -70,16 +70,16 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount.accountNumber,
             [bankInfoStepKeys.PLAID_MASK]: selectedPlaidBankAccount.mask,
             [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount.isSavings,
-            [bankInfoStepKeys.BANK_NAME]: lodashGet(plaidData, 'bankName') || '',
+            [bankInfoStepKeys.BANK_NAME]: lodashGet(plaidData, 'bankName', ''),
             [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount.plaidAccountID,
-            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: lodashGet(plaidData, 'plaidAccessToken') || '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: lodashGet(plaidData, 'plaidAccessToken', ''),
         };
 
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID) || 0;
+    const bankAccountID = Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, 0));
     const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');
 
     return (

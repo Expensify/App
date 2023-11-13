@@ -8,23 +8,23 @@ import CONST from '@src/CONST';
  * @returns {number}
  */
 function getInitialSubstepForPersonalInfo(data) {
-    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME].length === 0 && data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME].length === 0) {
+    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME] === '' && data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME] === '') {
         return 0;
     }
 
-    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB].length === 0) {
+    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB] === '') {
         return 1;
     }
 
-    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4].length === 0) {
+    if (data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4] === '') {
         return 2;
     }
 
     if (
-        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET].length === 0 ||
-        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY].length === 0 ||
-        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE].length === 0 ||
-        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE].length === 0
+        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET] === '' ||
+        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY] === '' ||
+        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE] === '' ||
+        data[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE] === ''
     ) {
         return 3;
     }

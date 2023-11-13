@@ -167,7 +167,7 @@ const CONST = {
     BANK_ACCOUNT: {
         BANK_INFO_STEP: {
             INPUT_KEY: {
-                BANK_ACCOUNT_ID: 'bankAccountId',
+                BANK_ACCOUNT_ID: 'bankAccountID',
                 ROUTING_NUMBER: 'routingNumber',
                 ACCOUNT_NUMBER: 'accountNumber',
                 PLAID_MASK: 'plaidMask',

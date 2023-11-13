@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -66,14 +65,13 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(
-                lodashGet(reimbursementAccount, 'achData', bankInfoStepKeys.BANK_ACCOUNT_ID) || 0,
+                Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, '0')),
                 values[bankInfoStepKeys.ACCOUNT_NUMBER],
                 values[bankInfoStepKeys.ROUTING_NUMBER],
                 values[bankInfoStepKeys.PLAID_MASK],
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-            const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
-            BankAccounts.connectBankAccountWithPlaid(bankAccountID, {
+            BankAccounts.connectBankAccountWithPlaid(Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, '0')), {
                 [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER],
                 [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER],
                 [bankInfoStepKeys.PLAID_MASK]: values[bankInfoStepKeys.PLAID_MASK],
@@ -102,7 +100,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             <HeaderWithBackButton
                 shouldShowBackButton={!(setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && screenIndex === 0)}
                 onBackButtonPress={handleBackButtonPress}
-                title={translate('personalInfoStep.personalInfo')}
+                title={translate('bankAccount.bankInfo')}
             />
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
