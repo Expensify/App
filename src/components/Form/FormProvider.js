@@ -6,7 +6,6 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
@@ -109,7 +108,14 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values);
+            const trimmedStringValues = {};
+            _.each(values, (inputValue, inputID) => {
+                if (_.isString(inputValue)) {
+                    trimmedStringValues[inputID] = inputValue.trim();
+                } else {
+                    trimmedStringValues[inputID] = inputValue;
+                }
+            });
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -180,14 +186,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
-        // Prepare values before submitting
-        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
-
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(trimmedStringValues))) {
+        if (!_.isEmpty(onValidate(inputValues))) {
             return;
         }
 
@@ -196,7 +199,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
-        onSubmit(trimmedStringValues);
+        onSubmit(inputValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
