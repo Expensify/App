@@ -82,17 +82,8 @@ function RoomInvitePage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanedSearchTerm = useMemo(
-        () => searchTerm
-                .trim()
-                .replace(/\s*,\s*/g, ','),
-        [searchTerm]
-    );
-
-    const searchEmails = useMemo(
-        () => _.compact(cleanedSearchTerm.split(',')),
-        [cleanedSearchTerm]
-    );
+    const cleanedSearchTerm = useMemo(() => searchTerm.trim().replace(/\s*,\s*/g, ','), [searchTerm]);
+    const searchEmails = useMemo(() => _.compact(cleanedSearchTerm.split(',')), [cleanedSearchTerm]);
 
     useEffect(() => {
         const emails = searchEmails;
