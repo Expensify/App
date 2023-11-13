@@ -9,7 +9,6 @@ import {Report} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -74,7 +73,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return !StringUtils.isEmptyString(value);
+        return value.trim().length > 0;
     }
 
     if (isDate(value)) {
@@ -353,25 +352,6 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
-type ValuesType = Record<string, unknown>;
-
-/**
- * This function is used to remove invisible characters from strings before validation and submission.
- */
-function prepareValues(values: ValuesType): ValuesType {
-    const trimmedStringValues: ValuesType = {};
-
-    for (const [inputID, inputValue] of Object.entries(values)) {
-        if (typeof inputValue === 'string') {
-            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
-        } else {
-            trimmedStringValues[inputID] = inputValue;
-        }
-    }
-
-    return trimmedStringValues;
-}
-
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -405,5 +385,4 @@ export {
     isNumeric,
     isValidAccountRoute,
     isValidRecoveryCode,
-    prepareValues,
 };

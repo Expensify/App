@@ -303,7 +303,7 @@ function isCurrentUserSubmitter(reportID) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    return report && report.ownerEmail === currentUserEmail;
+    return report && report.ownerAccountID === currentUserAccountID;
 }
 
 /**
