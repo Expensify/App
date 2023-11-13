@@ -1,26 +1,23 @@
-import lodashGet from 'lodash/get';
 import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
-import ImageProps from './types';
+import {ImageOnyxProps, ImageProps, ImagePropsWithOnyx} from './types';
 
-function Image(props: ImageProps) {
-    console.log('*** I RENDER ***', props);
-    const {source: propsSource, isAuthTokenRequired, onLoad, session} = props;
+function Image(props: ImagePropsWithOnyx) {
+    const {source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps} = props;
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
      */
     const source = useMemo(() => {
-        if (isAuthTokenRequired) {
-            // There is currently a `react-native-web` bug preventing the authToken being passed
-            // in the headers of the image request so the authToken is added as a query param.
-            // On native the authToken IS passed in the image request headers
-            const authToken = lodashGet(session, 'encryptedAuthToken', null);
+        // There is currently a `react-native-web` bug preventing the authToken being passed
+        // in the headers of the image request so the authToken is added as a query param.
+        // On native the authToken IS passed in the image request headers
+        const authToken = session?.encryptedAuthToken ?? null;
+
+        if (isAuthTokenRequired && authToken && typeof propsSource !== 'number') {
             return {uri: `${propsSource?.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
@@ -35,16 +32,13 @@ function Image(props: ImageProps) {
     useEffect(() => {
         // If an onLoad callback was specified then manually call it and pass
         // the natural image dimensions to match the native API
-        if (onLoad == null) {
+        if (onLoad == null || typeof source === 'number' || !source.uri) {
             return;
         }
         RNImage.getSize(source.uri, (width, height) => {
             onLoad({nativeEvent: {width, height}});
         });
     }, [onLoad, source]);
-
-    // Omit the props which the underlying RNImage won't use
-    const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired']);
 
     return (
         <RNImage
@@ -55,21 +49,20 @@ function Image(props: ImageProps) {
     );
 }
 
-function imagePropsAreEqual(prevProps, nextProps) {
+function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
     return prevProps.source === nextProps.source;
 }
 
-Image.propTypes = imagePropTypes;
-Image.defaultProps = defaultProps;
+Image.resizeMode = RESIZE_MODES;
+Image.displayName = 'Image';
 
 const ImageWithOnyx = React.memo(
-    withOnyx({
+    withOnyx<ImagePropsWithOnyx, ImageOnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
         },
     })(Image),
     imagePropsAreEqual,
 );
-ImageWithOnyx.resizeMode = RESIZE_MODES;
 
 export default ImageWithOnyx;
