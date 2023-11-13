@@ -380,7 +380,7 @@ function getEndOfToday(): string {
 /**
  * returns {string} example: 2023-05-16 05:34:14
  */
-function getEndOfWeekFromNow(): string {
+function getOneWeekFromNow(): string {
     const date = addDays(new Date(), 7);
     return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
@@ -437,7 +437,7 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
         case CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY:
             return getEndOfToday();
         case CONST.CUSTOM_STATUS_TYPES.AFTER_WEEK:
-            return getEndOfWeekFromNow();
+            return getOneWeekFromNow();
         case CONST.CUSTOM_STATUS_TYPES.NEVER:
             return CONST.CUSTOM_STATUS_TYPES.NEVER;
         default:
@@ -596,15 +596,32 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 }
 
 /**
- * param {String} dateTimeString
+ * Checks if the time input is at least one minute in the future.
+ * param {String} timeString: '04:24 AM'
+ * param {String} dateTimeString: '2023-11-14 14:24:00'
  * returns {Boolean}
  */
-function hasDateExpired(dateTimeString: string): boolean {
-    const validUntil = addMinutes(new Date(), 1);
-    const dateToCheck = parse(dateTimeString, 'yyyy-MM-dd HH:mm:ss', new Date());
+const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
+    let dateToCheck = dateTimeString;
+    if (timeString) {
+        //  return false;
+        // Parse the hour and minute from the time input
+        const [hourStr] = timeString.split(/[:\s]+/);
+        const hour = parseInt(hourStr, 10);
 
-    return isBefore(dateToCheck, validUntil);
-}
+        if (hour === 0) {
+            return false;
+        }
+
+        dateToCheck = combineDateAndTime(timeString, dateTimeString);
+    }
+
+    // Get current date and time
+    const now = new Date();
+
+    // Check if the combinedDate is at least one minute later than the current date and time
+    return isAfter(new Date(dateToCheck), addMinutes(now, 1));
+};
 
 /**
  * Checks if the input date is in the future compared to the reference date.
@@ -674,7 +691,7 @@ const DateUtils = {
     getDateStringFromISOTimestamp,
     getThirtyMinutesFromNow,
     getEndOfToday,
-    getEndOfWeekFromNow,
+    getOneWeekFromNow,
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
@@ -685,7 +702,6 @@ const DateUtils = {
     areDatesIdentical,
     getTimePeriod,
     getLocalizedTimePeriodDescription,
-    hasDateExpired,
     combineDateAndTime,
     getDayValidationErrorKey,
     getTimeValidationErrorKey,
@@ -695,6 +711,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    isTimeAtLeastOneMinuteInFuture,
 };
 
 export default DateUtils;

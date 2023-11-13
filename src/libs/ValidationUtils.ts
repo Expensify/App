@@ -1,5 +1,5 @@
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import {addMinutes, addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
@@ -376,30 +376,6 @@ function isValidAccountRoute(accountID: number): boolean {
 }
 
 /**
- * Checks if the time input is at least one minute in the future. inputTime: '12:00 PM', inputDateTime: '2023-09-27'
- * */
-const isTimeAtLeastOneMinuteInFuture = (inputTime: string, inputDateTime: string): boolean => {
-    if (!inputTime) {
-        return false;
-    }
-    // Parse the hour and minute from the time input
-    const [hourStr] = inputTime.split(/[:\s]+/);
-    const hour = parseInt(hourStr, 10);
-
-    if (hour === 0) {
-        return false;
-    }
-
-    const combinedDate = DateUtils.combineDateAndTime(inputTime, inputDateTime);
-
-    // Get current date and time
-    const now = new Date();
-
-    // Check if the combinedDate is at least one minute later than the current date and time
-    return isAfter(new Date(combinedDate), addMinutes(now, 1));
-};
-
-/**
  * Validates that the date and time are at least one minute in the future.
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
@@ -454,7 +430,6 @@ export {
     isNumeric,
     isValidAccountRoute,
     getDatePassedError,
-    isTimeAtLeastOneMinuteInFuture,
     isValidRecoveryCode,
     validateDateTimeIsAtLeastOneMinuteInFuture,
 };

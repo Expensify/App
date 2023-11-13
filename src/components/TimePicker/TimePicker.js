@@ -105,8 +105,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     }, []);
 
     const validate = (time) => {
-        const isValid = ValidationUtils.isTimeAtLeastOneMinuteInFuture(time, defaultValue);
-        setError(isValid);
+        const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minute} ${amPmValue}`, dateTimeString: defaultValue});
+        setError(!isValid);
         return isValid;
     };
 
@@ -292,6 +292,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         const timer = setTimeout(() => {
             minuteInputRef.current.focus();
         }, 10);
+
+        validate();
         return () => clearTimeout(timer);
     }, []);
 
@@ -355,9 +357,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
     const handleSubmit = () => {
         const time = `${hours}:${minute} ${amPmValue}`;
-        const isValid = ValidationUtils.isTimeAtLeastOneMinuteInFuture(time, defaultValue);
+        const isValid = validate(time);
 
-        setError(!isValid);
         if (isValid) {
             onSubmit(time);
         }
@@ -427,7 +428,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         text={translate('common.am')}
                         onLongPress={() => {}}
                         onPress={() => {
-                            validate();
                             setAmPmValue(CONST.TIME_PERIOD.AM);
                         }}
                         onPressOut={() => {}}
@@ -440,7 +440,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         text={translate('common.pm')}
                         onLongPress={() => {}}
                         onPress={() => {
-                            validate();
                             setAmPmValue(CONST.TIME_PERIOD.PM);
                         }}
                         onPressOut={() => {}}

@@ -61,14 +61,14 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             return true;
         }
 
-        return !DateUtils.hasDateExpired(clearAfterTime);
+        return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter;
-            if (DateUtils.hasDateExpired(clearAfterTime)) {
+            if (!DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime})) {
                 setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
@@ -126,7 +126,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             }
             headerContainerStyles={[styles.staticHeaderImage]}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
-            childrenContainerStyles={[styles.flex1]}
+            childrenContainerStyles={[styles.flex1, styles.pt0]}
             scrollViewContainerStyles={[styles.flex1]}
         >
             <FormProvider
@@ -139,7 +139,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 validate={validateForm}
                 enabledWhenOffline
             >
-                <View style={[styles.mh5, styles.mb5]}>
+                <View style={[styles.mh5, styles.mv5]}>
                     <Text style={[styles.textHeadline]}>{translate('statusPage.setStatusTitle')}</Text>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
