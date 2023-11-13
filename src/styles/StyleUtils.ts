@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -16,7 +16,7 @@ import spacing from './utilities/spacing';
 import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
-type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
+type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -273,7 +273,8 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
-    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -521,9 +522,9 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
 function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonPressedBG};
+            return {backgroundColor: themeColors.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.highlightBG} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -606,6 +607,12 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
 
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
+/**
+ * Returns the font size for the HTML code tag renderer.
+ */
+function getCodeFontSize(isInsideH1: boolean) {
+    return isInsideH1 ? 15 : 13;
+}
 
 /**
  * Gives the width for Emoji picker Widget
@@ -651,7 +658,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -748,9 +755,8 @@ function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
-    const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
-    return parseStyleAsArray(functionAppliedStyle);
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): StyleProp<ViewStyle> {
+    return typeof style === 'function' ? style(state) : style;
 }
 
 /**
@@ -1071,7 +1077,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};
@@ -1097,7 +1103,7 @@ function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 
@@ -1286,8 +1292,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
-    let containerStyles: Array<ViewStyle | CSSProperties>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
@@ -1377,6 +1383,7 @@ export {
     getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
+    getCodeFontSize,
     getFontSizeStyle,
     getGoogleListViewStyle,
     getHeightOfMagicCodeInput,
