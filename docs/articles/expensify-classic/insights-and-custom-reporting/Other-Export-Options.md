@@ -14,7 +14,7 @@ From the **Expenses** page, you can export individual expenses into a CSV. From 
 3. Click **Export to** at the top right of the page
 4. Choose the desired export option
 
-You can use one of the [default templates](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Default-Export-Templates#gsc.tab=0) or [create your own template](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates#gsc.tab=0). The default templates and the option to export to a connected accounting package are only available on the **Reports** page. Visit the specific help page for your accounting package to learn more about how to get this set up.
+You can use one of the [default templates](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Default-Export-Templates) or [create your own template](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates). The default templates and the option to export to a connected accounting package are only available on the **Reports** page. Visit the specific help page for your accounting package to learn more about how to get this set up.
 
 # How to export a report as a PDF
 1. Go to the **Reports** page
