@@ -185,7 +185,6 @@ function IOURequestStepDistance({
         navigateToNextStep();
     }, [setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
 
-    console.log('[tim', !isOffline && (isLoadingRoute || shouldFetchRoute || isLoading), isOffline, isLoadingRoute, shouldFetchRoute, isLoading);
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}

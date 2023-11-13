@@ -41,9 +41,23 @@ function createModalStackNavigator(screens) {
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
     MoneyTemporaryForRefactor_Request_Step: () => require('../../../pages/iou/request/IOURequestStepPage').default,
     MoneyTemporaryForRefactor_Request_Create: () => require('../../../pages/iou/request/IOURequestStartPage').default,
+    Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
+    Money_Request_Amount: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
+    Money_Request_Participants: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default,
+    Money_Request_Confirmation: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default,
+    Money_Request_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
+    Money_Request_Date: () => require('../../../pages/iou/MoneyRequestDatePage').default,
+    Money_Request_Description: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default,
+    Money_Request_Category: () => require('../../../pages/iou/MoneyRequestCategoryPage').default,
+    Money_Request_Tag: () => require('../../../pages/iou/MoneyRequestTagPage').default,
+    Money_Request_Merchant: () => require('../../../pages/iou/MoneyRequestMerchantPage').default,
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
+    Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
+    Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
+    Money_Request_Distance: () => require('../../../pages/iou/NewDistanceRequestPage').default,
+    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
