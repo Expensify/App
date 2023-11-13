@@ -1,8 +1,11 @@
+import TIMEZONES from '@src/TIMEZONES';
 import * as OnyxCommon from './OnyxCommon';
+
+type SelectedTimezone = (typeof TIMEZONES)[number];
 
 type Timezone = {
     /** Value of selected timezone */
-    selected?: string;
+    selected?: SelectedTimezone;
 
     /** Whether timezone is automatically set */
     automatic?: boolean;
@@ -70,4 +73,5 @@ type PersonalDetails = {
 };
 
 export default PersonalDetails;
-export type {Timezone};
+
+export type {Timezone, SelectedTimezone};
