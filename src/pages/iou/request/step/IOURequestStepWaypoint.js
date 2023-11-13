@@ -9,6 +9,7 @@ import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -216,7 +217,8 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                 >
                     <View>
-                        <AddressSearch
+                        <InputWrapperWithRef
+                            InputComponent={AddressSearch}
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e) => (textInput.current = e)}
