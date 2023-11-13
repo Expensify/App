@@ -30,6 +30,9 @@ const propTypes = {
     /** Should the input auto focus */
     autoFocus: PropTypes.bool,
 
+    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
+    shouldDelayFocus: PropTypes.bool,
+
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -64,6 +67,7 @@ const defaultProps = {
     value: '',
     name: '',
     autoFocus: true,
+    shouldDelayFocus: false,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
