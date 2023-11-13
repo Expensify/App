@@ -31,7 +31,7 @@ const addSkewList = ['OpenReport', 'ReconnectApp', 'OpenApp'];
 /**
  * Regex to get API command from the command
  */
-const regex = /[?&]command=([^&]+)/;
+const APICommandRegex = /[?&]command=([^&]+)/;
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
