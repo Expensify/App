@@ -1,12 +1,12 @@
 import {cleanup, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');

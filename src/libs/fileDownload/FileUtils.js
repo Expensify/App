@@ -1,7 +1,7 @@
 import {Alert, Linking, Platform} from 'react-native';
-import CONST from '../../CONST';
-import * as Localize from '../Localize';
-import DateUtils from '../DateUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import CONST from '@src/CONST';
 
 /**
  * Show alert on successful attachment download
@@ -159,9 +159,12 @@ function appendTimeToFileName(fileName) {
  *
  * @param {String} path - the blob url of the locally uplodaded file
  * @param {String} fileName
+ * @param {Function} onSuccess
+ * @param {Function} onFailure
+ *
  * @returns {Promise}
  */
-const readFileAsync = (path, fileName) =>
+const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -183,11 +186,11 @@ const readFileAsync = (path, fileName) =>
                 // For some reason, the File object on iOS does not have a uri property
                 // so images aren't uploaded correctly to the backend
                 file.uri = path;
-                resolve(file);
+                onSuccess(file);
             })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
-                resolve();
+                onFailure(e);
             });
     });
 
