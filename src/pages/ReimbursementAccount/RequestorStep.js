@@ -16,7 +16,6 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
-                ref={ref}
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
             />

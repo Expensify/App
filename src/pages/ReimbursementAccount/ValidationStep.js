@@ -152,7 +152,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         <Text style={[styles.mb2]}>{translate('validationStep.descriptionCTA')}</Text>
                     </View>
                     <View style={[styles.mv5]}>
-                        <TextInput
+                        <TextInput accessibilityLabel="Text input field"
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -160,7 +160,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             inputMode={CONST.INPUT_MODE.DECIMAL}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
-                        <TextInput
+                        <TextInput accessibilityLabel="Text input field"
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -168,7 +168,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             inputMode={CONST.INPUT_MODE.DECIMAL}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
-                        <TextInput
+                        <TextInput accessibilityLabel="Text input field"
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}

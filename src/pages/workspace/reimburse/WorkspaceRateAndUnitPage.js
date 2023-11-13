@@ -175,7 +175,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 Policy.clearCustomUnitErrors(this.props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
                             }
                         >
-                            <TextInput
+                            <TextInput accessibilityLabel="Text input field"
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
