@@ -82,30 +82,37 @@ function RoomInvitePage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        let emails = _.compact(
-            searchTerm
+    const cleanedSearchTerm = useMemo(
+        () => searchTerm
                 .trim()
-                .replace(/\s*,\s*/g, ',')
-                .split(','),
-        );
+                .replace(/\s*,\s*/g, ','),
+        [searchTerm]
+    );
 
-        if (emails.length === 0) {
-            emails = [''];
+    const searchEmails = useMemo(
+        () => _.compact(cleanedSearchTerm.split(',')),
+        [cleanedSearchTerm]
+    );
+
+    useEffect(() => {
+        const emails = searchEmails;
+
+        // This ensures suggestions are displayed when there is no search term
+        // or the final list entry is empty
+        if (emails.length === 0 || cleanedSearchTerm.endsWith(',')) {
+            emails.push('');
         }
 
-        console.log(emails)
-
         const newUsersToInviteDict = {};
-        const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
-        _.each(emails, (email) => {
+        _.each(emails, (email, i) => {
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
 
             // Update selectedOptions with the latest personalDetails information
             const detailsMap = {};
             _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+
             const newSelectedOptions = [];
             _.forEach(selectedOptions, (option) => {
                 newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
@@ -118,10 +125,10 @@ function RoomInvitePage(props) {
                 newUsersToInviteDict[userToInvite.accountID] = userToInvite;
             }
 
-            // Add all personal details to the new dict
-            _.each(inviteOptions.personalDetails, (details) => {
-                newPersonalDetailsDict[details.accountID] = details;
-            });
+            // Only display contact suggestions for the last search term
+            if (i === emails.length - 1) {
+                setPersonalDetails(inviteOptions.personalDetails);
+            }
 
             // Add all selected options to the new dict
             _.each(newSelectedOptions, (option) => {
@@ -131,13 +138,10 @@ function RoomInvitePage(props) {
 
         // Strip out dictionary keys and update arrays
         setUsersToInvite(_.values(newUsersToInviteDict));
-        setPersonalDetails(_.values(newPersonalDetailsDict));
         setSelectedOptions(_.values(newSelectedOptionsDict));
 
-        console.log(_.values(newUsersToInviteDict))
-
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
+    }, [props.personalDetails, props.betas, searchEmails, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
@@ -229,14 +233,29 @@ function RoomInvitePage(props) {
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
-            return translate('messages.errorMessageInvalidEmail');
+
+        if (usersToInvite.length === 0) {
+            // Handle errors when a single email is specified
+            if (searchEmails.length === 1) {
+                const email = _.first(searchEmails);
+
+                if (CONST.EXPENSIFY_EMAILS.includes(email)) {
+                    return translate('messages.errorMessageInvalidEmail');
+                }
+
+                if (excludedUsers.includes(email)) {
+                    return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
+                }
+            }
+
+            // Handle errors when multiple emails are specified
+            if (searchEmails.length > 1 && personalDetails.length === 0) {
+                return translate('messages.errorMessageAllInviteesInvalid');
+            }
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
-        }
+
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, usersToInvite, personalDetails, reportName]);
+    }, [excludedUsers, translate, searchTerm, searchEmails, usersToInvite, personalDetails, reportName]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
