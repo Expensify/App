@@ -73,7 +73,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                     numberOfLines={1}
                 >
-                    {styledDisplayName.map(({text, isColored}, i) => (
+                    {styledDisplayName?.map(({text, isColored}, i) => (
                         <Text
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${text}${i}`}
