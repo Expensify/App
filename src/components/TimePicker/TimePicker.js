@@ -2,6 +2,12 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import AmountTextInput from '@components/AmountTextInput';
+import BigNumberPad from '@components/BigNumberPad';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -10,12 +16,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import AmountTextInput from '../AmountTextInput';
-import BigNumberPad from '../BigNumberPad';
-import Button from '../Button';
-import FormHelpMessage from '../FormHelpMessage';
-import refPropTypes from '../refPropTypes';
-import Text from '../Text';
 import setSelection from './setSelection';
 
 const propTypes = {
@@ -94,7 +94,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const focusMinuteInputOnFirstCharacter = useCallback(() => {
         const cleanupTimer = setSelection({start: 0, end: 0}, minuteInputRef, setSelectionMinute);
         return cleanupTimer;
-    }, [selectionMinute]);
+    }, []);
     const focusHourInputOnLastCharacter = useCallback(() => {
         setSelectionHour({start: 2, end: 2});
         const timer = setTimeout(() => {
@@ -103,11 +103,14 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         return () => clearTimeout(timer);
     }, []);
 
-    const validate = (time) => {
-        const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minute} ${amPmValue}`, dateTimeString: defaultValue});
-        setError(!isValid);
-        return isValid;
-    };
+    const validate = useCallback(
+        (time) => {
+            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minute} ${amPmValue}`, dateTimeString: defaultValue});
+            setError(!isValid);
+            return isValid;
+        },
+        [hours, minute, amPmValue, defaultValue],
+    );
 
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
@@ -294,7 +297,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
         validate();
         return () => clearTimeout(timer);
-    }, []);
+    }, [validate]);
 
     const arrowConfig = useMemo(
         () => ({
