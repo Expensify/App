@@ -11,6 +11,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -1258,15 +1259,18 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
         return personalDetails.login || '';
     }
-    const longName = personalDetails.displayName;
+
+    const login = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+    const longName = personalDetails.displayName || login;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
