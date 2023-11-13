@@ -1,9 +1,6 @@
-import lodashGet from 'lodash/get';
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import KeyCommand from 'react-native-key-command';
 import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -12,7 +9,6 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import {AuthScreensStackParamList} from '@navigation/AppNavigator/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -38,6 +34,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import {AuthScreensStackParamList} from './types';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -144,7 +141,7 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session?.email ?? '');
-        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
+        const shouldGetAllData = isUsingMemoryOnlyKeys ?? SessionUtils.didUserLogInDuringSession() ?? isLoggingInAsNewUser;
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
@@ -157,7 +154,7 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
             if (isLoadingApp) {
                 App.openApp();
             } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient);
+                App.reconnectApp(lastUpdateIDAppliedToClient ?? 0);
             }
         });
         PusherConnectionManager.init();
@@ -177,18 +174,15 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            App.reconnectApp(lastUpdateIDAppliedToClient ?? 0);
         }
 
-        // TODO: remove when App is merged
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
 
         // Check if we should be running any demos immediately after signing in.
-        if (lodashGet(demoInfo, 'money2020.isBeginningDemo', false)) {
+        if (demoInfo?.money2020?.isBeginningDemo) {
             Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         if (lastOpenedPublicRoomID) {
@@ -211,7 +205,7 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
-            shortcutsOverviewShortcutConfig.modifiers as unknown as string[],
+            shortcutsOverviewShortcutConfig.modifiers,
             true,
         );
 
@@ -224,7 +218,7 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
-            shortcutsOverviewShortcutConfig.modifiers as unknown as string[],
+            shortcutsOverviewShortcutConfig.modifiers,
             true,
         );
 
@@ -234,7 +228,7 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
-            chatShortcutConfig.modifiers as unknown as string[],
+            chatShortcutConfig.modifiers,
             true,
         );
 

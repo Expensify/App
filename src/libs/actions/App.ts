@@ -3,7 +3,7 @@
 import Str from 'expensify-common/lib/str';
 import 'moment/locale/es';
 import {AppState, AppStateStatus} from 'react-native';
-import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
@@ -385,7 +385,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  */
-function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
