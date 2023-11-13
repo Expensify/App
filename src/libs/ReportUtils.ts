@@ -558,7 +558,7 @@ function isCurrentUserSubmitter(reportID: string): boolean {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return report?.ownerEmail === currentUserEmail;
+    return report?.ownerAccountID === currentUserAccountID;
 }
 
 /**
