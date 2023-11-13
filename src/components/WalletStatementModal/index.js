@@ -67,6 +67,7 @@ function WalletStatementModal({statementPageURL, session}) {
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
+WalletStatementModal.displayName = 'WalletStatementModal';
 
 export default compose(
     withLocalize,
