@@ -169,7 +169,7 @@ function ReportScreen({
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
-
+    
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -217,9 +217,6 @@ function ReportScreen({
         );
     }
 
-    if (reportID === '' || isLoading) {
-        headerView = <ReportHeaderSkeletonView />;
-    }
 
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.

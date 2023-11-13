@@ -13,6 +13,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -172,12 +173,14 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
+    const isLoading = !(props.report && title);
+
     return (
         <View
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && !isLoading && styles.pl5]}>
                 {props.isSmallScreenWidth && (
                     <PressableWithoutFeedback
                         onPress={props.onNavigationMenuButtonClicked}
@@ -196,7 +199,9 @@ function HeaderView(props) {
                         </Tooltip>
                     </PressableWithoutFeedback>
                 )}
-                {Boolean(props.report && title) && (
+                {isLoading ? (
+                    <ReportHeaderSkeletonView />
+                ) : (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
