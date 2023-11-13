@@ -157,11 +157,12 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 const filePath = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(filePath, photo.path);
 
-                if (transactionID) {
-                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
-                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                    });
+                const onSuccess = (receipt) => {
+                    IOU.replaceReceipt(transactionID, receipt, filePath);
+                };
 
+                if (transactionID) {
+                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
                     Navigation.dismissModal();
                     return;
                 }

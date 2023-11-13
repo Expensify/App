@@ -167,7 +167,7 @@ export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         transaction: {
-            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(iou, 'transactionID', 0)}`,
         },
     }),
 )(MoneyRequestParticipantsPage);
