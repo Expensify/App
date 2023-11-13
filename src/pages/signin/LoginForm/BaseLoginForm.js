@@ -250,12 +250,11 @@ function LoginForm(props) {
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
-                    nativeID="username"
+                    id="username"
                     name="username"
                     onBlur={() => {
                         if (firstBlurred.current) {
@@ -268,7 +267,7 @@ function LoginForm(props) {
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formErrorText}
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}

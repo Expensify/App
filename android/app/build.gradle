@@ -58,7 +58,8 @@ project.ext.envConfigFiles = [
     adhocRelease: ".env.adhoc",
     developmentRelease: ".env",
     developmentDebug: ".env",
-    e2eRelease: "tests/e2e/.env.e2e"
+    e2eRelease: "tests/e2e/.env.e2e",
+    e2edeltaRelease: "tests/e2e/.env.e2edelta"
 ]
 
 /**
@@ -90,8 +91,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001039505
-        versionName "1.3.95-5"
+        versionCode 1001039803
+        versionName "1.3.98-3"
     }
 
     flavorDimensions "default"
@@ -101,7 +102,14 @@ android {
         e2e {
             // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
             // applies all non-production flavors
-            applicationIdSuffix ".adhoc"
+            applicationIdSuffix ".e2e"
+            signingConfig signingConfigs.debug
+            resValue "string", "build_config_package", "com.expensify.chat"
+        }
+        e2edelta {
+            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
+            // applies all non-production flavors
+            applicationIdSuffix ".e2edelta"
             signingConfig signingConfigs.debug
             resValue "string", "build_config_package", "com.expensify.chat"
         }
@@ -150,12 +158,13 @@ android {
             }
             // ... except for the e2e flavor, which we maybe want to build locally:
             productFlavors.e2e.signingConfig signingConfigs.debug
+            productFlavors.e2edelta.signingConfig signingConfigs.debug
         }
     }
 
     // since we don't need variants adhocDebug and e2eDebug, we can force gradle to ignore them
     variantFilter { variant ->
-        if (variant.name == "adhocDebug" || variant.name == "e2eDebug") {
+        if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
             setIgnore(true)
         }
     }

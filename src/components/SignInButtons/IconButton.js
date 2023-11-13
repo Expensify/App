@@ -42,7 +42,7 @@ function IconButton({onPress, translate, provider, onPressIn}) {
             onPressIn={onPressIn}
             onPress={onPress}
             style={styles.signInIconButton}
-            accessibilityRole="button"
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon

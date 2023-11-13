@@ -5,6 +5,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import styles from '@styles/styles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */
@@ -75,7 +76,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
             {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
             <div
                 id={desktopId}
-                role="button"
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
                 onMouseDown={(event) => event.preventDefault()}
             />
@@ -85,7 +86,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
             {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
             <div
                 id={mainId}
-                role="button"
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
                 onMouseDown={(event) => event.preventDefault()}
             />
