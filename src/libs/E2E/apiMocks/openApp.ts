@@ -1129,7 +1129,7 @@ const openApp = (): Response => ({
                     pronouns: '',
                     timezone: {
                         automatic: true,
-                        selected: 'Europe/Kiev',
+                        selected: 'Europe/Kyiv',
                     },
                     firstName: '',
                     lastName: '',
@@ -1174,7 +1174,7 @@ const openApp = (): Response => ({
                     pronouns: '__predefined_heHimHis',
                     timezone: {
                         automatic: false,
-                        selected: 'Europe/Belfast',
+                        selected: 'Europe/London',
                     },
                     firstName: 'Main',
                     lastName: 'Ios🏴󠁧󠁢󠁳󠁣󠁴󠁿ios',
@@ -1219,7 +1219,7 @@ const openApp = (): Response => ({
                     pronouns: '__predefined_sheHerHers',
                     timezone: {
                         automatic: false,
-                        selected: 'US/Eastern',
+                        selected: 'America/New_York',
                     },
                     firstName: 'Katya',
                     lastName: 'Becciv',
@@ -1294,7 +1294,7 @@ const openApp = (): Response => ({
                     pronouns: '__predefined_callMeByMyName',
                     timezone: {
                         automatic: true,
-                        selected: 'Europe/Kiev',
+                        selected: 'Europe/Kyiv',
                     },
                     firstName: 'Chat',
                     lastName: 'HT',
@@ -1385,7 +1385,7 @@ const openApp = (): Response => ({
                     pronouns: '__predefined_coCos',
                     timezone: {
                         automatic: true,
-                        selected: 'Europe/Kiev',
+                        selected: 'Europe/Kyiv',
                     },
                     firstName: 'Applause',
                     lastName: 'Main Account',
@@ -1430,7 +1430,7 @@ const openApp = (): Response => ({
                     pronouns: '',
                     timezone: {
                         automatic: true,
-                        selected: 'Europe/Kiev',
+                        selected: 'Europe/Kyiv',
                     },
                     firstName: 'Chat S',
                     lastName: '',

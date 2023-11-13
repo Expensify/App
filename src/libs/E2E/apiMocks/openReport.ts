@@ -1961,7 +1961,7 @@ export default (): Response => ({
                     pronouns: '',
                     timezone: {
                         automatic: true,
-                        selected: 'Europe/Kiev',
+                        selected: 'Europe/Kyiv',
                     },
                     payPalMeAddress: '',
                     phoneNumber: '',
