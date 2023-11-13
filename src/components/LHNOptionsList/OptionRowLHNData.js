@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -16,7 +17,7 @@ const propTypes = {
     isFocused: PropTypes.bool,
 
     /** List of users' personal details */
-    personalDetails: PropTypes.arrayOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The preferred language for the app */
     preferredLocale: PropTypes.string,
@@ -35,11 +36,11 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The action from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The transaction from the parent report action */
-    transactionID: PropTypes.string,
+    transaction: transactionPropTypes,
 
     ...basePropTypes,
 };
@@ -49,8 +50,8 @@ const defaultProps = {
     personalDetails: {},
     fullReport: {},
     policy: {},
-    parentReportActions: {},
-    transactionID: undefined,
+    parentReportAction: {},
+    transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
 };
@@ -70,15 +71,13 @@ function OptionRowLHNData({
     comment,
     policy,
     receiptTransactions,
-    parentReportActions,
-    transactionID,
+    parentReportAction,
+    transaction,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
-
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
@@ -97,7 +96,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionID]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {

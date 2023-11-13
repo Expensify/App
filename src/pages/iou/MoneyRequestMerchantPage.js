@@ -4,7 +4,8 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -99,7 +100,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 title={translate('common.merchant')}
                 onBackButtonPress={() => navigateBack()}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
@@ -108,18 +109,19 @@ function MoneyRequestMerchantPage({iou, route}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapperWithRef
+                        InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
                         defaultValue={iou.merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={inputCallbackRef}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
