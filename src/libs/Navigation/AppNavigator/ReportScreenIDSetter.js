@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,12 +61,6 @@ const defaultProps = {
  * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
-    // If deeplink url contains reportID params, we should show the report that has this reportID.
-    const currentRoute = Navigation.getActiveRoute();
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
-    if (reportID) {
-        return reportID;
-    }
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
     return lodashGet(lastReport, 'reportID');
 };
@@ -74,25 +68,48 @@ const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstT
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
 function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation}) {
     const {canUseDefaultRooms} = usePermissions();
+    const reportIDIsBeingReplacedInParams = useRef(false);
 
     useEffect(() => {
-        // Don't update if there is a reportID in the params already
-        if (lodashGet(route, 'params.reportID', null)) {
+        // If the reportID was replaced in the params, then all of the below logic has already ran and this early return will prevent and infinite loop.
+        if (reportIDIsBeingReplacedInParams.current) {
             App.confirmReadyToOpenApp();
             return;
         }
 
-        // If there is no reportID in route, try to find last accessed and use it for setParams
-        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lodashGet(route, 'params.openOnAdminRoom', false));
+        const reportIDFromRoute = lodashGet(route, 'params.reportID', null);
+        const reportIsOptimistic = lodashGet(reports, [`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, 'reportID']) === undefined;
 
-        // It's possible that reports aren't fully loaded yet
-        // in that case the reportID is undefined
-        if (reportID) {
-            navigation.setParams({reportID: String(reportID)});
-        } else {
-            App.confirmReadyToOpenApp();
+        // If there is no reportID in the route params, find the reportID of the last accessed report and put that reportID in the params
+        if (!reportIDFromRoute) {
+            reportIDIsBeingReplacedInParams.current = false;
+            const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lodashGet(route, 'params.openOnAdminRoom', false));
+
+            // It's possible that reports aren't fully loaded yet
+            // in that case the reportID is undefined
+            if (reportID) {
+                navigation.setParams({reportID: String(reportID)});
+            } else {
+                App.confirmReadyToOpenApp();
+            }
+            return;
         }
-    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser]);
+
+        // If there is a reportID in the route params, and it's an actual report (not an optimistic report), then don't do anything and let the app open.
+        if (!reportIsOptimistic) {
+            reportIDIsBeingReplacedInParams.current = false;
+            App.confirmReadyToOpenApp();
+            return;
+        }
+
+        // When new money requests are being created, the reportID in the route params will point to an optimistic report.
+        // In this case, the reportID that is in the params is swapped out with the last accessed reportID. This allows the ReportScreen, which is in the background of the money request creation flow,
+        // to display an actual report instead of a "Report not found" page. This is only necessary when the browser is refreshed in the middle of the money request creation flow.
+        // The flag reportIDIsBeingReplacedInParams is necessary to prevent this useEffect from being triggered in an infinite loop when navigation.setParams() is called.
+        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lodashGet(route, 'params.openOnAdminRoom', false));
+        reportIDIsBeingReplacedInParams.current = true;
+        navigation.setParams({reportID: String(reportID)});
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportIDIsBeingReplacedInParams]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param
