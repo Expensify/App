@@ -4,7 +4,9 @@ import CONST from '@src/CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
-type ErrorFields = Record<string | number, Record<string, string> | null>;
+type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | null | undefined>;
+
+type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
 type Errors = Record<string, string>;
 
@@ -14,4 +16,4 @@ type Icon = {
     name: string;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors};

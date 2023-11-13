@@ -52,6 +52,7 @@ function DisabledStep({account}) {
 }
 
 DisabledStep.propTypes = TwoFactorAuthPropTypes;
+DisabledStep.displayName = 'DisabledStep';
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},

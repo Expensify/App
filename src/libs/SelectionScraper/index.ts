@@ -5,7 +5,7 @@ import {parseDocument} from 'htmlparser2';
 import CONST from '@src/CONST';
 import GetCurrentSelection from './types';
 
-const elementsWillBeSkipped = ['html', 'body'];
+const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's'];
 const tagAttribute = 'data-testid';
 
 /**
@@ -113,10 +113,9 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
         data = Str.htmlEncode(dom.data);
     } else if (dom instanceof Element) {
         domName = dom.name;
-        // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
-        // has no meaning for us.
         if (dom.attribs?.[tagAttribute]) {
-            if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
+            // If it's a markdown element, rename it according to the value of data-testid, so ExpensiMark can parse it
+            if (markdownElements.includes(dom.attribs[tagAttribute])) {
                 domName = dom.attribs[tagAttribute];
             }
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {

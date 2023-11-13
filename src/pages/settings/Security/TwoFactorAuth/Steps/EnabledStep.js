@@ -76,6 +76,7 @@ function EnabledStep({account}) {
 }
 
 EnabledStep.propTypes = TwoFactorAuthPropTypes;
+EnabledStep.displayName = 'EnabledStep';
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},

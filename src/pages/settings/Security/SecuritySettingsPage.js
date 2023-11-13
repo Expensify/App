@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
