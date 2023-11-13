@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import usePrevious from '@hooks/usePrevious';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
@@ -23,22 +24,30 @@ const defaultProps = {
 };
 
 function SpacerView({shouldShow = true, style = []}) {
-    const marginVertical = useSharedValue(CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL);
-    const borderBottomWidth = useSharedValue(CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH);
+    const marginVertical = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
+    const borderBottomWidth = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
+    const prevShouldShow = usePrevious(shouldShow);
+
+    const duration = CONST.ANIMATED_TRANSITION;
     const animatedStyles = useAnimatedStyle(() => ({
-        marginVertical: marginVertical.value,
-        borderBottomWidth: borderBottomWidth.value,
+        borderBottomWidth: withTiming(borderBottomWidth.value, {duration}),
+        marginTop: withTiming(marginVertical.value, {duration}),
+        marginBottom: withTiming(marginVertical.value, {duration}),
     }));
 
     React.useEffect(() => {
-        const duration = CONST.ANIMATED_TRANSITION;
+        if (shouldShow === prevShouldShow) {
+            return;
+        }
         const values = {
             marginVertical: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL,
             borderBottomWidth: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH,
         };
-        marginVertical.value = withTiming(values.marginVertical, {duration});
-        borderBottomWidth.value = withTiming(values.borderBottomWidth, {duration});
-    }, [shouldShow, borderBottomWidth, marginVertical]);
+        marginVertical.value = values.marginVertical;
+        borderBottomWidth.value = values.borderBottomWidth;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
+    }, [shouldShow, prevShouldShow]);
 
     return <Animated.View style={[animatedStyles, ...StyleUtils.parseStyleAsArray(style)]} />;
 }
