@@ -121,10 +121,32 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         expect(StringUtils.removeInvisibleCharacters('test\ntest')).toBe('test\ntest');
         expect(StringUtils.removeInvisibleCharacters('test\n')).toBe('test');
         expect(StringUtils.removeInvisibleCharacters('\ntest')).toBe('test');
+        expect(StringUtils.removeInvisibleCharacters('\n')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('\n\n')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('\n\n\n')).toBe('');
+
+        // multiple newlines
+        expect(StringUtils.removeInvisibleCharacters('test\n\ntest')).toBe('test\n\ntest');
+        expect(StringUtils.removeInvisibleCharacters('test\n\n\ntest')).toBe('test\n\n\ntest');
+        expect(StringUtils.removeInvisibleCharacters('test\n\n\n\ntest')).toBe('test\n\n\n\ntest');
+
+        // multiple newlinest with multiple texts
+        expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest')).toBe('test\ntest\ntest');
+        expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest\ntest')).toBe('test\ntest\ntest\ntest');
+        expect(StringUtils.removeInvisibleCharacters('test\ntest\ntest\ntest\ntest')).toBe('test\ntest\ntest\ntest\ntest');
+
+        // multiple newlines with multiple texts and spaces
+        expect(StringUtils.removeInvisibleCharacters('test\n\ntest\ntest\ntest\ntest')).toBe('test\n\ntest\ntest\ntest\ntest');
+
+        expect(StringUtils.removeInvisibleCharacters('test\n \ntest')).toBe('test\n \ntest');
     });
     it('check markdown styling', () => {
         expect(StringUtils.removeInvisibleCharacters('# test\n** test **')).toBe('# test\n** test **');
         expect(StringUtils.removeInvisibleCharacters('# test\n** test **\n')).toBe('# test\n** test **');
         expect(StringUtils.removeInvisibleCharacters('# test\n**test**\n~~test~~')).toBe('# test\n**test**\n~~test~~');
+
+        // multiple newlines
+        expect(StringUtils.removeInvisibleCharacters('# test\n\n** test **')).toBe('# test\n\n** test **');
+        expect(StringUtils.removeInvisibleCharacters('# test\n\n** test **\n')).toBe('# test\n\n** test **');
     });
 });
