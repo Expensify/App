@@ -389,7 +389,7 @@ function MagicCodeInput(props) {
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
                         />
