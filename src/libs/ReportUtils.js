@@ -2220,13 +2220,13 @@ function navigateToDetailsPage(report) {
  *
  * @param {Object} report
  */
-function goBackToDetailsPage(report){
+function goBackToDetailsPage(report) {
     if (isOneOnOneChat(report)) {
         Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
         return;
     }
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
-};
+}
 
 /**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
