@@ -9,6 +9,9 @@ type Report = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU?: boolean;
 
+    /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
+
     /** List of icons for report participants */
     icons?: OnyxCommon.Icon[];
 
@@ -32,9 +35,6 @@ type Report = {
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
-
-    /** The email address of the report owner */
-    ownerEmail?: string;
 
     /** Linked policy's ID */
     policyID?: string;

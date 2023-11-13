@@ -729,7 +729,7 @@ describe('OptionsListUtils', () => {
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -752,7 +752,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -818,7 +818,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -932,7 +932,7 @@ describe('OptionsListUtils', () => {
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -962,7 +962,7 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1105,7 +1105,7 @@ describe('OptionsListUtils', () => {
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1121,7 +1121,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1175,7 +1175,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1261,7 +1261,7 @@ describe('OptionsListUtils', () => {
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1284,7 +1284,7 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },

@@ -8,7 +8,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
-import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -46,9 +45,6 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
-
-// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
-const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
 
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
@@ -96,8 +92,8 @@ function navigate(route = ROUTES.HOME, type) {
 
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
- * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
+ * @param {Boolean} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Boolean} shouldPopToTop - Should we navigate to LHN on back press
  */
 function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
@@ -207,6 +203,14 @@ function getActiveRoute() {
     return '';
 }
 
+/**
+ * Returns the current active route without the URL params
+ * @returns {String}
+ */
+function getActiveRouteWithoutParams() {
+    return getActiveRoute().replace(/\?.*/, '');
+}
+
 /** Returns the active route name from a state event from the navigationRef
  * @param {Object} event
  * @returns {String | undefined}
@@ -270,12 +274,12 @@ export default {
     dismissModal,
     isActiveRoute,
     getActiveRoute,
+    getActiveRouteWithoutParams,
     goBack,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
-    getTopMostCentralPaneRouteName,
     getTopmostReportActionId,
 };
 

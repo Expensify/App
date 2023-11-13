@@ -1,5 +1,7 @@
 import {
     addDays,
+    eachDayOfInterval,
+    eachMonthOfInterval,
     endOfDay,
     endOfWeek,
     format,
@@ -133,7 +135,13 @@ function isYesterday(date: Date, timeZone: string): boolean {
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZone = false, currentSelectedTimezone = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(
+    locale: 'en' | 'es' | 'es-ES' | 'es_ES',
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone = timezone.selected,
+    isLowercase = false,
+): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -255,6 +263,38 @@ function getCurrentTimezone(): Required<Timezone> {
     return timezone;
 }
 
+/**
+ * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ */
+function getMonthNames(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const fullYear = new Date().getFullYear();
+    const monthsArray = eachMonthOfInterval({
+        start: new Date(fullYear, 0, 1), // January 1st of the current year
+        end: new Date(fullYear, 11, 31), // December 31st of the current year
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * @returns [Monday, Thuesday, Wednesday, ...]
+ */
+function getDaysOfWeek(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return daysOfWeek.map((date) => format(date, 'eeee'));
+}
+
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = new Date();
 
@@ -373,6 +413,8 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    getMonthNames,
+    getDaysOfWeek,
     formatWithUTCTimeZone,
 };
 

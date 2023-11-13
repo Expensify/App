@@ -183,6 +183,7 @@ function BaseModal({
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
+            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}

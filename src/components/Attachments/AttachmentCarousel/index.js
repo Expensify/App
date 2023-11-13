@@ -39,6 +39,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+    const [isReceipt, setIsReceipt] = useState(false);
 
     const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
     const isLoadingReportAction = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
@@ -55,14 +56,14 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
     const compareImage = useCallback(
         (attachment) => {
-            if (attachment.isReceipt) {
+            if (attachment.isReceipt && isReceipt) {
                 const action = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
                 return attachment.transactionID === transactionID;
             }
             return attachment.source === source;
         },
-        [source, report],
+        [source, report, isReceipt],
     );
 
     useEffect(() => {
@@ -101,10 +102,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             // to get the index of the current page
             const entry = _.first(viewableItems);
             if (!entry) {
+                setIsReceipt(false);
                 setActiveSource(null);
                 return;
             }
 
+            setIsReceipt(entry.item.isReceipt);
             setPage(entry.index);
             setActiveSource(entry.item.source);
 
@@ -236,8 +239,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
         </View>
     );
 }
+
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     withOnyx({
