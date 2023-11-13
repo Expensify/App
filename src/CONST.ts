@@ -2705,7 +2705,7 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'presentation',
+        TEXT: 'text',
         RADIO: 'radio',
         IMAGEBUTTON: 'img button',
         CHECKBOX: 'checkbox',
