@@ -64,7 +64,6 @@ function AboutPage(props) {
                 action: () => {
                     Link.openExternalLink(CONST.GITHUB_URL);
                 },
-                link: CONST.GITHUB_URL,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',

@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {useContext, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {PopoverContext} from '@components/PopoverProvider';
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import styles from '@styles/styles';
 
@@ -12,11 +11,10 @@ const propTypes = {
 
 function NoDropZone({children}) {
     const noDropZone = useRef(null);
-    const {close: closePopover} = useContext(PopoverContext);
     useDragAndDrop({
         dropZone: noDropZone,
+        shouldClosePopover: true,
         shouldAllowDrop: false,
-        onDragEnter: closePopover,
     });
 
     return (

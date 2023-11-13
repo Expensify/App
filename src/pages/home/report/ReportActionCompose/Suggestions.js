@@ -3,8 +3,6 @@ import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} 
 import {View} from 'react-native';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
@@ -125,20 +123,6 @@ function Suggestions({
             updateShouldShowSuggestionMenuToFalse();
         }
     }, [isDraggingOver, prevIsDraggingOver, updateShouldShowSuggestionMenuToFalse]);
-
-    useEffect(() => {
-        if (![CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform())) {
-            return;
-        }
-        // hide popover on drag enter
-        const listener = () => {
-            updateShouldShowSuggestionMenuToFalse();
-        };
-        document.addEventListener('dragenter', listener);
-        return () => {
-            document.removeEventListener('dragenter', listener);
-        };
-    }, [updateShouldShowSuggestionMenuToFalse]);
 
     const baseProps = {
         value,
