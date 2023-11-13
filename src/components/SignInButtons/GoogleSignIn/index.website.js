@@ -73,22 +73,18 @@ function GoogleSignIn({translate, isDesktopFlow}) {
     // ref: https://stackoverflow.com/questions/75306089/safari-when-using-border-radius-and-overflow-hidden-to-parent-and-the-child-th
     return isDesktopFlow ? (
         <View style={styles.googlePillButtonContainer}>
-            {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
             <div
                 id={desktopId}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
-                // onMouseDown={(event) => event.preventDefault()}
             />
         </View>
     ) : (
         <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
-            {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
             <div
                 id={mainId}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
-                // onMouseDown={(event) => event.preventDefault()}
             />
         </View>
     );
