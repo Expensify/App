@@ -592,8 +592,7 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
@@ -887,6 +886,7 @@ export default {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
+        cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1907,8 +1907,5 @@ export default {
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
-    },
-    globalNavigationOptions: {
-        chats: 'Chats',
     },
 } satisfies TranslationBase;

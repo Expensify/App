@@ -71,7 +71,11 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}) {
+/**
+ * Workaround for forwardRef + propTypes issue.
+ * See https://stackoverflow.com/questions/59716140/using-forwardref-with-proptypes-and-eslint
+ */
+const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -109,6 +113,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
+                ref={ref}
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -117,6 +122,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
 
     return (
         <ScreenWrapper
+            ref={ref}
             includeSafeAreaPaddingBottom={false}
             testID={RequestorStep.displayName}
         >
@@ -192,9 +198,9 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
             </FormProvider>
         </ScreenWrapper>
     );
-}
+});
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default React.forwardRef(RequestorStep);
+export default RequestorStep;
