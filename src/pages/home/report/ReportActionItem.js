@@ -58,6 +58,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
@@ -365,7 +366,7 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
@@ -441,8 +442,7 @@ function ReportActionItem(props) {
                                     onPress={() => updateHiddenState(!isHidden)}
                                 >
                                     <Text
-                                        style={styles.buttonSmallText}
-                                        selectable={false}
+                                        style={[styles.buttonSmallText, styles.userSelectNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
@@ -576,23 +576,31 @@ function ReportActionItem(props) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
                     <>
-                        <ReportActionItemSingle
-                            action={parentReportAction}
-                            showHeader={!props.draftMessage}
-                            wrapperStyles={[styles.chatItem]}
-                            report={props.report}
-                        >
-                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                        </ReportActionItemSingle>
-                        <View style={styles.reportHorizontalRule} />
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={!props.draftMessage}
+                                wrapperStyles={[styles.chatItem]}
+                                report={props.report}
+                            >
+                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.reportHorizontalRule} />
+                        </View>
                     </>
                 );
             } else {
                 content = (
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
+                    <>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <TaskView
+                                report={props.report}
+                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                            />
+                        </View>
+                    </>
                 );
             }
         }
@@ -647,8 +655,8 @@ function ReportActionItem(props) {
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
-            pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
             ref={popoverAnchorRef}
+            style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
@@ -765,6 +773,7 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.iouReport, nextProps.iouReport) &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&

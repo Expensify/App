@@ -175,6 +175,8 @@ function MoneyRequestPreview(props) {
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
+    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
+
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
             return props.translate('common.done');
@@ -223,7 +225,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -319,7 +321,9 @@ function MoneyRequestPreview(props) {
                             </View>
                             {shouldShowMerchant && (
                                 <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
+                                    </Text>
                                 </View>
                             )}
                             <View style={[styles.flexRow, styles.mt1]}>

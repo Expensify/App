@@ -2,14 +2,11 @@ import {ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
+ * This is a file containing constants for all the routes we want to be able to go to
  */
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
- * Returns the URL with an encoded URI component for the backTo param which can be added to the end of URLs
- * @param backTo
- * @returns
+ * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
  */
 function getUrlWithBackToParam(url: string, backTo?: string): string {
     const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
@@ -111,7 +108,10 @@ export default {
         route: 'settings/profile/personal-details/address/country',
         getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
-    SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
+    SETTINGS_CONTACT_METHODS: {
+        route: 'settings/profile/contact-methods',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
+    },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,
@@ -363,17 +363,4 @@ export default {
     SAASTR: 'saastr',
     SBE: 'sbe',
     MONEY2020: 'money2020',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'home',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'expenses',
-    REPORTS_OLDDOT: 'reports',
-    INSIGHTS_OLDDOT: 'insights',
-
-    // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspaces',
-    GROUPS_OLDDOT: 'group_workspaces',
-    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;
