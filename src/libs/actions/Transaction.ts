@@ -1,14 +1,14 @@
-import Onyx from 'react-native-onyx';
-import lodashHas from 'lodash/has';
-import lodashClone from 'lodash/clone';
 import {isEqual} from 'lodash';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as CollectionUtils from '../CollectionUtils';
-import * as API from '../API';
-import CONST from '../../CONST';
-import {RecentWaypoint, Transaction} from '../../types/onyx';
-import {WaypointCollection} from '../../types/onyx/Transaction';
-import * as TransactionUtils from '../TransactionUtils';
+import lodashClone from 'lodash/clone';
+import lodashHas from 'lodash/has';
+import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {RecentWaypoint, Transaction} from '@src/types/onyx';
+import {WaypointCollection} from '@src/types/onyx/Transaction';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -110,6 +110,10 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
 
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
+    if (removed.length === 0) {
+        return;
+    }
+
     const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
 
     // When there are only two waypoints we are adding empty waypoint back

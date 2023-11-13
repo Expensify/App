@@ -25,4 +25,7 @@ export default PropTypes.shape({
 
     /** The wallet's programID, used to show the correct terms. */
     walletProgramID: PropTypes.string,
+
+    /** Whether the user has failed Onfido completely */
+    hasFailedOnfido: PropTypes.bool,
 });
