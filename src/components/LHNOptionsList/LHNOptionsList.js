@@ -10,6 +10,7 @@ import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportI
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
@@ -54,6 +55,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The next steps for of reports */
+    nextSteps: PropTypes.objectOf(nextStepPropTypes),
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
@@ -72,6 +76,7 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     reportActions: {},
     reports: {},
+    nextSteps: {},
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
@@ -91,6 +96,7 @@ function LHNOptionsList({
     shouldDisableFocusOptions,
     reports,
     reportActions,
+    nextSteps,
     policy,
     preferredLocale,
     personalDetails,
@@ -139,12 +145,14 @@ function LHNOptionsList({
             const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
+            const itemNextStep = nextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`] || {};
 
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
+                    nextStep={itemNextStep}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
@@ -158,7 +166,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [currentReportID, draftComments, nextSteps, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -194,6 +202,9 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        nextSteps: {
+            key: ONYXKEYS.COLLECTION.NEXT_STEP,
         },
         policy: {
             key: ONYXKEYS.COLLECTION.POLICY,

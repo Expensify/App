@@ -8,6 +8,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
@@ -39,6 +40,9 @@ const propTypes = {
     /** The action from the parent report */
     parentReportAction: PropTypes.shape(reportActionPropTypes),
 
+    /** The next step for the report */
+    nextSteps: nextStepPropTypes,
+
     /** The transaction from the parent report action */
     transaction: transactionPropTypes,
 
@@ -51,6 +55,7 @@ const defaultProps = {
     fullReport: {},
     policy: {},
     parentReportAction: {},
+    nextStep: {},
     transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
@@ -66,6 +71,7 @@ function OptionRowLHNData({
     isFocused,
     fullReport,
     reportActions,
+    nextStep,
     personalDetails,
     preferredLocale,
     comment,
@@ -87,7 +93,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, nextStep);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -96,7 +102,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, nextStep]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
