@@ -2635,14 +2635,14 @@ describe('actions/IOU', () => {
 
             // Then we expect to navigate to the iou report
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
         });
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
             // When we delete the money request and we should delete the IOU report
             IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             // Then we expect to navigate to the chat report
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
         });
     });
 

@@ -21574,6 +21574,7 @@ function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist)
 }
 async function generateDynamicChecksAndCheckForCompletion() {
     // Generate dynamic checks
+    console.log('Generating dynamic checks...');
     const dynamicChecks = await getChecklistCategoriesForPullRequest();
     let isPassing = true;
     let didChecklistChange = false;
@@ -21585,6 +21586,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}`);
         const match = regex.exec(checklist);
         if (!match) {
+            console.log('Adding check to the checklist:', check);
             // Add it to the PR body
             isPassing = false;
             checklist += `- [ ] ${check}\r\n`;
@@ -21593,6 +21595,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         else {
             const isChecked = match[1] === 'x';
             if (!isChecked) {
+                console.log('Found unchecked checklist item:', check);
                 isPassing = false;
             }
         }
@@ -21605,6 +21608,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             const match = regex.exec(checklist);
             if (match) {
                 // Remove it from the PR body
+                console.log('Check has been removed from the checklist:', check);
                 checklist = checklist.replace(match[0], '');
                 didChecklistChange = true;
             }
@@ -21614,6 +21618,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
     // Update the PR body
     if (didChecklistChange) {
+        console.log('Checklist changed, updating PR...');
         await GithubUtils_1.default.octokit.pulls.update({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
