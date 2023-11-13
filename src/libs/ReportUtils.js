@@ -2901,12 +2901,13 @@ function buildOptimisticChatReport(
     welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
+    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
-        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || (reportName !== CONST.TEACHERS_UNITE.POLICY_NAME && isNewlyCreatedWorkspaceChat),
         lastActorAccountID: 0,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',
