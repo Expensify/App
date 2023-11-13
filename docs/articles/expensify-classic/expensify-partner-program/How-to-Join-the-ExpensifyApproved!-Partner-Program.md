@@ -22,7 +22,7 @@ Cobranded Marketing - Collaborate with your Partner Manager to craft custom mark
 Visit university.expensify.com and enroll in the “Getting Started with Expensify” course.
 This course imparts the essentials of Expensify, ensuring you follow the best practices for client setups.
 
-# 2. Complete the course
+2. Complete the course
 Grasp the core features and functionalities of Expensify.
 Ensure you're equipped to serve your clients using Expensify to its fullest.
 Once completed, you’ll be prompted to schedule a call with your Partner Manager. **This call is required to earn your certification.** 
