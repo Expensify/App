@@ -2696,17 +2696,81 @@ const CONST = {
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
+    /**
+     * Possible values for the `accessibilityRole` prop of React Native components.
+     * See: https://reactnative.dev/docs/accessibility#accessibilityrole
+     * If you are using the `role` prop, then try `CONST.ROLE` instead.
+     *
+     */
     ACCESSIBILITY_ROLE: {
-        BUTTON: 'button',
-        LINK: 'link',
-        MENUITEM: 'menuitem',
-        TEXT: 'presentation',
-        RADIO: 'radio',
-        IMAGEBUTTON: 'img button',
-        CHECKBOX: 'checkbox',
-        SWITCH: 'switch',
-        ADJUSTABLE: 'slider',
-        IMAGE: 'img',
+        ADJUSTABLE: 'adjustable', // For elements that can be adjusted (e.g., sliders).
+        ALERT: 'alert', // For elements displaying important, urgent messages.
+        BUTTON: 'button', // For elements acting as buttons.
+        CHECKBOX: 'checkbox', // For elements representing checkboxes.
+        COMBOBOX: 'combobox', // For elements that are combo boxes.
+        HEADER: 'header', // For header elements in a content section.
+        IMAGE: 'image', // For elements treated as images.
+        IMAGEBUTTON: 'imagebutton', // For buttons that are also images.
+        KEYBOARDKEY: 'keyboardkey', // For elements representing keyboard keys.
+        LINK: 'link', // For elements that act as hyperlinks.
+        MENU: 'menu', // For components that are menus of choices.
+        MENUBAR: 'menubar', // For containers holding multiple menus.
+        MENUITEM: 'menuitem', // For items within a menu.
+        NONE: 'none', // For elements without a specific role.
+        PROGRESSBAR: 'progressbar', // For elements showing progress.
+        RADIO: 'radio', // For radio button elements.
+        RADIOGROUP: 'radiogroup', // For groups of radio buttons.
+        SCROLLBAR: 'scrollbar', // For scrollbar elements.
+        SEARCH: 'search', // For text fields also used as search fields.
+        SPINBUTTON: 'spinbutton', // For buttons opening a list of choices.
+        SUMMARY: 'summary', // For elements summarizing current app conditions.
+        SWITCH: 'switch', // For switch components.
+        TAB: 'tab', // For tab elements.
+        TABLIST: 'tablist', // For lists of tabs.
+        /**
+         * IMPORTANT: If you are here to change TEXT to 'presentation' you probably want to use
+         * CONST.ROLE.PRESENTATION instead, as `presentation` is not a valid value for the
+         * `accessibilityRole` prop, but is for the `role` prop.
+         */
+        TEXT: 'text', // For static text elements.
+        TIMER: 'timer', // For timer elements.
+        TOGGLEBUTTON: 'togglebutton', // For toggle buttons.
+        TOOLBAR: 'toolbar', // For toolbars with action buttons/components.
+        GRID: 'grid', // For grid representations in scrollable lists.
+    },
+    /**
+     * Possible values for the `role` prop of React Native components.
+     * see: https://reactnative.dev/docs/accessibility#role
+     * If you are looking for values for the `accessibilityRole` prop, try `CONST.ACCESSIBILITY_ROLE` instead.
+     */
+    ROLE: {
+        ALERT: 'alert', // Use for elements with important, time-sensitive information.
+        BUTTON: 'button', // Use for elements that act as buttons.
+        CHECKBOX: 'checkbox', // Use for elements representing checkboxes.
+        COMBOBOX: 'combobox', // Use for elements that allow a choice from multiple options.
+        GRID: 'grid', // Use with scrollable lists to represent a grid layout.
+        HEADING: 'heading', // Use for section headers or titles.
+        IMG: 'img', // Use for image elements.
+        LINK: 'link', // Use for elements that navigate to other pages or content.
+        LIST: 'list', // Use to identify a list of items.
+        MENU: 'menu', // Use for a list of choices or options.
+        MENUBAR: 'menubar', // Use for a container of multiple menus.
+        MENUITEM: 'menuitem', // Use for items within a menu.
+        NONE: 'none', // Use when no specific role is needed.
+        PRESENTATION: 'presentation', // Use for elements that don't require a specific role.
+        PROGRESSBAR: 'progressbar', // Use for elements showing progress of a task.
+        RADIO: 'radio', // Use for radio buttons.
+        RADIOGROUP: 'radiogroup', // Use for groups of radio buttons.
+        SCROLLBAR: 'scrollbar', // Use for scrollbar elements.
+        SEARCHBOX: 'searchbox', // Use for text fields that are used for searching.
+        SLIDER: 'slider', // Use for adjustable elements like sliders.
+        SPINBUTTON: 'spinbutton', // Use for a button that opens a list of choices.
+        SUMMARY: 'summary', // Use for elements providing a summary of app conditions.
+        SWITCH: 'switch', // Use for on/off switch elements.
+        TAB: 'tab', // Use for tab elements in a tab list.
+        TABLIST: 'tablist', // Use for a list of tabs.
+        TIMER: 'timer', // Use for timer elements.
+        TOOLBAR: 'toolbar', // Use for toolbars containing action buttons or components.
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
