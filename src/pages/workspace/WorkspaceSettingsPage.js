@@ -20,7 +20,6 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -78,7 +77,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         const errors = {};
         const name = values.name.trim();
 
-        if (!ValidationUtils.isRequiredFulfilled(name)) {
+        if (!name || !name.length) {
             errors.name = 'workspace.editor.nameIsRequiredError';
         } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
