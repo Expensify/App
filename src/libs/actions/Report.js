@@ -665,6 +665,28 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
 }
 
 /**
+ * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to the share dialog.
+ *
+ * @param {Array} userLogins list of user logins to start a chat report with.
+ */
+function navigateToAndOpenShare(userLogins) {
+    let newChat = {};
+
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+
+    if (!chat) {
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+    openReport(reportID, userLogins, newChat);
+    Navigation.navigate(ROUTES.SHARE_MESSAGE);
+    Navigation.setParams({reportID});
+}
+
+/**
  * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
  *
  * @param {Array} participantAccountIDs of user logins to start a chat report with.
