@@ -3,6 +3,6 @@ const RESIZE_MODES = {
     cover: 'cover',
     stretch: 'stretch',
     center: 'center',
-};
+} as const;
 
 export default RESIZE_MODES;
