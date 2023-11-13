@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, InteractionManager, ScrollView, View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
