@@ -63,12 +63,6 @@ type Report = {
     /** PayPalMe address of the submitter */
     submitterPayPalMeAddress?: string;
 
-    /** The email address of the report owner */
-    ownerEmail?: string;
-
-    /** The email address of the manager */
-    managerEmail?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
