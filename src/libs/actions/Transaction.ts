@@ -58,7 +58,7 @@ function addStop(transactionID: string) {
 }
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isEditingWaypoint = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+    Onyx.merge(`${isEditingWaypoint ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         pendingFields: {
             comment: isEditingWaypoint ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
@@ -159,13 +159,13 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(collectionName: string, transactionID: string, waypoints: WaypointCollection): OnyxData {
+function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
     return {
         optimisticData: [
             {
                 // Clears any potentially stale error messages from fetching the route
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${collectionName}${transactionID}`,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: true,
@@ -180,7 +180,7 @@ function getOnyxDataForRouteRequest(collectionName: string, transactionID: strin
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${collectionName}${transactionID}`,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
@@ -191,7 +191,7 @@ function getOnyxDataForRouteRequest(collectionName: string, transactionID: strin
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${collectionName}${transactionID}`,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
@@ -213,7 +213,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
             transactionID,
             waypoints: JSON.stringify(waypoints),
         },
-        getOnyxDataForRouteRequest(ONYXKEYS.COLLECTION.TRANSACTION, transactionID, waypoints),
+        getOnyxDataForRouteRequest(transactionID),
     );
 }
 
@@ -228,7 +228,7 @@ function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) 
             transactionID,
             waypoints: JSON.stringify(waypoints),
         },
-        getOnyxDataForRouteRequest(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, transactionID, waypoints),
+        getOnyxDataForRouteRequest(transactionID, true),
     );
 }
 
