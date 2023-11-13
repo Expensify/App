@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
+import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -21,13 +22,19 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import defaultTheme from '@styles/themes/default';
+import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
+    /** Toggles the navigation menu open and closed */
+    onLinkClick: PropTypes.func.isRequired,
+
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 };
@@ -143,12 +150,20 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View
-                style={styles.sidebarHeaderContainer}
+                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                 dataSet={{dragArea: true}}
             >
                 <Header
-                    title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    title={
+                        <ImageSVG
+                            src={LogoComponent}
+                            width={variables.lhnLogoWidth}
+                            height={variables.lhnLogoHeight}
+                            fill={defaultTheme.text}
+                            contentFit="contain"
+                        />
+                    }
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />
                 <Tooltip text={translate('common.search')}>
@@ -161,6 +176,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
+                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
 
             <LHNOptionsList

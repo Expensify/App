@@ -158,11 +158,12 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 const filePath = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(filePath, photo.path);
 
-                if (transactionID) {
-                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
-                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                    });
+                const onSuccess = (receipt) => {
+                    IOU.replaceReceipt(transactionID, receipt, filePath);
+                };
 
+                if (transactionID) {
+                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
                     Navigation.dismissModal();
                     return;
                 }
@@ -186,7 +187,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG
                         contentFit="contain"
-                        source={Hand}
+                        src={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                         style={styles.pb5}
@@ -268,7 +269,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 >
                     <ImageSVG
                         contentFit="contain"
-                        source={Shutter}
+                        src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />

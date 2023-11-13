@@ -2,7 +2,7 @@ name: PR Author Checklist
 
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
+      - uses: actions/checkout@v3
+
       - name: authorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
+        uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

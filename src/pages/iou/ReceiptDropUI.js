@@ -6,7 +6,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import ImageSVG from '@components/ImageSVG';
 import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
-import CONST from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to execute when a file is dropped. */
