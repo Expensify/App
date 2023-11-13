@@ -70,7 +70,13 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], [props.report]);
+    const excludedUsers = useMemo(
+        () =>
+            _.map([...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], (participant) =>
+                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+            ),
+        [props.report],
+    );
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL

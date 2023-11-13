@@ -1282,12 +1282,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (
-                _.some(
-                    optionsToExclude,
-                    (optionToExclude) => optionToExclude.login === personalDetailOption.login || optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login),
-                )
-            ) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
