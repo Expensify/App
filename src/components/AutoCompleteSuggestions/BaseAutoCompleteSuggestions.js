@@ -1,5 +1,7 @@
-import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useRef} from 'react';
+import {FlashList} from '@shopify/flash-list';
+// We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
+import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import styles from '@styles/styles';
@@ -79,6 +81,7 @@ function BaseAutoCompleteSuggestions(props) {
                 keyboardShouldPersistTaps="handled"
                 data={props.suggestions}
                 renderItem={renderSuggestionMenuItem}
+                renderScrollComponent={ScrollView}
                 keyExtractor={props.keyExtractor}
                 removeClippedSubviews={false}
                 showsVerticalScrollIndicator={innerHeight > rowHeight.value}
