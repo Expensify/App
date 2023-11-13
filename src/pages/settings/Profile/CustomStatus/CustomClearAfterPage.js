@@ -24,17 +24,17 @@ function CustomClearAfterPage({translate, customStatus}) {
     const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
     const onSubmit = (v) => {
-        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, v.dataTime)});
+        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, v.dateTime)});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
     const validate = useCallback((values) => {
-        const requiredFields = ['dataTime'];
+        const requiredFields = ['dateTime'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
-        const dateError = ValidationUtils.getDatePassedError(values.dataTime);
+        const dateError = ValidationUtils.getDatePassedError(values.dateTime);
 
-        if (values.dataTime && dateError) {
-            errors.dataTime = dateError;
+        if (values.dateTime && dateError) {
+            errors.dateTime = dateError;
         }
 
         return errors;
@@ -59,7 +59,7 @@ function CustomClearAfterPage({translate, customStatus}) {
                 shouldUseDefaultValue
             >
                 <NewDatePicker
-                    inputID="dataTime"
+                    inputID="dateTime"
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={moment().toDate()}
