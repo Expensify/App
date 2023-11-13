@@ -75,9 +75,9 @@ function SuggestionMention({
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
-            const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
             setSelection({
                 start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -87,7 +87,7 @@ function SuggestionMention({
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
     );
 
     /**
