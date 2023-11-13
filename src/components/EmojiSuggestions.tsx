@@ -56,10 +56,9 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
                     style={styles.emojiSuggestionsText}
                 >
                     :
-                    {styledTextArray.map(({text, isColored}, i) => (
+                    {styledTextArray.map(({text, isColored}) => (
                         <Text
-                            /* eslint-disable-next-line react/no-array-index-key */
-                            key={`${text}+${i}`}
+                            key={`${text}+${isColored}`}
                             style={StyleUtils.getColoredBackgroundStyle(isColored)}
                         >
                             {text}
