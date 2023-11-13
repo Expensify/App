@@ -6,8 +6,10 @@ import _ from 'underscore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
+import ImageProps from './types';
 
-function Image(props) {
+function Image(props: ImageProps) {
+    console.log('*** I RENDER ***', props);
     const {source: propsSource, isAuthTokenRequired, onLoad, session} = props;
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
@@ -19,7 +21,7 @@ function Image(props) {
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
             const authToken = lodashGet(session, 'encryptedAuthToken', null);
-            return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+            return {uri: `${propsSource?.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
