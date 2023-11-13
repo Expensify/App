@@ -11,9 +11,6 @@ const propTypes = {
     /** The on press method */
     onPress: PropTypes.func,
 
-    /** The on press in method */
-    onPressIn: PropTypes.func,
-
     /** Which provider you are using to sign in */
     provider: PropTypes.string.isRequired,
 
@@ -22,7 +19,6 @@ const propTypes = {
 
 const defaultProps = {
     onPress: () => {},
-    onPressIn: () => {},
 };
 
 const providerData = {
@@ -36,10 +32,9 @@ const providerData = {
     },
 };
 
-function IconButton({onPress, translate, provider, onPressIn}) {
+function IconButton({onPress, translate, provider}) {
     return (
         <PressableWithoutFeedback
-            onPressIn={onPressIn}
             onPress={onPress}
             style={styles.signInIconButton}
             role={CONST.ACCESSIBILITY_ROLE.BUTTON}

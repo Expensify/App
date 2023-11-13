@@ -26,6 +26,7 @@ import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import Visibility from '@libs/Visibility';
 import styles from '@styles/styles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
@@ -257,7 +258,7 @@ function LoginForm(props) {
                     id="username"
                     name="username"
                     onBlur={() => {
-                        if (firstBlurred.current) {
+                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
                             return;
                         }
                         firstBlurred.current = true;
@@ -301,22 +302,26 @@ function LoginForm(props) {
                             // for developers about possible regressions, we won't render buttons in development mode.
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
-                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
-                                <View style={[getSignInWithStyles()]}>
-                                    <Text
-                                        accessibilityElementsHidden
-                                        importantForAccessibility="no-hide-descendants"
-                                        style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}
-                                    >
-                                        {props.translate('common.signInWith')}
-                                    </Text>
+                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ||
+                                (true && (
+                                    <View style={[getSignInWithStyles()]}>
+                                        <Text
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}
+                                        >
+                                            {props.translate('common.signInWith')}
+                                        </Text>
 
-                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <AppleSignIn />
-                                        <GoogleSignIn />
+                                        <View
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}
+                                        >
+                                            <AppleSignIn />
+                                            <GoogleSignIn />
+                                        </View>
                                     </View>
-                                </View>
-                            )
+                                ))
                         }
                     </View>
                 )

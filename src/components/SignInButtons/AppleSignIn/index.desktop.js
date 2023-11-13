@@ -19,7 +19,7 @@ function AppleSignIn() {
             pointerEvents="box-none"
         >
             <IconButton
-                onPressIn={() => {
+                onPress={() => {
                     window.open(appleSignInWebRouteForDesktopFlow);
                 }}
                 provider={CONST.SIGN_IN_METHOD.APPLE}
