@@ -29,12 +29,12 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | string;
+let currentUserAccountID: number | null;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? '';
+        currentUserAccountID = val?.accountID ?? null;
         currentUserEmail = val?.email ?? '';
     },
 });
@@ -461,7 +461,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    [currentUserAccountID]: {
+                    [currentUserAccountID ?? '']: {
                         timezone: newTimezoneData,
                     },
                 },
@@ -472,7 +472,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    [currentUserAccountID]: {
+                    [currentUserAccountID ?? '']: {
                         timezone: oldTimezoneData,
                     },
                 },
