@@ -122,21 +122,26 @@ function AttachmentView({
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        // We need the following View component on android native
+        // So that the event will propagate properly and
+        // the Password protected preview will be shown for pdf attachement we are about to send.
         return (
-            <AttachmentViewPdf
-                source={source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                encryptedSourceUrl={encryptedSourceUrl}
-                isUsedInCarousel={isUsedInCarousel}
-                isFocused={isFocused}
-                onPress={onPress}
-                onScaleChanged={onScaleChanged}
-                onToggleKeyboard={onToggleKeyboard}
-                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-                errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
-                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-            />
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                <AttachmentViewPdf
+                    source={source}
+                    file={file}
+                    isAuthTokenRequired={isAuthTokenRequired}
+                    encryptedSourceUrl={encryptedSourceUrl}
+                    isUsedInCarousel={isUsedInCarousel}
+                    isFocused={isFocused}
+                    onPress={onPress}
+                    onScaleChanged={onScaleChanged}
+                    onToggleKeyboard={onToggleKeyboard}
+                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                />
+            </View>
         );
     }
 
