@@ -12,6 +12,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -68,8 +69,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const isFromGlobalCreate = !reportID;
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+    const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -94,6 +96,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >

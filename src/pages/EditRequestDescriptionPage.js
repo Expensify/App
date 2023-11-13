@@ -2,7 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -49,7 +50,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             testID={EditRequestDescriptionPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.description')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={onSubmit}
@@ -57,14 +58,15 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapperWithRef
                         // Comment field does not have its modified counterpart
+                        InputComponent={TextInput}
                         inputID="comment"
                         name="comment"
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => {
                             if (!el) {
                                 return;
@@ -74,11 +76,11 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        inputStyle={[styles.verticalAlignTop]}
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

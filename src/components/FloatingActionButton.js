@@ -4,7 +4,6 @@ import {Animated, Easing, View} from 'react-native';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -90,7 +89,7 @@ class FloatingActionButton extends PureComponent {
                             }
                         }}
                         accessibilityLabel={this.props.accessibilityLabel}
-                        accessibilityRole={this.props.accessibilityRole}
+                        role={this.props.role}
                         pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.
@@ -101,8 +100,6 @@ class FloatingActionButton extends PureComponent {
                         style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
                             src={Expensicons.Plus}
                             fill={fill}
                         />

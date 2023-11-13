@@ -15,6 +15,36 @@
 - To simulate a network request succeeding or failing we can mock the expected response first and then manually trigger the action that calls that API command.
 - [Mocking the response of `HttpUtils.xhr()`](https://github.com/Expensify/App/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/actions/SessionTest.js#L25-L32) is the best way to simulate various API conditions so we can verify whether a result occurs or not.
 
+## Mocking collections / collection items
+
+When unit testing an interface with Jest/performance testing with Reassure you might need to work with collections of data. These often get tricky to generate and maintain. To help with this we have a few helper methods located in `tests/utils/collections/`.
+
+- `createCollection()` - Creates a collection of data (`Record<string, T>`) with a given number of items (default=500). This is useful for eg. testing the performance of a component with a large number of items. You can use it to populate Onyx.
+- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomised object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
+
+Basic example:
+```ts
+const policies = createCollection<Policy>(item => `policies_${item.id}`, createRandomPolicy);
+
+/**
+    Output:
+    {
+        "policies_0": policyItem0,
+        "policies_1": policyItem1,
+        ...
+    }
+*/
+```
+
+Example with overrides:
+
+```ts
+const policies = createCollection<Policy>(
+    item => `policies_${item.id}`,
+    index => ({ ...createRandomPolicy(index), isPinned: true })
+);
+```
+
 ## Mocking `node_modules`, user modules, and what belongs in `jest/setup.js`
 
 If you need to mock a library that exists in `node_modules` then add it to the `__mocks__` folder in the root of the project. More information about this [here](https://jestjs.io/docs/manual-mocks#mocking-node-modules). If you need to mock an individual library you should create a mock module in a `__mocks__` subdirectory adjacent to the library as explained [here](https://jestjs.io/docs/manual-mocks#mocking-user-modules). However, keep in mind that when you do this you also must manually require the mock by calling something like `jest.mock('../../src/libs/Log');` at the top of an individual test file. If every test in the app will need something to be mocked that's a good case for adding it to `jest/setup.js`, but we should generally avoid adding user mocks or `node_modules` mocks to this file. Please use the `__mocks__` subdirectories wherever appropriate.
