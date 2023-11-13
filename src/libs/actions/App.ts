@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
+import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
@@ -442,7 +443,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
     if (oldTimezoneData?.automatic ?? true) {
         newTimezoneData = {
             automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
         };
     }
 
