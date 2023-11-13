@@ -2216,6 +2216,19 @@ function navigateToDetailsPage(report) {
 }
 
 /**
+ * Go back to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function goBackToDetailsPage(report){
+    if (isOneOnOneChat(report)) {
+        Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
+        return;
+    }
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
+};
+
+/**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
  * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
  * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
@@ -4323,6 +4336,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
