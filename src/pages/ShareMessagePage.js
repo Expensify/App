@@ -79,7 +79,6 @@ function ShareMessagePage({report, personalDetails, translate, testID}) {
                 <View style={{padding: 24}}>
                     <TextInput
                         accessibilityLabel={translate('common.message')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoGrowHeight
                         blurOnSubmit
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
