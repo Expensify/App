@@ -418,4 +418,4 @@ export default [
     'Pacific/Tongatapu',
     'Pacific/Wake',
     'Pacific/Wallis',
-];
+] as const;
