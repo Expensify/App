@@ -378,10 +378,6 @@ function Composer({
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            // eslint-disable-next-line es/no-optional-chaining
-            if (!textInput.current) {
-                return;
-            }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
