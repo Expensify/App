@@ -13,7 +13,6 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import styles from '@styles/styles';
@@ -138,8 +137,6 @@ const getNextChars = (str, cursorPos) => {
     // If there is a space or new line, return the substring up to the space or new line
     return substr.substring(0, spaceIndex);
 };
-
-const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -332,19 +329,6 @@ function Composer({
     );
 
     /**
-     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
-     * @param {Object} event native Event
-     */
-    const handleWheel = useCallback((event) => {
-        if (event.target !== document.activeElement) {
-            return;
-        }
-
-        textInput.current.scrollTop += event.deltaY;
-        event.stopPropagation();
-    }, []);
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -385,7 +369,6 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -399,7 +382,6 @@ function Composer({
             if (!textInput.current) {
                 return;
             }
-            textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
