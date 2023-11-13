@@ -171,11 +171,11 @@ function deleteWorkspace(policyID, reports, policyName) {
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerAccountID}) => {
             // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
-            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            let emailClosingReport = CONST.POLICY.OWNER_EMAIL_FAKE;
             if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
-                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+                emailClosingReport = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
             }
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -241,6 +241,69 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+ * Build optimistic data for adding members to the announce room
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Object}
+ */
+function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
+ * Build optimistic data for removing users from the announce room
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Object}
+ */
+function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...remainUsers],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} accountIDs
@@ -259,6 +322,8 @@ function removeMembers(accountIDs, policyID) {
     const optimisticClosedReportActions = _.map(workspaceChats, () =>
         ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
     );
+
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
     const optimisticData = [
         {
@@ -281,6 +346,7 @@ function removeMembers(accountIDs, policyID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
             value: {[reportAction.reportActionID]: reportAction},
         })),
+        ...announceRoomMembers.onyxOptimisticData,
     ];
 
     // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
@@ -332,6 +398,7 @@ function removeMembers(accountIDs, policyID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
             value: {[reportAction.reportActionID]: null},
         })),
+        ...announceRoomMembers.onyxFailureData,
     ];
     API.write(
         'DeleteMembersFromWorkspace',
@@ -447,6 +514,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
+    const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
+
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
@@ -460,6 +529,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
+        ...announceRoomMembers.onyxOptimisticData,
     ];
 
     const successData = [
@@ -507,6 +577,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
         },
         ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
+        ...announceRoomMembers.onyxFailureData,
     ];
 
     const params = {
