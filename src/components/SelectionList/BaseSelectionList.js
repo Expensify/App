@@ -149,7 +149,7 @@ function BaseSelectionList({
     const initialFocusedIndex = useMemo(() => (focusedIndex > -1 ? focusedIndex : undefined), []);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+    const disableEnterShortcut = activeElement && [CONST.ARIA.ROLE.BUTTON, CONST.ARIA.ROLE.CHECKBOX].includes(activeElement.role);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -387,7 +387,7 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    role={CONST.ROLE.PRESENTATION}
+                                    role={CONST.ARIA.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}

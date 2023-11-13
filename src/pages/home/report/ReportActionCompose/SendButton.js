@@ -42,7 +42,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                             isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (

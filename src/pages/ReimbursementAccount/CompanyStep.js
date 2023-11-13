@@ -163,7 +163,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <TextInput
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     inputID="companyName"
                     containerStyles={[styles.mt4]}
                     disabled={shouldDisableCompanyName}
@@ -192,7 +192,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="companyPhone"
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.TEL}
                     placeholder={translate('common.phoneNumberPlaceholder')}
@@ -203,7 +203,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="website"
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
@@ -214,7 +214,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="companyTaxID"
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableCompanyTaxID}

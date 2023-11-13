@@ -116,7 +116,7 @@ function KnowATeacherPage(props) {
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -128,7 +128,7 @@ function KnowATeacherPage(props) {
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -140,7 +140,7 @@ function KnowATeacherPage(props) {
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />

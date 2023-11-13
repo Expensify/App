@@ -62,7 +62,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         onPress={onClose}
                         onMouseDown={(e) => e.preventDefault()}
                         style={[styles.touchableButtonImage]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon src={Expensicons.Close} />

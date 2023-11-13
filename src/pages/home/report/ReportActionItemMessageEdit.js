@@ -380,7 +380,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={styles.composerSizeButton}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ARIA.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
@@ -448,7 +448,7 @@ function ReportActionItemMessageEdit(props) {
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ARIA.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

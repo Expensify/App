@@ -61,7 +61,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
             onFocus={showDatepicker}
             label={label}
             accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
+            role={CONST.ARIA.ROLE.PRESENTATION}
             onInputChange={setDate}
             value={value}
             placeholder={placeholder}

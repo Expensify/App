@@ -78,7 +78,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);

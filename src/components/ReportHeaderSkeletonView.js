@@ -32,7 +32,7 @@ function ReportHeaderSkeletonView(props) {
                     <PressableWithFeedback
                         onPress={() => {}}
                         style={[styles.LHNToggle]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         accessibilityLabel={props.translate('common.back')}
                     >
                         <Icon src={Expensicons.BackArrow} />

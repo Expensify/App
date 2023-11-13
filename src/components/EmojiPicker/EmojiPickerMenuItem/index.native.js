@@ -77,7 +77,7 @@ class EmojiPickerMenuItem extends PureComponent {
                     styles.emojiItem,
                 ]}
                 accessibilityLabel={this.props.emoji}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ARIA.ROLE.BUTTON}
             >
                 <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
             </PressableWithoutFeedback>

@@ -74,7 +74,7 @@ function ReportActionItemCreated(props) {
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         disabled={shouldDisableDetailPage}
                     >
                         <MultipleAvatars

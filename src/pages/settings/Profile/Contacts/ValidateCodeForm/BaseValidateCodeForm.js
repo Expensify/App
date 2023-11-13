@@ -192,7 +192,7 @@ function BaseValidateCodeForm(props) {
                         underlayColor={themeColors.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>

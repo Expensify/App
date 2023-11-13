@@ -66,7 +66,7 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            role={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ARIA.ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}

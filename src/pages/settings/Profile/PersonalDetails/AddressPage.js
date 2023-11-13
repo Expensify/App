@@ -213,7 +213,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
                         aria-label={translate('common.addressLine', {lineNumber: 2})}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -239,7 +239,7 @@ function AddressPage({privatePersonalDetails, route}) {
                             inputID="state"
                             label={translate('common.stateOrProvince')}
                             aria-label={translate('common.stateOrProvince')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             value={state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             spellCheck={false}
@@ -251,7 +251,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         inputID="city"
                         label={translate('common.city')}
                         aria-label={translate('common.city')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -262,7 +262,7 @@ function AddressPage({privatePersonalDetails, route}) {
                         inputID="zipPostCode"
                         label={translate('common.zipPostCode')}
                         aria-label={translate('common.zipPostCode')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         autoCapitalize="characters"
                         value={zipcode || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}

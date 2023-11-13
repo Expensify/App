@@ -115,7 +115,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
                 accessibilityLabel={props.translate('common.city')}
-                role={CONST.ROLE.PRESENTATION}
+                role={CONST.ARIA.ROLE.PRESENTATION}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
@@ -138,7 +138,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
-                role={CONST.ROLE.PRESENTATION}
+                role={CONST.ARIA.ROLE.PRESENTATION}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}

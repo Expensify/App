@@ -186,7 +186,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                role={CONST.ACCESSIBILITY_ROLE.LINK}
+                                role={CONST.ARIA.ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
@@ -216,7 +216,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                role={CONST.ROLE.PRESENTATION}
+                                role={CONST.ARIA.ROLE.PRESENTATION}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}

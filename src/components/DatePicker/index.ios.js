@@ -85,7 +85,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 forceActiveLabel
                 label={label}
                 accessibilityLabel={label}
-                role={CONST.ROLE.PRESENTATION}
+                role={CONST.ARIA.ROLE.PRESENTATION}
                 value={dateAsText}
                 placeholder={placeholder}
                 errorText={errorText}

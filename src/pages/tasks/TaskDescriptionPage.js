@@ -93,7 +93,7 @@ function TaskDescriptionPage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             inputID="description"
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}

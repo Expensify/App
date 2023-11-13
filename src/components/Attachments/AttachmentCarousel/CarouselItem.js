@@ -80,7 +80,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ARIA.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}

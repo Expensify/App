@@ -131,7 +131,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             defaultValue={iou.comment}
                             label={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             ref={(el) => {
                                 if (!el) {
                                     return;

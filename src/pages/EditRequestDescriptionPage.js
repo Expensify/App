@@ -66,7 +66,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ARIA.ROLE.PRESENTATION}
                         ref={(el) => {
                             if (!el) {
                                 return;

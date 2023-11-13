@@ -43,7 +43,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     <PressableWithoutFeedback
                         style={styles.singleOptionSelectorRow}
                         onPress={() => onSelectOption(option)}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ARIA.ROLE.BUTTON}
                         accessibilityState={{checked: selectedOptionKey === option.key}}
                         aria-checked={selectedOptionKey === option.key}
                         accessibilityLabel={option.label}

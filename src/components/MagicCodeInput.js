@@ -341,7 +341,7 @@ function MagicCodeInput(props) {
                                 selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
                                 inputStyle={[styles.inputTransparent]}
-                                role={CONST.ROLE.PRESENTATION}
+                                role={CONST.ARIA.ROLE.PRESENTATION}
                             />
                         </View>
                     </View>

@@ -75,7 +75,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     value={value || selectedDate || ''}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}

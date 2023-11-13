@@ -129,7 +129,7 @@ function DebitCardPage(props) {
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     ref={(ref) => (nameOnCardRef.current = ref)}
                     spellCheck={false}
                 />
@@ -137,7 +137,7 @@ function DebitCardPage(props) {
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
@@ -147,7 +147,7 @@ function DebitCardPage(props) {
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             placeholder={translate('addDebitCardPage.expirationDate')}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={4}
@@ -158,7 +158,7 @@ function DebitCardPage(props) {
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                         />
@@ -178,7 +178,7 @@ function DebitCardPage(props) {
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}

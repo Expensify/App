@@ -158,7 +158,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                         />
                         <TextInput
                             inputID="amount2"
@@ -166,7 +166,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                         />
                         <TextInput
                             shouldSaveDraft
@@ -174,7 +174,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (

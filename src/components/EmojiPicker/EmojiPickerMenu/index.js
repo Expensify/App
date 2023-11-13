@@ -482,7 +482,7 @@ function EmojiPickerMenu(props) {
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ARIA.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}

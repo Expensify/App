@@ -54,7 +54,7 @@ function AmountTextInput(props) {
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            role={CONST.ROLE.PRESENTATION}
+            role={CONST.ARIA.ROLE.PRESENTATION}
             onKeyPress={props.onKeyPress}
         />
     );

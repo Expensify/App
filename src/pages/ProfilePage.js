@@ -168,7 +168,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        role={CONST.ARIA.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

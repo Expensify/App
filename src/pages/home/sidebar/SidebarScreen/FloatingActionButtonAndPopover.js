@@ -238,7 +238,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ARIA.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {

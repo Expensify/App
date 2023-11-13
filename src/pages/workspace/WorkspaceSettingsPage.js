@@ -142,7 +142,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ARIA.ROLE.PRESENTATION}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
