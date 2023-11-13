@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
