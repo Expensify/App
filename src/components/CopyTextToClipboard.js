@@ -18,11 +18,12 @@ const propTypes = {
 
 const defaultProps = {
     textStyles: [],
+    urlToCopy: null,
 };
 
 function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
-        Clipboard.setString(props.urlToCopy ?? props.text);
+        Clipboard.setString(props.urlToCopy || props.text);
     }, [props.text, props.urlToCopy]);
 
     return (

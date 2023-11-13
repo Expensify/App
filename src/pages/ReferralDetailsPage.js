@@ -27,6 +27,22 @@ const propTypes = {
             contentType: PropTypes.string,
         }),
     }).isRequired,
+
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** Whether or not a sign on form is loading (being submitted) */
+        loading: PropTypes.bool,
+
+        /** Whether or not the account is validated */
+        validated: PropTypes.bool,
+
+        /** The primaryLogin associated with the account */
+        primaryLogin: PropTypes.string,
+    }),
+};
+
+const defaultProps = {
+    account: null,
 };
 
 function ReferralDetailsPage({route, account}) {
@@ -37,7 +53,7 @@ function ReferralDetailsPage({route, account}) {
     }
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body`);
-    const generatedURL = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${account.primaryLogin}`;
+    const generatedURL = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${account && account.primaryLogin}`;
 
     return (
         <ScreenWrapper
@@ -84,6 +100,7 @@ function ReferralDetailsPage({route, account}) {
 
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 ReferralDetailsPage.propTypes = propTypes;
+ReferralDetailsPage.defaultProps = defaultProps;
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
