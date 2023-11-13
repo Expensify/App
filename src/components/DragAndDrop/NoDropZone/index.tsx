@@ -1,23 +1,20 @@
-import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import styles from '@styles/styles';
+import type NoDropZoneProps from './types';
 
-const propTypes = {
-    /** Content */
-    children: PropTypes.node.isRequired,
-};
+function NoDropZone({children}: NoDropZoneProps) {
+    const noDropZone = useRef<View>(null);
 
-function NoDropZone({children}) {
-    const noDropZone = useRef(null);
     useDragAndDrop({
         dropZone: noDropZone,
         shouldAllowDrop: false,
     });
+
     return (
         <View
-            ref={(e) => (noDropZone.current = e)}
+            ref={noDropZone}
             style={[styles.fullScreen]}
         >
             {children}
@@ -26,6 +23,5 @@ function NoDropZone({children}) {
 }
 
 NoDropZone.displayName = 'NoDropZone';
-NoDropZone.propTypes = propTypes;
 
 export default NoDropZone;
