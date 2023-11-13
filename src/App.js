@@ -27,8 +27,6 @@ import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsCo
 import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
-import useReactNativeShareMenuData from './hooks/useReactNativeShareMenuData';
-
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -46,7 +44,6 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
-    useReactNativeShareMenuData();
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
