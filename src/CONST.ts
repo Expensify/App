@@ -168,6 +168,18 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        PERSONAL_INFO_STEP: {
+            INPUT_KEY: {
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'requestorAddressStreet',
+                CITY: 'requestorAddressCity',
+                STATE: 'requestorAddressState',
+                ZIP_CODE: 'requestorAddressZipCode',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {

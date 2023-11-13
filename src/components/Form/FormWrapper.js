@@ -56,8 +56,9 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
-    /** Submit button styles */
-    submitButtonStyles: stylePropTypes,
+    /** Submit button container styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
@@ -91,10 +92,10 @@ function FormWrapper(props) {
         footerContent,
         isSubmitButtonVisible,
         style,
-        submitButtonStyles,
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        submitButtonStyles,
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
@@ -168,6 +169,7 @@ function FormWrapper(props) {
             isSubmitActionDangerous,
             isSubmitButtonVisible,
             onSubmit,
+            submitButtonStyles,
             style,
             submitButtonStyles,
             submitButtonText,
