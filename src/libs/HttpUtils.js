@@ -53,7 +53,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         body,
     })
         .then((response) => {
-            const match = url.match(regex)[1];
+            const match = url.match(APICommandRegex)[1];
             if (addSkewList.includes(match) && response.headers) {
                 const serverTime = new Date(response.headers.get('Date')).valueOf();
                 const endTime = new Date().valueOf();
