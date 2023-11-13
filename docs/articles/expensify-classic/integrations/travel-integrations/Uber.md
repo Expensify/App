@@ -21,6 +21,6 @@ Expensify and Uber are now connected!
 Now, every time you use Uber for Business – be it for rides or meals – the receipt will be imported and scanned into Expensify automatically. 
 
 ![Uber integration set up steps: Connecting your account]
-(https://help.expensify.com/assets/images/Uber1.png){:width="100%"}
+![Uber integration set up steps: Connecting your account](https://help.expensify.com/assets/images/Uber1.png){:width="100%"}
 ![Uber integration set up steps: Selecting Expensify]
 (https://help.expensify.com/assets/images/Uber2.png){:width="100%"}
