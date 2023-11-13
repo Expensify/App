@@ -170,15 +170,6 @@ function ReportActionItemMessageEdit(props) {
         [props.action.reportActionID],
     );
 
-    // Scroll content of textInputRef to bottom
-    useEffect(() => {
-        if (!textInputRef.current) {
-            return;
-        }
-        textInputRef.current.focus();
-        textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
-    }, []);
-
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -191,6 +182,9 @@ function ReportActionItemMessageEdit(props) {
                 });
                 return prevDraft;
             });
+
+            // Scroll content of textInputRef to bottom
+            textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
         }
 
         return () => {
