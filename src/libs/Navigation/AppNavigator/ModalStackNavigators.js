@@ -223,6 +223,11 @@ const SignInModalStackNavigator = createModalStackNavigator({
     SignIn_Root: () => require('../../../pages/signin/SignInModal').default,
 });
 
+const ShareModalStackNavigator = createModalStackNavigator({
+    Share_Root: () => require('../../../pages/SharePage').default,
+    Share_Message: () => require('../../../pages/ShareMessagePage').default,
+});
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -246,6 +251,7 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    ShareModalStackNavigator,
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
 };

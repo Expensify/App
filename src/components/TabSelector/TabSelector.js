@@ -48,6 +48,8 @@ const getIconAndTitle = (route, translate) => {
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
         case CONST.TAB.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance')};
+        case CONST.TAB.SHARE:
+            return {icon: Expensicons.UploadAlt, title: translate('common.share')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

@@ -25,6 +25,7 @@ import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
+import Share from './libs/Share';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
@@ -66,6 +67,7 @@ function App() {
                     ThemeProvider,
                     ThemeStylesProvider,
                     SidebarNavigationContextProvider,
+                    Share.Provider,
                 ]}
             >
                 <CustomStatusBar />

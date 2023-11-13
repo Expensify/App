@@ -422,6 +422,18 @@ export default {
                             SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
+                    Share: {
+                        screens: {
+                            Share_Root: {
+                                path: ROUTES.SHARE,
+                                exact: true,
+                            },
+                            Share_Message: {
+                                path: ROUTES.SHARE_MESSAGE,
+                                exact: true,
+                            },
+                        },
+                    },
                 },
             },
         },

@@ -1090,6 +1090,7 @@ export default {
         createChat: 'Create chat',
         createGroup: 'Create group',
         addToGroup: 'Add to group',
+        shareToExpensify: 'Share to Expensify',
     },
     yearPickerPage: {
         year: 'Year',

@@ -127,6 +127,9 @@ export default {
     NEW_CHAT: 'new/chat',
     NEW_ROOM: 'new/room',
 
+    SHARE: 'share',
+    SHARE_MESSAGE: 'share/message',
+
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
