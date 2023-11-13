@@ -22,6 +22,7 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Share from '@libs/Share'
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -70,6 +71,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
+
+    const share = Share.useShareData();
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -162,6 +165,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * @param {Object} option
      */
     function createChat(option) {
+        if (share) {
+            Report.navigateToAndOpenShare([option.login]);
+            return;
+        }
         Report.navigateToAndOpenReport([option.login]);
     }
 
@@ -172,6 +179,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const createGroup = () => {
         const logins = _.pluck(selectedOptions, 'login');
         if (logins.length < 1) {
+            return;
+        }
+        if (share) {
+            Report.navigateToAndOpenShare(logins);
             return;
         }
         Report.navigateToAndOpenReport(logins);
