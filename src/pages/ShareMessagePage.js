@@ -2,7 +2,6 @@ import {useState} from 'react';
 import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AttachmentView from '@components/Attachments/AttachmentView';
