@@ -1352,11 +1352,6 @@ const CONST = {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
 
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        get MENTION_REPLACER() {
-            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
-        },
-
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
         ROUTES: {
@@ -1371,10 +1366,6 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
-
-        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {

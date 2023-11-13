@@ -1,8 +1,10 @@
 import React, {forwardRef} from 'react';
-import {SectionList} from 'react-native';
+import {SectionList as RNSectionList} from 'react-native';
+import ForwardedSectionList from './types';
 
-const SectionListWithRef = forwardRef((props, ref) => (
-    <SectionList
+// eslint-disable-next-line react/function-component-definition
+const SectionListWithRef: ForwardedSectionList = (props, ref) => (
+    <RNSectionList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
@@ -11,8 +13,8 @@ const SectionListWithRef = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         removeClippedSubviews
     />
-));
+);
 
 SectionListWithRef.displayName = 'SectionListWithRef';
 
-export default SectionListWithRef;
+export default forwardRef(SectionListWithRef);
