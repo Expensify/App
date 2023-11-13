@@ -1,5 +1,5 @@
-import React, {ForwardedRef } from 'react';
-import {View} from 'react-native';
+import React, {ForwardedRef} from 'react';
+import {PressableStateCallbackType, View} from 'react-native';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -23,12 +23,12 @@ type BaseMiniContextMenuItemProps = {
     /**
      * The children to display within the menu item
      */
-    children: React.ReactNode | ((state: unknown) => React.ReactNode);
+    children: React.ReactNode | ((state: PressableStateCallbackType) => React.ReactNode);
 
     /**
      * Whether the button should be in the active state
      */
-    isDelayButtonStateComplete: boolean,
+    isDelayButtonStateComplete: boolean;
 };
 
 /**
@@ -37,23 +37,26 @@ type BaseMiniContextMenuItemProps = {
  */
 function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true}: BaseMiniContextMenuItemProps, ref: ForwardedRef<View>) {
     return (
-        <Tooltip text={tooltipText} shouldRender>
+        <Tooltip
+            text={tooltipText}
+            shouldRender
+        >
             <PressableWithoutFeedback
                 ref={ref}
                 onPress={onPress}
-                onMouseDown={(e) => {
+                onMouseDown={(event) => {
                     if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
                         DomUtils?.getActiveElement()?.blur();
                         return;
                     }
 
                     // Allow text input blur on right click
-                    if (!e || e.button === 2) {
+                    if (!event || event.button === 2) {
                         return;
                     }
 
                     // Prevent text input blur on left click
-                    e.preventDefault();
+                    event.preventDefault();
                 }}
                 accessibilityLabel={tooltipText}
                 style={({hovered, pressed}) => [
