@@ -1,11 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -37,14 +35,22 @@ const defaultProps = {
     canDismiss: true,
 };
 
-function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
+type MessagesRowProps = {
+    messages: Record<string, string>;
+    type: string;
+    onClose: () => void;
+    containerStyles: StyleProp<ViewStyle>;
+    canDismiss: boolean;
+};
+
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles = [], canDismiss = true}: MessagesRowProps) {
     const {translate} = useLocalize();
-    if (_.isEmpty(messages)) {
+    if (Object.keys(messages).length === 0) {
         return null;
     }
 
     return (
-        <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, containerStyles)}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
                 style={[styles.flex1]}
                 messages={messages}
