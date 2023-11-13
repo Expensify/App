@@ -294,7 +294,8 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(shouldUseNarrowLayout, windowWidth, displayAmount.length, participantAvatars.length),
+                                            props.isBillSplit &&
+                                                StyleUtils.getAmountFontSizeAndLineHeight(shouldUseNarrowLayout, windowWidth, displayAmount.length, participantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
