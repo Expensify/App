@@ -77,7 +77,7 @@ function SignInPageContent(props) {
                     </View>
                     {props.shouldShowSmallScreen ? (
                         <View style={[styles.mt8]}>
-                            <SignInHeroImage />
+                            <SignInHeroImage shouldShowSmallScreen />
                         </View>
                     ) : null}
                 </View>
