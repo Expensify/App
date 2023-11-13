@@ -6,6 +6,7 @@ import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
+import usePrevious from '@hooks/usePrevious';
 import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -56,6 +57,8 @@ export default function (WrappedComponent) {
         const {route, report, network, session} = props;
         const accountID = route.params.accountID;
         const isPrivateNotesFetchTriggered = !_.isUndefined(report.isLoadingPrivateNotes);
+        const prevIsOffline = usePrevious(network.isOffline);
+        const isReconnecting = prevIsOffline && !network.isOffline;
 
         useEffect(() => {
             // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
@@ -67,7 +70,7 @@ export default function (WrappedComponent) {
             // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
         }, [report.reportID, network.isOffline, isPrivateNotesFetchTriggered]);
 
-        const isPrivateNotesEmpty = accountID ? _.isEmpty(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
+        const isPrivateNotesEmpty = accountID ? _.has(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
         const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchTriggered || (isPrivateNotesEmpty && report.isLoadingPrivateNotes);
 
         // eslint-disable-next-line rulesdir/no-negated-variables
@@ -78,13 +81,13 @@ export default function (WrappedComponent) {
             }
 
             // Don't show not found view if the notes are still loading, or if the notes are non-empty.
-            if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesEmpty) {
+            if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesEmpty || isReconnecting) {
                 return false;
             }
 
             // As notes being empty and not loading is a valid case, show not found view only in offline mode.
             return network.isOffline;
-        }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator]);
+        }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator, isReconnecting]);
 
         if (shouldShowFullScreenLoadingIndicator) {
             return <FullScreenLoadingIndicator />;
