@@ -47,6 +47,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}) {
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}
                 shouldSaveDraft
+                wrapperStyle={[styles.ph0, styles.mt4]}
             />
         </Form>
     );

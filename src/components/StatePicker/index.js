@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import StateSelectorModal from './StateSelectorModal';
 
@@ -25,6 +26,9 @@ const propTypes = {
 
     /** Label to display on field */
     label: PropTypes.string,
+
+    /** Any additional styles to apply */
+    wrapperStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -33,9 +37,10 @@ const defaultProps = {
     errorText: '',
     onInputChange: () => {},
     label: undefined,
+    wrapperStyle: {},
 };
 
-function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
+function StatePicker({value, errorText, onInputChange, forwardedRef, label, wrapperStyle}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
@@ -67,6 +72,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
                 description={label || translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
+                wrapperStyle={wrapperStyle}
             />
             <View style={styles.ml5}>
                 <FormHelpMessage message={errorText} />

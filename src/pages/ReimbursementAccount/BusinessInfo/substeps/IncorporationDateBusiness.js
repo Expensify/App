@@ -64,7 +64,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={companyIncorporationDateKey}
                 label={translate('businessInfoStep.incorporationDate')}
-                containerStyles={[styles.mt6]}
+                containerStyles={[styles.mt4]}
                 placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft
