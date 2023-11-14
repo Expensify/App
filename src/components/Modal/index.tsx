@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
 
-function Modal({fullscreen, onModalHide, type, onModalShow, children, ...rest}: BaseModalProps) {
+function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, ...rest}: BaseModalProps) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
     const setStatusBarColor = (color = themeColors.appBG) => {
