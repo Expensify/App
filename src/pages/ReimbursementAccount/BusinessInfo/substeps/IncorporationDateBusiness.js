@@ -68,6 +68,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
                 placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft
+                maxDate={new Date()}
             />
         </FormProvider>
     );
