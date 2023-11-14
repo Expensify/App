@@ -78,7 +78,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return value.trim().length > 0;
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {
@@ -355,6 +355,25 @@ function isNumeric(value: string): boolean {
  */
 function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
+}
+
+type ValuesType = Record<string, unknown>;
+
+/**
+ * This function is used to remove invisible characters from strings before validation and submission.
+ */
+function prepareValues(values: ValuesType): ValuesType {
+    const trimmedStringValues: ValuesType = {};
+
+    for (const [inputID, inputValue] of Object.entries(values)) {
+        if (typeof inputValue === 'string') {
+            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
+        } else {
+            trimmedStringValues[inputID] = inputValue;
+        }
+    }
+
+    return trimmedStringValues;
 }
 
 export {
