@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import Image from '@components/Image';
@@ -25,20 +25,11 @@ const propTypes = {
 
     isActive: PropTypes.bool,
 
+    /** Width of the canvas */
     canvasWidth: PropTypes.number.isRequired,
 
+    /** Height of the canvas */
     canvasHeight: PropTypes.number.isRequired,
-
-    // imageDimensions: PropTypes.shape({
-    //     width: PropTypes.number,
-    //     height: PropTypes.number,
-    //     scaledWidth: PropTypes.number,
-    //     scaledHeight: PropTypes.number,
-    //     scaleX: PropTypes.number,
-    //     scaleY: PropTypes.number,
-    // }),
-
-    // setImageDimensions: PropTypes.func.isRequired,
 
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -55,8 +46,8 @@ const defaultProps = {
 function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive, canvasWidth, canvasHeight}) {
     const [isActive, setIsActive] = useState(initialIsActive);
 
-    const imageDimensions = useMemo(() => cachedDimensions.get(source), [source]);
-    const setImageDimensions = useCallback((newDimensions) => cachedDimensions.set(source, newDimensions), [source]);
+    const imageDimensions = cachedDimensions.get(source);
+    const setImageDimensions = (newDimensions) => cachedDimensions.set(source, newDimensions);
 
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
@@ -155,16 +146,9 @@ function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, st
                         source={{uri: source}}
                         isAuthTokenRequired={isAuthTokenRequired}
                         onLoadStart={() => {
-                            setIsImageLoading(true);
-                            if (isImageLoaded.current) {
-                                return;
-                            }
                             setIsFallbackLoading(true);
                         }}
                         onLoadEnd={() => {
-                            if (isImageLoaded.current) {
-                                return;
-                            }
                             setIsFallbackLoading(false);
                         }}
                         onLoad={(evt) => {
