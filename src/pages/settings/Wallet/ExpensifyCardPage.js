@@ -60,6 +60,7 @@ function ExpensifyCardPage({
 
     const [isLoading, setIsLoading] = useState(false);
     const [details, setDetails] = useState({});
+    const [cardDetailsError, setCardDetailsError] = useState('');
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -70,16 +71,21 @@ function ExpensifyCardPage({
     const handleRevealDetails = () => {
         setIsLoading(true);
         // We can't store the response in Onyx for security reasons.
-        // That is this action is handled manually and the response is stored in a local state
-        // Hence the eslint disable here.
+        // That is why this action is handled manually and the response is stored in a local state
+        // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(virtualCard.cardID)
-            .then(setDetails)
+            .then((value) => {
+                setDetails(value);
+                setCardDetailsError('');
+            })
+            .catch(setCardDetailsError)
             .finally(() => setIsLoading(false));
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
 
     return (
         <ScreenWrapper
@@ -108,32 +114,6 @@ function ExpensifyCardPage({
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                {details.pan ? (
-                                    <CardDetails
-                                        pan={details.pan}
-                                        expiration={details.expiration}
-                                        cvv={details.cvv}
-                                        privatePersonalDetails={{address: details.address}}
-                                        domain={domain}
-                                    />
-                                ) : (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.virtualCardNumber')}
-                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent
-                                        rightComponent={
-                                            <Button
-                                                medium
-                                                text={translate('cardPage.cardDetails.revealDetails')}
-                                                onPress={handleRevealDetails}
-                                                isDisabled={isLoading || isOffline}
-                                                isLoading={isLoading}
-                                            />
-                                        }
-                                    />
-                                )}
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
@@ -169,22 +149,29 @@ function ExpensifyCardPage({
                                                 domain={domain}
                                             />
                                         ) : (
-                                            <MenuItemWithTopDescription
-                                                description={translate('cardPage.virtualCardNumber')}
-                                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                                interactive={false}
-                                                titleStyle={styles.walletCardNumber}
-                                                shouldShowRightComponent
-                                                rightComponent={
-                                                    <Button
-                                                        medium
-                                                        text={translate('cardPage.cardDetails.revealDetails')}
-                                                        onPress={handleRevealDetails}
-                                                        isDisabled={isLoading || isOffline}
-                                                        isLoading={isLoading}
-                                                    />
-                                                }
-                                            />
+                                            <>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('cardPage.virtualCardNumber')}
+                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    interactive={false}
+                                                    titleStyle={styles.walletCardNumber}
+                                                    shouldShowRightComponent
+                                                    rightComponent={
+                                                        <Button
+                                                            medium
+                                                            text={translate('cardPage.cardDetails.revealDetails')}
+                                                            onPress={handleRevealDetails}
+                                                            isDisabled={isLoading || isOffline}
+                                                            isLoading={isLoading}
+                                                        />
+                                                    }
+                                                />
+                                                <DotIndicatorMessage
+                                                    messages={cardDetailsErrorObject}
+                                                    type="error"
+                                                    style={[styles.ph5]}
+                                                />
+                                            </>
                                         )}
                                         <MenuItemWithTopDescription
                                             title={translate('cardPage.reportFraud')}

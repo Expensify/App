@@ -101,12 +101,15 @@ function closeSidebarOnClickOutside(event) {
 
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
+    document.getElementById('gsc-i-id1').focus();
 
     // Make body unscrollable
     const yAxis = document.documentElement.style.getPropertyValue('y-axis');
     const body = document.body;
     body.style.position = 'fixed';
     body.style.top = `-${yAxis}`;
+
+    document.getElementById('gsc-i-id1').focus();
 
     // Close the sidebar when clicking sidebar layer (outside the sidebar search)
     const sidebarLayer = document.getElementById('sidebar-layer');
