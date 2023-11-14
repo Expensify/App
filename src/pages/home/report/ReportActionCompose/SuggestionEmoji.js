@@ -182,9 +182,10 @@ function SuggestionEmoji({
     );
 
     useEffect(() => {
-        if (isComposerFocused) {
-            calculateEmojiSuggestion(selection.end);
+        if (!isComposerFocused) {
+            return;
         }
+        calculateEmojiSuggestion(selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
