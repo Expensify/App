@@ -321,6 +321,13 @@ function buildOnyxDataForMoneyRequest(
                 [iouAction.reportActionID]: iouAction,
             },
         },
+
+        // Remove the temporary transaction used during the creation flow
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
+        },
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
@@ -378,12 +385,6 @@ function buildOnyxDataForMoneyRequest(
             value: {pendingAction: null},
         },
 
-        // Remove the temporary transaction used during the creation flow
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -465,6 +466,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
+
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
