@@ -2880,6 +2880,8 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    TAGS_MAX_LENGTH: 500,
 } as const;
 
 export default CONST;
