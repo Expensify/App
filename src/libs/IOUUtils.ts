@@ -22,11 +22,12 @@ function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.R
     }
 }
 
+type SuccessCallback = (file?: File) => void;
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string,
     receiptPath: string,
-    onSuccess: Function,
+    onSuccess: SuccessCallback,
     requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     transactionID: string,
