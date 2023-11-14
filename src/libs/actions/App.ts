@@ -455,6 +455,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
         timezone: JSON.stringify(newTimezoneData),
     };
 
+    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
     if (typeof currentUserAccountID === 'number') {
         API.write('OpenProfile', parameters, {
             optimisticData: [
