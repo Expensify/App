@@ -7,7 +7,7 @@ import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlocking
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Lottie from './Lottie';
-import * as LottieAnimations from './LottieAnimations';
+import LottieAnimations from './LottieAnimations';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
@@ -39,6 +39,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             autoPlay
                             loop
                             style={styles.loadingVBAAnimation}
+                            webStyle={styles.loadingVBAAnimationWeb}
                         />
                         <View style={[styles.ph6]}>
                             <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>

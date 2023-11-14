@@ -9,6 +9,7 @@ import {Report} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -389,5 +390,6 @@ export {
     isNumeric,
     isValidAccountRoute,
     isValidRecoveryCode,
+    prepareValues,
     isValidName,
 };

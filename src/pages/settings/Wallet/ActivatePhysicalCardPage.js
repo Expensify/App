@@ -7,7 +7,7 @@ import _ from 'underscore';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';

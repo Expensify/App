@@ -40,8 +40,8 @@ const propTypes = {
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
-    /** Optional keyboard type for the input */
-    keyboardType: PropTypes.string,
+    /** Optional input mode precedence over keyboardType */
+    inputMode: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -144,7 +144,7 @@ const defaultProps = {
     onSelectRow: undefined,
     textInputLabel: '',
     placeholderText: '',
-    keyboardType: 'default',
+    inputMode: CONST.INPUT_MODE.TEXT,
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
