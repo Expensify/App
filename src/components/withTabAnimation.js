@@ -1,8 +1,8 @@
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import _ from 'underscore';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
@@ -35,7 +35,7 @@ export default function (WrappedComponent) {
 
     // Return a component with tab animation prop if this component is in tab navigator, otherwise return itself
     function WithTabAnimation({forwardedRef, ...rest}) {
-        if (props.isInTabNavigator) {
+        if (rest.isInTabNavigator) {
             return (
                 <WrappedComponentWithTabAnimation
                     // eslint-disable-next-line react/jsx-props-no-spreading
