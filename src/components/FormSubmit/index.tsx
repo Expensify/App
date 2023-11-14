@@ -1,4 +1,4 @@
-import React, {KeyboardEvent as ReactKeyboardEvent, useEffect} from 'react';
+import React, {KeyboardEvent, useEffect} from 'react';
 import {View} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
@@ -9,7 +9,7 @@ function FormSubmit({children, onSubmit, style}: FormSubmitProps, ref: FormSubmi
     /**
      * Calls the submit callback when ENTER is pressed on a form element.
      */
-    const submitForm = (event: ReactKeyboardEvent) => {
+    const submitForm = (event: KeyboardEvent) => {
         // ENTER is pressed with modifier key or during text composition, do not submit the form
         if (event.shiftKey || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || isEnterWhileComposition(event)) {
             return;
