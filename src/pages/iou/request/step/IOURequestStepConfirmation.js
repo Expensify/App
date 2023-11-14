@@ -110,8 +110,8 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID), true);
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep();
-    }, [transaction, iouType, transactionID, reportID]);
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    }, [transaction, iouType, requestType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.SCAN, transactionID, reportID));
