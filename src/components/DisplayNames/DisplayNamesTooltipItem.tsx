@@ -1,50 +1,45 @@
-import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {RefObject, useCallback} from 'react';
+import {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import {AvatarSource} from '@libs/UserUtils';
 import styles from '@styles/styles';
 
-const propTypes = {
-    index: PropTypes.number,
+type DisplayNamesTooltipItemProps = {
+    index?: number;
 
     /** The full title of the DisplayNames component (not split up) */
-    getTooltipShiftX: PropTypes.func,
+    getTooltipShiftX?: (index: number) => number | undefined;
 
     /** The Account ID for the tooltip */
-    accountID: PropTypes.number,
+    accountID?: number;
 
     /** The name to display in bold */
-    displayName: PropTypes.string,
+    displayName?: string;
 
     /** The login for the tooltip fallback */
-    login: PropTypes.string,
+    login?: string;
 
     /** The avatar for the tooltip fallback */
-    avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    avatar?: AvatarSource;
 
     /** Arbitrary styles of the displayName text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
+    textStyles?: StyleProp<TextStyle>;
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
-    childRefs: PropTypes.shape({
-        // eslint-disable-next-line react/forbid-prop-types
-        current: PropTypes.arrayOf(PropTypes.object),
-    }),
+    childRefs: RefObject<RNText[]>;
 };
 
-const defaultProps = {
-    index: 0,
-    getTooltipShiftX: () => {},
-    accountID: 0,
-    displayName: '',
-    login: '',
-    avatar: '',
-    textStyles: [],
-    childRefs: {current: []},
-};
-
-function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, login, displayName, textStyles, childRefs}) {
+function DisplayNamesTooltipItem({
+    index = 0,
+    getTooltipShiftX = () => undefined,
+    accountID = 0,
+    avatar = '',
+    login = '',
+    displayName = '',
+    textStyles = [],
+    childRefs = {current: []},
+}: DisplayNamesTooltipItemProps) {
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (
@@ -62,9 +57,14 @@ function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, lo
             <Text
                 eslint-disable-next-line
                 no-param-reassign
-                // eslint-disable-next-line no-param-reassign
-                ref={(el) => (childRefs.current[index] = el)}
-                style={[...textStyles, styles.pre]}
+                ref={(el) => {
+                    if (!childRefs.current?.[index] || !el) {
+                        return;
+                    }
+                    // eslint-disable-next-line no-param-reassign
+                    childRefs.current[index] = el;
+                }}
+                style={[textStyles, styles.pre]}
             >
                 {displayName}
             </Text>
@@ -72,8 +72,6 @@ function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, lo
     );
 }
 
-DisplayNamesTooltipItem.propTypes = propTypes;
-DisplayNamesTooltipItem.defaultProps = defaultProps;
 DisplayNamesTooltipItem.displayName = 'DisplayNamesTooltipItem';
 
 export default DisplayNamesTooltipItem;
