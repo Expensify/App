@@ -86,7 +86,6 @@ function closeAccount(message: string) {
 
 /**
  * Resends a validation link to a given login
- * @param login
  */
 function resendValidateCode(login: string) {
     Session.resendValidateCode(login);
@@ -104,6 +103,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
                         validateLogin: null,
@@ -121,6 +121,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validateCodeSent: true,
                     pendingFields: {
                         validateCodeSent: null,
                     },
@@ -128,12 +129,14 @@ function requestContactMethodValidateCode(contactMethod: string) {
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
@@ -265,7 +268,9 @@ function clearContactMethodErrors(contactMethod: string, fieldName: string) {
  */
 function resetContactMethodValidateCodeSentState(contactMethod: string) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-        [contactMethod]: {},
+        [contactMethod]: {
+            validateCodeSent: false,
+        },
     });
 }
 
@@ -408,6 +413,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {isLoading: false},
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -512,7 +518,7 @@ function subscribeToUserEvents() {
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxUpdate[]) =>
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) =>
         SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (!currentUserAccountID) {
@@ -783,26 +789,28 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(status: string) {
+function updateCustomStatus(status: CustomStatus) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    status,
+                    status: status.text,
                 },
             },
         },
     ];
 
     type UpdateStatusParam = {
-        status: string;
+        text: string;
+        emojiCode: string;
+        clearAfter?: string;
     };
 
-    const params: UpdateStatusParam = {status};
+    const parameters: UpdateStatusParam = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
 
-    API.write('UpdateStatus', params, {
+    API.write('UpdateStatus', parameters, {
         optimisticData,
     });
 }
