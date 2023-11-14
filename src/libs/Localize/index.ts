@@ -138,3 +138,4 @@ function getDevicePreferredLocale(): string {
 }
 
 export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
+export type {PhraseParameters, Phrase};
