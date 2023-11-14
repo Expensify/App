@@ -22,7 +22,7 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
+    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -88,6 +88,7 @@ function DotIndicatorMessage(props) {
                 {_.map(sortedMessages, (message, i) =>
                     isReceiptError(message) ? (
                         <PressableWithoutFeedback
+                            key={i}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             onPress={() => {
                                 fileDownload(message.source, message.filename);

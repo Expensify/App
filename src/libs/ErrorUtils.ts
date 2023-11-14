@@ -43,7 +43,7 @@ function getMicroSecondOnyxError(error: string): Record<number, string> {
 }
 
 /**
- * Method used to get an error object with microsecond as the key and am object as the value.
+ * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
 function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
