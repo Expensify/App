@@ -15,6 +15,10 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
+// This promise is used to ensure pusher events are always processed in the order they are received,
+// even when such events are received over multiple separate pusher updates.
+let pusherEventsPromise = Promise.resolve();
+
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -44,21 +48,18 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    return updates
-        .reduce(
-            (promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)),
-            Promise.resolve().then(() => {
-                console.debug('[OnyxUpdateManager] Applying pusher update');
-            }),
-        )
+    pusherEventsPromise = pusherEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying pusher update');
+    });
+
+    pusherEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             console.debug('[OnyxUpdateManager] Done applying Pusher update');
         });
-}
 
-// This promise is used to ensure pusher events are always processed in the order they are received,
-// even when such events are received over multiple separate pusher updates.
-let applyPromise: Promise<void | Response> = Promise.resolve();
+    return pusherEventsPromise;
+}
 
 /**
  * @param [updateParams.request] Exists if updateParams.type === 'https'
@@ -68,28 +69,21 @@ let applyPromise: Promise<void | Response> = Promise.resolve();
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
-    applyPromise = applyPromise.then(() => {
-        console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
+    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
 
-        if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-            console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
-            return Promise.resolve();
-        }
-        if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
-            return Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
-        }
-
+    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
+        console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
         return Promise.resolve();
-    });
-
+    }
+    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+    }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        applyPromise = applyPromise.then(() => applyHTTPSOnyxUpdates(request, response));
+        return applyHTTPSOnyxUpdates(request, response);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        applyPromise = applyPromise.then(() => applyPusherOnyxUpdates(updates));
+        return applyPusherOnyxUpdates(updates);
     }
-
-    return applyPromise;
 }
 
 /**
