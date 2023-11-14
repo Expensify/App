@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -45,7 +46,7 @@ function WorkSpaceSettingsNamePage({policy, isLoadingReportData}) {
         const errors = {};
         const name = values.name.trim();
 
-        if (!name || !name.length) {
+        if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
         } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
@@ -58,11 +59,14 @@ function WorkSpaceSettingsNamePage({policy, isLoadingReportData}) {
 
     const submit = useCallback(
         (values) => {
+            if (policy.isPolicyUpdating) {
+                return;
+            }
             Policy.updateGeneralSettings(policy.id, values.name, policy.outputCurrency);
             Keyboard.dismiss();
             Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id));
         },
-        [policy],
+        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
     );
 
     useFocusEffect(

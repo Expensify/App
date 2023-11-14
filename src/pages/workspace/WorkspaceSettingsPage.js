@@ -17,6 +17,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
