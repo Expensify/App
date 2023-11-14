@@ -1,7 +1,7 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Log from '../Log';
-import ONYXKEYS from '../../ONYXKEYS';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * @returns {Promise<Object>}

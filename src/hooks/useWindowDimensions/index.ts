@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
-import variables from '../../styles/variables';
+import variables from '@styles/variables';
 import WindowDimensions from './types';
 
 /**

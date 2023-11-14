@@ -1,10 +1,10 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -17,12 +17,12 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
+ * @param {Object | Null} passedPersonalDetails
+ * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
  * @returns {String}
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
+function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');

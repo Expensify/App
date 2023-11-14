@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import PushNotification from '.';
-import ROUTES from '../../../ROUTES';
-import Log from '../../Log';
-import Navigation from '../../Navigation/Navigation';
-import Visibility from '../../Visibility';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import Visibility from '@libs/Visibility';
+import ROUTES from '@src/ROUTES';
 import backgroundRefresh from './backgroundRefresh';
+import PushNotification from './index';
 
 /**
  * Setup reportComment push notification callbacks.

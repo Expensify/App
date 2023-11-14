@@ -1,44 +1,44 @@
-import React, {useState, useCallback, useRef, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
-import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Animated, Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import Modal from './Modal';
-import AttachmentView from './Attachments/AttachmentView';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import compose from '@libs/compose';
+import fileDownload from '@libs/fileDownload';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import useNativeDriver from '@libs/useNativeDriver';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
-import useLocalize from '../hooks/useLocalize';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as FileUtils from '../libs/fileDownload/FileUtils';
-import themeColors from '../styles/themes/default';
-import compose from '../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import AttachmentView from './Attachments/AttachmentView';
 import Button from './Button';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import fileDownload from '../libs/fileDownload';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
-import SafeAreaConsumer from './SafeAreaConsumer';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
-import reportPropTypes from '../pages/reportPropTypes';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useNativeDriver from '../libs/useNativeDriver';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import * as Policy from '../libs/actions/Policy';
-import useNetwork from '../hooks/useNetwork';
-import * as IOU from '../libs/actions/IOU';
+import Modal from './Modal';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import transactionPropTypes from './transactionPropTypes';
-import * as TransactionUtils from '../libs/TransactionUtils';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -117,14 +117,14 @@ function AttachmentModal(props) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
-    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
+    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
+    const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
     const [file, setFile] = useState(
@@ -136,6 +136,10 @@ function AttachmentModal(props) {
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        setFile(props.originalFileName ? {name: props.originalFileName} : undefined);
+    }, [props.originalFileName]);
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -169,13 +173,13 @@ function AttachmentModal(props) {
     );
 
     const setDownloadButtonVisibility = useCallback(
-        (shouldShowButton) => {
-            if (shouldShowDownloadButton === shouldShowButton) {
+        (isButtonVisible) => {
+            if (isDownloadButtonReadyToBeShown === isButtonVisible) {
                 return;
             }
-            setShouldShowDownloadButton(shouldShowButton);
+            setIsDownloadButtonReadyToBeShown(isButtonVisible);
         },
-        [shouldShowDownloadButton],
+        [isDownloadButtonReadyToBeShown],
     );
 
     /**
@@ -187,7 +191,7 @@ function AttachmentModal(props) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, file.name);
+        fileDownload(sourceURL, lodashGet(file, 'name', ''));
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -387,7 +391,18 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+
+    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
+    // isAttachmentReceipt will be null until its certain what the file is, in which case it will then be true|false.
+    let headerTitle = props.headerTitle;
+    let shouldShowDownloadButton = false;
+    let shouldShowThreeDotsButton = false;
+    if (!_.isNull(isAttachmentReceipt)) {
+        headerTitle = translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment');
+        shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !isAttachmentReceipt && !isOffline;
+        shouldShowThreeDotsButton = isAttachmentReceipt && isModalOpen;
+    }
 
     return (
         <>
@@ -413,15 +428,15 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={headerTitle}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
+                    shouldShowDownloadButton={shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt && isModalOpen}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay

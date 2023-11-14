@@ -1,8 +1,8 @@
 import React from 'react';
-import SubscriptAvatar from '../components/SubscriptAvatar';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import CONST from '../CONST';
+import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
