@@ -98,13 +98,21 @@ function IOURequestStepDistance({
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
-    const navigateToConfirmationStep = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
-    }, [iouType, reportID, transactionID]);
+    const navigateToConfirmationStep = useCallback(
+        (goBack = false) => {
+            if (goBack) {
+                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        },
+        [iouType, reportID, transactionID],
+    );
 
     const navigateBack = () => {
         if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep();
+            navigateToConfirmationStep(true);
             return;
         }
 
@@ -121,7 +129,7 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useCallback(() => {
         if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep();
+            navigateToConfirmationStep(true);
             return;
         }
 

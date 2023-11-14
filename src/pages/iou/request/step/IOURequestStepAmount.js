@@ -62,9 +62,9 @@ function IOURequestStepAmount({
         }, []),
     );
 
-    const navigateToConfirmationStep = () => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
-    };
+    const navigateToConfirmationStep = useCallback(() => {
+        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+    }, [iouType, reportID, transactionID]);
 
     const navigateBack = () => {
         if (isUserComingFromConfirmationStep) {

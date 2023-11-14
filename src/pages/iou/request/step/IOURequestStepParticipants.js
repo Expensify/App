@@ -70,19 +70,12 @@ function IOURequestStepParticipants({
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
         Navigation.navigate(
             ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID),
-            true,
         );
     };
 
-    const navigateBack = () => {
-        // The user needs to be taken back to the same tab that the request started on
-        const routesForRequestType = {
-            [CONST.IOU.REQUEST_TYPE.DISTANCE]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE,
-            [CONST.IOU.REQUEST_TYPE.MANUAL]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL,
-            [CONST.IOU.REQUEST_TYPE.SCAN]: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN,
-        };
-        Navigation.goBack(routesForRequestType[iouRequestType].getRoute(iouType, transactionID, reportID));
-    };
+    const navigateBack = useCallback(() => {
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
+    }, [iouRequestType, iouType, transactionID, reportID]);
 
     return (
         <StepScreenWrapper
