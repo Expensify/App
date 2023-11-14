@@ -3,6 +3,7 @@ import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
+import {InteractionManager} from 'react-native';
 
 const propTypes = {
     /** Prop to disable freeze */
@@ -35,7 +36,7 @@ function FreezeWrapper(props) {
             // we don't want to freeze the screen if it's the previous screen because the freeze placeholder
             // would be visible at the beginning of the back animation then
             if (navigation.getState().index - screenIndexRef.current > 1) {
-                setIsScreenBlurred(true);
+                InteractionManager.runAfterInteractions(() => setIsScreenBlurred(true));
             } else {
                 setIsScreenBlurred(false);
             }

@@ -1,4 +1,4 @@
-import {InteractionManager, TextInput} from 'react-native';
+import {TextInput} from 'react-native';
 import * as EmojiPickerAction from './actions/EmojiPickerAction';
 import ComposerFocusManager from './ComposerFocusManager';
 
@@ -14,21 +14,19 @@ function focusComposerWithDelay(textInput: TextInput | null): FocusComposerWithD
     return (shouldDelay = false) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
-                return;
-            }
+        if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
+            return;
+        }
 
-            if (!shouldDelay) {
-                textInput.focus();
+        if (!shouldDelay) {
+            textInput.focus();
+            return;
+        }
+        ComposerFocusManager.isReadyToFocus().then(() => {
+            if (!textInput) {
                 return;
             }
-            ComposerFocusManager.isReadyToFocus().then(() => {
-                if (!textInput) {
-                    return;
-                }
-                textInput.focus();
-            });
+            textInput.focus();
         });
     };
 }

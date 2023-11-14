@@ -76,7 +76,7 @@ function HeaderWithBackButton({
                                 onBackButtonPress();
                             }}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
+                            role="button"
                             accessibilityLabel={translate('common.back')}
                             nativeID={CONST.BACK_BUTTON_NATIVE_ID}
                         >
@@ -119,7 +119,7 @@ function HeaderWithBackButton({
                                     temporarilyDisableDownloadButton(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('common.download')}
                             >
                                 <Icon
@@ -135,7 +135,7 @@ function HeaderWithBackButton({
                                 disabled={shouldDisableGetAssistanceButton}
                                 onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
                                 <Icon
@@ -160,7 +160,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon
