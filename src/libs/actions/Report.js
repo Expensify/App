@@ -1984,7 +1984,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -2003,17 +2002,18 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat(true);
-                return;
-            }
-            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
-                Navigation.isNavigationReady().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const route = ReportUtils.getRouteFromLink(url);
+                if (route === ROUTES.CONCIERGE) {
+                    navigateToConciergeChat(true);
+                    return;
+                }
+                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn();
-                });
-                return;
-            }
-            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    return;
+                }
+                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            });
         });
     });
 }
