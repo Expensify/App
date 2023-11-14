@@ -1,7 +1,5 @@
-// Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import 'moment/locale/es';
 import {AppState, AppStateStatus} from 'react-native';
 import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
@@ -17,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
+import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
@@ -442,7 +441,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
     if (oldTimezoneData?.automatic ?? true) {
         newTimezoneData = {
             automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
         };
     }
 
