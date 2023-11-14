@@ -116,6 +116,11 @@ describe('EmojiTest', () => {
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
     });
 
+    it('will add a space after the last emoji if there is invalid emoji after it', () => {
+        const text = 'Hi :smile::wave:space when :invalidemoji: present';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space when :invalidemoji: present');
+    });
+
     it('will not add a space after the last emoji if there if last emoji is immediately followed by a space', () => {
         const text = 'Hi :smile::wave: space after last emoji';
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
