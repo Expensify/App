@@ -1,10 +1,13 @@
 /**
  * On Android we setup the status bar in native code.
  */
+import type CustomStatusBarType from './types';
 
-export default function CustomStatusBar() {
+// eslint-disable-next-line react/function-component-definition
+const CustomStatusBar: CustomStatusBarType = () =>
     // Prefer to not render the StatusBar component in Android as it can cause
     // issues with edge to edge display. We setup the status bar appearance in
     // MainActivity.java and styles.xml.
-    return null;
-}
+    null;
+
+export default CustomStatusBar;

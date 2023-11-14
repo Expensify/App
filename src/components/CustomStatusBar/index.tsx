@@ -2,8 +2,10 @@ import React, {useEffect} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import themeColors from '@styles/themes/default';
+import type CustomStatusBarType from './types';
 
-function CustomStatusBar() {
+// eslint-disable-next-line react/function-component-definition
+const CustomStatusBar: CustomStatusBarType = () => {
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
             // Set the status bar colour depending on the current route.
@@ -20,7 +22,7 @@ function CustomStatusBar() {
         });
     }, []);
     return <StatusBar />;
-}
+};
 
 CustomStatusBar.displayName = 'CustomStatusBar';
 
