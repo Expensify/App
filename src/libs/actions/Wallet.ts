@@ -16,6 +16,22 @@ type WalletQuestion = {
     answer: string;
 };
 
+type IdentityVerification = {
+    onfidoData: string;
+};
+
+type PersonalDetails = {
+    phoneNumber?: string;
+    legalFirstName?: string;
+    legalLastName?: string;
+    addressStreet?: string;
+    addressCity?: string;
+    addressState?: string;
+    addressZip?: string;
+    dob?: string;
+    ssn?: string;
+};
+
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
  * - The sdkToken is used to initialize the Onfido SDK client
@@ -85,18 +101,6 @@ function setKYCWallSource(source: string, chatReportID = '') {
     Onyx.merge(ONYXKEYS.WALLET_TERMS, {source, chatReportID});
 }
 
-type PersonalDetails = {
-    phoneNumber?: string;
-    legalFirstName?: string;
-    legalLastName?: string;
-    addressStreet?: string;
-    addressCity?: string;
-    addressState?: string;
-    addressZip?: string;
-    dob?: string;
-    ssn?: string;
-};
-
 /**
  * Validates a user's provided details against a series of checks
  */
@@ -161,10 +165,6 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         failureData,
     });
 }
-
-type IdentityVerification = {
-    onfidoData: string;
-};
 
 /**
  * Creates an identity check by calling Onfido's API with data returned from the SDK
