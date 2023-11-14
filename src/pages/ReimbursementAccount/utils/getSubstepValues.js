@@ -4,13 +4,9 @@ import getDefaultValueForReimbursementAccountField from './getDefaultValueForRei
 
 /**
  * Returns values for substep confirmation page
- *
  * @param {Object} inputKeys object that stores substep info keys
- *
  * @param {Object} reimbursementAccountDraft object that stores substep info draft data
- *
  * @param {Object} reimbursementAccount object that stores substep info data
- *
  * @returns {Object}
  */
 function getSubstepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount) {

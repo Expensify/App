@@ -2,9 +2,7 @@ import CONST from '@src/CONST';
 
 /**
  * Returns the initial substep for the Personal Info step based on already existing data
- *
  * @param {Object} data object that stores personal info data
- *
  * @returns {number}
  */
 function getInitialSubstepForPersonalInfo(data) {

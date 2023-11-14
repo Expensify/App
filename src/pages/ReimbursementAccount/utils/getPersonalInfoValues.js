@@ -3,11 +3,8 @@ import CONST from '@src/CONST';
 
 /**
  * Returns values for personal info step
- *
  * @param {Object} reimbursementAccountDraft object that stores personal info draft data
- *
  * @param {Object} reimbursementAccount object that stores personal info data
- *
  * @returns {Object}
  */
 function getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount) {
