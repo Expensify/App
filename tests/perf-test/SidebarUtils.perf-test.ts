@@ -6,8 +6,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction from '@src/types/onyx/ReportAction';
+import createCollection from '../utils/collections/createCollection';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.setTimeout(120000);
@@ -24,60 +27,60 @@ afterEach(() => {
     Onyx.clear();
 });
 
-const getMockedReportsMap = (length = 100) => {
-    const mockReports = Array.from({length}, (v, i) => {
-        const reportID = i + 1;
-        const participants = [1, 2];
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        const report = LHNTestUtils.getFakeReportWithPolicy(participants, 1, true);
+const getMockedReports = (length = 500) =>
+    createCollection<Report>(
+        (item) => `report_${item.reportID}`,
+        (index) => createRandomReport(index),
+        length,
+    ) as Partial<Report>;
 
-        return {[reportKey]: report};
-    });
+const reportActions = createCollection<ReportAction>(
+    (item) => `${item.reportActionID}`,
+    (index) => createRandomReportAction(index),
+);
 
-    return Object.assign({}, ...mockReports) as Partial<Report>;
-};
-
-const getMockedPoliciesMap = (length = 100) => {
-    const mockPolicies = Array.from({length}, (v, i) => {
-        const policyID = i + 1;
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-        const policy = LHNTestUtils.getFakePolicy();
-
-        return {[policyKey]: policy};
-    });
-
-    return Object.assign({}, ...mockPolicies) as Record<string, Policy>;
-};
-
-const mockedResponseMap = getMockedReportsMap(10000);
+const mockedResponseMap = getMockedReports(10000);
 
 test('getOptionData on 10k reports', async () => {
-    const report = LHNTestUtils.getFakeReportWithPolicy([1, 2], 1, true) as Report;
-    const reportActions = ReportTestUtils.getMockedReportActionsMap();
+    const report = createRandomReport(1);
     const personalDetails = LHNTestUtils.fakePersonalDetails;
     const preferredLocale = 'en';
-    const policy = LHNTestUtils.getFakePolicy() as Policy;
-    const reportAction = ReportTestUtils.getFakeReportAction(1, 'ADDCOMMENT') as unknown as ReportAction;
+    const policy = createRandomPolicy(1);
+    const parentReportAction = createRandomReportAction(1);
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, reportAction), {runs: 20});
+    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs: 20});
 });
 
 test('getOrderedReportIDs on 10k reports', async () => {
     const currentReportId = '1';
-    const allReports = getMockedReportsMap() as Record<string, Report>;
+    const allReports = getMockedReports() as Record<string, Report>;
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
-    const policies = getMockedPoliciesMap();
-    const reportActions = ReportTestUtils.getMockedReportActionsMap();
+
+    const policies = createCollection<Policy>(
+        (item) => `policy_${item.id}`,
+        (index) => createRandomPolicy(index),
+    );
+
+    const allReportActions = Object.values(reportActions).map((reportAction) => ({
+        errors: reportAction.errors ?? [],
+        message: [
+            {
+                moderationDecision: {
+                    decision: reportAction.message?.[0]?.moderationDecision?.decision,
+                },
+            },
+        ],
+    })) as unknown as Record<string, ReportAction[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, reportActions), {runs: 20});
+    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions), {runs: 20});
 });
