@@ -59,6 +59,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
     const {translate} = useLocalize();
 
     const numberOfWaypoints = _.size(waypoints);
+    const numberOfFilledWaypoints = _.size(_.filter(waypoints, (waypoint) => !_.isEmpty(waypoint)));
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
@@ -98,16 +99,18 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
 
     return (
         <>
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
-                />
-            </View>
+            {numberOfFilledWaypoints >= 2 && (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
+                    <Button
+                        small
+                        icon={Expensicons.Plus}
+                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        text={translate('distance.addStop')}
+                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        innerStyles={[styles.ph10]}
+                    />
+                </View>
+            )}
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <DistanceMapView
