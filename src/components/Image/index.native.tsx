@@ -9,20 +9,17 @@ import {DimensionsCacheValue, ImageOnyxProps, ImagePropsWithOnyx} from './types'
 
 const dimensionsCache = new Map<string, DimensionsCacheValue>();
 
-function resolveDimensions(key: string) {
+function resolveDimensions(key: string): DimensionsCacheValue | undefined {
     return dimensionsCache.get(key);
 }
 
-function Image(props: ImagePropsWithOnyx) {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {source, isAuthTokenRequired, session, ...rest} = props;
-
+function Image({source, isAuthTokenRequired, session, ...rest}: ImagePropsWithOnyx) {
     let imageSource: Omit<ImageURISource, 'cache'> | ImageRequireSource | Source = source;
     if (typeof source !== 'number' && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
     if (typeof source !== 'number' && isAuthTokenRequired) {
-        const authToken = props.session?.encryptedAuthToken ?? null;
+        const authToken = session?.encryptedAuthToken ?? null;
         imageSource = {
             ...source,
             headers: authToken
@@ -44,8 +41,8 @@ function Image(props: ImagePropsWithOnyx) {
                 }
                 const {width, height} = evt.nativeEvent;
                 dimensionsCache.set(source.uri, {width, height});
-                if (props.onLoad) {
-                    props.onLoad(evt);
+                if (rest.onLoad) {
+                    rest.onLoad(evt);
                 }
             }}
         />

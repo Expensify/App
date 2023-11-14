@@ -5,8 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import RESIZE_MODES from './resizeModes';
 import {ImageOnyxProps, ImageProps, ImagePropsWithOnyx} from './types';
 
-function Image(props: ImagePropsWithOnyx) {
-    const {source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps} = props;
+function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImagePropsWithOnyx) {
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
