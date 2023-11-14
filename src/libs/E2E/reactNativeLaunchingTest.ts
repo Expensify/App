@@ -5,10 +5,13 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
+import {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
+
+type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, () => void>;
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
@@ -20,14 +23,14 @@ if (!Metrics.canCapturePerformanceMetrics()) {
 }
 
 // import your test here, define its name and config first in e2e/config.js
-const tests = {
+const tests: Tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
     [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
-const appReady = new Promise((resolve) => {
+const appReady = new Promise<void>((resolve) => {
     Performance.subscribeToMeasurements((entry) => {
         if (entry.name !== 'TTI') {
             return;
@@ -38,7 +41,7 @@ const appReady = new Promise((resolve) => {
 });
 
 E2EClient.getTestConfig()
-    .then((config) => {
+    .then((config): Promise<void> | undefined => {
         const test = tests[config.name];
         if (!test) {
             // instead of throwing, report the error to the server, which is better for DX

@@ -1,6 +1,6 @@
 import {Keyboard} from 'react-native';
 
-export default function waitForKeyboard() {
+export default function waitForKeyboard(): Promise<void> {
     return new Promise((resolve) => {
         function checkKeyboard() {
             if (Keyboard.isVisible()) {
