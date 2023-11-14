@@ -295,7 +295,7 @@ function AvatarWithImagePicker({
                     <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
                             onPress={() => setIsMenuVisible((prev) => !prev)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen}
                             ref={anchorRef}
