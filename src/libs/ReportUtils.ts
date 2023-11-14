@@ -3975,6 +3975,9 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     let translationKey: TranslationPaths;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
+        // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
+        // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
+        // property. If it does, it indicates that this is a 'Send money' action.
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const iouReport = getReport(IOUReportID);
