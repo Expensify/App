@@ -125,7 +125,7 @@ Onyx.connect({
 function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const created = currentDate || format(new Date(), 'YYYY-MM-DD');
+    const created = currentDate || format(new Date(), 'yyyy-MM-dd');
     const comment = {};
 
     // Add initial empty waypoints when starting a distance request
