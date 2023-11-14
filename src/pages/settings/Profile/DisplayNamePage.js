@@ -100,8 +100,8 @@ function DisplayNamePage(props) {
                             inputID="firstName"
                             name="fname"
                             label={props.translate('common.firstName')}
-                            accessibilityLabel={props.translate('common.firstName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.firstName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
@@ -113,8 +113,8 @@ function DisplayNamePage(props) {
                             inputID="lastName"
                             name="lname"
                             label={props.translate('common.lastName')}
-                            accessibilityLabel={props.translate('common.lastName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.lastName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}

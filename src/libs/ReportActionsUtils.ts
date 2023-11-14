@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -261,6 +262,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
+    // Do not group if one of previous / current action is report preview and another one is not report preview
+    if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
+        return false;
+    }
+
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
@@ -366,20 +372,14 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
     return updatedReportAction;
 }
 
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    let reportActions: ReportActions;
-    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        reportActions = {...allReportActions?.[reportID]};
-        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
-    } else {
-        reportActions = allReportActions?.[reportID] ?? {};
-    }
+    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -406,12 +406,9 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
         };
     }
 
-    let messageText = message?.text ?? '';
-    if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
-    }
+    const messageText = message?.text ?? '';
     return {
-        lastMessageText: messageText,
+        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
     };
 }
 

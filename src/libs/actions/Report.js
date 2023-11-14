@@ -65,7 +65,6 @@ Onyx.connect({
 const currentReportData = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (data, key) => {
         if (!key || !data) {
             return;
@@ -329,6 +328,10 @@ function addActions(reportID, text = '', file) {
         lastReadTime: currentTime,
     };
 
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
@@ -464,6 +467,9 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    if (!reportID) {
+        return;
+    }
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -556,11 +562,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        let emailCreatingAction = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+            emailCreatingAction = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
         }
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -2007,7 +2013,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
                 });
                 return;
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
         });
     });
 }

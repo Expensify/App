@@ -43,4 +43,6 @@ function Direction({coordinates}: DirectionProps) {
     );
 }
 
+Direction.displayName = 'Direction';
+
 export default Direction;

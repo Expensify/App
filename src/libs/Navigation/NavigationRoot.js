@@ -1,13 +1,12 @@
 import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
-import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
 import themeColors from '@styles/themes/default';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
@@ -54,7 +53,6 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
-    const globalNavigation = useContext(SidebarNavigationContext);
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -130,9 +128,6 @@ function NavigationRoot(props) {
         }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
-
-        // Update the global navigation to show the correct selected menu items.
-        globalNavigation.updateFromNavigationState(state);
     };
 
     return (

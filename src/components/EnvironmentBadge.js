@@ -28,7 +28,7 @@ function EnvironmentBadge() {
             success={environment === CONST.ENVIRONMENT.STAGING || environment === CONST.ENVIRONMENT.ADHOC}
             error={environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
-            badgeStyles={[styles.alignSelfEnd, styles.headerEnvBadge, styles.ml1]}
+            badgeStyles={[styles.alignSelfEnd, styles.headerEnvBadge]}
             textStyles={[styles.headerEnvBadgeText]}
             environment={environment}
         />
