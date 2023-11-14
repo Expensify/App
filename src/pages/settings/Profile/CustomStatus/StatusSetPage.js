@@ -66,7 +66,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             <InputWrapper
                                 InputComponent={EmojiPickerButtonDropdown}
                                 inputID={INPUT_IDS.EMOJI_CODE}
-                                accessibilityLabel={INPUT_IDS.EMOJI_CODE}
+                                aria-label={INPUT_IDS.EMOJI_CODE}
                                 defaultValue={defaultEmoji}
                             />
                         </View>
@@ -74,8 +74,8 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={INPUT_IDS.STATUS_TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                             autoFocus

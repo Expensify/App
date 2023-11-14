@@ -27,9 +27,9 @@ function PinButton(props) {
             <PressableWithFeedback
                 onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
                 style={[styles.touchableButtonImage]}
-                accessibilityState={{checked: props.report.isPinned}}
+                ariaChecked={props.report.isPinned}
                 accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     src={Expensicons.Pin}

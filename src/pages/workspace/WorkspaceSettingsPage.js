@@ -6,7 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,6 +20,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -76,7 +78,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         const errors = {};
         const name = values.name.trim();
 
-        if (!name || !name.length) {
+        if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
         } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
@@ -98,7 +100,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
         >
             {(hasVBA) => (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -139,14 +141,15 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <TextInput
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
                             defaultValue={policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                            containerStyles={[styles.mt4]}
                             spellCheck={false}
                         />
                         <View style={[styles.mt4, styles.mhn5]}>
@@ -162,7 +165,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             </Text>
                         </View>
                     </OfflineWithFeedback>
-                </Form>
+                </FormProvider>
             )}
         </WorkspacePageWithSections>
     );

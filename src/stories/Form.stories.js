@@ -10,6 +10,7 @@ import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -46,7 +47,7 @@ function Template(args) {
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
@@ -55,7 +56,7 @@ function Template(args) {
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
@@ -153,7 +154,7 @@ function WithNativeEventHandler(args) {
         <FormProvider {...args}>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
@@ -177,28 +178,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values) => {
         const errors = {};
-        if (!values.routingNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!values.accountNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!values.street) {
+        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!values.dob) {
+        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!values.pickFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!values.pickAnotherFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.state) {
+        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!values.checkbox) {
+        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;

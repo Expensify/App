@@ -1,3 +1,4 @@
+import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import E2EClient from '@libs/E2E/client';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,6 +32,7 @@ const test = () => {
 
             console.debug(`[E2E] Submitting!`);
             E2EClient.submitTestResults({
+                branch: Config.E2E_BRANCH,
                 name: 'Open Search Page TTI',
                 duration: entry.duration,
             })
