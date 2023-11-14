@@ -86,7 +86,7 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, iouType);
+        IOU.startMoneyRequest_temporaryForRefactor(reportID, transactionRequestType.current);
     }, [transaction, reportID, iouType]);
 
     const isFromGlobalCreate = _.isEmpty(report.reportID);
