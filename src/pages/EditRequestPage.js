@@ -107,7 +107,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {

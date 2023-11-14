@@ -241,12 +241,11 @@ function MoneyRequestConfirmationList(props) {
     const policyTag = PolicyUtils.getTag(props.policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
-    const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
-    const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
+    const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
