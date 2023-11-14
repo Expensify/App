@@ -182,6 +182,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                 {cameraPermissionState === 'denied' && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
+                            fill={themeColors.icon}
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}

@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
 import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 
 const termsData = [
@@ -98,6 +99,7 @@ function LongTermsForm() {
 
             <View style={styles.flexRow}>
                 <Icon
+                    fill={themeColors.icon}
                     style={styles.flex1}
                     src={Expensicons.Printer}
                 />

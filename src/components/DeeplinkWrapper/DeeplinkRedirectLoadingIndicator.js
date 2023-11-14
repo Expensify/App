@@ -40,8 +40,8 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                     <Icon
                         width={200}
                         height={164}
+                        fill={themeColors.icon}
                         src={Illustrations.RocketBlue}
-                        fill={undefined}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>

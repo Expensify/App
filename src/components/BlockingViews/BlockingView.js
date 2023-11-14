@@ -9,7 +9,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 
 const propTypes = {
@@ -45,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconColor: themeColors.offline,
+    iconColor: null,
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',

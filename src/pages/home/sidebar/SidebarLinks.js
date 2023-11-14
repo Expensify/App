@@ -173,7 +173,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        <Icon src={Expensicons.MagnifyingGlass} />
+                        <Icon
+                            fill={defaultTheme.icon}
+                            src={Expensicons.MagnifyingGlass}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />

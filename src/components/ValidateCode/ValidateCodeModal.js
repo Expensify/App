@@ -48,6 +48,7 @@ function ValidateCodeModal(props) {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
+                        fill={themeColors.icon}
                         src={Illustrations.MagicCode}
                     />
                 </View>

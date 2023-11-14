@@ -317,6 +317,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
                                                     src={props.furtherDetailsIcon}
+                                                    fill={themeColors.icon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}
                                                     inline

@@ -5,6 +5,7 @@ import compose from '@libs/compose';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -52,6 +53,7 @@ function OfflineIndicator(props) {
         <View style={[setStyles(props.containerStyles, props.isSmallScreenWidth), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
+                fill={themeColors.icon}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />

@@ -16,12 +16,13 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 
 function HeaderWithBackButton({
-    iconFill = undefined,
+    iconFill = themeColors.icon,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),

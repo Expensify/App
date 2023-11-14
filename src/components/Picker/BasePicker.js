@@ -99,6 +99,7 @@ const defaultProps = {
     size: 'normal',
     icon: (size) => (
         <Icon
+            fill={themeColors.icon}
             src={Expensicons.DownArrow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}

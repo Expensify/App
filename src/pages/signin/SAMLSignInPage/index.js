@@ -38,6 +38,7 @@ function SAMLSignInPage({credentials}) {
                     <Icon
                         width={200}
                         height={164}
+                        fill={themeColors.icon}
                         src={Illustrations.RocketBlue}
                     />
                 </View>

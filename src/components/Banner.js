@@ -5,6 +5,7 @@ import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -101,7 +102,10 @@ function Banner(props) {
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={props.translate('common.close')}
                                 >
-                                    <Icon src={Expensicons.Close} />
+                                    <Icon
+                                        src={Expensicons.Close}
+                                        fill={themeColors.Icon}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         )}

@@ -16,7 +16,6 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
             {hasTextContent ? (
                 <BlockingView
                     icon={Expensicons.EmptyStateRoutePending}
-                    iconColor={undefined}
                     title={title}
                     subtitle={subtitle}
                     shouldShowLink={false}
@@ -24,7 +23,6 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
             ) : (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
-                        fill={undefined}
                         src={Expensicons.EmptyStateRoutePending}
                         width={variables.iconSizeUltraLarge}
                         height={variables.iconSizeUltraLarge}

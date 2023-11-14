@@ -299,6 +299,7 @@ function OptionRowLHN(props) {
                                 >
                                     <Icon
                                         testID="Pencil Icon"
+                                        fill={themeColors.icon}
                                         src={Expensicons.Pencil}
                                     />
                                 </View>
@@ -310,6 +311,7 @@ function OptionRowLHN(props) {
                                 >
                                     <Icon
                                         testID="Pin Icon"
+                                        fill={themeColors.icon}
                                         src={Expensicons.Pin}
                                     />
                                 </View>

@@ -11,6 +11,7 @@ import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
@@ -165,6 +166,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
+                    iconColor={themeColors.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

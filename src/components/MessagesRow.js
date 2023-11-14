@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -58,7 +59,10 @@ function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
-                        <Icon src={Expensicons.Close} />
+                        <Icon
+                            fill={themeColors.icon}
+                            src={Expensicons.Close}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
             )}

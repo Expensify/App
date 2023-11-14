@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import Collapsible from './Collapsible';
 
@@ -54,7 +55,10 @@ class CollapsibleSection extends React.Component {
                     >
                         {this.props.title}
                     </Text>
-                    <Icon src={src} />
+                    <Icon
+                        src={src}
+                        fill={themeColors.icon}
+                    />
                 </PressableWithFeedback>
                 <View style={styles.collapsibleSectionBorder} />
 

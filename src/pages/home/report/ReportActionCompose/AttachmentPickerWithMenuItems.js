@@ -18,6 +18,7 @@ import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -241,7 +242,10 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
-                                        <Icon src={Expensicons.Collapse} />
+                                        <Icon
+                                            fill={themeColors.icon}
+                                            src={Expensicons.Collapse}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -260,7 +264,10 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
-                                        <Icon src={Expensicons.Expand} />
+                                        <Icon
+                                            fill={themeColors.icon}
+                                            src={Expensicons.Expand}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -284,7 +291,10 @@ function AttachmentPickerWithMenuItems({
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon src={Expensicons.Plus} />
+                                    <Icon
+                                        fill={themeColors.icon}
+                                        src={Expensicons.Plus}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>

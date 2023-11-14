@@ -5,6 +5,7 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import themeColors from '@styles/themes/default';
 import BlockingView from './BlockingView';
 
 const propTypes = {
@@ -23,6 +24,7 @@ function FullPageOfflineBlockingView(props) {
         return (
             <BlockingView
                 icon={Expensicons.OfflineCloud}
+                iconColor={themeColors.offline}
                 title={props.translate('common.youAppearToBeOffline')}
                 subtitle={props.translate('common.thisFeatureRequiresInternet')}
             />

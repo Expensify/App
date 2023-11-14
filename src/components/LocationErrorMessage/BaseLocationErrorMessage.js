@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import colors from '@styles/colors';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
@@ -65,7 +66,10 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
-                        <Icon src={Expensicons.Close} />
+                        <Icon
+                            fill={themeColors.icon}
+                            src={Expensicons.Close}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>

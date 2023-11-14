@@ -3,7 +3,6 @@ import {ImageSourcePropType, StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
@@ -57,7 +56,7 @@ class Icon extends PureComponent<IconProps> {
     public static defaultProps = {
         width: variables.iconSizeNormal,
         height: variables.iconSizeNormal,
-        fill: themeColors.icon,
+        fill: null,
         small: false,
         inline: false,
         additionalStyles: [],

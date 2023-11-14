@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ControlSelection from '@libs/ControlSelection';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
@@ -86,6 +87,7 @@ function ImageCropView(props) {
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={props.maskImage}
+                        fill={themeColors.icon}
                         width={props.containerSize}
                         height={props.containerSize}
                     />
