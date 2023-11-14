@@ -34,8 +34,8 @@ export default PropTypes.shape({
     /** The next person in the approval chain of the report */
     nextReceiver: PropTypes.string,
 
-    /** An array of buttons to be displayed next to the next step */
-    buttons: PropTypes.arrayOf(
+    /** An object of buttons to be displayed next to the next step */
+    buttons: PropTypes.objectOf(
         PropTypes.shape({
             text: PropTypes.string,
             tooltip: PropTypes.string,
@@ -43,6 +43,6 @@ export default PropTypes.shape({
             hidden: PropTypes.bool,
             // eslint-disable-next-line react/forbid-prop-types
             data: PropTypes.array,
-        }),
+        }).isRequired,
     ),
 });
