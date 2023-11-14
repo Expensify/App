@@ -69,8 +69,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const isFromGlobalCreate = !reportID;
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+    const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;

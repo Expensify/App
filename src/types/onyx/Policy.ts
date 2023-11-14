@@ -56,6 +56,9 @@ type Policy = {
 
     /** The scheduled submit frequency set up on the this policy */
     autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** The employee list of the policy */
+    employeeList?: [];
 };
 
 export default Policy;
