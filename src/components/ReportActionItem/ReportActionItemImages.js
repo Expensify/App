@@ -15,7 +15,7 @@ const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
         PropTypes.shape({
-            thumbnail: PropTypes.string,
+            thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             transaction: transactionPropTypes,
         }),
@@ -74,7 +74,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {_.map(shownImages, ({thumbnail, image, transaction}, index) => {
+            {_.map(shownImages, ({thumbnail, image, transaction, isLocalFile}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -88,6 +88,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         <ReportActionItemImage
                             thumbnail={thumbnail}
                             image={image}
+                            isLocalFile={isLocalFile}
                             transaction={transaction}
                         />
                         {isLastImage && remaining > 0 && (
