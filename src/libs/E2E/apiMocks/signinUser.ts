@@ -1,4 +1,7 @@
-export default ({email}) => ({
+import {SigninParams} from '@libs/E2E/types';
+import Response from '@src/types/onyx/Response';
+
+const signinUser = ({email}: SigninParams): Response => ({
     onyxData: [
         {
             onyxMethod: 'merge',
@@ -121,3 +124,5 @@ export default ({email}) => ({
     jsonCode: 200,
     requestID: '783e5f3cadfbcfc0-SJC',
 });
+
+export default signinUser;

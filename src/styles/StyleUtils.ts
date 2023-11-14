@@ -1018,7 +1018,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
+function getColoredBackgroundStyle(isColored: boolean): TextStyle {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
