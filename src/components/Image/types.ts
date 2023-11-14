@@ -37,4 +37,9 @@ type ImageProps = {
 
 type ImagePropsWithOnyx = ImageOnyxProps & ImageProps;
 
-export type {ImageProps, ImageOnyxProps, ImagePropsWithOnyx};
+type DimensionsCacheValue = {
+    width: number;
+    height: number;
+};
+
+export type {ImageProps, ImageOnyxProps, ImagePropsWithOnyx, DimensionsCacheValue};

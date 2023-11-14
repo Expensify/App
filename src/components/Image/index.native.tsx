@@ -5,9 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import RESIZE_MODES from './resizeModes';
-import {ImageOnyxProps, ImagePropsWithOnyx} from './types';
+import {DimensionsCacheValue, ImageOnyxProps, ImagePropsWithOnyx} from './types';
 
-const dimensionsCache = new Map<string, {width: number; height: number}>();
+const dimensionsCache = new Map<string, DimensionsCacheValue>();
 
 function resolveDimensions(key: string) {
     return dimensionsCache.get(key);
