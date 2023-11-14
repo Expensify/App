@@ -225,7 +225,8 @@ function WorkspaceInitialPage(props) {
     const prevPolicy = usePrevious(policy);
 
     // We should check both policy and prevPolicy to prevent not found page appearing after we delete the workspace and navigate
-    const shouldShowNotFound = _.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = _.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
         <ScreenWrapper
@@ -235,7 +236,7 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={shouldShowNotFound}
+                    shouldShow={shouldShowNotFoundPage}
                     subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
