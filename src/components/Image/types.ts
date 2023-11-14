@@ -1,5 +1,5 @@
 import {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
-import {OnLoadEvent} from 'react-native-fast-image';
+import {ImageStyle as FastImageStyle, OnLoadEvent, ResizeMode, Source} from 'react-native-fast-image';
 import {OnyxEntry} from 'react-native-onyx';
 import {Session} from '@src/types/onyx';
 
@@ -11,16 +11,16 @@ type ImageOnyxProps = {
 
 type ImageProps = {
     /** Styles for the Image */
-    style?: StyleProp<ImageStyle>;
+    style?: StyleProp<ImageStyle & FastImageStyle>;
 
     /** The static asset or URI source of the image */
-    source: ImageURISource | ImageRequireSource;
+    source: Omit<ImageURISource, 'cache'> | ImageRequireSource | Omit<Source, 'cache'>;
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired: boolean;
 
     /** How should the image fit within its container */
-    resizeMode: ImageResizeMode;
+    resizeMode: ImageResizeMode & ResizeMode;
 
     /** Event for when the image begins loading */
     onLoadStart: () => void;

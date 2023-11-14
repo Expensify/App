@@ -1,35 +1,35 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
-import RNFastImage from 'react-native-fast-image';
+import {ImageRequireSource, ImageURISource} from 'react-native';
+import RNFastImage, {Source} from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
+import {ImageOnyxProps, ImagePropsWithOnyx} from './types';
 
-const dimensionsCache = new Map();
+const dimensionsCache = new Map<string, {width: number; height: number}>();
 
-function resolveDimensions(key) {
+function resolveDimensions(key: string) {
     return dimensionsCache.get(key);
 }
 
-function Image(props) {
+function Image(props: ImagePropsWithOnyx) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
-    let imageSource = source;
-    if (source && source.uri && typeof source.uri === 'number') {
+    let imageSource: Omit<ImageURISource, 'cache'> | ImageRequireSource | Source = source;
+    if (typeof source !== 'number' && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
-    if (typeof imageSource !== 'number' && isAuthTokenRequired) {
-        const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
+    if (typeof source !== 'number' && isAuthTokenRequired) {
+        const authToken = props.session?.encryptedAuthToken ?? null;
         imageSource = {
             ...source,
             headers: authToken
                 ? {
                       [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
                   }
-                : null,
+                : undefined,
         };
     }
 
@@ -39,6 +39,9 @@ function Image(props) {
             {...rest}
             source={imageSource}
             onLoad={(evt) => {
+                if (typeof source === 'number' || !source.uri) {
+                    return;
+                }
                 const {width, height} = evt.nativeEvent;
                 dimensionsCache.set(source.uri, {width, height});
                 if (props.onLoad) {
@@ -49,15 +52,14 @@ function Image(props) {
     );
 }
 
-Image.propTypes = imagePropTypes;
-Image.defaultProps = defaultProps;
 Image.displayName = 'Image';
-const ImageWithOnyx = withOnyx({
+Image.resizeMode = RESIZE_MODES;
+Image.resolveDimensions = resolveDimensions;
+
+const ImageWithOnyx = withOnyx<ImagePropsWithOnyx, ImageOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
 })(Image);
-ImageWithOnyx.resizeMode = RESIZE_MODES;
-ImageWithOnyx.resolveDimensions = resolveDimensions;
 
 export default ImageWithOnyx;
