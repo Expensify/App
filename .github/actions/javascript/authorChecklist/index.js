@@ -21477,19 +21477,198 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 8750:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 8426:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
+const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
+const newComponentCategory_1 = __importDefault(__nccwpck_require__(8750));
+const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
+const checklistStartsWith = '### PR Author Checklist';
+const checklistEndsWith = '\r\n### Screenshots/Videos';
+const prNumber = github.context.payload.pull_request?.number;
+const CHECKLIST_CATEGORIES = {
+    NEW_COMPONENT: newComponentCategory_1.default,
+};
+/**
+ * Look at the contents of the pull request, and determine which checklist categories apply.
+ */
+async function getChecklistCategoriesForPullRequest() {
+    const checks = new Set();
+    const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: prNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+    const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
+        items: category.items,
+        doesCategoryApply: await category.detect(changedFiles),
+    })));
+    for (const category of possibleCategories) {
+        if (category.doesCategoryApply) {
+            for (const item of category.items) {
+                checks.add(item);
+            }
+        }
+    }
+    return checks;
+}
+function partitionWithChecklist(body) {
+    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
+    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
+}
+async function getNumberOfItemsFromAuthorChecklist() {
+    const response = await fetch(pathToAuthorChecklist);
+    const fileContents = await response.text();
+    const checklist = partitionWithChecklist(fileContents)[1];
+    const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
+    return numberOfChecklistItems;
+}
+function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
+    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
+    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
+    const minCompletedItems = expectedNumberOfChecklistItems - 2;
+    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${expectedNumberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+        console.log('PR Author checklist is complete 🎉');
+        return;
+    }
+    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
+}
+async function generateDynamicChecksAndCheckForCompletion() {
+    // Generate dynamic checks
+    console.log('Generating dynamic checks...');
+    const dynamicChecks = await getChecklistCategoriesForPullRequest();
+    let isPassing = true;
+    let didChecklistChange = false;
+    const body = github.context.payload.pull_request?.body ?? '';
+    // eslint-disable-next-line prefer-const
+    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
+    for (const check of dynamicChecks) {
+        // Check if it's already in the PR body, capturing the whether or not it's already checked
+        const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}`);
+        const match = regex.exec(checklist);
+        if (!match) {
+            console.log('Adding check to the checklist:', check);
+            // Add it to the PR body
+            isPassing = false;
+            checklist += `- [ ] ${check}\r\n`;
+            didChecklistChange = true;
+        }
+        else {
+            const isChecked = match[1] === 'x';
+            if (!isChecked) {
+                console.log('Found unchecked checklist item:', check);
+                isPassing = false;
+            }
+        }
+    }
+    // Check if some dynamic check was added with previous commit, but is not relevant anymore
+    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc, category) => acc.concat(category.items), []);
+    for (const check of allChecks) {
+        if (!dynamicChecks.has(check)) {
+            const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}\r\n`);
+            const match = regex.exec(checklist);
+            if (match) {
+                // Remove it from the PR body
+                console.log('Check has been removed from the checklist:', check);
+                checklist = checklist.replace(match[0], '');
+                didChecklistChange = true;
+            }
+        }
+    }
+    // Put the PR body back together, need to add the markers back in
+    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
+    // Update the PR body
+    if (didChecklistChange) {
+        console.log('Checklist changed, updating PR...');
+        await GithubUtils_1.default.octokit.pulls.update({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: prNumber,
+            body: newBody,
+        });
+        console.log('Updated PR checklist');
+    }
+    if (!isPassing) {
+        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
+        console.error(err);
+        core.setFailed(err);
+    }
+    // check for completion
+    try {
+        const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
+        checkPRForCompletedChecklist(numberOfItems, checklist);
+    }
+    catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    generateDynamicChecksAndCheckForCompletion();
+}
+exports["default"] = generateDynamicChecksAndCheckForCompletion;
+
+
+/***/ }),
+
+/***/ 8750:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.detectReactComponent = void 0;
-const github_1 = __nccwpck_require__(5438);
+const github_1 = __importDefault(__nccwpck_require__(5438));
 const parser_1 = __nccwpck_require__(5026);
-const traverse_1 = __nccwpck_require__(1380);
-const CONST_1 = __nccwpck_require__(4097);
-const GithubUtils_1 = __nccwpck_require__(7999);
-const promiseSome_1 = __nccwpck_require__(8534);
+const traverse_1 = __importDefault(__nccwpck_require__(1380));
+const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(7999));
+const promiseSome_1 = __importDefault(__nccwpck_require__(8534));
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
@@ -64835,151 +65014,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core_1 = __nccwpck_require__(2186);
-const github_1 = __nccwpck_require__(5438);
-const escapeRegExp_1 = __nccwpck_require__(8415);
-const CONST_1 = __nccwpck_require__(4097);
-const GithubUtils_1 = __nccwpck_require__(7999);
-const newComponentCategory_1 = __nccwpck_require__(8750);
-const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
-const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = '\r\n### Screenshots/Videos';
-const prNumber = github_1.default.context.payload.pull_request?.number;
-const CHECKLIST_CATEGORIES = {
-    NEW_COMPONENT: newComponentCategory_1.default,
-};
-/**
- * Look at the contents of the pull request, and determine which checklist categories apply.
- */
-async function getChecklistCategoriesForPullRequest() {
-    const checks = new Set();
-    const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: CONST_1.default.APP_REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        pull_number: prNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 100,
-    });
-    const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
-        items: category.items,
-        doesCategoryApply: await category.detect(changedFiles),
-    })));
-    for (const category of possibleCategories) {
-        if (category.doesCategoryApply) {
-            for (const item of category.items) {
-                checks.add(item);
-            }
-        }
-    }
-    return checks;
-}
-function partitionWithChecklist(body) {
-    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
-    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
-    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
-}
-async function getNumberOfItemsFromAuthorChecklist() {
-    const response = await fetch(pathToAuthorChecklist);
-    const fileContents = await response.text();
-    const checklist = partitionWithChecklist(fileContents)[1];
-    const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
-    return numberOfChecklistItems;
-}
-function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
-    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
-    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
-    const minCompletedItems = expectedNumberOfChecklistItems - 2;
-    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${expectedNumberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
-        console.log('PR Author checklist is complete 🎉');
-        return;
-    }
-    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-    core_1.default.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
-}
-async function generateDynamicChecksAndCheckForCompletion() {
-    // Generate dynamic checks
-    const dynamicChecks = await getChecklistCategoriesForPullRequest();
-    let isPassing = true;
-    let didChecklistChange = false;
-    const body = github_1.default.context.payload.pull_request?.body ?? '';
-    // eslint-disable-next-line prefer-const
-    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
-    for (const check of dynamicChecks) {
-        // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}`);
-        const match = regex.exec(checklist);
-        if (!match) {
-            // Add it to the PR body
-            isPassing = false;
-            checklist += `- [ ] ${check}\r\n`;
-            didChecklistChange = true;
-        }
-        else {
-            const isChecked = match[1] === 'x';
-            if (!isChecked) {
-                isPassing = false;
-            }
-        }
-    }
-    // Check if some dynamic check was added with previous commit, but is not relevant anymore
-    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc, category) => acc.concat(category.items), []);
-    for (const check of allChecks) {
-        if (!dynamicChecks.has(check)) {
-            const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}\r\n`);
-            const match = regex.exec(checklist);
-            if (match) {
-                // Remove it from the PR body
-                checklist = checklist.replace(match[0], '');
-                didChecklistChange = true;
-            }
-        }
-    }
-    // Put the PR body back together, need to add the markers back in
-    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
-    // Update the PR body
-    if (didChecklistChange) {
-        await GithubUtils_1.default.octokit.pulls.update({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            pull_number: prNumber,
-            body: newBody,
-        });
-        console.log('Updated PR checklist');
-    }
-    if (!isPassing) {
-        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
-        console.error(err);
-        core_1.default.setFailed(err);
-    }
-    // check for completion
-    try {
-        const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberOfItems, checklist);
-    }
-    catch (error) {
-        console.error(error);
-        if (error instanceof Error) {
-            core_1.default.setFailed(error.message);
-        }
-    }
-}
-if (require.main === require.cache[eval('__filename')]) {
-    generateDynamicChecksAndCheckForCompletion();
-}
-exports["default"] = generateDynamicChecksAndCheckForCompletion;
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(8426);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
