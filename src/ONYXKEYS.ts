@@ -276,8 +276,8 @@ const ONYXKEYS = {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
-        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
-        WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
+        WORKSPACE_EDIT_NAME_DRAFT: 'workspaceEditNameDraft',
+        WORKSPACE_EDIT_NAME: 'workspaceEditName',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
@@ -333,7 +333,6 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
-        WORKSPACE_EDIT_NAME: 'workspaceEditNameDraft',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
     },
 } as const;
@@ -443,8 +442,8 @@ type OnyxValues = {
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM_DRAFT]: OnyxTypes.AddDebitCardForm;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.WORKSPACE_EDIT_NAME]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.WORKSPACE_EDIT_NAME_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.Form;
