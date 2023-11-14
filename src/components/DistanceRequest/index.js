@@ -210,7 +210,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
                             waypoints={waypoints}
                             hasRouteError={hasRouteError}
                             navigateToWaypointEditPage={navigateToWaypointEditPage}
-                            transactionID={transactionID}
+                            transaction={transaction}
                         />
                     }
                 />

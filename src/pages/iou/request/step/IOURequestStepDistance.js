@@ -217,7 +217,7 @@ function IOURequestStepDistance({
                                 waypoints={waypoints}
                                 hasRouteError={hasRouteError}
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
-                                transactionID={transactionID}
+                                transaction={transaction}
                             />
                         }
                     />
