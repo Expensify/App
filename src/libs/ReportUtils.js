@@ -4183,6 +4183,22 @@ function getRoom(type, policyID) {
     const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
 }
+/**
+ *
+ * @param {Object} reportActions
+ * @returns {Boolean}
+ */
+function hasRequestError(reportActions) {
+    return _.some(reportActions, (action) => {
+        if (!ReportActionsUtils.isSplitBillAction(action) && !ReportActionsUtils.isReportPreviewAction(action)) {
+            return false;
+        }
+        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(ReportActionsUtils.getIOUReportIDFromReportActionPreview(action));
+        const isSplitBillError =
+            ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(TransactionUtils.getTransaction(action.originalMessage.IOUTransactionID));
+        return isReportPreviewError || isSplitBillError;
+    });
+}
 
 export {
     getReportParticipantsTitle,
@@ -4345,4 +4361,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    hasRequestError,
 };
