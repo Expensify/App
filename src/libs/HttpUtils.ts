@@ -3,6 +3,7 @@ import {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
@@ -28,7 +29,7 @@ let cancellationController = new AbortController();
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
-function processHTTPRequest(url: string, method = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
+function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
@@ -51,7 +52,7 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
                     CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
                     CONST.HTTP_STATUS.UNKNOWN_ERROR,
                 ];
-                if (serviceInterruptedStatuses.some(status => status === response.status)) {
+                if (serviceInterruptedStatuses.some((status) => status === response.status)) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status.toString(),
@@ -113,7 +114,7 @@ function processHTTPRequest(url: string, method = 'get', body: FormData | null =
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: 'get' | 'post' = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
+function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
         if (!data[key]) {
