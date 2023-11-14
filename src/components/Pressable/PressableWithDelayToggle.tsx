@@ -1,6 +1,6 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React, {ForwardedRef, forwardRef} from 'react';
-import {Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import {ImageSourcePropType, Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,7 +40,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     icon?: React.FC<SvgProps>;
 
     /** The icon to display once the pressable is pressed */
-    iconChecked?: React.FC<SvgProps>;
+    iconChecked?: React.FC<SvgProps> | ImageSourcePropType;
 
     /**
      * Should be set to `true` if this component is being rendered inline in

@@ -1,6 +1,7 @@
 import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
+import {ImageSourcePropType} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import * as Emojis from '@assets/emojis';
@@ -10,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
 import emojisTrie from './EmojiTrie';
 
-type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
+type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps> | ImageSourcePropType};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
 type ReplacedEmoji = {text: string; emojis: Emoji[]};

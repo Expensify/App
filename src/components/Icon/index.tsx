@@ -16,7 +16,7 @@ type SrcProps = {
 
 type IconProps = {
     /** The asset to render. */
-    src: (props: SrcProps) => React.ReactNode | ImageSourcePropType;
+    src: ((props: SrcProps) => React.ReactNode) | ImageSourcePropType;
 
     /** The width of the icon. */
     width?: number;
