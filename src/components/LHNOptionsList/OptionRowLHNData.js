@@ -1,22 +1,16 @@
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
-import {withReportCommentDrafts} from '../OnyxProvider';
-import SidebarUtils from '../../libs/SidebarUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
-import * as Report from '../../libs/actions/Report';
-import * as UserUtils from '../../libs/UserUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-
-import participantPropTypes from '../participantPropTypes';
-import CONST from '../../CONST';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef} from 'react';
+import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
     /** Whether row should be focused */
@@ -42,14 +36,12 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The action from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The transaction from the parent report action */
-    transaction: PropTypes.shape({
-        /** The ID of the transaction */
-        transactionID: PropTypes.string,
-    }),
+    transaction: transactionPropTypes,
+
     ...basePropTypes,
 };
 
@@ -58,7 +50,7 @@ const defaultProps = {
     personalDetails: {},
     fullReport: {},
     policy: {},
-    parentReportActions: {},
+    parentReportAction: {},
     transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...baseDefaultProps,
@@ -79,16 +71,13 @@ function OptionRowLHNData({
     comment,
     policy,
     receiptTransactions,
-    parentReportActions,
+    parentReportAction,
     transaction,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
 
-    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
-
     const optionItemRef = useRef();
-
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
@@ -132,82 +121,10 @@ OptionRowLHNData.defaultProps = defaultProps;
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**
- * @param {Object} [personalDetails]
- * @returns {Object|undefined}
- */
-const personalDetailsSelector = (personalDetails) =>
-    _.reduce(
-        personalDetails,
-        (finalPersonalDetails, personalData, accountID) => {
-            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-            // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[accountID] = {
-                accountID: Number(accountID),
-                login: personalData.login,
-                displayName: personalData.displayName,
-                firstName: personalData.firstName,
-                status: personalData.status,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-                fallbackIcon: personalData.fallbackIcon,
-            };
-            return finalPersonalDetails;
-        },
-        {},
-    );
-
-/**
  * This component is rendered in a list.
  * On scroll we want to avoid that a item re-renders
  * just because the list has to re-render when adding more items.
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default React.memo(
-    compose(
-        withReportCommentDrafts({
-            propName: 'comment',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
-        withOnyx({
-            fullReport: {
-                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            },
-            reportActions: {
-                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                canEvict: false,
-            },
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                selector: personalDetailsSelector,
-            },
-            preferredLocale: {
-                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            },
-        }),
-        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-        withOnyx({
-            parentReportActions: {
-                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
-                canEvict: false,
-            },
-            policy: {
-                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
-            },
-            // Ideally, we aim to access only the last transaction for the current report by listening to changes in reportActions.
-            // In some scenarios, a transaction might be created after reportActions have been modified.
-            // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
-            // However, performance overhead of this is minimized by using memos inside the component.
-            receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
-        }),
-        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-        withOnyx({
-            transaction: {
-                key: ({fullReport, parentReportActions}) =>
-                    `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
-            },
-        }),
-    )(OptionRowLHNData),
-);
+export default React.memo(OptionRowLHNData);

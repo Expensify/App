@@ -1,6 +1,6 @@
 import React from 'react';
-import AndroidBackgroundImage from '../../../../../assets/images/home-background--android.svg';
-import styles from '../../../../styles/styles';
+import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
+import styles from '@styles/styles';
 import defaultPropTypes from './propTypes';
 
 function BackgroundImage(props) {

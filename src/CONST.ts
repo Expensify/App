@@ -50,6 +50,9 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     AUTO_AUTH_STATE: {
@@ -124,7 +127,16 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
         MONEY_REPORT: {
-            MIN_HEIGHT: 280,
+            SMALL_SCREEN: {
+                IMAGE_HEIGHT: 300,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 220,
+            },
+            WIDE_SCREEN: {
+                IMAGE_HEIGHT: 450,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 275,
+            },
         },
     },
 
@@ -135,7 +147,6 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
@@ -161,6 +172,10 @@ const CONST = {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
             },
         },
         ERROR: {
@@ -245,9 +260,9 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -456,7 +471,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
-    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -854,14 +869,19 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+    },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
         URL: 'url',
-        DEFAULT: 'default',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -1254,7 +1274,7 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
         STATE: {
@@ -1300,6 +1320,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
@@ -1315,6 +1336,8 @@ const CONST = {
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
+        FIRST_SPACE: /.+?(?=\s)/,
+
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
@@ -1327,11 +1350,6 @@ const CONST = {
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
-        },
-
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        get MENTION_REPLACER() {
-            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
@@ -1348,6 +1366,10 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -1467,7 +1489,6 @@ const CONST = {
         RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
-        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
         TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
@@ -2683,13 +2704,13 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'text',
+        TEXT: 'presentation',
         RADIO: 'radio',
-        IMAGEBUTTON: 'imagebutton',
+        IMAGEBUTTON: 'img button',
         CHECKBOX: 'checkbox',
         SWITCH: 'switch',
-        ADJUSTABLE: 'adjustable',
-        IMAGE: 'image',
+        ADJUSTABLE: 'slider',
+        IMAGE: 'img',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -2760,15 +2781,15 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
-
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
-
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+
+    CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -2777,11 +2798,9 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    GLOBAL_NAVIGATION_OPTION: {
-        HOME: 'home',
-        CHATS: 'chats',
-        SPEND: 'spend',
-        WORKSPACES: 'workspaces',
+    LIST_COMPONENTS: {
+        HEADER: 'header',
+        FOOTER: 'footer',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
