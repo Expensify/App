@@ -15,6 +15,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import AttachmentModal from '@components/AttachmentModal';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -42,7 +43,7 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, source}) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -78,17 +79,27 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <PressableWithoutFocus
-                        style={[styles.noOutline, styles.w100, styles.h100]}
-                        onPress={() => {
-                            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
-                            Navigation.navigate(route);
-                        }}
-                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    <AttachmentModal
+                        headerTitle={'Receipt'}
+                        source={source}
+                        isAuthTokenRequired
+                        report={report}
+                        isReceiptImage
+                        allowToDownload
                     >
-                        {receiptImageComponent}
-                    </PressableWithoutFocus>
+                        {({show}) => (
+                            <PressableWithoutFocus
+                                style={[styles.noOutline, styles.w100, styles.h100]}
+                                onPress={show}
+                                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            >
+                                {receiptImageComponent}
+                            </PressableWithoutFocus>
+                        )}
+                        
+                    </AttachmentModal>
+                    
                 )}
             </ShowContextMenuContext.Consumer>
         );

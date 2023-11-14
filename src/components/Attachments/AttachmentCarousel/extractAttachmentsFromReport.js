@@ -39,7 +39,7 @@ function extractAttachmentsFromReport(report, reportActions) {
     });
 
     _.forEach(actions, (action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 

@@ -38,6 +38,7 @@ function ReportAttachments(props) {
             defaultOpen
             report={report}
             source={source}
+            isReceiptImage={source.startsWith('/receipts/')}
             onModalHide={() => Navigation.dismissModal()}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
         />

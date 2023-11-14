@@ -108,6 +108,7 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    isReceiptImage: false,
 };
 
 function AttachmentModal(props) {
@@ -117,7 +118,6 @@ function AttachmentModal(props) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -151,7 +151,6 @@ function AttachmentModal(props) {
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
-            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -352,9 +351,10 @@ function AttachmentModal(props) {
     }, []);
 
     const sourceForAttachmentView = props.source || source;
+    console.log(props.source);
 
     const threeDotsMenuItems = useMemo(() => {
-        if (!isAttachmentReceipt || !props.parentReport || !props.parentReportActions) {
+        if (!props.isReceiptImage || !props.parentReport || !props.parentReportActions) {
             return [];
         }
         const menuItems = [];
@@ -391,7 +391,9 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+    }, [props.isReceiptImage, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+
+    console.log(props.isReceiptImage);
 
     return (
         <>
@@ -417,21 +419,21 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={props.headerTitle || translate(props.isReceiptImage ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !props.isReceiptImage && !isOffline}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt && isModalOpen}
+                    shouldShowThreeDotsButton={props.isReceiptImage && isModalOpen}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
-                    {!_.isEmpty(props.report) ? (
+                    {!_.isEmpty(props.report) && !props.isReceiptImage ? (
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
@@ -474,7 +476,7 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt && (
+                {props.isReceiptImage && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
@@ -487,7 +489,7 @@ function AttachmentModal(props) {
                     />
                 )}
             </Modal>
-            {!isAttachmentReceipt && (
+            {!props.isReceiptImage && (
                 <ConfirmModal
                     title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                     onConfirm={closeConfirmModal}

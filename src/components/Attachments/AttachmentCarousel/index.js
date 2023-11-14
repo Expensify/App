@@ -41,11 +41,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
     const compareImage = useCallback(
         (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                const action = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
-                return attachment.transactionID === transactionID;
-            }
             return attachment.source === source;
         },
         [source, report, isReceipt],

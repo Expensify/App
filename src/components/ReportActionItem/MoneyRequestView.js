@@ -170,6 +170,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
                                 image={receiptURIs.image}
+                                source={transaction.receipt.source}
                                 transaction={transaction}
                                 enablePreviewModal
                             />
