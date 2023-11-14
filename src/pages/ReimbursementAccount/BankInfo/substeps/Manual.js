@@ -86,8 +86,8 @@ function Manual({reimbursementAccount, onNext}) {
                 shouldDelayFocus={shouldDelayFocus}
                 inputID="routingNumber"
                 label={translate('bankAccount.routingNumber')}
-                accessibilityLabel={translate('bankAccount.routingNumber')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('bankAccount.routingNumber')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={defaultValues[bankInfoStepKeys.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
@@ -98,8 +98,8 @@ function Manual({reimbursementAccount, onNext}) {
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
                 label={translate('bankAccount.accountNumber')}
-                accessibilityLabel={translate('bankAccount.accountNumber')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('bankAccount.accountNumber')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={defaultValues[bankInfoStepKeys.ACCOUNT_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
