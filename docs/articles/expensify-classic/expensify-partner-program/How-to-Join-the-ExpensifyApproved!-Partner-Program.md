@@ -18,7 +18,7 @@ Cobranded Marketing - Collaborate with your Partner Manager to craft custom mark
 
 # How to join the ExpensifyApproved! Partner Program
 
-## 1. Enroll in ExpensifyApproved! University (EA!U)
+1. Enroll in ExpensifyApproved! University (EA!U)
 Visit university.expensify.com and enroll in the “Getting Started with Expensify” course.
 This course imparts the essentials of Expensify, ensuring you follow the best practices for client setups.
 
