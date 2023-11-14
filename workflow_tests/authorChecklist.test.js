@@ -46,8 +46,8 @@ describe('test workflow authorChecklist', () => {
             action: 'opened',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
+                const actor = 'Dummy Author';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -66,8 +66,8 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
+                const actor = 'OSBotify';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -92,8 +92,8 @@ describe('test workflow authorChecklist', () => {
             action: 'edited',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
+                const actor = 'Dummy Author';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -112,8 +112,8 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
+                const actor = 'OSBotify';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -138,8 +138,8 @@ describe('test workflow authorChecklist', () => {
             action: 'reopened',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
+                const actor = 'Dummy Author';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -158,8 +158,8 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
+                const actor = 'OSBotify';
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
