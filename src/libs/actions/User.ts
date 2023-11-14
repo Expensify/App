@@ -1,7 +1,6 @@
 import {isBefore} from 'date-fns';
-import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,25 +11,17 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import moment from 'moment';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as Pusher from '../Pusher/pusher';
+import type {FrequentlyUsedEmoji} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
+import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
+import ReportAction from '@src/types/onyx/ReportAction';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
 import redirectToSignIn from './SignInRedirect';
-import type Login from '../../types/onyx/Login';
-import type OnyxPersonalDetails from '../../types/onyx/PersonalDetails';
-import type {FrequentlyUsedEmoji, OnyxUpdatesFromServer} from '../../types/onyx';
-import {OnyxServerUpdate} from '../../types/onyx/OnyxUpdatesFromServer';
-import ReportAction from '../../types/onyx/ReportAction';
 
 type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
 type BlockedFromConciergeNVP = {expiresAt: number};
@@ -96,7 +87,6 @@ function closeAccount(message: string) {
 /**
  * Resends a validation link to a given login
  * @param login
- * @param isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login: string) {
     Session.resendValidateCode(login);
@@ -114,7 +104,6 @@ function requestContactMethodValidateCode(contactMethod: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
-                    validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
                         validateLogin: null,
@@ -132,7 +121,6 @@ function requestContactMethodValidateCode(contactMethod: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
-                    validateCodeSent: true,
                     pendingFields: {
                         validateCodeSent: null,
                     },
@@ -146,7 +134,6 @@ function requestContactMethodValidateCode(contactMethod: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
-                    validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
@@ -250,15 +237,8 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
 
     const parameters: DeleteContactMethodParam = {partnerUserID: contactMethod};
 
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
     API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
-    API.write(
-        'DeleteContactMethod',
-        {
-            partnerUserID: contactMethod,
-        },
-        {optimisticData, successData, failureData},
-    );
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
@@ -285,9 +265,7 @@ function clearContactMethodErrors(contactMethod: string, fieldName: string) {
  */
 function resetContactMethodValidateCodeSentState(contactMethod: string) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-        [contactMethod]: {
-            validateCodeSent: false,
-        },
+        [contactMethod]: {},
     });
 }
 
@@ -348,7 +326,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
     const parameters: AddNewContactMethodParam = {partnerUserID: contactMethod};
 
     API.write('AddNewContactMethod', parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
 }
 
 /**
@@ -502,7 +480,7 @@ function subscribeToUserEvents() {
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON: OnyxUpdatesFromServer) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
         // The data for this push event comes in two different formats:
         // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
         //     - The data is an array of objects, where each object is an onyx update
@@ -520,7 +498,7 @@ function subscribeToUserEvents() {
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
-            updates: pushJSON.updates,
+            updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
         if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
@@ -593,7 +571,7 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[])
 /**
  * Sync user chat priority mode with Onyx and Server
  */
-function updateChatPriorityMode(mode: string) {
+function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -777,10 +755,10 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
 }
 
-function updateTheme(theme: string) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
