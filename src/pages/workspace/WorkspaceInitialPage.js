@@ -224,9 +224,14 @@ function WorkspaceInitialPage(props) {
 
     const prevPolicy = usePrevious(policy);
 
-    // We should check both policy and prevPolicy to prevent not found page appearing after we delete the workspace and navigate
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = _.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+    const shouldShowNotFoundPage =
+        _.isEmpty(policy) ||
+        !PolicyUtils.isPolicyAdmin(policy) ||
+        // Somtimes, when we delete the workspace, the data is updated into Onyx faster than navigation time.
+        // That makes delete condition return true and not found page appears briefly before navigating.
+        // We check delete condition for both policy and prevPolicy to prevent the not found page showing if we are deleting the workspace
+        (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
         <ScreenWrapper
