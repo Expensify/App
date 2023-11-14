@@ -190,7 +190,6 @@ function MoneyRequestConfirmPage(props) {
 
     /**
      * @param {Array} selectedParticipants
-     * @param {String} trimmedComment
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
@@ -242,6 +241,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                     props.iou.category,
                     reportID,
                 );
@@ -257,6 +257,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                     props.iou.category,
                 );
                 return;

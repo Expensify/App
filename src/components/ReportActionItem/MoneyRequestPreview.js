@@ -168,9 +168,8 @@ function MoneyRequestPreview(props) {
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
-    const shouldShowMerchant =
-        !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+    const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
@@ -320,19 +319,14 @@ function MoneyRequestPreview(props) {
                                     </View>
                                 )}
                             </View>
-                            {shouldShowMerchant && (
-                                <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
-                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
-                                    </Text>
-                                </View>
-                            )}
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
-                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
-                                    )}
-                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
+                                    <>
+                                        {merchantOrDescription && <Text style={[styles.colorMuted]}>{merchantOrDescription}</Text>}
+                                        {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                            <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                        )}
+                                    </>
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
