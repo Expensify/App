@@ -1,17 +1,17 @@
-import lodashGet from 'lodash/get';
 import React, {Fragment, useCallback, useRef} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {Text as RNText, View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import styles from '@styles/styles';
-import {defaultProps, propTypes} from './displayNamesPropTypes';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+import DisplayNamesProps from './types';
 
-function DisplayNamesWithToolTip(props) {
-    const containerRef = useRef(null);
-    const childRefs = useRef([]);
-    const isEllipsisActive = lodashGet(containerRef.current, 'offsetWidth') < lodashGet(containerRef.current, 'scrollWidth');
+type HTMLElementWithText = HTMLElement & RNText;
+
+function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
+    const containerRef = useRef<HTMLElementWithText>(null);
+    const childRefs = useRef<HTMLElementWithText[]>([]);
+    const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
      * We may need to shift the Tooltip horizontally as some of the inline text wraps well with ellipsis,
@@ -25,9 +25,9 @@ function DisplayNamesWithToolTip(props) {
      * @param {Number} index Used to get the Ref to the node at the current index
      * @returns {Number} Distance to shift the tooltip horizontally
      */
-    const getTooltipShiftX = useCallback((index) => {
+    const getTooltipShiftX = useCallback((index: number) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!containerRef || !childRefs.current[index]) {
+        if (!containerRef.current || !childRefs.current[index]) {
             return;
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
@@ -46,13 +46,14 @@ function DisplayNamesWithToolTip(props) {
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[...props.textStyles, styles.pRelative, props.numberOfLines === 1 ? styles.noWrap : {}]}
-            numberOfLines={props.numberOfLines || undefined}
-            ref={(el) => (containerRef.current = el)}
+            style={[textStyles, styles.pRelative, numberOfLines === 1 ? styles.noWrap : {}]}
+            numberOfLines={numberOfLines || undefined}
+            ref={containerRef}
         >
-            {props.shouldUseFullTitle
-                ? props.fullTitle
-                : _.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
+            {shouldUseFullTitle
+                ? fullTitle
+                : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
+                      // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
                           <DisplayNamesTooltipItem
                               index={index}
@@ -61,16 +62,15 @@ function DisplayNamesWithToolTip(props) {
                               displayName={displayName}
                               login={login}
                               avatar={avatar}
-                              textStyles={props.textStyles}
+                              textStyles={textStyles}
                               childRefs={childRefs}
-                              addComma={index < props.displayNamesWithTooltips.length - 1}
                           />
-                          {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
+                          {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                       </Fragment>
                   ))}
             {Boolean(isEllipsisActive) && (
                 <View style={styles.displayNameTooltipEllipsis}>
-                    <Tooltip text={props.fullTitle}>
+                    <Tooltip text={fullTitle}>
                         {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
                         <Text>....</Text>
                     </Tooltip>
@@ -80,8 +80,6 @@ function DisplayNamesWithToolTip(props) {
     );
 }
 
-DisplayNamesWithToolTip.propTypes = propTypes;
-DisplayNamesWithToolTip.defaultProps = defaultProps;
 DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;
