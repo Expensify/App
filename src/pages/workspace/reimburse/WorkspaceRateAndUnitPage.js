@@ -137,6 +137,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const errors = {};
         const decimalSeparator = this.props.toLocaleDigit('.');
         const outputCurrency = lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD);
+        // Allow one more decimal place for accuracy
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
         if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
