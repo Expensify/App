@@ -1,9 +1,8 @@
-import {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import Beta from '@src/types/onyx/Beta';
 
-function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+function canUseAllBetas(betas: Beta[]): boolean {
+    return betas.includes(CONST.BETAS.ALL);
 }
 
 function canUseChronos(betas: Beta[]): boolean {
