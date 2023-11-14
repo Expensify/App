@@ -5,7 +5,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
-import type {AutoCompleteSuggestionsProps} from './types';
+import type AutoCompleteSuggestionsProps from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -14,7 +14,7 @@ import type {AutoCompleteSuggestionsProps} from './types';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps) {
+function AutoCompleteSuggestions<Suggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<Suggestion>) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
@@ -44,7 +44,7 @@ function AutoCompleteSuggestions({measureParentContainer = () => {}, ...props}: 
     }, [measureParentContainer, windowHeight, windowWidth]);
 
     const componentToRender = (
-        <BaseAutoCompleteSuggestions
+        <BaseAutoCompleteSuggestions<Suggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={containerRef}

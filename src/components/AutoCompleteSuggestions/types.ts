@@ -1,23 +1,8 @@
 import {ReactElement} from 'react';
-import type {SimpleEmoji} from '@libs/EmojiTrie';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
-
-type Mention = {
-    /** Display name of the user */
-    text: string;
-
-    /** Email/phone number of the user */
-    alternateText: string;
-
-    /** Array of icons of the user. We use the first element of this array */
-    icons: Icon[];
-};
-
-type Suggestion = Mention | SimpleEmoji;
 
 type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
-type AutoCompleteSuggestionsProps = {
+type AutoCompleteSuggestionsProps<Suggestion> = {
     /** Array of suggestions */
     suggestions: Suggestion[];
 
@@ -25,7 +10,7 @@ type AutoCompleteSuggestionsProps = {
     renderSuggestionMenuItem: (item: Suggestion, index: number) => ReactElement;
 
     /** Create unique keys for each suggestion item */
-    keyExtractor: () => string;
+    keyExtractor: (item: Suggestion, index: number) => string;
 
     /** The index of the highlighted suggestion */
     highlightedSuggestionIndex: number;
@@ -45,4 +30,4 @@ type AutoCompleteSuggestionsProps = {
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
 };
 
-export type {AutoCompleteSuggestionsProps, Suggestion};
+export default AutoCompleteSuggestionsProps;
