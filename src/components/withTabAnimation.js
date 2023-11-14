@@ -18,6 +18,7 @@ const defaultProps = {
 };
 
 export default function (WrappedComponent) {
+    // The component with tab animation prop
     function WrappedComponentWithTabAnimation(props) {
         const animation = useTabAnimation();
 
@@ -32,6 +33,7 @@ export default function (WrappedComponent) {
 
     WrappedComponentWithTabAnimation.displayName = `withAnimation(${getComponentDisplayName(WrappedComponent)})`;
 
+    // Return a component with tab animation prop if this component is in tab navigator, otherwise return itself
     function WithTabAnimation(props) {
         const rest = _.omit(props, ['forwardedRef']);
         if (props.isInTabNavigator) {
@@ -65,7 +67,7 @@ export default function (WrappedComponent) {
         />
     ));
 
-    WithTabAnimationWithRef.displayName = 'WithTabAnimationWithRef';
+    WithTabAnimationWithRef.displayName = `withTabAnimationWithRef(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithTabAnimation;
+    return WithTabAnimationWithRef;
 }
