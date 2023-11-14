@@ -3114,6 +3114,10 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3163,4 +3167,5 @@ export {
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
+    getPolicyTags,
 };

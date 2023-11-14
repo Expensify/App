@@ -1,5 +1,5 @@
 import Config from 'react-native-config';
-import _ from 'underscore';
+import {PerformanceEntry} from 'react-native-performance';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import E2EClient from '@libs/E2E/client';
 import Performance from '@libs/Performance';
@@ -15,11 +15,11 @@ const test = () => {
         console.debug('[E2E] Logged in, getting metrics and submitting them…');
 
         // collect performance metrics and submit
-        const metrics = Performance.getPerformanceMetrics();
+        const metrics: PerformanceEntry[] = Performance.getPerformanceMetrics();
 
         // underscore promises in sequence without for-loop
         Promise.all(
-            _.map(metrics, (metric) =>
+            metrics.map((metric) =>
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `App start ${metric.name}`,

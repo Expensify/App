@@ -8,18 +8,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * If the user is already logged in the function will simply
  * resolve.
  *
- * @param {String} email
- * @param {String} password
- * @return {Promise<boolean>} Resolved true when the user was actually signed in. Returns false if the user was already logged in.
+ * @return Resolved true when the user was actually signed in. Returns false if the user was already logged in.
  */
-export default function (email = 'fake@email.com', password = 'Password123') {
-    const waitForBeginSignInToFinish = () =>
+export default function (email = 'fake@email.com', password = 'Password123'): Promise<boolean> {
+    const waitForBeginSignInToFinish = (): Promise<void> =>
         new Promise((resolve) => {
             const id = Onyx.connect({
                 key: ONYXKEYS.CREDENTIALS,
                 callback: (credentials) => {
                     // beginSignUp writes to credentials.login once the API call is complete
-                    if (!credentials.login) {
+                    if (!credentials?.login) {
                         return;
                     }
 
@@ -36,7 +34,7 @@ export default function (email = 'fake@email.com', password = 'Password123') {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
-                if (session.authToken == null || session.authToken.length === 0) {
+                if (session?.authToken == null || session.authToken.length === 0) {
                     neededLogin = true;
 
                     // authenticate with a predefined user

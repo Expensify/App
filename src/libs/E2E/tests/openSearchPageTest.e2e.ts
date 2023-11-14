@@ -10,7 +10,7 @@ const test = () => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for search');
 
-    E2ELogin().then((neededLogin) => {
+    E2ELogin().then((neededLogin: boolean): Promise<Response> | undefined => {
         if (neededLogin) {
             // we don't want to submit the first login to the results
             return E2EClient.submitTestDone();
