@@ -1757,9 +1757,10 @@ function hasMissingSmartscanFields(iouReportID) {
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
+ * @param {String} parentReportActionMessage
  * @returns {String}
  */
-function getTransactionReportName(reportAction) {
+function getTransactionReportName(reportAction, parentReportActionMessage) {
     if (ReportActionsUtils.isReversedTransaction(reportAction)) {
         return Localize.translateLocal('parentReportAction.reversedTransaction');
     }
@@ -1769,6 +1770,9 @@ function getTransactionReportName(reportAction) {
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (_.isEmpty(transaction)) {
+        return parentReportActionMessage;
+    }
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
@@ -2077,12 +2081,16 @@ function getReportName(report, policy = undefined) {
     let formattedName;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
+        if (_.isEmpty(parentReportAction)) {
+            return Localize.translateLocal('iou.request');
+        }
+
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction);
+            return getTransactionReportName(parentReportAction, parentReportActionMessage);
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
