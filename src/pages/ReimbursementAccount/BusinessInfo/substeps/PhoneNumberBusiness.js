@@ -53,8 +53,8 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
             <TextInput
                 inputID={companyPhoneNumberKey}
                 label={translate('common.phoneNumber')}
-                accessibilityLabel={translate('common.phoneNumber')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('common.phoneNumber')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.TEL}
                 placeholder={translate('common.phoneNumberPlaceholder')}

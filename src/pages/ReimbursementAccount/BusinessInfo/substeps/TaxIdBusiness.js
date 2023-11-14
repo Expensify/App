@@ -57,8 +57,8 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
             <TextInput
                 inputID={companyTaxIdKey}
                 label={translate('businessInfoStep.taxIDNumber')}
-                accessibilityLabel={translate('businessInfoStep.taxIDNumber')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('businessInfoStep.taxIDNumber')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}

@@ -75,8 +75,8 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             <TextInput
                 inputID={companyWebsiteKey}
                 label={translate('businessInfoStep.companyWebsite')}
-                accessibilityLabel={translate('businessInfoStep.companyWebsite')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('businessInfoStep.companyWebsite')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultCompanyWebsite}
                 shouldSaveDraft
