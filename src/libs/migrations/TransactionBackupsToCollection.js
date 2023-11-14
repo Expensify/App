@@ -13,54 +13,48 @@ import ONYXKEYS from '@src/ONYXKEYS';
 // The problem was further discussed in this PR -> https://github.com/Expensify/App/pull/30232#issuecomment-1781101722
 export default function () {
     return new Promise((resolve) => {
-        const outerConnectionID = Onyx.connect({
+        const transactionConnectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
             waitForCollectionCallback: true,
-            callback: (draftTransactions) => {
-                Onyx.disconnect(outerConnectionID);
+            callback: (transactions) => {
+                Onyx.disconnect(transactionConnectionID);
 
-                // Check if transaction backups were already moved
-                if (draftTransactions) {
-                    Log.info(`[Migrate Onyx] Skipped TransactionBackupsToCollection migration because migration already happen`);
+                // Check if there are any transactions.
+                if (!transactions) {
+                    Log.info(`[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transactions in the main transactions collection`);
                     return resolve();
                 }
 
-                const innerConnectionID = Onyx.connect({
+                const onyxData = _.reduce(
+                    _.keys(transactions),
+                    (result, transactionKey) => {
+                        if (!transactionKey.endsWith('-backup')) {
+                            return result;
+                        }
+                        return {
+                            ...result,
+
+                            // We create all the transaction backups to the draft transactions collection
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactions[transactionKey].transactionID}`]: transactions[transactionKey],
+
+                            // We delete the transaction backups stored the main transactions collection
+                            [transactionKey]: null,
+                        };
+                    },
+                    {},
+                );
+
+                // Check if there are any available transaction backups to move
+                if (!onyxData) {
+                    Log.info(`[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transaction backups in the main transactions collection`);
+                    return resolve();
+                }
+
+                const transactionDraftConnectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
-                    callback: (transactions) => {
-                        Onyx.disconnect(innerConnectionID);
-
-                        // Check if there are any transactions.
-                        if (!transactions) {
-                            Log.info(`[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transactions in the main transactions collection`);
-                            return resolve();
-                        }
-
-                        const onyxData = _.reduce(
-                            _.keys(transactions),
-                            (result, transactionKey) => {
-                                if (!transactionKey.endsWith('-backup')) {
-                                    return result;
-                                }
-                                return {
-                                    ...result,
-
-                                    // We create all the transaction backups to the draft transactions collection
-                                    [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactions[transactionKey].transactionID}`]: transactions[transactionKey],
-
-                                    // We delete the transaction backups stored the main transactions collection
-                                    [transactionKey]: null,
-                                };
-                            },
-                            {},
-                        );
-
-                        // Check if there are any available transaction backups to move
-                        if (!onyxData) {
-                            Log.info(`[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transaction backups in the main transactions collection`);
-                            return resolve();
-                        }
+                    callback: () => {
+                        Onyx.disconnect(transactionDraftConnectionID);
 
                         // Moving the transaction backups from the main transactions collection to the draft transactions collection
                         Onyx.multiSet(onyxData).then(() => {
