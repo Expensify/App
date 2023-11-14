@@ -18,8 +18,8 @@ import DomUtils from '@libs/DomUtils';
  * this hook is only used where appropriate.
  *
  * @param {Object} params - The parameters object.
- * @param {number} params.tabIndex - The index of the tab for which focus status is being determined.
- * @returns {boolean} Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
+ * @param {Number} params.tabIndex - The index of the tab for which focus status is being determined.
+ * @returns {Boolean} Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
  *
  * @example
  * const isTabFocused = useTabNavigatorFocus({ tabIndex: 1 });
