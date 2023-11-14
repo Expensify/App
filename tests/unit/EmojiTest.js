@@ -111,14 +111,24 @@ describe('EmojiTest', () => {
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 ');
     });
 
-    it('will not add a space after the last emoji if there is text after it', () => {
-        const text = 'Hi :smile::wave:no space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋no space after last emoji');
+    it('will add a space after the last emoji if there is text after it', () => {
+        const text = 'Hi :smile::wave:space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+    });
+
+    it('will not add a space after the last emoji if there if last emoji is immediately followed by a space', () => {
+        const text = 'Hi :smile::wave: space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
     });
 
     it('will return correct cursor position', () => {
         const text = 'Hi :smile: there :wave:!';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(14);
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(15);
+    });
+
+    it('will return correct cursor position when space is not added by space follows last emoji', () => {
+        const text = 'Hi :smile: there!';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(6);
     });
 
     it('will return undefined cursor position when no emoji is replaced', () => {
