@@ -35,7 +35,7 @@ function assignRef(ref: ((instance: HTMLElement | null) => void) | MutableRefObj
     }
     if (typeof ref === 'function') {
         ref(element);
-    } else if (ref?.current) {
+    } else if (ref.current !== undefined) {
         // eslint-disable-next-line no-param-reassign
         ref.current = element;
     }
