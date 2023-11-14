@@ -105,13 +105,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
+                onLinkClick={onLinkClick}
                 insets={insets}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
-                onLinkClick={onLinkClick}
             />
         </View>
     );
