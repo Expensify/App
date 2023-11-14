@@ -12,7 +12,7 @@ const propTypes = {
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPress}) {
+const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress}, ref) => {
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
@@ -24,7 +24,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
     }
 
     return <PersonalInfo />;
-}
+});
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';

@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,9 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
-const REQUIRED_FIELDS = [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME, CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME];
+const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+
+const REQUIRED_FIELDS = [personalInfoStepKey.FIRST_NAME, personalInfoStepKey.LAST_NAME];
 
 const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
@@ -34,8 +36,8 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        firstName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
-        lastName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
+        firstName: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.FIRST_NAME, defaultValue: ''}),
+        lastName: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.LAST_NAME, defaultValue: ''}),
     };
 
     return (
@@ -51,7 +53,7 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
                 <View style={[styles.flex2, styles.mb5]}>
                     <TextInput
-                        inputID={CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME}
+                        inputID={personalInfoStepKey.FIRST_NAME}
                         label={translate('personalInfoStep.legalFirstName')}
                         accessibilityLabel={translate('personalInfoStep.legalFirstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -61,7 +63,7 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                 </View>
                 <View style={[styles.flex2, styles.mb3]}>
                     <TextInput
-                        inputID={CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME}
+                        inputID={personalInfoStepKey.LAST_NAME}
                         label={translate('personalInfoStep.legalLastName')}
                         accessibilityLabel={translate('personalInfoStep.legalLastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
