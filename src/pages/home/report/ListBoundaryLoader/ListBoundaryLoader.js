@@ -3,7 +3,7 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import styles, {stylesGenerator} from '@styles/styles';
+import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 
@@ -56,7 +56,7 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return (
-            <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
                 <ActivityIndicator
                     color={themeColors.spinner}
                     size="small"
