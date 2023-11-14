@@ -129,7 +129,7 @@ function IOURequestStepDistance({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            IOU.setMoneyRequestParticipants(transactionID, report);
+            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             navigateToConfirmationStep();
             return;
         }
