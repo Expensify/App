@@ -63,4 +63,6 @@ function EnabledStep() {
     );
 }
 
+EnabledStep.displayName = 'EnabledStep';
+
 export default EnabledStep;

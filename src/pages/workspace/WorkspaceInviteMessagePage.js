@@ -76,7 +76,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getDefaultWelcomeNote(),
+            welcomeNote: this.props.savedWelcomeMessage || this.getDefaultWelcomeNote(),
         };
     }
 
@@ -186,7 +186,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                role={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
@@ -216,18 +216,19 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
-                                textAlignVertical="top"
+                                inputStyle={[styles.verticalAlignTop]}
                                 containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
+                                shouldSaveDraft
                             />
                         </View>
                     </Form>
@@ -250,6 +251,10 @@ export default compose(
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+        },
+        savedWelcomeMessage: {
+            key: `${ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}Draft`,
+            selector: (draft) => (draft ? draft.welcomeMessage : ''),
         },
     }),
     withNavigationFocus,
