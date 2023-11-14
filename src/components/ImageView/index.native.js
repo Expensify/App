@@ -1,9 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import React from 'react';
 import ImageLightbox from '@components/ImageLightbox';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 /**
@@ -25,19 +23,9 @@ const defaultProps = {
 };
 
 function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
-    let {windowWidth: canvasWidth, windowHeight: canvasHeight} = useWindowDimensions();
-    const attachmenCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-
-    if (attachmenCarouselPagerContext != null) {
-        canvasWidth = attachmenCarouselPagerContext.canvasWidth;
-        canvasHeight = attachmenCarouselPagerContext.canvasHeight;
-    }
-
     return (
         <ImageLightbox
             source={url}
-            canvasWidth={canvasWidth}
-            canvasHeight={canvasHeight}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
             onPress={onPress}

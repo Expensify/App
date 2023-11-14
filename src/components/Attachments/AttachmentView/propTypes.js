@@ -14,9 +14,6 @@ const attachmentViewPropTypes = {
     /** Whether this view is the active screen  */
     isFocused: PropTypes.bool,
 
-    /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
-    isUsedInCarousel: PropTypes.bool,
-
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -33,7 +30,6 @@ const attachmentViewDefaultProps = {
         name: '',
     },
     isFocused: false,
-    isUsedInCarousel: false,
     onPress: undefined,
     onScaleChanged: () => {},
     isUsedInAttachmentModal: false,

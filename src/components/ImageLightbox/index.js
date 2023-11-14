@@ -25,12 +25,6 @@ const propTypes = {
 
     isActive: PropTypes.bool,
 
-    /** Width of the canvas */
-    canvasWidth: PropTypes.number.isRequired,
-
-    /** Height of the canvas */
-    canvasHeight: PropTypes.number.isRequired,
-
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
@@ -43,7 +37,7 @@ const defaultProps = {
     style: {},
 };
 
-function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive, canvasWidth, canvasHeight}) {
+function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive}) {
     const [isActive, setIsActive] = useState(initialIsActive);
 
     const imageDimensions = cachedDimensions.get(source);
@@ -76,8 +70,18 @@ function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, st
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isImageLoading]);
 
+    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
+    const canvasWidth = containerDimensions.width;
+    const canvasHeight = containerDimensions.height;
+    const isLoadingLayout = canvasWidth === 0 || canvasHeight === 0;
+
     return (
-        <>
+        <View
+            style={StyleSheet.absoluteFill}
+            onLayout={({nativeEvent}) =>
+                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
+            }
+        >
             {isActive && (
                 <View style={StyleSheet.absoluteFill}>
                     <ImageTransformer
@@ -184,7 +188,7 @@ function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, st
                     style={StyleSheet.absoluteFill}
                 />
             )}
-        </>
+        </View>
     );
 }
 

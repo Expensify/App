@@ -570,6 +570,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 styles.flex1,
                 {
                     width: canvasWidth,
+                    overflow: 'hidden',
                 },
             ]}
         >
@@ -577,7 +578,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 <ImageWrapper>
                     <Animated.View
                         collapsable={false}
-                        style={[animatedStyles]}
+                        style={[animatedStyles, {background: 'blue'}]}
                     >
                         {children}
                     </Animated.View>

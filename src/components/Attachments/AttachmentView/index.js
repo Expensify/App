@@ -64,7 +64,6 @@ function AttachmentView({
     source,
     file,
     isAuthTokenRequired,
-    isUsedInCarousel,
     onPress,
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
@@ -132,7 +131,6 @@ function AttachmentView({
                     file={file}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    isUsedInCarousel={isUsedInCarousel}
                     isFocused={isFocused}
                     onPress={onPress}
                     onScaleChanged={onScaleChanged}
@@ -159,7 +157,6 @@ function AttachmentView({
                 source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
-                isUsedInCarousel={isUsedInCarousel}
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isImage={isImage}

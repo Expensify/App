@@ -99,7 +99,6 @@ function CarouselItem({item, isFocused, onPress}) {
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     isFocused={isFocused}
                     onPress={onPress}
-                    isUsedInCarousel
                     transactionID={item.transactionID}
                 />
             </View>

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -20,8 +20,6 @@ import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
-
-    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
@@ -119,9 +117,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) =>
-                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-            }
             onMouseEnter={() => setShouldShowArrows(true)}
             onMouseLeave={() => setShouldShowArrows(false)}
         >
@@ -144,24 +139,20 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {containerDimensions.width > 0 && containerDimensions.height > 0 && (
-                        <AttachmentCarouselPager
-                            items={attachments}
-                            renderItem={renderItem}
-                            initialIndex={page}
-                            onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                            onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                    setShouldShowArrows(true);
-                                }
-                            }}
-                            onSwipeDown={onClose}
-                            containerWidth={containerDimensions.width}
-                            containerHeight={containerDimensions.height}
-                            ref={pagerRef}
-                        />
-                    )}
+                    <AttachmentCarouselPager
+                        items={attachments}
+                        renderItem={renderItem}
+                        initialIndex={page}
+                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                        onPinchGestureChange={(newIsPinchGestureRunning) => {
+                            setIsPinchGestureRunning(newIsPinchGestureRunning);
+                            if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                setShouldShowArrows(true);
+                            }
+                        }}
+                        onSwipeDown={onClose}
+                        ref={pagerRef}
+                    />
                 </>
             )}
         </View>

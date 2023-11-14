@@ -51,8 +51,6 @@ const pagerPropTypes = {
     onSwipeDown: PropTypes.func,
     onPinchGestureChange: PropTypes.func,
     forwardedRef: refPropTypes,
-    containerWidth: PropTypes.number.isRequired,
-    containerHeight: PropTypes.number.isRequired,
 };
 
 const pagerDefaultProps = {
@@ -66,20 +64,7 @@ const pagerDefaultProps = {
     forwardedRef: null,
 };
 
-function AttachmentCarouselPager({
-    items,
-    renderItem,
-    initialIndex,
-    onPageSelected,
-    onTap,
-    onSwipe = noopWorklet,
-    onSwipeSuccess,
-    onSwipeDown,
-    onPinchGestureChange,
-    forwardedRef,
-    containerWidth,
-    containerHeight,
-}) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onSwipe = noopWorklet, onSwipeSuccess, onSwipeDown, onPinchGestureChange, forwardedRef}) {
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
 
@@ -127,8 +112,6 @@ function AttachmentCarouselPager({
 
     const contextValue = useMemo(
         () => ({
-            canvasWidth: containerWidth,
-            canvasHeight: containerHeight,
             isScrolling,
             pagerRef,
             shouldPagerScroll,
@@ -138,7 +121,7 @@ function AttachmentCarouselPager({
             onSwipeSuccess,
             onSwipeDown,
         }),
-        [containerWidth, containerHeight, isScrolling, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
+        [isScrolling, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
     );
 
     return (
