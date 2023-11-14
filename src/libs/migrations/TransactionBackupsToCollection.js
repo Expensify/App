@@ -50,20 +50,12 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionDraftConnectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                    waitForCollectionCallback: true,
-                    callback: () => {
-                        Onyx.disconnect(transactionDraftConnectionID);
-
-                        // Moving the transaction backups from the main transactions collection to the draft transactions collection
-                        Onyx.multiSet(onyxData).then(() => {
-                            Log.info(
-                                `[Migrate Onyx] TransactionBackupsToCollection migration: successfully moved all transaction backups from the main transactions collection to the draft transactions collection`,
-                            );
-                            resolve();
-                        });
-                    },
+                // Moving the transaction backups from the main transactions collection to the draft transactions collection
+                Onyx.multiSet(onyxData).then(() => {
+                    Log.info(
+                        `[Migrate Onyx] TransactionBackupsToCollection migration: successfully moved all transaction backups from the main transactions collection to the draft transactions collection`,
+                    );
+                    resolve();
                 });
             },
         });
