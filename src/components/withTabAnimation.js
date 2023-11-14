@@ -34,8 +34,7 @@ export default function (WrappedComponent) {
     WrappedComponentWithTabAnimation.displayName = `withAnimation(${getComponentDisplayName(WrappedComponent)})`;
 
     // Return a component with tab animation prop if this component is in tab navigator, otherwise return itself
-    function WithTabAnimation(props) {
-        const rest = _.omit(props, ['forwardedRef']);
+    function WithTabAnimation({forwardedRef, ...rest}) {
         if (props.isInTabNavigator) {
             return (
                 <WrappedComponentWithTabAnimation
