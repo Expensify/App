@@ -15,9 +15,9 @@ import Animated, {
     withDecay,
     withSpring,
 } from 'react-native-reanimated';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import styles from '@styles/styles';
-import AttachmentCarouselPagerContext from './AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import ImageWrapper from './AttachmentCarousel/Pager/ImageWrapper';
+import ImageWrapper from './ImageWrapper';
 
 const MIN_ZOOM_SCALE_WITHOUT_BOUNCE = 1;
 const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 20;
@@ -39,7 +39,9 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-const imageLightboxPropTypes = {
+const imageTransformerPropTypes = {
+    canvasWidth: PropTypes.number.isRequired,
+    canvasHeight: PropTypes.number.isRequired,
     imageWidth: PropTypes.number,
     imageHeight: PropTypes.number,
     imageScaleX: PropTypes.number,
@@ -50,7 +52,7 @@ const imageLightboxPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const imageLightboxDefaultProps = {
+const imageTransformerDefaultProps = {
     imageWidth: 0,
     imageHeight: 0,
     imageScaleX: 1,
@@ -59,23 +61,20 @@ const imageLightboxDefaultProps = {
     scaledImageHeight: 0,
 };
 
-function ImageLightbox({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
+function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive = true, children, ...props}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
-    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} =
-        attachmentCarouselPagerContext != null
-            ? attachmentCarouselPagerContext
-            : {
-                  canvasWidth: 0,
-                  canvasHeight: 0,
-                  onTap: null,
-                  onSwipe: null,
-                  onSwipeSuccess: null,
-                  pagerRef: null,
-                  shouldPagerScroll: null,
-                  isScrolling: null,
-                  onPinchGestureChange: null,
-              };
+    const pagerRefFallback = useRef(null);
+    const {onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = attachmentCarouselPagerContext || {
+        onTap: () => undefined,
+        onSwipe: () => undefined,
+        onSwipeSuccess: () => undefined,
+        onPinchGestureChange: () => undefined,
+        pagerRef: pagerRefFallback,
+        shouldPagerScroll: false,
+        isScrolling: false,
+        ...props,
+    };
 
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
     const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
@@ -587,8 +586,8 @@ function ImageLightbox({imageWidth, imageHeight, imageScaleX, imageScaleY, scale
         </View>
     );
 }
-ImageLightbox.propTypes = imageLightboxPropTypes;
-ImageLightbox.defaultProps = imageLightboxDefaultProps;
-ImageLightbox.displayName = 'ImageLightbox';
+ImageTransformer.propTypes = imageTransformerPropTypes;
+ImageTransformer.defaultProps = imageTransformerDefaultProps;
+ImageTransformer.displayName = 'ImageTransformer';
 
-export default ImageLightbox;
+export default ImageTransformer;

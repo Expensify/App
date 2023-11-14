@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -8,28 +7,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-
-const propTypes = {
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
-
-    /** Handles scale changed event in image zoom component. Used on native only */
-    // eslint-disable-next-line react/no-unused-prop-types
-    onScaleChanged: PropTypes.func.isRequired,
-
-    /** URL to full-sized image */
-    url: PropTypes.string.isRequired,
-
-    /** image file name */
-    fileName: PropTypes.string.isRequired,
-
-    onError: PropTypes.func,
-};
-
-const defaultProps = {
-    isAuthTokenRequired: false,
-    onError: () => {},
-};
+import {defaultProps, propTypes} from './propTypes';
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const [isLoading, setIsLoading] = useState(true);

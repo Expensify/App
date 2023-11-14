@@ -1,42 +1,63 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import ImageLightbox from '@components/Attachments/ImageLightbox';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import Image from '@components/Image';
-import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
+import ImageLightboxUtils from './ImageLightboxUtils';
+import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
-
-function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
-    const imageScaleX = canvasWidth / imageWidth;
-    const imageScaleY = canvasHeight / imageHeight;
-
-    return {imageScaleX, imageScaleY};
-}
 
 const cachedDimensions = new Map();
 
-const pagePropTypes = {
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
+/**
+ * On the native layer, we use a image library to handle zoom functionality
+ */
+const propTypes = {
+    /** Function for handle on press */
+    onPress: PropTypes.func,
 
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
-    isActive: PropTypes.bool.isRequired,
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
+    isActive: PropTypes.bool,
+
+    canvasWidth: PropTypes.number.isRequired,
+
+    canvasHeight: PropTypes.number.isRequired,
+
+    // imageDimensions: PropTypes.shape({
+    //     width: PropTypes.number,
+    //     height: PropTypes.number,
+    //     scaledWidth: PropTypes.number,
+    //     scaledHeight: PropTypes.number,
+    //     scaleX: PropTypes.number,
+    //     scaleY: PropTypes.number,
+    // }),
+
+    // setImageDimensions: PropTypes.func.isRequired,
+
+    /** Additional styles to add to the component */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    isActive: true,
+    // imageDimensions: undefined,
+    onPress: () => {},
+    style: {},
 };
 
-function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialIsActive}) {
-    const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
-
-    const dimensions = cachedDimensions.get(source);
-
+function ImageLightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive, canvasWidth, canvasHeight}) {
     const [isActive, setIsActive] = useState(initialIsActive);
+
+    const imageDimensions = useMemo(() => cachedDimensions.get(source), [source]);
+    const setImageDimensions = useCallback((newDimensions) => cachedDimensions.set(source, newDimensions), [source]);
+
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
     // Instead, we show the fallback image while the image transformer is loading the image
@@ -68,19 +89,20 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
         <>
             {isActive && (
                 <View style={StyleSheet.absoluteFill}>
-                    <ImageLightbox
+                    <ImageTransformer
                         isActive
-                        imageWidth={dimensions?.imageWidth}
-                        imageHeight={dimensions?.imageHeight}
-                        scaledImageWidth={dimensions?.scaledImageWidth}
-                        scaledImageHeight={dimensions?.scaledImageHeight}
-                        minImageScale={dimensions?.minImageScale}
-                        imageScaleX={dimensions?.imageScaleX}
-                        imageScaleY={dimensions?.imageScaleY}
+                        canvasWidth={canvasWidth}
+                        canvasHeight={canvasHeight}
+                        imageWidth={imageDimensions?.width}
+                        imageHeight={imageDimensions?.height}
+                        scaledImageWidth={imageDimensions?.scaledWidth}
+                        scaledImageHeight={imageDimensions?.scaledHeight}
+                        imageScaleX={imageDimensions?.scaleX}
+                        imageScaleY={imageDimensions?.scaleY}
                     >
                         <Image
                             source={{uri: source}}
-                            style={dimensions == null ? undefined : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
+                            style={imageDimensions == null ? undefined : {width: imageDimensions.width, height: imageDimensions.height}}
                             isAuthTokenRequired={isAuthTokenRequired}
                             onLoadStart={() => {
                                 setIsImageLoading(true);
@@ -94,21 +116,21 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
 
-                                const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                                const {scaleX, scaleY} = ImageLightboxUtils.getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
 
                                 // Don't update the dimensions if they are already set
                                 if (
-                                    dimensions?.imageWidth !== imageWidth ||
-                                    dimensions?.imageHeight !== imageHeight ||
-                                    dimensions?.imageScaleX !== imageScaleX ||
-                                    dimensions?.imageScaleY !== imageScaleY
+                                    imageDimensions?.width !== imageWidth ||
+                                    imageDimensions?.height !== imageHeight ||
+                                    imageDimensions?.scaleX !== scaleX ||
+                                    imageDimensions?.scaleY !== scaleY
                                 ) {
-                                    cachedDimensions.set(source, {
-                                        ...dimensions,
-                                        imageWidth,
-                                        imageHeight,
-                                        imageScaleX,
-                                        imageScaleY,
+                                    setImageDimensions({
+                                        ...imageDimensions,
+                                        width: imageWidth,
+                                        height: imageHeight,
+                                        scaleX,
+                                        scaleY,
                                     });
                                 }
 
@@ -122,7 +144,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 }
                             }}
                         />
-                    </ImageLightbox>
+                    </ImageTransformer>
                 </View>
             )}
 
@@ -149,24 +171,24 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
 
-                            const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
-                            const minImageScale = Math.min(imageScaleX, imageScaleY);
+                            const {scaleX, scaleY} = ImageLightboxUtils.getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                            const minImageScale = Math.min(scaleX, scaleY);
 
-                            const scaledImageWidth = imageWidth * minImageScale;
-                            const scaledImageHeight = imageHeight * minImageScale;
+                            const scaledWidth = imageWidth * minImageScale;
+                            const scaledHeight = imageHeight * minImageScale;
 
                             // Don't update the dimensions if they are already set
-                            if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) {
+                            if (imageDimensions?.scaledWidth === scaledWidth && imageDimensions?.scaledHeight === scaledHeight) {
                                 return;
                             }
 
-                            cachedDimensions.set(source, {
-                                ...dimensions,
-                                scaledImageWidth,
-                                scaledImageHeight,
+                            setImageDimensions({
+                                ...imageDimensions,
+                                scaledWidth,
+                                scaledHeight,
                             });
                         }}
-                        style={dimensions == null ? undefined : {width: dimensions.scaledImageWidth, height: dimensions.scaledImageHeight}}
+                        style={imageDimensions == null ? undefined : {width: imageDimensions.scaledWidth, height: imageDimensions.scaledHeight}}
                     />
                 </ImageWrapper>
             )}
@@ -182,8 +204,8 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
     );
 }
 
-AttachmentCarouselPage.propTypes = pagePropTypes;
-AttachmentCarouselPage.defaultProps = defaultProps;
-AttachmentCarouselPage.displayName = 'AttachmentCarouselPage';
+ImageLightbox.propTypes = propTypes;
+ImageLightbox.defaultProps = defaultProps;
+ImageLightbox.displayName = 'AttachmentCarouselPage';
 
-export default AttachmentCarouselPage;
+export default ImageLightbox;

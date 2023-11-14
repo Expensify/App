@@ -1,5 +1,4 @@
 import React, {memo} from 'react';
-import AttachmentCarouselPage from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPage';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -13,20 +12,14 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
-    const children = isUsedInCarousel ? (
-        <AttachmentCarouselPage
-            source={source}
-            isAuthTokenRequired={isImage && isAuthTokenRequired}
-            file={file}
-            isActive={isFocused}
-        />
-    ) : (
+function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+    const children = (
         <ImageView
             onScaleChanged={onScaleChanged}
             url={source}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
+            isActive={isFocused}
         />
     );
 
