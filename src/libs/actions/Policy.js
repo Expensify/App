@@ -1045,12 +1045,14 @@ function generateCustomUnitID() {
 }
 
 /**
- * @param {String} currency
+ *
  * @returns {Object}
  */
-function buildOptimisticCustomUnits(currency) {
+function buildOptimisticCustomUnits() {
+    const currency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
+
     const customUnits = {
         [customUnitID]: {
             customUnitID,
@@ -1073,6 +1075,7 @@ function buildOptimisticCustomUnits(currency) {
         customUnits,
         customUnitID,
         customUnitRateID,
+        outputCurrency: currency,
     };
 }
 
@@ -1086,8 +1089,7 @@ function buildOptimisticCustomUnits(currency) {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
-    const {customUnits} = buildOptimisticCustomUnits(outputCurrency);
+    const {customUnits, outputCurrency} = buildOptimisticCustomUnits();
 
     const optimisticData = [
         {
@@ -1133,8 +1135,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const outputCurrency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits(outputCurrency);
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
