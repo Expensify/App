@@ -402,7 +402,7 @@ function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHA
     return report?.chatType;
 }
 
-function getPolicy(policyID: string): OnyxEntry<Policy> | EmptyObject {
+function getPolicy(policyID: string): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
     }
@@ -981,7 +981,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
 
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
         const isSplitAction = reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -3122,7 +3122,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string): Op
 
 function buildOptimisticTaskReport(
     ownerAccountID: number,
-    assigneeAccountID?: number,
+    assigneeAccountID = 0,
     parentReportID?: string,
     title?: string,
     description?: string,
@@ -3906,7 +3906,8 @@ function getTaskAssigneeChatOnyxData(
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
-        const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName ?? allPersonalDetails?.[assigneeAccountID]?.login ?? '';
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message?.[0].text ?? '');
         const optimisticAssigneeReport = {
