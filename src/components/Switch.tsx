@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -6,15 +5,15 @@ import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
-const propTypes = {
+type SwitchProps = {
     /** Whether the switch is toggled to the on position */
-    isOn: PropTypes.bool.isRequired,
+    isOn: boolean;
 
     /** Callback to fire when the switch is toggled */
-    onToggle: PropTypes.func.isRequired,
+    onToggle: (isOn: boolean) => void;
 
     /** Accessibility label for the switch */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: string;
 };
 
 const OFFSET_X = {
@@ -22,25 +21,25 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch(props) {
-    const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
+    const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
     useEffect(() => {
         Animated.timing(offsetX.current, {
-            toValue: props.isOn ? OFFSET_X.ON : OFFSET_X.OFF,
+            toValue: isOn ? OFFSET_X.ON : OFFSET_X.OFF,
             duration: 300,
             useNativeDriver,
         }).start();
-    }, [props.isOn]);
+    }, [isOn]);
 
     return (
         <PressableWithFeedback
-            style={[styles.switchTrack, !props.isOn && styles.switchInactive]}
-            onPress={() => props.onToggle(!props.isOn)}
-            onLongPress={() => props.onToggle(!props.isOn)}
+            style={[styles.switchTrack, !isOn && styles.switchInactive]}
+            onPress={() => onToggle(!isOn)}
+            onLongPress={() => onToggle(!isOn)}
             role={CONST.ACCESSIBILITY_ROLE.SWITCH}
-            ariaChecked={props.isOn}
-            accessibilityLabel={props.accessibilityLabel}
+            aria-checked={isOn}
+            accessibilityLabel={accessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
@@ -50,7 +49,5 @@ function Switch(props) {
     );
 }
 
-Switch.propTypes = propTypes;
 Switch.displayName = 'Switch';
-
 export default Switch;
