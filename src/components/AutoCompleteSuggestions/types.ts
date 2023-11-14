@@ -1,7 +1,7 @@
 import {ReactElement} from 'react';
+import type {SimpleEmoji} from '@libs/EmojiTrie';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-// TODO: remove when MentionSuggestions will be merged
 type Mention = {
     /** Display name of the user */
     text: string;
@@ -11,13 +11,6 @@ type Mention = {
 
     /** Array of icons of the user. We use the first element of this array */
     icons: Icon[];
-};
-
-// TODO: remove when EmojiSuggestions will be merged
-type SimpleEmoji = {
-    code: string;
-    name: string;
-    types?: string[];
 };
 
 type Suggestion = Mention | SimpleEmoji;
