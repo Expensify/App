@@ -3319,6 +3319,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     ) {
         return false;
     }
+    
     if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
