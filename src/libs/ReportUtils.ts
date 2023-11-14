@@ -544,8 +544,8 @@ function isSettled(reportID: string | undefined): boolean {
     if (!allReports) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (report?.isWaitingOnBankAccount) {
+    const report: Report | EmptyObject = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    if (isEmptyObject(report) || report?.isWaitingOnBankAccount) {
         return false;
     }
 
@@ -1756,8 +1756,7 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
         reportAction?.actorAccountID === currentUserAccountID &&
             isCommentOrIOU &&
             canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            reportAction?.message &&
-            !isReportMessageAttachment(reportAction.message[0] ?? {}) &&
+            !isReportMessageAttachment(reportAction?.message?.[0] ?? {type: '', text: ''}) &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1836,7 +1835,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report>,
-    reportAction?: OnyxEntry<ReportAction>,
+    reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
 ): string {
@@ -1847,7 +1846,7 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    if (!isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
+    if (isNotEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
         // This covers group chats where the last action is a split bill action
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         if (isEmptyObject(linkedTransaction)) {
@@ -1873,7 +1872,7 @@ function getReportPreviewMessage(
         return `approved ${formattedAmount}`;
     }
 
-    if (shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (isNotEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
 
         if (isNotEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
