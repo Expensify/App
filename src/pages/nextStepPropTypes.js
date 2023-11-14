@@ -42,7 +42,7 @@ export default PropTypes.shape({
             disabled: PropTypes.bool,
             hidden: PropTypes.bool,
             // eslint-disable-next-line react/forbid-prop-types
-            data: PropTypes.array,
+            data: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
         }).isRequired,
     ),
 });
