@@ -1336,6 +1336,8 @@ const CONST = {
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
+        FIRST_SPACE: /.+?(?=\s)/,
+
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
@@ -1348,11 +1350,6 @@ const CONST = {
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
-        },
-
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        get MENTION_REPLACER() {
-            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
@@ -2780,12 +2777,10 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
-
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
-
     EVENTS: {
         SCROLLING: 'scrolling',
     },
@@ -2802,13 +2797,6 @@ const CONST = {
     LIST_COMPONENTS: {
         HEADER: 'header',
         FOOTER: 'footer',
-    },
-
-    GLOBAL_NAVIGATION_OPTION: {
-        HOME: 'home',
-        CHATS: 'chats',
-        SPEND: 'spend',
-        WORKSPACES: 'workspaces',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
