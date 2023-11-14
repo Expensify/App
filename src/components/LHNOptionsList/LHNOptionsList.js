@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -211,4 +211,4 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
     }),
-)(LHNOptionsList);
+)(memo(LHNOptionsList));

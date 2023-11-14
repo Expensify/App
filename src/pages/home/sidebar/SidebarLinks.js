@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
@@ -145,6 +145,8 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+    const listStyle = useMemo(() => [isLoading ? styles.flexShrink1 : styles.flex1], [isLoading]);
+    const contentContainerStyles = useMemo(() => [styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}], [insets]);
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -177,8 +179,8 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             </View>
 
             <LHNOptionsList
-                style={[isLoading ? styles.flexShrink1 : styles.flex1]}
-                contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+                style={listStyle}
+                contentContainerStyles={contentContainerStyles}
                 data={optionListItems}
                 onSelectRow={showReportPage}
                 shouldDisableFocusOptions={isSmallScreenWidth}
