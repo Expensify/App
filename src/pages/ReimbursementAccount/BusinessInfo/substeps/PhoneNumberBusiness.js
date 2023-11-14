@@ -56,7 +56,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
                 accessibilityLabel={translate('common.phoneNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                inputMode={CONST.INPUT_MODE.TEL}
                 placeholder={translate('common.phoneNumberPlaceholder')}
                 defaultValue={defaultCompanyPhoneNumber}
                 shouldSaveDraft

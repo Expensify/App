@@ -60,7 +60,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
                 accessibilityLabel={translate('businessInfoStep.taxIDNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}
                 placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
                 defaultValue={defaultCompanyTaxId}

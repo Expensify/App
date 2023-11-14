@@ -123,7 +123,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.incorporationState')}
-                    title={values[businessInfoStepKeys.INCORPORATION_STATE]}
+                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE]}.stateName`)}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(7);

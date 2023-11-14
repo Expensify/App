@@ -80,7 +80,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultCompanyWebsite}
                 shouldSaveDraft
-                keyboardType={CONST.KEYBOARD_TYPE.URL}
+                inputMode={CONST.INPUT_MODE.URL}
             />
         </Form>
     );
