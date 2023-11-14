@@ -335,6 +335,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
     }
 
     let cursorPosition;
+
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
         let checkEmoji = trie.search(name);
@@ -355,18 +356,24 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
                 types: checkEmoji.metaData.types,
             });
 
-            // If this is the last emoji in the message and it's the end of the message so far,
-            // add a space after it so the user can keep typing easily.
-            if (newText.indexOf(emoji) + emoji.length === newText.length) {
-                emojiReplacement += ' ';
-            }
-
             // Set the cursor to the end of the last replaced Emoji. Note that we position after
             // the extra space, if we added one.
             cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
 
             newText = newText.replace(emoji, emojiReplacement);
         }
+    }
+
+    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
+    // In that case we want to append a space at the cursor position, but only if the next character
+    // is not already a space (to avoid double spaces).
+    if (cursorPosition && cursorPosition > 0) {
+        const space = ' ';
+
+        if (newText.charAt(cursorPosition) !== space) {
+            newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
+        }
+        cursorPosition += space.length;
     }
 
     return {text: newText, emojis, cursorPosition};
