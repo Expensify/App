@@ -48,7 +48,7 @@ export default function (WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                ref={props.forwardedRef}
+                ref={forwardedRef}
             />
         );
     }
