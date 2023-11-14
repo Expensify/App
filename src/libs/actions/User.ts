@@ -783,7 +783,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(status: CustomStatus) {
+function updateCustomStatus(status: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -795,7 +795,14 @@ function updateCustomStatus(status: CustomStatus) {
             },
         },
     ];
-    API.write('UpdateStatus', status, {
+
+    type UpdateStatusParam = {
+        status: string;
+    };
+
+    const params: UpdateStatusParam = {status};
+
+    API.write('UpdateStatus', params, {
         optimisticData,
     });
 }
