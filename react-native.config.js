@@ -3,5 +3,5 @@ module.exports = {
         ios: {sourceDir: 'ios'},
         android: {},
     },
-    assets: ['./assets/fonts/native'],
+    assets: ['./react-native/assets/fonts/native'],
 };
