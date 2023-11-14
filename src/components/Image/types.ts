@@ -17,22 +17,25 @@ type ImageProps = {
     source: Omit<ImageURISource, 'cache'> | ImageRequireSource | Omit<Source, 'cache'>;
 
     /** Should an auth token be included in the image request */
-    isAuthTokenRequired: boolean;
+    isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode: ImageResizeMode & ResizeMode;
+    resizeMode?: ImageResizeMode & ResizeMode;
 
     /** Event for when the image begins loading */
-    onLoadStart: () => void;
+    onLoadStart?: () => void;
 
     /** Event for when the image finishes loading */
-    onLoadEnd: () => void;
+    onLoadEnd?: () => void;
+
+    /** Error handler */
+    onError?: () => void;
 
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad: (event: OnLoadEvent) => void;
+    onLoad?: (event: OnLoadEvent) => void;
 
     /** Progress events while the image is downloading */
-    onProgress: () => void;
+    onProgress?: () => void;
 };
 
 type ImagePropsWithOnyx = ImageOnyxProps & ImageProps;
