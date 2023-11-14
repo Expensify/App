@@ -45,9 +45,6 @@ const propTypes = {
     }).isRequired,
 
     /** Onyx props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report object for the thread report */
     report: reportPropTypes,
 
@@ -68,7 +65,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     report: {},
     parentReport: {},
     policyCategories: {},
@@ -77,7 +73,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -278,9 +274,6 @@ EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },

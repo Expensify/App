@@ -110,9 +110,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -188,7 +185,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -743,9 +739,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,

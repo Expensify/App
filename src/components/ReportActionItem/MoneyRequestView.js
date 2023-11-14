@@ -47,9 +47,6 @@ const propTypes = {
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
@@ -66,7 +63,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     parentReport: {},
     policyCategories: {},
     transaction: {
@@ -77,7 +73,7 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -301,9 +297,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
