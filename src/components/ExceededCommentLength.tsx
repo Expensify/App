@@ -1,5 +1,4 @@
-import {debounce} from 'lodash';
-import PropTypes from 'prop-types';
+import debounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -9,38 +8,34 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
 
-const propTypes = {
+type ExceededCommentLengthProps = {
     /** Report ID to get the comment from (used in withOnyx) */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.string.isRequired,
+    reportID: string;
 
     /** Text Comment */
-    comment: PropTypes.string,
+    comment: string;
 
     /** Update UI on parent when comment length is exceeded */
-    onExceededMaxCommentLength: PropTypes.func.isRequired,
+    onExceededMaxCommentLength: () => void;
 };
 
-const defaultProps = {
-    comment: '',
-};
-
-function ExceededCommentLength(props) {
+function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: ExceededCommentLengthProps) {
     const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
         () =>
-            debounce((comment, onExceededMaxCommentLength) => {
-                const newCommentLength = ReportUtils.getCommentLength(comment);
+            debounce((newComment, onExceededMaxCommentLengthCallabck) => {
+                const newCommentLength = ReportUtils.getCommentLength(newComment);
                 setCommentLength(newCommentLength);
-                onExceededMaxCommentLength(newCommentLength > CONST.MAX_COMMENT_LENGTH);
+                onExceededMaxCommentLengthCallabck(newCommentLength > CONST.MAX_COMMENT_LENGTH);
             }, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME),
         [],
     );
 
     useEffect(() => {
-        updateCommentLength(props.comment, props.onExceededMaxCommentLength);
-    }, [props.comment, props.onExceededMaxCommentLength, updateCommentLength]);
+        updateCommentLength(comment, onExceededMaxCommentLength);
+    }, [comment, onExceededMaxCommentLength, updateCommentLength]);
 
     if (commentLength <= CONST.MAX_COMMENT_LENGTH) {
         return null;
@@ -56,8 +51,6 @@ function ExceededCommentLength(props) {
     );
 }
 
-ExceededCommentLength.propTypes = propTypes;
-ExceededCommentLength.defaultProps = defaultProps;
 ExceededCommentLength.displayName = 'ExceededCommentLength';
 
 export default withOnyx({
