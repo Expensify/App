@@ -106,7 +106,6 @@ function InvertedFlatList(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={innerRef}
-            shouldMeasureItems
             contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
         />
