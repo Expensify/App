@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
+import {getGroupChatName} from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -78,7 +79,7 @@ function ReportSettingsPage(props) {
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.getReportName(props.report);
+    const reportName = ReportUtils.isGroupChat(props.report) ? getGroupChatName(props.report) : ReportUtils.getReportName(props.report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 

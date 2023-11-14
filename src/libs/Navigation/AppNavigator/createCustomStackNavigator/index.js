@@ -26,22 +26,24 @@ const defaultProps = {
     screenOptions: undefined,
 };
 
-function splitRoutes(routes) {
-    const reportRoutes = [];
-    const rhpRoutes = [];
-    const otherRoutes = [];
+function reduceReportRoutes(routes) {
+    const result = [];
+    let count = 0;
+    const reverseRoutes = [...routes].reverse();
 
-    routes.forEach((route) => {
+    reverseRoutes.forEach((route) => {
         if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            reportRoutes.push(route);
-        } else if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-            rhpRoutes.push(route);
+            // Remove all report routes except the last 3. This will improve performance.
+            if (count < 3) {
+                result.push(route);
+                count++;
+            }
         } else {
-            otherRoutes.push(route);
+            result.push(route);
         }
     });
 
-    return {reportRoutes, rhpRoutes, otherRoutes};
+    return result.reverse();
 }
 
 function ResponsiveStackNavigator(props) {
@@ -60,15 +62,12 @@ function ResponsiveStackNavigator(props) {
     });
 
     const stateToRender = useMemo(() => {
-        const {reportRoutes, rhpRoutes, otherRoutes} = splitRoutes(state.routes);
-
-        // Remove all report routes except the last 3. This will improve performance.
-        const limitedReportRoutes = reportRoutes.slice(-3);
+        const result = reduceReportRoutes(state.routes);
 
         return {
             ...state,
-            index: otherRoutes.length + limitedReportRoutes.length + rhpRoutes.length - 1,
-            routes: [...otherRoutes, ...limitedReportRoutes, ...rhpRoutes],
+            index: result.length - 1,
+            routes: [...result],
         };
     }, [state]);
 

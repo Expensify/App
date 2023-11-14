@@ -1,7 +1,6 @@
-const fs = require('fs/promises');
-const fsSync = require('fs');
 const _ = require('underscore');
 const {computeProbability, computeZ} = require('./math');
+const {getStats} = require('../measure/math');
 const printToConsole = require('./output/console');
 const writeToMarkdown = require('./output/markdown');
 
@@ -25,18 +24,6 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
-
-const loadFile = (path) =>
-    fs.readFile(path, 'utf8').then((data) => {
-        const entries = JSON.parse(data);
-
-        const result = {};
-        entries.forEach((entry) => {
-            result[entry.name] = entry;
-        });
-
-        return result;
-    });
 
 /**
  *
@@ -83,8 +70,11 @@ function compareResults(compareEntries, baselineEntries) {
         const current = compareEntries[name];
         const baseline = baselineEntries[name];
 
+        const currentStats = getStats(baseline);
+        const deltaStats = getStats(current);
+
         if (baseline && current) {
-            compared.push(buildCompareEntry(name, current, baseline));
+            compared.push(buildCompareEntry(name, deltaStats, currentStats));
         } else if (current) {
             added.push({
                 name,
@@ -100,11 +90,9 @@ function compareResults(compareEntries, baselineEntries) {
 
     const significance = _.chain(compared)
         .filter((item) => item.isDurationDiffOfSignificance)
-        .sort((a, b) => b.diff - a.diff)
         .value();
     const meaningless = _.chain(compared)
         .filter((item) => !item.isDurationDiffOfSignificance)
-        .sort((a, b) => b.diff - a.diff)
         .value();
 
     added.sort((a, b) => b.current.mean - a.current.mean);
@@ -118,25 +106,14 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (baselineFile, compareFile, outputFile, outputFormat = 'all') => {
-    const hasBaselineFile = fsSync.existsSync(baselineFile);
-    if (!hasBaselineFile) {
-        throw new Error(`Baseline results files "${baselineFile}" does not exists.`);
-    }
-    return loadFile(baselineFile).then((baseline) => {
-        const hasCompareFile = fsSync.existsSync(compareFile);
-        if (!hasCompareFile) {
-            throw new Error(`Compare results files "${compareFile}" does not exists.`);
-        }
-        return loadFile(compareFile).then((compare) => {
-            const outputData = compareResults(compare, baseline);
+module.exports = (main, delta, outputFile, outputFormat = 'all') => {
+    const outputData = compareResults(main, delta);
 
-            if (outputFormat === 'console' || outputFormat === 'all') {
-                printToConsole(outputData);
-            }
-            if (outputFormat === 'markdown' || outputFormat === 'all') {
-                return writeToMarkdown(outputFile, outputData);
-            }
-        });
-    });
+    if (outputFormat === 'console' || outputFormat === 'all') {
+        printToConsole(outputData);
+    }
+
+    if (outputFormat === 'markdown' || outputFormat === 'all') {
+        return writeToMarkdown(outputFile, outputData);
+    }
 };

@@ -586,8 +586,7 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
-            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
-            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
+            atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos direcciones diferentes',
             splitBillMultipleParticipantsErrorMessage: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor actualiza tu selección.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
@@ -882,6 +881,7 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
+        cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -2391,8 +2391,5 @@ export default {
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
-    },
-    globalNavigationOptions: {
-        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
