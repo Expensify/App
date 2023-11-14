@@ -1,55 +1,47 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
-import stylePropTypes from '@styles/stylePropTypes';
+import React, {ForwardedRef, forwardRef} from 'react';
+import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import refPropTypes from './refPropTypes';
 
-const propTypes = {
+type CheckboxProps = ChildrenProps & {
     /** Whether checkbox is checked */
-    isChecked: PropTypes.bool,
+    isChecked?: boolean;
 
     /** A function that is called when the box/label is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: () => void;
 
     /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
+    hasError?: boolean;
 
     /** Should the input be disabled  */
-    disabled: PropTypes.bool,
-
-    /** Children (icon) for Checkbox */
-    children: PropTypes.node,
+    disabled?: boolean;
 
     /** Additional styles to add to checkbox button */
-    style: stylePropTypes,
+    style?: StyleProp<ViewStyle>;
 
     /** Additional styles to add to checkbox container */
-    containerStyle: stylePropTypes,
+    containerStyle?: StyleProp<ViewStyle>;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown: PropTypes.func,
+    onMouseDown?: () => void;
 
     /** The size of the checkbox container */
-    containerSize: PropTypes.number,
+    containerSize?: number;
 
     /** The border radius of the checkbox container */
-    containerBorderRadius: PropTypes.number,
+    containerBorderRadius?: number;
 
     /** The size of the caret (checkmark) */
-    caretSize: PropTypes.number,
-
-    /** A ref to forward to the Pressable */
-    forwardedRef: refPropTypes,
+    caretSize?: number;
 
     /** An accessibility label for the checkbox */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: string;
 };
 
 const defaultProps = {
@@ -66,7 +58,8 @@ const defaultProps = {
     caretSize: 14,
 };
 
-function Checkbox(props) {
+function Checkbox(props: CheckboxProps, ref: ForwardedRef<View>) {
+    console.log('*** I RENDER ***');
     const handleSpaceKey = (event) => {
         if (event.code !== 'Space') {
             return;
@@ -75,10 +68,10 @@ function Checkbox(props) {
         props.onPress();
     };
 
-    const firePressHandlerOnClick = (event) => {
+    const firePressHandlerOnClick = (event?: GestureResponderEvent | KeyboardEvent) => {
         // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
         // We do not want to toggle it, when Enter key is pressed.
-        if (event.type && event.type !== 'click') {
+        if (event?.type !== 'click') {
             return;
         }
 
@@ -90,11 +83,11 @@ function Checkbox(props) {
             disabled={props.disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
-            ref={props.forwardedRef}
-            style={[StyleUtils.getCheckboxPressableStyle(props.containerBorderRadius + 2), props.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
+            ref={ref}
+            style={[StyleUtils.getCheckboxPressableStyle(props?.containerBorderRadius ?? 0 + 2), props?.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-            ariaChecked={props.isChecked}
+            aria-checked={props.isChecked}
             accessibilityLabel={props.accessibilityLabel}
             pressDimmingValue={1}
         >
@@ -103,7 +96,7 @@ function Checkbox(props) {
             ) : (
                 <View
                     style={[
-                        StyleUtils.getCheckboxContainerStyle(props.containerSize, props.containerBorderRadius),
+                        StyleUtils.getCheckboxContainerStyle(props?.containerSize ?? 0, props.containerBorderRadius),
                         props.containerStyle,
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
@@ -126,8 +119,5 @@ function Checkbox(props) {
     );
 }
 
-Checkbox.propTypes = propTypes;
-Checkbox.defaultProps = defaultProps;
 Checkbox.displayName = 'Checkbox';
-
-export default Checkbox;
+export default forwardRef(Checkbox);
