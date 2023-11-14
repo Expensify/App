@@ -617,7 +617,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, transactionID, reportID));
+                        Navigation.navigate(
+                            ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, transactionID, reportID),
+                            CONST.NAVIGATION.TYPE.UP,
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -636,7 +639,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DESCRIPTION, transactionID, reportID));
+                    Navigation.navigate(
+                        ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DESCRIPTION, transactionID, reportID),
+                        CONST.NAVIGATION.TYPE.UP,
+                    );
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -673,7 +679,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DATE, transactionID, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DATE, transactionID, reportID),
+                                    CONST.NAVIGATION.TYPE.UP,
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -688,7 +697,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), CONST.NAVIGATION.TYPE.UP)
+                            }
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!isReadOnly}
                         />
@@ -705,7 +716,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, transactionID, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, transactionID, reportID),
+                                    CONST.NAVIGATION.TYPE.UP,
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -719,7 +733,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CATEGORY, transactionID, reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CATEGORY, transactionID, reportID),
+                                    CONST.NAVIGATION.TYPE.UP,
+                                )
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -732,7 +751,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.TAG, transactionID, reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.TAG, transactionID, reportID),
+                                    CONST.NAVIGATION.TYPE.UP,
+                                )
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
