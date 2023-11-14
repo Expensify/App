@@ -55,11 +55,11 @@ You do this by synchronizing Expensify and your accounting package as follows:
 4. Follow the prompts to connect your accounting package
 
 Check out the links below for more information on how to connect to your accounting solution:
-- *[QuickBooks Online](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/QuickBooks-Online#gsc.tab=0)*
-- *[Xero](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero#gsc.tab=0)*
-- *[NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#gsc.tab=0)*
-- *[Sage Intacct](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#gsc.tab=0)*
-- *[Other Accounting System](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Indirect-Accounting-Integrations#gsc.tab=0)
+- *[QuickBooks Online](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/QuickBooks-Online)*
+- *[Xero](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero)*
+- *[NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite)*
+- *[Sage Intacct](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct)*
+- *[Other Accounting System](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Indirect-Accounting-Integrations)
 
 
 *“Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”*
@@ -106,7 +106,7 @@ Receipts are important, and in most cases you prefer an itemized receipt. Howeve
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ## Step 7: Set up scheduled submit
-For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit#gsc.tab=0) on a *Daily* frequency:
+For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit) on a *Daily* frequency:
 
 - Click *Settings > Workspace*
 - From here, select your group collect workspace
@@ -147,10 +147,10 @@ You only need to do this once: you are fully set up for not only reimbursing exp
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
-We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0). But if *Advanced Approval* is your jam, keep reading! 
+We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows). But if *Advanced Approval* is your jam, keep reading! 
 
 *Import your employees in bulk via CSV*
-Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0)*
+Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows)*
 
 ![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png){:width="100%"}
 
