@@ -2,15 +2,15 @@ import {ReactElement} from 'react';
 
 type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
-type AutoCompleteSuggestionsProps<Suggestion> = {
+type AutoCompleteSuggestionsProps<TSuggestion> = {
     /** Array of suggestions */
-    suggestions: Suggestion[];
+    suggestions: TSuggestion[];
 
     /** Function used to render each suggestion, returned JSX will be enclosed inside a Pressable component */
-    renderSuggestionMenuItem: (item: Suggestion, index: number) => ReactElement;
+    renderSuggestionMenuItem: (item: TSuggestion, index: number) => ReactElement;
 
     /** Create unique keys for each suggestion item */
-    keyExtractor: (item: Suggestion, index: number) => string;
+    keyExtractor: (item: TSuggestion, index: number) => string;
 
     /** The index of the highlighted suggestion */
     highlightedSuggestionIndex: number;
@@ -24,7 +24,7 @@ type AutoCompleteSuggestionsProps<Suggestion> = {
     isSuggestionPickerLarge: boolean;
 
     /** create accessibility label for each item */
-    accessibilityLabelExtractor: (item: Suggestion, index: number) => string;
+    accessibilityLabelExtractor: (item: TSuggestion, index: number) => string;
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;

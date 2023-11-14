@@ -9,12 +9,12 @@ import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import type AutoCompleteSuggestionsProps from './types';
 
-type RenderSuggestionMenuItemProps<Suggestion> = {
-    item: Suggestion;
+type RenderSuggestionMenuItemProps<TSuggestion> = {
+    item: TSuggestion;
     index: number;
 };
 
-type GetItemLayout<Suggestion> = FlatListProps<Suggestion>['getItemLayout'];
+type GetItemLayout<TSuggestion> = FlatListProps<TSuggestion>['getItemLayout'];
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
@@ -31,7 +31,7 @@ const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge:
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
-function BaseAutoCompleteSuggestions<Suggestion>(
+function BaseAutoCompleteSuggestions<TSuggestion>(
     {
         highlightedSuggestionIndex,
         onSelect,
@@ -40,7 +40,7 @@ function BaseAutoCompleteSuggestions<Suggestion>(
         suggestions,
         isSuggestionPickerLarge,
         keyExtractor,
-    }: AutoCompleteSuggestionsProps<Suggestion>,
+    }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<Animated.View | HTMLDivElement>,
 ) {
     const rowHeight = useSharedValue(0);
@@ -48,7 +48,7 @@ function BaseAutoCompleteSuggestions<Suggestion>(
     /**
      * Render a suggestion menu item component.
      */
-    const renderItem = ({item, index}: RenderSuggestionMenuItemProps<Suggestion>): ReactElement => (
+    const renderItem = ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
         <PressableWithFeedback
             style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
             hoverDimmingValue={1}
@@ -71,7 +71,7 @@ function BaseAutoCompleteSuggestions<Suggestion>(
      * @param data - This is the same as the data we pass into the component
      * @param index the current item's index in the set of data
      */
-    const getItemLayout: GetItemLayout<Suggestion> = (data, index) => ({
+    const getItemLayout: GetItemLayout<TSuggestion> = (data, index) => ({
         length: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
         offset: index * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
         index,

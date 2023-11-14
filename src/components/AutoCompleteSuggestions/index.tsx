@@ -14,7 +14,7 @@ import type AutoCompleteSuggestionsProps from './types';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions<Suggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<Suggestion>) {
+function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
@@ -44,7 +44,7 @@ function AutoCompleteSuggestions<Suggestion>({measureParentContainer = () => {},
     }, [measureParentContainer, windowHeight, windowWidth]);
 
     const componentToRender = (
-        <BaseAutoCompleteSuggestions<Suggestion>
+        <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={containerRef}

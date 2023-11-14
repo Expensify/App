@@ -3,11 +3,11 @@ import React from 'react';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type AutoCompleteSuggestionsProps from './types';
 
-function AutoCompleteSuggestions<Suggestion>({measureParentContainer, ...props}: AutoCompleteSuggestionsProps<Suggestion>) {
+function AutoCompleteSuggestions<TSuggestion>({measureParentContainer, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     return (
         <Portal hostName="suggestions">
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <BaseAutoCompleteSuggestions<Suggestion> {...props} />
+            <BaseAutoCompleteSuggestions<TSuggestion> {...props} />
         </Portal>
     );
 }
