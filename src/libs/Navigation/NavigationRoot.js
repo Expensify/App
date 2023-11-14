@@ -1,16 +1,16 @@
-import React, {useRef, useEffect} from 'react';
+import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
-import useFlipper from '../../hooks/useFlipper';
-import Navigation, {navigationRef} from './Navigation';
-import linkingConfig from './linkingConfig';
+import React, {useEffect, useRef} from 'react';
+import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import useCurrentReportID from '@hooks/useCurrentReportID';
+import useFlipper from '@hooks/useFlipper';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import Log from '@libs/Log';
+import StatusBar from '@libs/StatusBar';
+import themeColors from '@styles/themes/default';
 import AppNavigator from './AppNavigator';
-import themeColors from '../../styles/themes/default';
-import Log from '../Log';
-import StatusBar from '../StatusBar';
-import useCurrentReportID from '../../hooks/useCurrentReportID';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import linkingConfig from './linkingConfig';
+import Navigation, {navigationRef} from './Navigation';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -99,7 +99,7 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;

@@ -1,6 +1,5 @@
-import {CSSProperties} from 'react';
 import {TextStyle} from 'react-native';
 
-type FontWeightBoldStyles = (TextStyle | CSSProperties)['fontWeight'];
+type FontWeightBoldStyles = NonNullable<TextStyle['fontWeight']>;
 
 export default FontWeightBoldStyles;

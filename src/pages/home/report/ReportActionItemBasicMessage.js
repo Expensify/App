@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
+import Text from '@components/Text';
+import styles from '@styles/styles';
 
 const propTypes = {
     message: PropTypes.string.isRequired,

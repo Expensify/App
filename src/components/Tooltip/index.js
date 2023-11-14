@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import {propTypes as tooltipPropTypes, defaultProps as tooltipDefaultProps} from './tooltipPropTypes';
+import React from 'react';
 import BaseTooltip from './BaseTooltip';
+import {defaultProps as tooltipDefaultProps, propTypes as tooltipPropTypes} from './tooltipPropTypes';
 
 const propTypes = {
     ...tooltipPropTypes,
@@ -15,7 +15,7 @@ const defaultProps = {
     shouldRender: true,
 };
 
-function Tooltip({shouldRender, children, ...props}) {
+function Tooltip({shouldRender = true, children, ...props}) {
     if (!shouldRender) {
         return children;
     }

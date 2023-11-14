@@ -1,38 +1,41 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
-import ZoomIcon from '../../../assets/images/zoom-icon.svg';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import DisplayNames from '../../components/DisplayNames';
-import Icon from '../../components/Icon';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import MultipleAvatars from '../../components/MultipleAvatars';
-import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import SubscriptAvatar from '../../components/SubscriptAvatar';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
-import Text from '../../components/Text';
-import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import Tooltip from '../../components/Tooltip';
-import participantPropTypes from '../../components/participantPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Link from '../../libs/actions/Link';
-import * as Report from '../../libs/actions/Report';
-import * as Session from '../../libs/actions/Session';
-import * as Task from '../../libs/actions/Task';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import reportPropTypes from '../reportPropTypes';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
+import DisplayNames from '@components/DisplayNames';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
+import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import {getGroupChatName} from '@libs/GroupChatUtils';
+import * as HeaderUtils from '@libs/HeaderUtils';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -80,7 +83,7 @@ function HeaderView(props) {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = isMultipleParticipant ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.isGroupChat(props.report) ? getGroupChatName(props.report) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -89,6 +92,7 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -100,9 +104,8 @@ function HeaderView(props) {
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                iconFill: themeColors.icon,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
         }
 
@@ -110,9 +113,8 @@ function HeaderView(props) {
         if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
-                iconFill: themeColors.icon,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
@@ -121,61 +123,44 @@ function HeaderView(props) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                iconFill: themeColors.icon,
                 text: props.translate('common.joinThread'),
-                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                onSelected: Session.checkIfActionIsAllowed(() =>
+                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                ),
             });
         } else if (props.report.notificationPreference.length) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                iconFill: themeColors.icon,
                 text: props.translate('common.leaveThread'),
-                onSelected: () => Report.leaveRoom(props.report.reportID),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
             });
         }
     }
 
-    if (!props.report.isPinned) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    } else {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.unPin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    }
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({
             icon: Expensicons.Phone,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.tooltip'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(props.guideCalendarLink);
-            },
+            }),
         });
-    } else if (!isAutomatedExpensifyAccount && !isTaskReport) {
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.zoom'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            },
+            }),
         });
         threeDotMenuItems.push({
             icon: GoogleMeetIcon,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            },
+            }),
         });
     }
 
@@ -200,7 +185,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -219,7 +204,7 @@ function HeaderView(props) {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -273,6 +258,7 @@ function HeaderView(props) {
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>
@@ -286,20 +272,23 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        guideCalendarLink: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) => (account && account.guideCalendarLink) || null,
-            initialValue: null,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(HeaderView);
+export default memo(
+    compose(
+        withWindowDimensions,
+        withLocalize,
+        withOnyx({
+            guideCalendarLink: {
+                key: ONYXKEYS.ACCOUNT,
+                selector: (account) => (account && account.guideCalendarLink) || null,
+                initialValue: null,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+                selector: reportWithoutHasDraftSelector,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(HeaderView),
+);

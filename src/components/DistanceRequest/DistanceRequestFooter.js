@@ -1,24 +1,22 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import DotIndicatorMessage from '../DotIndicatorMessage';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import theme from '../../styles/themes/default';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import Button from '../Button';
-import DistanceMapView from '../DistanceMapView';
-import * as Expensicons from '../Icon/Expensicons';
-import PendingMapView from '../MapView/PendingMapView';
-import transactionPropTypes from '../transactionPropTypes';
+import Button from '@components/Button';
+import DistanceMapView from '@components/DistanceMapView';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PendingMapView from '@components/MapView/PendingMapView';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const MAX_WAYPOINTS = 25;
 
@@ -29,11 +27,9 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
-
-    /** Whether there is an error with the route */
-    hasRouteError: PropTypes.bool,
 
     /** Function to call when the user wants to add a new waypoint */
     navigateToWaypointEditPage: PropTypes.func.isRequired,
@@ -53,17 +49,17 @@ const propTypes = {
 
 const defaultProps = {
     waypoints: {},
-    hasRouteError: false,
     mapboxAccessToken: {
         token: '',
     },
     transaction: {},
 };
-function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRouteError, navigateToWaypointEditPage}) {
+function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const numberOfWaypoints = _.size(waypoints);
+    const numberOfFilledWaypoints = _.size(_.filter(waypoints, (waypoint) => !_.isEmpty(waypoint)));
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
@@ -103,23 +99,18 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
 
     return (
         <>
-            {hasRouteError && (
-                <DotIndicatorMessage
-                    style={[styles.mh5, styles.mv3]}
-                    messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
-                    type="error"
-                />
+            {numberOfFilledWaypoints >= 2 && (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
+                    <Button
+                        small
+                        icon={Expensicons.Plus}
+                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        text={translate('distance.addStop')}
+                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        innerStyles={[styles.ph10]}
+                    />
+                </View>
             )}
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
-                />
-            </View>
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <DistanceMapView
@@ -128,18 +119,19 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
                         pitchEnabled={false}
                         initialState={{
                             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
+                            location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
+                        style={[styles.mapView, styles.mapEditView]}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
+                        overlayStyle={styles.mapEditView}
                     />
                 ) : (
                     <PendingMapView
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
                     />
                 )}
             </View>

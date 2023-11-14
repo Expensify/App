@@ -1,3 +1,4 @@
+import {ReportAction} from '@src/types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -42,15 +43,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -105,6 +106,8 @@ type RequestAmountParams = {amount: number};
 type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
 type SplitAmountParams = {amount: number};
+
+type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: number};
 
@@ -166,7 +169,7 @@ type UntilTimeParams = {time: string};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberOfWorkspaceParams = {login: string; workspace: string};
+type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
@@ -240,6 +243,7 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
@@ -269,6 +273,7 @@ export type {
     RequestAmountParams,
     RequestedAmountMessageParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -299,7 +304,7 @@ export type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,

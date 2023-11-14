@@ -1,3 +1,17 @@
+import {isBefore} from 'date-fns';
+import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherUtils from '@libs/PusherUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -7,14 +21,10 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import * as Link from './Link';
-import * as SequentialQueue from '../Network/SequentialQueue';
-import PusherUtils from '../PusherUtils';
-import * as Report from './Report';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as Session from './Session';
-import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import * as PersonalDetails from './PersonalDetails';
+import * as Report from './Report';
+import * as Session from './Session';
 import redirectToSignIn from './SignInRedirect';
 import type Login from '../../types/onyx/Login';
 import type OnyxPersonalDetails from '../../types/onyx/PersonalDetails';
@@ -242,6 +252,14 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
 
     API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    API.write(
+        'DeleteContactMethod',
+        {
+            partnerUserID: contactMethod,
+        },
+        {optimisticData, successData, failureData},
+    );
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -455,7 +473,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
+    return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {

@@ -1,7 +1,7 @@
 import {Alert, Linking, Platform} from 'react-native';
-import CONST from '../../CONST';
-import * as Localize from '../Localize';
-import DateUtils from '../DateUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import CONST from '@src/CONST';
 
 /**
  * Show alert on successful attachment download
@@ -46,6 +46,27 @@ function showPermissionErrorAlert() {
             onPress: () => Linking.openSettings(),
         },
     ]);
+}
+
+/**
+ * Inform the users when they need to grant camera access and guide them to settings
+ */
+function showCameraPermissionsAlert() {
+    Alert.alert(
+        Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
+        Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        [
+            {
+                text: Localize.translateLocal('common.cancel'),
+                style: 'cancel',
+            },
+            {
+                text: Localize.translateLocal('common.settings'),
+                onPress: () => Linking.openSettings(),
+            },
+        ],
+        {cancelable: false},
+    );
 }
 
 /**
@@ -138,9 +159,12 @@ function appendTimeToFileName(fileName) {
  *
  * @param {String} path - the blob url of the locally uplodaded file
  * @param {String} fileName
+ * @param {Function} onSuccess
+ * @param {Function} onFailure
+ *
  * @returns {Promise}
  */
-const readFileAsync = (path, fileName) =>
+const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -162,12 +186,63 @@ const readFileAsync = (path, fileName) =>
                 // For some reason, the File object on iOS does not have a uri property
                 // so images aren't uploaded correctly to the backend
                 file.uri = path;
-                resolve(file);
+                onSuccess(file);
             })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
-                resolve();
+                onFailure(e);
             });
     });
 
-export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName, readFileAsync};
+/**
+ * Converts a base64 encoded image string to a File instance.
+ * Adds a `uri` property to the File instance for accessing the blob as a URI.
+ *
+ * @param {string} base64 - The base64 encoded image string.
+ * @param {string} filename - Desired filename for the File instance.
+ * @returns {File} The File instance created from the base64 string with an additional `uri` property.
+ *
+ * @example
+ * const base64Image = "data:image/png;base64,..."; // your base64 encoded image
+ * const imageFile = base64ToFile(base64Image, "example.png");
+ * console.log(imageFile.uri); // Blob URI
+ */
+function base64ToFile(base64, filename) {
+    // Decode the base64 string
+    const byteString = atob(base64.split(',')[1]);
+
+    // Get the mime type from the base64 string
+    const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+
+    // Convert byte string to Uint8Array
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+    }
+
+    // Create a blob from the Uint8Array
+    const blob = new Blob([uint8Array], {type: mimeString});
+
+    // Create a File instance from the Blob
+    const file = new File([blob], filename, {type: mimeString, lastModified: Date.now()});
+
+    // Add a uri property to the File instance for accessing the blob as a URI
+    file.uri = URL.createObjectURL(blob);
+
+    return file;
+}
+
+export {
+    showGeneralErrorAlert,
+    showSuccessAlert,
+    showPermissionErrorAlert,
+    showCameraPermissionsAlert,
+    splitExtensionFromFileName,
+    getAttachmentName,
+    getFileType,
+    cleanFileName,
+    appendTimeToFileName,
+    readFileAsync,
+    base64ToFile,
+};

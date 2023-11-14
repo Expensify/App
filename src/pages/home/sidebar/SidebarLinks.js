@@ -1,34 +1,34 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import React, {useEffect, useRef, useCallback} from 'react';
-import {View, InteractionManager} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
-import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Tooltip from '../../../components/Tooltip';
-import CONST from '../../../CONST';
-import * as App from '../../../libs/actions/App';
-import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
-import SidebarUtils from '../../../libs/SidebarUtils';
-import Header from '../../../components/Header';
-import defaultTheme from '../../../styles/themes/default';
-import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
-import variables from '../../../styles/variables';
-import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import * as Session from '../../../libs/actions/Session';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import onyxSubscribe from '../../../libs/onyxSubscribe';
-import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
+import _ from 'underscore';
+import LogoComponent from '@assets/images/expensify-wordmark.svg';
+import Header from '@components/Header';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
+import onyxSubscribe from '@libs/onyxSubscribe';
+import SidebarUtils from '@libs/SidebarUtils';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import defaultTheme from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as App from '@userActions/App';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
-import useLocalize from '../../../hooks/useLocalize';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -76,7 +76,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (_.isNull(modalArg)) {
+                if (_.isNull(modalArg) || typeof modalArg !== 'object') {
                     return;
                 }
                 modal.current = modalArg;
@@ -166,7 +166,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 <Tooltip text={translate('common.search')}>
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >

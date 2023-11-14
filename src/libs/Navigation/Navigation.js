@@ -1,19 +1,18 @@
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import {getActionFromState} from '@react-navigation/core';
-import Log from '../Log';
-import DomUtils from '../DomUtils';
-import linkTo from './linkTo';
-import ROUTES from '../../ROUTES';
-import linkingConfig from './linkingConfig';
-import navigationRef from './navigationRef';
-import NAVIGATORS from '../../NAVIGATORS';
-import originalGetTopmostReportId from './getTopmostReportId';
-import originalGetTopmostReportActionId from './getTopmostReportActionID';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
+import originalGetTopmostReportActionId from './getTopmostReportActionID';
+import originalGetTopmostReportId from './getTopmostReportId';
+import linkingConfig from './linkingConfig';
+import linkTo from './linkTo';
+import navigationRef from './navigationRef';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -75,6 +74,31 @@ const getActiveRouteIndex = function (route, index) {
 };
 
 /**
+ * Gets distance from the path in root navigator. In other words how much screen you have to pop to get to the route with this path.
+ * The search is limited to 5 screens from the top for performance reasons.
+ * @param {String} path - Path that you are looking for.
+ * @return {Number} - Returns distance to path or -1 if the path is not found in root navigator.
+ */
+function getDistanceFromPathInRootNavigator(path) {
+    let currentState = navigationRef.getRootState();
+
+    for (let index = 0; index < 5; index++) {
+        if (!currentState.routes.length) {
+            break;
+        }
+
+        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        if (path === pathFromState.substring(1)) {
+            return index;
+        }
+
+        currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
+    }
+
+    return -1;
+}
+
+/**
  * Main navigation method for redirecting to a route.
  * @param {String} route
  * @param {String} [type] - Type of action to perform. Currently UP is supported.
@@ -88,18 +112,13 @@ function navigate(route = ROUTES.HOME, type) {
         return;
     }
 
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
-
     linkTo(navigationRef.current, route, type);
 }
 
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
- * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
+ * @param {Boolean} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Boolean} shouldPopToTop - Should we navigate to LHN on back press
  */
 function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
@@ -120,7 +139,6 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
     }
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
@@ -133,6 +151,21 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+        return;
+    }
+
+    const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+
+    // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
+    }
+
+    // Add posibility to go back more than one screen in root navigator if that screen is on the stack.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
+        navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
         return;
     }
 
@@ -174,6 +207,11 @@ function dismissModal(targetReportID) {
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
+                const lastRouteIndex = rootState.routes.length - 1;
+                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
             }
@@ -202,6 +240,14 @@ function getActiveRoute() {
     }
 
     return '';
+}
+
+/**
+ * Returns the current active route without the URL params
+ * @returns {String}
+ */
+function getActiveRouteWithoutParams() {
+    return getActiveRoute().replace(/\?.*/, '');
 }
 
 /** Returns the active route name from a state event from the navigationRef
@@ -267,6 +313,7 @@ export default {
     dismissModal,
     isActiveRoute,
     getActiveRoute,
+    getActiveRouteWithoutParams,
     goBack,
     isNavigationReady,
     setIsNavigationReady,

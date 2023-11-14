@@ -1,8 +1,8 @@
-import {Animated} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import React from 'react';
+import {Animated, StyleSheet} from 'react-native';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import styles from '@styles/styles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
@@ -27,6 +27,9 @@ const propTypes = {
     /** Animated opacity value while the label is in active state */
     // eslint-disable-next-line
     activeOpacity: PropTypes.any,
+
+    /** Whether this tab is active */
+    isFocused: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,29 +39,32 @@ const defaultProps = {
     backgroundColor: '',
     inactiveOpacity: 1,
     activeOpacity: 0,
+    isFocused: false,
 };
 
-const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
-
-function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity}) {
+function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
     return (
-        <AnimatedPressableWithFeedback
+        <PressableWithFeedback
             accessibilityLabel={title}
-            style={[styles.tabSelectorButton, {backgroundColor}]}
+            style={[styles.tabSelectorButton]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
         >
-            <TabIcon
-                icon={icon}
-                activeOpacity={activeOpacity}
-                inactiveOpacity={inactiveOpacity}
-            />
-            <TabLabel
-                title={title}
-                activeOpacity={activeOpacity}
-                inactiveOpacity={inactiveOpacity}
-            />
-        </AnimatedPressableWithFeedback>
+            {({hovered}) => (
+                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isFocused, backgroundColor)]}>
+                    <TabIcon
+                        icon={icon}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
+                    />
+                    <TabLabel
+                        title={title}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
+                    />
+                </Animated.View>
+            )}
+        </PressableWithFeedback>
     );
 }
 

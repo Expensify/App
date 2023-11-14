@@ -2,22 +2,27 @@
 
 ## Running your new test in development mode
 
-Typically you'd run all the tests with `npm run test:e2e` on your machine,
-this will run the tests with some local settings, however that is not
-optimal when you add a new test for which you want to quickly test if it works, as it
-still runs the release version of the app.
+Typically you'd run all the tests with `npm run test:e2e` on your machine.
+This will run the tests with some local settings, however that is not
+optimal when you add a new test for which you want to quickly test if it works, as the prior command
+still runs the release version of the app, which is hard to debug.
 
 I recommend doing the following.
 
-> [!NOTE]
-> All of the steps can be executed at once by running XXX (todo)
+1. We need to compile a android development app version that has capturing metrics enabled:
+```bash
+# Make sure that your .env file is the one we need for e2e testing:
+cp ./tests/e2e/.env.e2e .env
 
-1. Rename `./index.js` to `./appIndex.js`
-2. Create a new `./index.js` with the following content:
-```js
-requrire("./src/libs/E2E/reactNativeLaunchingTest.js");
+# Build the android app like you normally would with
+npm run android
 ```
-3. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
+2. Rename `./index.js` to `./appIndex.js`
+3. Create a new `./index.js` with the following content:
+```js
+require('./src/libs/E2E/reactNativeLaunchingTest');
+```
+4. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
 ```diff
 - import '../../../index';
 + import '../../../appIndex';
@@ -28,21 +33,17 @@ requrire("./src/libs/E2E/reactNativeLaunchingTest.js");
 
 Now you can start the metro bundler in e2e mode with:
 
-```
-CAPTURE_METRICS=TRUE E2E_Testing=true npm start -- --reset-cache
+```bash
+CAPTURE_METRICS=true E2E_TESTING=true npm start -- --reset-cache
 ```
 
 Then we can execute our test with:
 
 ```
-npm run test:e2e -- --development --skipInstallDeps --buildMode skip --includes "My new test name"
+npm run test:e2e:dev -- --includes "My new test name"
 ```
 
-> - `--development` will run the tests with a local config, which will run the tests with fewer iterations
-> - `--skipInstallDeps` will skip the `npm install` step, which you probably don't need
-> - `--buildMode skip` will skip rebuilding the app, and just run the existing app
-> - `--includes "MyTestName"` will only run the test with the name "MyTestName"
-
+> - `--includes "MyTestName"` will only run the test with the name "MyTestName", but is optional
 
 
 ## Creating a new test
@@ -92,7 +93,7 @@ anything here, like connecting to onyx, calling APIs, navigating.
 
 There are some common actions that are common among different test cases:
 
-- `src/libs/E2E/actions/e2eLogin.js` - Log a user into the app.
+- `src/libs/E2E/actions/e2eLogin.ts` - Log a user into the app.
 
 The test will be called once the app is ready, which mean you can immediately start.
 Your test is expected to default export its test function.
@@ -128,7 +129,7 @@ export default test;
 
 ### Last step: register the test in the e2e react native entry
 
-In `src/lib/E2E/reactNativeLaunchingTest.js` you have to add your newly created
+In `src/lib/E2E/reactNativeLaunchingTest.ts` you have to add your newly created
 test file:
 
 ```diff
