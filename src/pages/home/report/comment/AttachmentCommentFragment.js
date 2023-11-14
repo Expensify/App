@@ -17,12 +17,14 @@ const propTypes = {
 };
 
 function AttachmentCommentFragment({addExtraMargin, html, source}) {
-    return <View style={addExtraMargin ? styles.mt2 : {}}>
-        <RenderCommentHTML
-            source={source}
-            html={html}
-        />
-    </View>;
+    return (
+        <View style={addExtraMargin ? styles.mt2 : {}}>
+            <RenderCommentHTML
+                source={source}
+                html={html}
+            />
+        </View>
+    );
 }
 
 AttachmentCommentFragment.propTypes = propTypes;
