@@ -455,30 +455,32 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
         timezone: JSON.stringify(newTimezoneData),
     };
 
-    API.write('OpenProfile', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID ?? '']: {
-                        timezone: newTimezoneData,
+    if (typeof currentUserAccountID === 'number') {
+        API.write('OpenProfile', parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: newTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID ?? '']: {
-                        timezone: oldTimezoneData,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: oldTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-    });
+            ],
+        });
+    }
 }
 
 /**
