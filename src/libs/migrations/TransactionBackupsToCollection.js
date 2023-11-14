@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 export default function () {
     return new Promise((resolve) => {
         const transactionConnectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (transactions) => {
                 Onyx.disconnect(transactionConnectionID);
@@ -51,7 +51,7 @@ export default function () {
                 }
 
                 const transactionDraftConnectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
                     waitForCollectionCallback: true,
                     callback: () => {
                         Onyx.disconnect(transactionDraftConnectionID);
