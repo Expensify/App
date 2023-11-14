@@ -234,8 +234,8 @@ PODS:
     - libwebp/demux
   - libwebp/webp (1.2.4)
   - lottie-ios (4.3.3)
-  - lottie-react-native (6.3.1):
-    - lottie-ios (~> 4.3.0)
+  - lottie-react-native (6.4.0):
+    - lottie-ios (~> 4.3.3)
     - React-Core
   - MapboxCommon (23.6.0)
   - MapboxCoreMaps (10.14.0):
@@ -1203,7 +1203,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
-  lottie-react-native: c9f1db4f4124dcce9f8159e65d8dc6e8bcb11fb4
+  lottie-react-native: 3a3084faddd3891c276f23fd6e797b83f2021bbc
   MapboxCommon: 4a0251dd470ee37e7fadda8e285c01921a5e1eb0
   MapboxCoreMaps: eb07203bbb0b1509395db5ab89cd3ad6c2e3c04c
   MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209

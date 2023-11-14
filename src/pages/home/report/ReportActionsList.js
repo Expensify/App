@@ -222,7 +222,7 @@ function ReportActionsList({
             unreadActionSubscription.current = null;
         }
 
-        // Need to listen for the specific reportID, otherwise we could be listening to all the reports
+        // Listen to specific reportID for unread event and set the marker to new message
         unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             cacheUnreadMarkers.delete(report.reportID);
             lastReadRef.current = newLastReadTime;
@@ -326,12 +326,10 @@ function ReportActionsList({
     const shouldDisplayNewMarker = useCallback(
         (reportAction, index) => {
             let shouldDisplay = false;
-
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadRef.current));
-
                 if (!messageManuallyMarkedUnread) {
                     shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
