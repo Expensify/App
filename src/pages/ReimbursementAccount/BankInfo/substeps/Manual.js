@@ -89,7 +89,7 @@ function Manual({reimbursementAccount, onNext}) {
                 accessibilityLabel={translate('bankAccount.routingNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={defaultValues[bankInfoStepKeys.ROUTING_NUMBER]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
                 shouldSaveDraft
                 shouldUseDefaultValue={shouldDisableInputs}
@@ -101,7 +101,7 @@ function Manual({reimbursementAccount, onNext}) {
                 accessibilityLabel={translate('bankAccount.accountNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={defaultValues[bankInfoStepKeys.ACCOUNT_NUMBER]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
                 shouldSaveDraft
                 shouldUseDefaultValue={shouldDisableInputs}
