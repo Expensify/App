@@ -7,7 +7,7 @@ import type {FileDownload} from './types';
 /**
  * Downloading attachment in web, desktop
  */
-const fileDownload: FileDownload = (url: string, fileName: string) => {
+const fileDownload: FileDownload = (url, fileName) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
     if (!resolvedUrl.startsWith(ApiUtils.getApiRoot())) {
         // Different origin URLs might pose a CORS issue during direct downloads.

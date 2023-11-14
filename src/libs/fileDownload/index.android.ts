@@ -9,7 +9,7 @@ import type {FileDownload} from './types';
 function hasAndroidPermission(): Promise<boolean> {
     // On Android API Level 33 and above, these permissions do nothing and always return 'never_ask_again'
     // More info here: https://stackoverflow.com/a/74296799
-    if ((Platform.Version as number) >= 33) {
+    if (Number(Platform.Version) >= 33) {
         return Promise.resolve(true);
     }
 

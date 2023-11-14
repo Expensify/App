@@ -8,7 +8,7 @@ type GetImageResolution = (url: File | Asset) => Promise<ImageResolution>;
 type ExtensionAndFileName = {fileName: string; fileExtension: string};
 type SplitExtensionFromFileName = (fileName: string) => ExtensionAndFileName;
 
-type ReadFileAsync = (path: string, fileName: string) => Promise<File | void>;
+type ReadFileAsync = (path: string, fileName: string, onSuccess: (file: File) => void, onFailure: (error?: unknown) => void) => Promise<File | void>;
 
 type AttachmentDetails = {
     previewSourceURL: null | string;

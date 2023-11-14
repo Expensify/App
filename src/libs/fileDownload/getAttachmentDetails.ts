@@ -5,7 +5,7 @@ import type {GetAttachmentDetails} from './types';
 /**
  * Extract the thumbnail URL, source URL and the original filename from the HTML.
  */
-const getAttachmentDetails: GetAttachmentDetails = (html: string) => {
+const getAttachmentDetails: GetAttachmentDetails = (html) => {
     // Files can be rendered either as anchor tag or as an image so based on that we have to form regex.
     const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');

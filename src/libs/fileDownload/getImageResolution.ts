@@ -1,4 +1,3 @@
-import {Asset} from 'react-native-image-picker';
 import type {GetImageResolution} from './types';
 
 /**
@@ -11,7 +10,7 @@ import type {GetImageResolution} from './types';
  * because FileReader is slow and causes a noticeable delay in the UI when selecting an image.
  *
  */
-const getImageResolution: GetImageResolution = (file: File | Asset) => {
+const getImageResolution: GetImageResolution = (file) => {
     if (!(file instanceof File)) {
         return Promise.reject(new Error('Object is not an instance of File'));
     }
