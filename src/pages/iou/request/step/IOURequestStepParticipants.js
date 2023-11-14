@@ -66,12 +66,13 @@ function IOURequestStepParticipants({
         [reportID, transactionID],
     );
 
-    const goToNextStep = () => {
+    const goToNextStep = useCallback(() => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
         Navigation.navigate(
             ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID),
+            CONST.NAVIGATION.TYPE.UP,
         );
-    };
+    }, [iouType, transactionID, reportID]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);

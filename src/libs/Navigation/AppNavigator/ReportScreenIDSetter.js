@@ -77,7 +77,8 @@ function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensify
         }
 
         const reportIDFromRoute = lodashGet(route, 'params.reportID', null);
-        const reportIsOptimistic = lodashGet(reports, [`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, 'reportID']) === undefined;
+        const reportFromCollection = lodashGet(reports, [`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]);
+        const reportIsOptimistic = reportFromCollection && lodashGet(reportFromCollection, 'reportID') === undefined;
 
         // If there is no reportID in the route params, find the reportID of the last accessed report and put that reportID in the params
         if (!reportIDFromRoute) {
