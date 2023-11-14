@@ -7,7 +7,6 @@
  */
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
-import '../../../index';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 
@@ -24,6 +23,7 @@ if (!Metrics.canCapturePerformanceMetrics()) {
 const tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
     [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
@@ -65,5 +65,5 @@ E2EClient.getTestConfig()
 
 // start the usual app
 Performance.markStart('regularAppStart');
-
+import '../../../index';
 Performance.markEnd('regularAppStart');
