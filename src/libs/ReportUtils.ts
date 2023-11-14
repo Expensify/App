@@ -1707,7 +1707,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
     const isReportSettled = isSettled(moneyRequestReport?.reportID);
-    const isAdmin = ((isNotEmptyObject(moneyRequestReport) && isExpenseReport(moneyRequestReport) && getPolicy(moneyRequestReport?.policyID ?? '')?.role) ?? '') === CONST.POLICY.ROLE.ADMIN;
+    const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
     if (isAdmin) {
