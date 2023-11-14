@@ -16,14 +16,14 @@ const propTypes = {
     addExtraMargin: PropTypes.bool.isRequired,
 };
 
-const AttachmentCommentFragment = ({addExtraMargin, html, source}) => (
-    <View style={addExtraMargin ? styles.mt2 : {}}>
+function AttachmentCommentFragment({addExtraMargin, html, source}) {
+    return <View style={addExtraMargin ? styles.mt2 : {}}>
         <RenderCommentHTML
             source={source}
             html={html}
         />
-    </View>
-);
+    </View>;
+}
 
 AttachmentCommentFragment.propTypes = propTypes;
 AttachmentCommentFragment.displayName = 'AttachmentCommentFragment';
