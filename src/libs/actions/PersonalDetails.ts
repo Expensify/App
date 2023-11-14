@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import _ from 'lodash';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
@@ -99,8 +100,8 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
         return {firstName: '', lastName: ''};
     }
 
-    const firstSpaceIndex = displayName.indexOf(' ');
-    const lastSpaceIndex = displayName.lastIndexOf(' ');
+    const firstSpaceIndex = _.indexOf(displayName, ' ');
+    const lastSpaceIndex = _.lastIndexOf(displayName, ' ');
     if (firstSpaceIndex === -1) {
         return {firstName: displayName, lastName: ''};
     }
