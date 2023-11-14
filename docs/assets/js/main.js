@@ -109,6 +109,8 @@ function openSidebar() {
     body.style.position = 'fixed';
     body.style.top = `-${yAxis}`;
 
+    document.getElementById('gsc-i-id1').focus();
+
     // Close the sidebar when clicking sidebar layer (outside the sidebar search)
     const sidebarLayer = document.getElementById('sidebar-layer');
     if (sidebarLayer) {
