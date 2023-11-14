@@ -12,6 +12,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as IOUUtils from '@libs/IOUUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -58,6 +59,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const optionsSelectorRef = useRef();
     const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
     const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
+    const transactionID = useInitialValue(() => lodashGet(route, 'params.transactionID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
     const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
@@ -66,6 +68,10 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
+    const requestType = TransactionUtils.getRequestType(transaction);
+    const receiptFilename = lodashGet(transaction, 'filename');
+    const receiptPath = lodashGet(transaction, 'receipt.source');
+
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
@@ -94,6 +100,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), forceFallback);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- no deps as we use only initial values
     }, []);
+
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
+    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    useEffect(() => {
+        IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, requestType, iouType, transactionID, reportID);
+    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
         const isInvalidDistanceRequest = !isDistanceRequest || isInvalidWaypoint;

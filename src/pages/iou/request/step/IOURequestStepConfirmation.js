@@ -14,7 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -103,21 +103,6 @@ function IOURequestStepConfirmation({
         }
     }, [participants, transaction.billable, policy, transactionID]);
 
-    const navigateBackToStartingStep = useCallback(() => {
-        // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
-        switch (requestType) {
-            case CONST.IOU.REQUEST_TYPE.DISTANCE:
-                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
-                break;
-            case CONST.IOU.REQUEST_TYPE.SCAN:
-                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID), true);
-                break;
-            default:
-                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID), true);
-                break;
-        }
-    }, [requestType, iouType, transactionID, reportID]);
-
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
@@ -125,30 +110,25 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID), true);
             return;
         }
-        navigateBackToStartingStep();
-    }, [transaction, iouType, transactionID, reportID, navigateBackToStartingStep]);
+        IOUUtils.navigateToStartMoneyRequestStep();
+    }, [transaction, iouType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.SCAN, transactionID, reportID));
     }, [iouType, transactionID, reportID]);
 
-    // When tthe component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
-        if (!receiptFilename || !receiptPath) {
-            return;
-        }
         const onSuccess = (file) => {
             const receipt = file;
             receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
             setReceiptFile(receipt);
         };
-        const onFailure = () => {
-            navigateBackToStartingStep();
-        };
-        FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
-    }, [receiptPath, receiptFilename, requestType, iouType, reportID, navigateBackToStartingStep]);
+
+        IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
+    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
