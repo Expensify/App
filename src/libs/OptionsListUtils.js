@@ -1763,7 +1763,6 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    sortTags,
     getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
