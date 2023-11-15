@@ -4,4 +4,4 @@
  */
 export default {
     REPORT_COMMENT: 'reportComment',
-};
+} as const;

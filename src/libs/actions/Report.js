@@ -1753,7 +1753,7 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action the associated report action (optional)
+ * @param {Object|null} action the associated report action (optional)
  * @param {Boolean} isRemote whether or not this notification is a remote push notification
  * @returns {Boolean}
  */
