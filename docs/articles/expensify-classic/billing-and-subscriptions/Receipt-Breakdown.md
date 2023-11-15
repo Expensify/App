@@ -25,7 +25,7 @@ Your receipt will have a detailed breakdown of activity and discounts across all
 - [Number of] Inactive workspace members @ $0.00
   - All inactive members from any of your workspaces.
 - [Number of] Chat-only members @ $0.00 
-  - Any workspace members who chatted but didn't generate any other billable activity. Learn more about [chatting for free.](https://help.expensify.com/articles/new-expensify/getting-started/chat/Everything-About-Chat#gsc.tab=0) 
+  - Any workspace members who chatted but didn't generate any other billable activity. Learn more about [chatting for free.](https://help.expensify.com/articles/new-expensify/getting-started/chat/Everything-About-Chat) 
 - [Number of] Annual Control members @ $18.00
   - Any members included in your annual subscription on the Control plan. 
 - [Number of] Pay-per-use Control members @ $36.00

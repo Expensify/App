@@ -467,6 +467,9 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    if (!reportID) {
+        return;
+    }
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

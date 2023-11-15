@@ -372,7 +372,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
     return updatedReportAction;
 }
 

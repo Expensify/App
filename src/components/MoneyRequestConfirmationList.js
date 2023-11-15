@@ -16,7 +16,6 @@ import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -110,9 +109,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -188,7 +184,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -241,12 +236,11 @@ function MoneyRequestConfirmationList(props) {
     const policyTag = PolicyUtils.getTag(props.policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
-    const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
-    const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
+    const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
@@ -743,9 +737,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
