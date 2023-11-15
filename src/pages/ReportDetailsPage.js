@@ -1,3 +1,4 @@
+import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
@@ -139,7 +140,15 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => {
+                    const currentUserPrivateNote = lodashGet(props.report, ['privateNotes', props.session.accountID, 'note'], '');
+                    if (isEmpty(currentUserPrivateNote)) {
+                        Report.getReportPrivateNote(props.report.reportID);
+                        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(props.report.reportID, props.session.accountID));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID));
+                },
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
@@ -156,7 +165,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat, isPolicyMember]);
+    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat, isPolicyMember, props.session.accountID]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -270,6 +279,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);
