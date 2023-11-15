@@ -1,4 +1,4 @@
-import React, {ForwardedRef, forwardRef} from 'react';
+import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -44,28 +44,29 @@ type CheckboxProps = ChildrenProps & {
     accessibilityLabel: string;
 };
 
-const defaultProps = {
-    isChecked: false,
-    hasError: false,
-    disabled: false,
-    style: [],
-    containerStyle: [],
-    forwardedRef: undefined,
-    children: null,
-    onMouseDown: undefined,
-    containerSize: 20,
-    containerBorderRadius: 4,
-    caretSize: 14,
-};
-
-function Checkbox(props: CheckboxProps, ref: ForwardedRef<View>) {
-    console.log('*** I RENDER ***');
-    const handleSpaceKey = (event) => {
-        if (event.code !== 'Space') {
+function Checkbox(
+    {
+        isChecked = false,
+        hasError = false,
+        disabled = false,
+        style = [],
+        containerStyle = [],
+        children = null,
+        onMouseDown = undefined,
+        containerSize = 20,
+        containerBorderRadius = 4,
+        caretSize = 14,
+        onPress,
+        accessibilityLabel,
+    }: CheckboxProps,
+    ref: ForwardedRef<View>,
+) {
+    const handleSpaceKey = (event?: ReactKeyboardEvent) => {
+        if (event?.code !== 'Space') {
             return;
         }
 
-        props.onPress();
+        onPress();
     };
 
     const firePressHandlerOnClick = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -75,42 +76,40 @@ function Checkbox(props: CheckboxProps, ref: ForwardedRef<View>) {
             return;
         }
 
-        props.onPress();
+        onPress();
     };
 
     return (
         <PressableWithFeedback
-            disabled={props.disabled}
+            disabled={disabled}
             onPress={firePressHandlerOnClick}
-            onMouseDown={props.onMouseDown}
+            onMouseDown={onMouseDown}
             ref={ref}
-            style={[StyleUtils.getCheckboxPressableStyle(props?.containerBorderRadius ?? 0 + 2), props?.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
+            style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius ?? 0 + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-            aria-checked={props.isChecked}
-            accessibilityLabel={props.accessibilityLabel}
+            aria-checked={isChecked}
+            accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
         >
-            {props.children ? (
-                props.children
-            ) : (
+            {children ?? (
                 <View
                     style={[
-                        StyleUtils.getCheckboxContainerStyle(props?.containerSize ?? 0, props.containerBorderRadius),
-                        props.containerStyle,
-                        props.isChecked && styles.checkedContainer,
-                        props.hasError && styles.borderColorDanger,
-                        props.disabled && styles.cursorDisabled,
-                        props.disabled && styles.buttonOpacityDisabled,
-                        props.isChecked && styles.borderColorFocus,
+                        StyleUtils.getCheckboxContainerStyle(containerSize ?? 0, containerBorderRadius),
+                        containerStyle,
+                        isChecked && styles.checkedContainer,
+                        hasError && styles.borderColorDanger,
+                        disabled && styles.cursorDisabled,
+                        disabled && styles.buttonOpacityDisabled,
+                        isChecked && styles.borderColorFocus,
                     ]}
                 >
-                    {props.isChecked && (
+                    {isChecked && (
                         <Icon
                             src={Expensicons.Checkmark}
                             fill={themeColors.textLight}
-                            height={props.caretSize}
-                            width={props.caretSize}
+                            height={caretSize}
+                            width={caretSize}
                         />
                     )}
                 </View>
