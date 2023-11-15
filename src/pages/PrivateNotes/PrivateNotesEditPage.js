@@ -105,7 +105,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
-        Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID));
+
+        Navigation.goBack();
     };
 
     return (
