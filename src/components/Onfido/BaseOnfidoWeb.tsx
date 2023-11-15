@@ -1,7 +1,6 @@
-import lodashGet from 'lodash/get';
 import * as OnfidoSDK from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
-import _ from 'underscore';
+import React, {ForwardedRef, forwardRef, useEffect} from 'react';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import fontFamily from '@styles/fontFamily';
@@ -10,9 +9,15 @@ import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';
-import onfidoPropTypes from './onfidoPropTypes';
+import type {OnfidoElement, OnfidoProps} from './types';
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}) {
+type LocaleProps = Pick<LocaleContextProps, 'translate' | 'preferredLocale'>;
+
+type OnfidoEvent = Event & {
+    detail?: Record<string, unknown>;
+};
+
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}: OnfidoProps & LocaleProps) {
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
@@ -22,7 +27,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
             fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: fontWeightBold,
+            fontWeightTitle: Number(fontWeightBold),
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
             colorContentTitle: themeColors.text,
@@ -47,7 +52,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBorderLinkUnderline: themeColors.link,
             colorBackgroundLinkHover: themeColors.link,
             colorBackgroundLinkActive: themeColors.link,
-            authAccentColor: themeColors.link,
             colorBackgroundInfoPill: themeColors.link,
             colorBackgroundSelector: themeColors.appBG,
             colorBackgroundDocTypeButton: themeColors.success,
@@ -59,11 +63,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             {
                 type: CONST.ONFIDO.TYPE.DOCUMENT,
                 options: {
-                    useLiveDocumentCapture: true,
                     forceCrossDevice: true,
                     hideCountrySelection: true,
-                    country: 'USA',
                     documentTypes: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         driving_licence: {
                             country: 'USA',
                         },
@@ -78,17 +81,15 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 },
             },
         ],
-        smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
-        showCountrySelection: false,
         onComplete: (data) => {
-            if (_.isEmpty(data)) {
+            if (!Object.keys(data).length) {
                 Log.warn('Onfido completed with no data');
             }
             onSuccess(data);
         },
         onError: (error) => {
-            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
-            const errorType = lodashGet(error, 'type');
+            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+            const errorType = error.type;
             Log.hmmm('Onfido error', {errorType, errorMessage});
             onError(errorMessage);
         },
@@ -101,32 +102,33 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
+            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : (preferredLocale as OnfidoSDK.SupportedLanguages),
 
             // Provide a custom phrase for the back button so that the first letter is capitalized,
             // and translate the phrase while we're at it. See the issue and documentation for more context.
             // https://github.com/Expensify/App/issues/17244
             // https://documentation.onfido.com/sdk/web/#custom-languages
             phrases: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'generic.back': translate('common.back'),
             },
         },
     });
 }
 
-function logOnFidoEvent(event) {
+function logOnFidoEvent(event: OnfidoEvent) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-const Onfido = forwardRef((props, ref) => {
+function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
     const {preferredLocale, translate} = useLocalize();
 
     useEffect(() => {
         initializeOnfido({
-            sdkToken: props.sdkToken,
-            onSuccess: props.onSuccess,
-            onError: props.onError,
-            onUserExit: props.onUserExit,
+            sdkToken,
+            onSuccess,
+            onError,
+            onUserExit,
             preferredLocale,
             translate,
         });
@@ -143,8 +145,8 @@ const Onfido = forwardRef((props, ref) => {
             ref={ref}
         />
     );
-});
+}
 
 Onfido.displayName = 'Onfido';
-Onfido.propTypes = onfidoPropTypes;
-export default Onfido;
+
+export default forwardRef(Onfido);
