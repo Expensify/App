@@ -23,6 +23,9 @@ const propTypes = {
     /** Callback to execute when the component closes. */
     onClose: PropTypes.func.isRequired,
 
+    /** Callback to execute when the payment method is selected. */
+    onItemSelected: PropTypes.func.isRequired,
+
     /** The IOU/Expense report we are paying */
     iouReport: iouReportPropTypes,
 
