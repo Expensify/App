@@ -7,7 +7,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './propTypes';
+import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const [isLoading, setIsLoading] = useState(true);
@@ -259,8 +259,8 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     );
 }
 
-ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
+ImageView.propTypes = imageViewPropTypes;
+ImageView.defaultProps = imageViewDefaultProps;
 ImageView.displayName = 'ImageView';
 
 export default ImageView;

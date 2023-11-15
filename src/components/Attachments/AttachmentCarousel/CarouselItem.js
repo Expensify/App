@@ -97,6 +97,7 @@ function CarouselItem({item, isFocused, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
+                    isUsedInCarousel
                     isFocused={isFocused}
                     onPress={onPress}
                     transactionID={item.transactionID}

@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import ImageView from '@components/ImageView';
+import {carouselZoomScale, modalZoomScale} from '@components/ImageView/Constants';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
@@ -12,14 +13,19 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+function AttachmentViewImage({source, file, isAuthTokenRequired, isUsedInCarousel, isFocused, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+    const {minZoomScale, maxZoomScale} = isUsedInCarousel ? carouselZoomScale : modalZoomScale;
+
     const children = (
         <ImageView
             onScaleChanged={onScaleChanged}
             url={source}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
+            isUsedInCarousel={isUsedInCarousel}
             isActive={isFocused}
+            minZoomScale={minZoomScale}
+            maxZoomScale={maxZoomScale}
         />
     );
 

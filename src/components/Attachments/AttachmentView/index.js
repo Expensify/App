@@ -71,11 +71,12 @@ function AttachmentView({
     onScaleChanged,
     onToggleKeyboard,
     translate,
+    isUsedInCarousel,
     isFocused,
+    isUsedInAttachmentModal,
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
-    isUsedInAttachmentModal,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -158,6 +159,7 @@ function AttachmentView({
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
+                isUsedInCarousel={isUsedInCarousel}
                 isFocused={isFocused}
                 isImage={isImage}
                 onPress={onPress}

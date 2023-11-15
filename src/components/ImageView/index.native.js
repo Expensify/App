@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import ImageLightbox from '@components/ImageLightbox';
+import {scaleDefaultProps, scalePropTypes} from '@components/ImageLightbox/propTypes';
 import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 /**
@@ -9,6 +10,8 @@ import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
  */
 const propTypes = {
     ...imageViewPropTypes,
+    ...scalePropTypes,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -18,14 +21,18 @@ const propTypes = {
 
 const defaultProps = {
     ...imageViewDefaultProps,
+    ...scaleDefaultProps,
+
     onPress: () => {},
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
+function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, minZoomScale, maxZoomScale}) {
     return (
         <ImageLightbox
             source={url}
+            minZoomScale={minZoomScale}
+            maxZoomScale={maxZoomScale}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
             onPress={onPress}
