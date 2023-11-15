@@ -1,6 +1,6 @@
 import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
-import {ImageLoadEventData, StyleProp, View, ViewStyle} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import Log from '@libs/Log';
 import styles from '@styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -8,6 +8,13 @@ import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
+
+type OnLoadNativeEvent = {
+    nativeEvent: {
+        width: number;
+        height: number;
+    };
+};
 
 type ImageWithSizeCalculationProps = {
     /** Url for image to display */
@@ -38,11 +45,11 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
         Log.hmmm('Unable to fetch image to calculate size', {url});
     };
 
-    const imageLoadedSuccessfully = (event: ImageLoadEventData) => {
+    const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
         isLoadedRef.current = true;
         onMeasure({
-            width: event.source.width,
-            height: event.source.height,
+            width: event.nativeEvent.width,
+            height: event.nativeEvent.height,
         });
     };
 
