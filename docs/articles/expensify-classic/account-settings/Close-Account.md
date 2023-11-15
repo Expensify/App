@@ -14,7 +14,7 @@ On the Web:
 3. Follow the prompts to verify your email or phone number.
 4. Your account will be closed, and all data will be deleted.*
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Close Account via Website](https://help.expensify.com/assets/images/ExpensifyHelp_CloseAccount_Desktop.png){:width="100%"}
 
 On the Mobile App:
 
@@ -24,7 +24,7 @@ Look for the "Close Account" option in the "Others" section. (If you don’t see
 Complete the verification process using your email or phone number.
 Your account will be closed, and all data will be deleted.*
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Close Account on Mobile Application](https://help.expensify.com/assets/images/ExpensifyHelp_CloseAccount_Mobile.png){:width="100%"}
 
 These instructions may vary depending on the specific device you are using, so be sure to follow the steps as they appear on your screen.
 
@@ -36,7 +36,7 @@ If your Expensify account is closed and not associated with a verified domain, y
 
 1. Visit [expensify.com](https://www.expensify.com/).
 2. Attempt to sign in using your email address or phone number associated with the closed account.
-3. After entering your user name, you will see the following prompt: [Insert Image 3]
+3. After entering your user name, you will see a prompt to reopen your account.  
 4. Click on **Reopen Account**.
 5. A magic link will be sent to your email address.
 6. Access your email and click on the magic link. This link will take you to Expensify and reopen your account.
