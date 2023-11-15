@@ -7,7 +7,7 @@ import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlocking
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Lottie from './Lottie';
-import * as LottieAnimations from './LottieAnimations';
+import LottieAnimations from './LottieAnimations';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
