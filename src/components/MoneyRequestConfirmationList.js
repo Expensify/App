@@ -698,7 +698,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            rightLabel={Permissions.canUseViolations() && props.policy && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
+                            rightLabel={Permissions.canUseViolations() && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -711,7 +711,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            rightLabel={Permissions.canUseViolations() && props.policy && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
+                            rightLabel={Permissions.canUseViolations() && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowBillable && (
