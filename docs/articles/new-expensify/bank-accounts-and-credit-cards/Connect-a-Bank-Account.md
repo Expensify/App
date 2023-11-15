@@ -8,11 +8,11 @@ Once you connect your business bank account, you can:
 - Reimburse expenses via direct bank transfer
 - Pay bills
 - Collect invoice payments
-- Issue the Expensify Corporate Card
+- Issue the Expensify Card
 
 # How to add a verified business bank account
 To connect a business bank account to Expensify, follow the below steps:
-1. Go to **Settings** > **Workspaces** > _Workspace Name_ > **Bank account** > **Connect bank account**
+1. Go to **Settings > Workspaces > _Workspace Name_ > Bank account > Connect bank account**
 2. Click **Connect online with Plaid**
 3. Click **Continue** 
 4. When you reach the **Plaid** screen, you'll be shown a list of compatible banks that offer direct online login access
@@ -144,7 +144,7 @@ If you have any questions regarding the documentation request you received, plea
 
 ## I don’t see all three microtransactions I need to validate my bank account. What should I do? 
 
-It's a good idea to wait till the end of that second business day. If you still don’t see them, please reach out to your bank and ask them to whitelist our ACH IDs **1270239450**, **4270239450**, and **2270239450**. Expensify’s ACH Originator Name is "Expensify."
+It's a good idea to wait till the end of that second business day. If you still don’t see them, please reach out to your bank and ask them to whitelist our ACH IDs **1270239450**, **4270239450**, and **2270239450**. Expensify’s ACH Originator Name is "Expensify".
 
 Make sure to reach out to your Account Manager or Concierge once that's all set, and our team will be able to re-trigger those three test transactions!
 
