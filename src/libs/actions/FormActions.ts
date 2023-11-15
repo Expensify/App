@@ -21,7 +21,7 @@ function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields
 }
 
 function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {
-    Onyx.merge(`${formID}Draft`, draftValues);
+    Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
 }
 
 /**
