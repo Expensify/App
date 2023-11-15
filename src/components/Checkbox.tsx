@@ -85,7 +85,7 @@ function Checkbox(
             onPress={firePressHandlerOnClick}
             onMouseDown={onMouseDown}
             ref={ref}
-            style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius ?? 0 + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
+            style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             aria-checked={isChecked}
@@ -95,7 +95,7 @@ function Checkbox(
             {children ?? (
                 <View
                     style={[
-                        StyleUtils.getCheckboxContainerStyle(containerSize ?? 0, containerBorderRadius),
+                        StyleUtils.getCheckboxContainerStyle(containerSize, containerBorderRadius),
                         containerStyle,
                         isChecked && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
@@ -119,4 +119,5 @@ function Checkbox(
 }
 
 Checkbox.displayName = 'Checkbox';
+
 export default forwardRef(Checkbox);
