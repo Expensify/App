@@ -14,7 +14,7 @@ On the Web:
 3. Follow the prompts to verify your email or phone number.
 4. Your account will be closed, and all data will be deleted.*
 
-![Close Account via Website](https://help.expensify.com/assets/images/ExpensifyHelp_CloseAccount_Desktop.png){:width="100%"}
+![Close Account via Website]({{site.url}}/assets/images/ExpensifyHelp_CloseAccount_Desktop.png){:width="100%"}
 
 On the Mobile App:
 
@@ -24,7 +24,7 @@ Look for the "Close Account" option in the "Others" section. (If you don’t see
 Complete the verification process using your email or phone number.
 Your account will be closed, and all data will be deleted.*
 
-![Close Account on Mobile Application](https://help.expensify.com/assets/images/ExpensifyHelp_CloseAccount_Mobile.png){:width="100%"}
+![Close Account on Mobile Application]({{site.url}}/assets/images/ExpensifyHelp_CloseAccount_Mobile.png){:width="100%"}
 
 These instructions may vary depending on the specific device you are using, so be sure to follow the steps as they appear on your screen.
 
@@ -55,7 +55,7 @@ The Domain Admin will simply need to invite the previously closed account in the
 # How to retain a free account to keep historical expenses
 If you no longer need a group workspace or have a more advanced workspace than necessary in Expensify, and you want to downgrade while retaining your historical data, here's what you should do:
 
-1. If you're part of a group worksapce, request the Workspace Admin to remove you, or if you own the workspace, delete it to downgrade to a free version.
+1. If you're part of a group workspace, request the Workspace Admin to remove you, or if you own the workspace, delete it to downgrade to a free version.
 2. Once you've removed or been removed from a workspace, start using your free Expensify account. Your submitted expenses will still be saved, allowing you to access the historical data.
 3. Domain Admins in the company will still retain access to approved and reimbursed expenses.
 4. To keep your data, avoid closing your account. Account closures are irreversible and will result in the deletion of all your unapproved data. 
@@ -66,7 +66,7 @@ If you no longer need a group workspace or have a more advanced workspace than n
 
 If you're encountering an error message while trying to close your Expensify account, it's important to pinpoint the specific error. Encountering an error when trying to close your account is typically only experienced if the account has been an admin on a company’s Expensify workspace.  (Especially if the account was involved in responsibilities like reimbursing employees or exporting expense reports.)
 
-In order to avoid users accidentally creating issues for their company, Expensify prevents account closure if you still have any individual responsibilities related to a Workspace within the platform. To successfully close your account, you need to ensure that your worksapce no longer relies on your account to operate. 
+In order to avoid users accidentally creating issues for their company, Expensify prevents account closure if you still have any individual responsibilities related to a Workspace within the platform. To successfully close your account, you need to ensure that your workspace no longer relies on your account to operate. 
 
 Here are the reasons why you might encounter an error when trying to close your Expensify account, along with the actions required to address each of these issues:
 
