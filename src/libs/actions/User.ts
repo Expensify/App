@@ -40,7 +40,7 @@ let myPersonalDetails: Partial<OnyxPersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value || !currentUserAccountID) {
+        if (!value || currentUserAccountID === -1) {
             return;
         }
 
@@ -240,7 +240,6 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
 
     const parameters: DeleteContactMethodParam = {partnerUserID: contactMethod};
 
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
     API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
@@ -331,7 +330,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
     const parameters: AddNewContactMethodParam = {partnerUserID: contactMethod};
 
     API.write('AddNewContactMethod', parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -448,7 +447,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  * and if so whether the expiresAt date of a user's ban is before right now
  *
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP) {
+function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP): boolean {
     if (!blockedFromConciergeNVP || Object.keys(blockedFromConciergeNVP).length === 0) {
         return false;
     }
@@ -480,7 +479,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
  */
 function subscribeToUserEvents() {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
-    if (!currentUserAccountID) {
+    if (currentUserAccountID === -1) {
         return;
     }
 
@@ -521,7 +520,7 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) =>
         SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
-            if (!currentUserAccountID) {
+            if (currentUserAccountID === -1) {
                 return;
             }
 
@@ -761,7 +760,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute());
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
