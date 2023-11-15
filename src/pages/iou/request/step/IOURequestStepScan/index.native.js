@@ -137,11 +137,11 @@ function IOURequestStepScan({
                 // to the confirm step.
                 if (report.reportID) {
                     IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             })
             .catch((error) => {
                 showCameraAlert();
@@ -221,13 +221,11 @@ function IOURequestStepScan({
                                         // to the confirm step.
                                         if (report.reportID) {
                                             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                                            Navigation.navigate(
-                                                ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID),
-                                            );
+                                            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
                                             return;
                                         }
 
-                                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+                                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
                                     },
                                 });
                             }}

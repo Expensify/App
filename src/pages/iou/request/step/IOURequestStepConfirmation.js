@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
@@ -107,14 +108,14 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     }, [transaction, iouType, requestType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.SCAN, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID));
     }, [iouType, transactionID, reportID]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -264,7 +265,6 @@ function IOURequestStepConfirmation({
         },
         [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
     );
-
     const addNewParticipant = (option) => {
         const newParticipants = _.map(transaction.participants, (participant) => {
             if (participant.accountID === option.accountID) {
@@ -281,6 +281,12 @@ function IOURequestStepConfirmation({
     const setBillable = (billable) => {
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
     };
+
+    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     return (
         <ScreenWrapper

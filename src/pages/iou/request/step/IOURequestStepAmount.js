@@ -3,10 +3,12 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -36,7 +38,7 @@ const defaultProps = {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, step, transactionID},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
     transaction: {currency},
@@ -44,11 +46,6 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
-
-    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
-    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
-    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
-    const isUserComingFromConfirmationStep = !_.isUndefined(step);
 
     useFocusEffect(
         useCallback(() => {
@@ -62,22 +59,18 @@ function IOURequestStepAmount({
         }, []),
     );
 
-    const navigateToConfirmationStep = useCallback(() => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
-    }, [iouType, reportID, transactionID]);
+    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     const navigateBack = () => {
-        if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep();
-            return;
-        }
-
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
-        const currentPath = Navigation.getActiveRoute().replace(/\?.*/, '');
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID, '', currentPath));
+        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
     };
 
     /**
@@ -87,8 +80,8 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
-        if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep();
+        if (backTo) {
+            Navigation.goBack(backTo);
             return;
         }
 
@@ -97,13 +90,13 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
     return (
@@ -111,10 +104,10 @@ function IOURequestStepAmount({
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={isUserComingFromConfirmationStep}
+            shouldShowWrapper={Boolean(backTo)}
         >
             <MoneyRequestAmountForm
-                buttonTranslationText={isUserComingFromConfirmationStep ? 'common.save' : undefined}
+                buttonTranslationText={backTo ? 'common.save' : undefined}
                 currency={currency}
                 amount={transaction.amount}
                 ref={(e) => (textInput.current = e)}

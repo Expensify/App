@@ -40,9 +40,8 @@ function IOURequestStepPage({
     },
 }) {
     const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
-    const stepParamIsInvalid = !_.contains(_.values(CONST.IOU.REQUEST_STEPS), step);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    if (iouTypeParamIsInvalid || stepParamIsInvalid || !canUserPerformWriteAction) {
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
         return <FullPageNotFoundView shouldShow />;
     }
 

@@ -1,12 +1,16 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,11 +23,15 @@ const propTypes = {
     route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
+    /** The report the transaction belongs to */
+    report: reportPropTypes,
+
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
+    report: {},
     transaction: {},
 };
 
@@ -31,6 +39,7 @@ function IOURequestStepParticipants({
     route: {
         params: {iouType, reportID, transactionID},
     },
+    report,
     transaction,
     transaction: {participants = []},
 }) {
@@ -68,15 +77,18 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        Navigation.navigate(
-            ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID),
-            CONST.NAVIGATION.TYPE.UP,
-        );
+        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
     }, [iouType, transactionID, reportID]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
     }, [iouRequestType, iouType, transactionID, reportID]);
+
+    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     return (
         <StepScreenWrapper
@@ -103,6 +115,9 @@ IOURequestStepParticipants.propTypes = propTypes;
 IOURequestStepParticipants.defaultProps = defaultProps;
 
 export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
     },

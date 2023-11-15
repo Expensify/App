@@ -617,10 +617,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(
-                            ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, transactionID, reportID),
-                            CONST.NAVIGATION.TYPE.UP,
-                        );
+                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_AMOUNT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -640,7 +637,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         return;
                     }
                     Navigation.navigate(
-                        ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DESCRIPTION, transactionID, reportID),
+                        ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
                         CONST.NAVIGATION.TYPE.UP,
                     );
                 }}
@@ -680,7 +677,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     return;
                                 }
                                 Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.DATE, transactionID, reportID),
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
                                     CONST.NAVIGATION.TYPE.UP,
                                 );
                             }}
@@ -717,7 +714,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     return;
                                 }
                                 Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, transactionID, reportID),
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
                                     CONST.NAVIGATION.TYPE.UP,
                                 );
                             }}
@@ -735,7 +732,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             numberOfLinesTitle={2}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CATEGORY, transactionID, reportID),
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
                                     CONST.NAVIGATION.TYPE.UP,
                                 )
                             }
@@ -753,7 +750,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             numberOfLinesTitle={2}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.TAG, transactionID, reportID),
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
                                     CONST.NAVIGATION.TYPE.UP,
                                 )
                             }
