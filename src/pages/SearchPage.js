@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,13 +14,13 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
@@ -28,9 +28,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -49,7 +46,6 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
-    personalDetails: {},
     reports: {},
     network: {},
     isSearchingForReports: false,
@@ -76,10 +72,14 @@ class SearchPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+        if (_.isEqual(prevProps.reports, this.props.reports)) {
             return;
         }
         this.updateOptions();
+    }
+
+    componentWillUnmount() {
+        this.interactionTask.cancel();
     }
 
     onChangeText(searchValue = '') {
@@ -134,16 +134,26 @@ class SearchPage extends Component {
     }
 
     updateOptions() {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
-        );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
+        if (this.interactionTask) {
+            this.interactionTask.cancel();
+        }
+
+        /**
+         * Execute the callback after all interactions are done, which means
+         * after all animations have finished.
+         */
+        this.interactionTask = InteractionManager.runAfterInteractions(() => {
+            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
+                this.props.reports,
+                PersonalDetailsUtils.getPersonalDetails(),
+                this.state.searchValue.trim(),
+                this.props.betas,
+            );
+            this.setState({
+                userToInvite,
+                recentReports,
+                personalDetails,
+            });
         });
     }
 
@@ -173,7 +183,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.state.personalDetails);
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.recentReports.length + this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
@@ -227,9 +237,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

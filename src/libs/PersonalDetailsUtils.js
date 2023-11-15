@@ -177,4 +177,13 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};
+/**
+ * get personal details
+ *
+ * @returns {Object}
+ */
+function getPersonalDetails() {
+    return allPersonalDetails || {};
+}
+
+export {getPersonalDetails, getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};
