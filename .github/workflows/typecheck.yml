@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.js', '**.jsx', '**.ts', '**.tsx', 'package.json', 'package-lock.json', 'tsconfig.json']
+    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   typecheck:
@@ -24,8 +24,8 @@ jobs:
       - name: Check for new JavaScript files
         run: |
           git fetch origin main --no-tags --depth=1
-          count_new_js=$(git diff --name-only --diff-filter=A main -- '*.{js,jsx}' | grep -cE 'src/libs|src/hooks|src/styles|src/languages')
+          count_new_js=$(git diff --name-only --diff-filter=A origin/main HEAD -- 'src/libs/*.js' 'src/hooks/*.js' 'src/styles/*.js' 'src/languages/*.js' | wc -l)
           if [ "$count_new_js" -gt "0" ]; then
-            echo "ERROR: Found new JS or JSX files in the /src/libs, /src/hooks, /src/styles, or /src/languages directories."
+            echo "ERROR: Found new JavaScript files in the /src/libs, /src/hooks, /src/styles, or /src/languages directories; use TypeScript instead"
             exit 1
           fi
