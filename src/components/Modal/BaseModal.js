@@ -5,7 +5,7 @@ import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import ComposerFocusManager from '@libs/ComposerFocusManagerRename';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import getModalStyles from '@styles/getModalStyles';
 import styles from '@styles/styles';

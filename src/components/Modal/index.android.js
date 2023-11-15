@@ -1,7 +1,7 @@
 import React from 'react';
 import {AppState} from 'react-native';
 import withWindowDimensions from '@components/withWindowDimensions';
-import ComposerFocusManager from '@libs/ComposerFocusManagerRename';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import BaseModal from './BaseModal';
 import {defaultProps, propTypes} from './modalPropTypes';
 
