@@ -17,6 +17,7 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -26,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -252,24 +254,28 @@ function IOURequestStepWaypoint({
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 IOURequestStepWaypoint.propTypes = propTypes;
 IOURequestStepWaypoint.defaultProps = defaultProps;
-export default withOnyx({
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
-    },
-    recentWaypoints: {
-        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 
-        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-        // that the google autocomplete component expects for it's "predefined places" feature.
-        selector: (waypoints) =>
-            _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
-                description: waypoint.address,
-                geometry: {
-                    location: {
-                        lat: waypoint.lat,
-                        lng: waypoint.lng,
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+        },
+        recentWaypoints: {
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+            // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+            // that the google autocomplete component expects for it's "predefined places" feature.
+            selector: (waypoints) =>
+                _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                    description: waypoint.address,
+                    geometry: {
+                        location: {
+                            lat: waypoint.lat,
+                            lng: waypoint.lng,
+                        },
                     },
-                },
-            })),
-    },
-})(IOURequestStepWaypoint);
+                })),
+        },
+    }),
+)(IOURequestStepWaypoint);

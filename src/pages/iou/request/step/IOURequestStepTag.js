@@ -13,11 +13,11 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -90,18 +90,13 @@ IOURequestStepTag.propTypes = propTypes;
 IOURequestStepTag.defaultProps = defaultProps;
 
 export default compose(
-    withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-        },
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withWritableReportOrNotFound,
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
         },
     }),
 )(IOURequestStepTag);

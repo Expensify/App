@@ -1,37 +1,31 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
-    /** The report the transaction belongs to */
-    report: reportPropTypes,
-
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    report: {},
     transaction: {},
 };
 
@@ -39,7 +33,6 @@ function IOURequestStepParticipants({
     route: {
         params: {iouType, reportID, transactionID},
     },
-    report,
     transaction,
     transaction: {participants = []},
 }) {
@@ -84,12 +77,6 @@ function IOURequestStepParticipants({
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
     }, [iouRequestType, iouType, transactionID, reportID]);
 
-    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
-        return <FullPageNotFoundView shouldShow />;
-    }
-
     return (
         <StepScreenWrapper
             headerTitle={headerTitle}
@@ -114,11 +101,11 @@ IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 IOURequestStepParticipants.propTypes = propTypes;
 IOURequestStepParticipants.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
-    },
-})(IOURequestStepParticipants);
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+        },
+    }),
+)(IOURequestStepParticipants);

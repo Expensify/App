@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -119,9 +118,6 @@ IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 export default compose(
     withWritableReportOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
-        },
         transaction: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
         },

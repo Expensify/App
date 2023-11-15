@@ -4,14 +4,15 @@ import {withOnyx} from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -72,11 +73,11 @@ IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 IOURequestStepCategory.propTypes = propTypes;
 IOURequestStepCategory.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
-    },
-})(IOURequestStepCategory);
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+        },
+    }),
+)(IOURequestStepCategory);

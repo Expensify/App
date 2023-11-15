@@ -7,15 +7,16 @@ import FormProvider from '@components/Form/FormProvider';
 import NewDatePicker from '@components/NewDatePicker';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -82,8 +83,11 @@ IOURequestStepDate.propTypes = propTypes;
 IOURequestStepDate.defaultProps = defaultProps;
 IOURequestStepDate.displayName = 'IOURequestStepDate';
 
-export default withOnyx({
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
-    },
-})(IOURequestStepDate);
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+        },
+    }),
+)(IOURequestStepDate);

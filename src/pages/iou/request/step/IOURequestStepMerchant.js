@@ -9,6 +9,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
@@ -17,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -121,8 +123,11 @@ IOURequestStepMerchant.propTypes = propTypes;
 IOURequestStepMerchant.defaultProps = defaultProps;
 IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
-export default withOnyx({
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
-    },
-})(IOURequestStepMerchant);
+export default compose(
+    withWritableReportOrNotFound,
+    withOnyx({
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
+        },
+    }),
+)(IOURequestStepMerchant);

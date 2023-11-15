@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -67,8 +68,8 @@ export default function (WrappedComponent) {
     WithWritableReportOrNotFoundWithRef.displayName = 'WithWritableReportOrNotFoundWithRef';
 
     return withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
         },
     })(WithWritableReportOrNotFoundWithRef);
 }
