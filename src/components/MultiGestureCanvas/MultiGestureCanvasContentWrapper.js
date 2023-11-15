@@ -8,7 +8,7 @@ const imageWrapperPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function ImageWrapper({children}) {
+function MultiGestureCanvasContentWrapper({children}) {
     return (
         <Animated.View
             collapsable={false}
@@ -19,7 +19,7 @@ function ImageWrapper({children}) {
     );
 }
 
-ImageWrapper.propTypes = imageWrapperPropTypes;
-ImageWrapper.displayName = 'ImageWrapper';
+MultiGestureCanvasContentWrapper.propTypes = imageWrapperPropTypes;
+MultiGestureCanvasContentWrapper.displayName = 'MultiGestureCanvasContentWrapper';
 
-export default ImageWrapper;
+export default MultiGestureCanvasContentWrapper;

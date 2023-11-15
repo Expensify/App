@@ -1,8 +1,8 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImageLightbox from '@components/ImageLightbox';
-import {scaleDefaultProps, scalePropTypes} from '@components/ImageLightbox/propTypes';
+import Lightbox from '@components/Lightbox';
+import {zoomRangeDefaultProps, zoomRangePropTypes} from '@components/MultiGestureCanvas/propTypes';
 import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 /**
@@ -10,7 +10,7 @@ import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
  */
 const propTypes = {
     ...imageViewPropTypes,
-    ...scalePropTypes,
+    ...zoomRangePropTypes,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -21,18 +21,17 @@ const propTypes = {
 
 const defaultProps = {
     ...imageViewDefaultProps,
-    ...scaleDefaultProps,
+    ...zoomRangeDefaultProps,
 
     onPress: () => {},
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, minZoomScale, maxZoomScale}) {
+function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange}) {
     return (
-        <ImageLightbox
+        <Lightbox
             source={url}
-            minZoomScale={minZoomScale}
-            maxZoomScale={maxZoomScale}
+            zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
             onPress={onPress}

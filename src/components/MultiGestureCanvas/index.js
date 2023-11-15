@@ -1,3 +1,6 @@
+/* eslint-disable es/no-optional-chaining */
+
+/* eslint-disable es/no-nullish-coalescing-operators */
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -16,8 +19,8 @@ import Animated, {
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import styles from '@styles/styles';
 import * as Constants from './Constants';
-import ImageWrapper from './ImageWrapper';
-import {imageTransformerDefaultProps, imageTransformerPropTypes} from './propTypes';
+import MultiGestureCanvasContentWrapper from './MultiGestureCanvasContentWrapper';
+import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
 const DOUBLE_TAP_SCALE = 3;
 
@@ -33,21 +36,30 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-function ImageTransformer({
-    canvasWidth,
-    canvasHeight,
-    imageWidth,
-    imageHeight,
-    imageScaleX,
-    imageScaleY,
-    scaledImageWidth,
-    scaledImageHeight,
-    minZoomScale,
-    maxZoomScale,
-    isActive = true,
-    children,
-    ...props
-}) {
+function getDeepDefaultProps({contentSize: contentSizeProp, contentScaling: contentScalingProp, zoomRange: zoomRangeProp}) {
+    const contentSize = {
+        width: contentSizeProp?.width ?? 0,
+        height: contentSizeProp?.height ?? 0,
+    };
+
+    const contentScaling = {
+        scaleX: contentScalingProp?.scaleX ?? 1,
+        scaleY: contentScalingProp?.scaleY ?? 1,
+        scaledWidth: contentScalingProp?.scaledWidth ?? 0,
+        scaledHeight: contentScalingProp?.scaledHeight ?? 0,
+    };
+
+    const zoomRange = {
+        min: zoomRangeProp?.min ?? Constants.DEFAULT_MIN_ZOOM_SCALE,
+        max: zoomRangeProp?.max ?? Constants.DEFAULT_MAX_ZOOM_SCALE,
+    };
+
+    return {contentSize, contentScaling, zoomRange};
+}
+
+function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}) {
+    const {contentSize, contentScaling, zoomRange} = getDeepDefaultProps(props);
+
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
@@ -62,20 +74,20 @@ function ImageTransformer({
         ...props,
     };
 
-    const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
-    const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
+    const minContentScale = useMemo(() => Math.min(contentScaling.scaleX, contentScaling.scaleY), [contentScaling.scaleX, contentScaling.scaleY]);
+    const maxContentScale = useMemo(() => Math.max(contentScaling.scaleX, contentScaling.scaleY), [contentScaling.scaleX, contentScaling.scaleY]);
 
     // On double tap zoom to fill, but at least 3x zoom
-    const doubleTapScale = useMemo(() => Math.max(maxImageScale / minImageScale, DOUBLE_TAP_SCALE), [maxImageScale, minImageScale]);
+    const doubleTapScale = useMemo(() => Math.max(maxContentScale / minContentScale, DOUBLE_TAP_SCALE), [maxContentScale, minContentScale]);
 
     const zoomScale = useSharedValue(1);
-    // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
-    // Using the smaller imageScale, so that the immage is not bigger than the canvas
+    // Adding together the pinch zoom scale and the initial scale to fit the content into the canvas
+    // Using the smaller content scale, so that the immage is not bigger than the canvas
     // and not smaller than needed to fit
-    const totalScale = useDerivedValue(() => zoomScale.value * minImageScale, [minImageScale]);
+    const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
 
-    const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
-    const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
+    const zoomScaledContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
+    const zoomScaledContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
     // used for pan gesture
     const translateY = useSharedValue(0);
@@ -103,22 +115,22 @@ function ImageTransformer({
     // store scale in between gestures
     const pinchScaleOffset = useSharedValue(1);
 
-    // disable pan vertically when image is smaller than screen
-    const canPanVertically = useDerivedValue(() => canvasHeight < zoomScaledImageHeight.value, [canvasHeight]);
+    // disable pan vertically when content is smaller than screen
+    const canPanVertically = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
 
-    // calculates bounds of the scaled image
+    // calculates bounds of the scaled content
     // can we pan left/right/up/down
     // can be used to limit gesture or implementing tension effect
     const getBounds = useWorkletCallback(() => {
         let rightBoundary = 0;
         let topBoundary = 0;
 
-        if (canvasWidth < zoomScaledImageWidth.value) {
-            rightBoundary = Math.abs(canvasWidth - zoomScaledImageWidth.value) / 2;
+        if (canvasSize.width < zoomScaledContentWidth.value) {
+            rightBoundary = Math.abs(canvasSize.width - zoomScaledContentWidth.value) / 2;
         }
 
-        if (canvasHeight < zoomScaledImageHeight.value) {
-            topBoundary = Math.abs(zoomScaledImageHeight.value - canvasHeight) / 2;
+        if (canvasSize.height < zoomScaledContentHeight.value) {
+            topBoundary = Math.abs(zoomScaledContentHeight.value - canvasSize.height) / 2;
         }
 
         const maxVector = {x: rightBoundary, y: topBoundary};
@@ -141,7 +153,7 @@ function ImageTransformer({
             canPanLeft: target.x < maxVector.x,
             canPanRight: target.x > minVector.x,
         };
-    }, [canvasWidth, canvasHeight]);
+    }, [canvasSize.width, canvasSize.height]);
 
     const afterPanGesture = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
@@ -165,7 +177,7 @@ function ImageTransformer({
         const deceleration = 0.9915;
 
         if (isInBoundaryX) {
-            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= maxZoomScale) {
+            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= zoomRange.max) {
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
@@ -180,8 +192,8 @@ function ImageTransformer({
         if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
-                zoomScale.value <= maxZoomScale &&
-                // limit vertical pan only when image is smaller than screen
+                zoomScale.value <= zoomRange.max &&
+                // limit vertical pan only when content is smaller than screen
                 offsetY.value !== minVector.y &&
                 offsetY.value !== maxVector.y
             ) {
@@ -209,42 +221,42 @@ function ImageTransformer({
 
             stopAnimation();
 
-            const canvasOffsetX = Math.max(0, (canvasWidth - scaledImageWidth) / 2);
-            const canvasOffsetY = Math.max(0, (canvasHeight - scaledImageHeight) / 2);
+            const canvasOffsetX = Math.max(0, (canvasSize.width - contentScaling.scaledWidth) / 2);
+            const canvasOffsetY = Math.max(0, (canvasSize.height - contentScaling.scaledHeight) / 2);
 
-            const imageFocal = {
-                x: clamp(canvasFocalX - canvasOffsetX, 0, scaledImageWidth),
-                y: clamp(canvasFocalY - canvasOffsetY, 0, scaledImageHeight),
+            const contentFocal = {
+                x: clamp(canvasFocalX - canvasOffsetX, 0, contentScaling.scaledWidth),
+                y: clamp(canvasFocalY - canvasOffsetY, 0, contentScaling.scaledHeight),
             };
 
             const canvasCenter = {
-                x: canvasWidth / 2,
-                y: canvasHeight / 2,
+                x: canvasSize.width / 2,
+                y: canvasSize.height / 2,
             };
 
-            const originImageCenter = {
-                x: scaledImageWidth / 2,
-                y: scaledImageHeight / 2,
+            const originContentCenter = {
+                x: contentScaling.scaledWidth / 2,
+                y: contentScaling.scaledHeight / 2,
             };
 
-            const targetImageSize = {
-                width: scaledImageWidth * doubleTapScale,
-                height: scaledImageHeight * doubleTapScale,
+            const targetContentSize = {
+                width: contentScaling.scaledWidth * doubleTapScale,
+                height: contentScaling.scaledHeight * doubleTapScale,
             };
 
-            const targetImageCenter = {
-                x: targetImageSize.width / 2,
-                y: targetImageSize.height / 2,
+            const targetContentCenter = {
+                x: targetContentSize.width / 2,
+                y: targetContentSize.height / 2,
             };
 
             const currentOrigin = {
-                x: (targetImageCenter.x - canvasCenter.x) * -1,
-                y: (targetImageCenter.y - canvasCenter.y) * -1,
+                x: (targetContentCenter.x - canvasCenter.x) * -1,
+                y: (targetContentCenter.y - canvasCenter.y) * -1,
             };
 
             const koef = {
-                x: (1 / originImageCenter.x) * imageFocal.x - 1,
-                y: (1 / originImageCenter.y) * imageFocal.y - 1,
+                x: (1 / originContentCenter.x) * contentFocal.x - 1,
+                y: (1 / originContentCenter.y) * contentFocal.y - 1,
             };
 
             const target = {
@@ -252,7 +264,7 @@ function ImageTransformer({
                 y: currentOrigin.y * koef.y,
             };
 
-            if (targetImageSize.height < canvasHeight) {
+            if (targetContentSize.height < canvasSize.height) {
                 target.y = 0;
             }
 
@@ -261,7 +273,7 @@ function ImageTransformer({
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScaleOffset.value = doubleTapScale;
         },
-        [scaledImageWidth, scaledImageHeight, canvasWidth, canvasHeight],
+        [contentScaling.scaledWidth, contentScaling.scaledHeight, canvasSize.width, canvasSize.height],
     );
 
     const reset = useWorkletCallback((animated) => {
@@ -293,6 +305,10 @@ function ImageTransformer({
                 reset(true);
             } else {
                 zoomToCoordinates(evt.x, evt.y);
+            }
+
+            if (onScaleChanged != null) {
+                runOnJS(onScaleChanged)(zoomScale.value);
             }
         });
 
@@ -395,7 +411,7 @@ function ImageTransformer({
                     };
 
                     offsetY.value = withSpring(
-                        maybeInvert(imageHeight * 2),
+                        maybeInvert(contentSize.height * 2),
                         {
                             stiffness: 50,
                             damping: 30,
@@ -422,10 +438,10 @@ function ImageTransformer({
 
     const getAdjustedFocal = useWorkletCallback(
         (focalX, focalY) => ({
-            x: focalX - (canvasWidth / 2 + offsetX.value),
-            y: focalY - (canvasHeight / 2 + offsetY.value),
+            x: focalX - (canvasSize.width / 2 + offsetX.value),
+            y: focalY - (canvasSize.height / 2 + offsetY.value),
         }),
-        [canvasWidth, canvasHeight],
+        [canvasSize.width, canvasSize.height],
     );
 
     // used to store event scale value when we limit scale
@@ -454,7 +470,7 @@ function ImageTransformer({
         .onChange((evt) => {
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
-            if (zoomScale.value >= minZoomScale * Constants.MIN_ZOOM_SCALE_BOUNCE && zoomScale.value <= maxZoomScale * Constants.MAX_ZOOM_SCALE_BOUNCE) {
+            if (zoomScale.value >= zoomRange.min * Constants.MIN_ZOOM_SCALE_BOUNCE && zoomScale.value <= zoomRange.max * Constants.MAX_ZOOM_SCALE_BOUNCE) {
                 zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
@@ -463,7 +479,7 @@ function ImageTransformer({
             const newPinchTranslateX = adjustedFocal.x + pinchGestureScale.value * origin.x.value * -1;
             const newPinchTranslateY = adjustedFocal.y + pinchGestureScale.value * origin.y.value * -1;
 
-            if (zoomScale.value >= minZoomScale && zoomScale.value <= maxZoomScale) {
+            if (zoomScale.value >= zoomRange.min && zoomScale.value <= zoomRange.max) {
                 pinchTranslateX.value = newPinchTranslateX;
                 pinchTranslateY.value = newPinchTranslateY;
             } else {
@@ -479,12 +495,12 @@ function ImageTransformer({
             pinchScaleOffset.value = zoomScale.value;
             pinchGestureScale.value = 1;
 
-            if (pinchScaleOffset.value < minZoomScale) {
-                pinchScaleOffset.value = minZoomScale;
-                zoomScale.value = withSpring(minZoomScale, SPRING_CONFIG);
-            } else if (pinchScaleOffset.value > maxZoomScale) {
-                pinchScaleOffset.value = maxZoomScale;
-                zoomScale.value = withSpring(maxZoomScale, SPRING_CONFIG);
+            if (pinchScaleOffset.value < zoomRange.min) {
+                pinchScaleOffset.value = zoomRange.min;
+                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG);
+            } else if (pinchScaleOffset.value > zoomRange.max) {
+                pinchScaleOffset.value = zoomRange.max;
+                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG);
             }
 
             if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
@@ -493,6 +509,10 @@ function ImageTransformer({
             }
 
             pinchGestureRunning.value = false;
+
+            if (onScaleChanged != null) {
+                runOnJS(onScaleChanged)(zoomScale.value);
+            }
         });
 
     const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
@@ -555,26 +575,26 @@ function ImageTransformer({
             style={[
                 styles.flex1,
                 {
-                    width: canvasWidth,
+                    width: canvasSize.width,
                     overflow: 'hidden',
                 },
             ]}
         >
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, doubleTap, Gesture.Race(pinchGesture, singleTap, panGesture))}>
-                <ImageWrapper>
+                <MultiGestureCanvasContentWrapper>
                     <Animated.View
                         collapsable={false}
-                        style={[animatedStyles, {background: 'blue'}]}
+                        style={animatedStyles}
                     >
                         {children}
                     </Animated.View>
-                </ImageWrapper>
+                </MultiGestureCanvasContentWrapper>
             </GestureDetector>
         </View>
     );
 }
-ImageTransformer.propTypes = imageTransformerPropTypes;
-ImageTransformer.defaultProps = imageTransformerDefaultProps;
-ImageTransformer.displayName = 'ImageTransformer';
+MultiGestureCanvas.propTypes = multiGestureCanvasPropTypes;
+MultiGestureCanvas.defaultProps = multiGestureCanvasDefaultProps;
+MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
-export default ImageTransformer;
+export default MultiGestureCanvas;
