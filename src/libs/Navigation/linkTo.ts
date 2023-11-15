@@ -4,7 +4,6 @@ import _ from 'lodash';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import getStateFromPath from './getStateFromPath';
-import getTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 
@@ -44,7 +43,6 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Nav
 }
 
 export default function linkTo(navigation: NavigationContainerRef<ReactNavigation.RootParamList> | null, path: string, type?: string) {
-    console.log(navigation);
     if (navigation === undefined || navigation === null) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -63,16 +61,13 @@ export default function linkTo(navigation: NavigationContainerRef<ReactNavigatio
     const action = getActionFromState(state, linkingConfig.config);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
-    if (action && action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        // Make sure that we are pushing a screen that is not currently on top of the stack.
-        const shouldPushIfCentralPane =
-            action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
-            (getTopMostCentralPaneRouteName(root.getState()) !== getTopMostCentralPaneRouteName(state) || getTopmostReportId(root.getState()) !== getTopmostReportId(state));
-
+    if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
-        } else if (shouldPushIfCentralPane) {
+
+            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
+        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
