@@ -16,6 +16,7 @@ import type Login from '@src/types/onyx/Login';
 import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import ReportAction from '@src/types/onyx/ReportAction';
+import {OnyxEntry} from "react-native-onyx/lib/types";
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
@@ -447,7 +448,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  * and if so whether the expiresAt date of a user's ban is before right now
  *
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP): boolean {
+function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConciergeNVP>): boolean {
     if (!blockedFromConciergeNVP || Object.keys(blockedFromConciergeNVP).length === 0) {
         return false;
     }
