@@ -148,6 +148,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
+            selectedTab={selectedTab}
         />
     );
 
