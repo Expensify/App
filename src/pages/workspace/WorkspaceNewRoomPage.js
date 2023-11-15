@@ -175,7 +175,6 @@ function WorkspaceNewRoomPage(props) {
                 shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicator={false}
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) =>

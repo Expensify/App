@@ -224,7 +224,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
             testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
