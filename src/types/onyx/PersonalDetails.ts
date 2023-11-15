@@ -1,4 +1,5 @@
 import {SvgProps} from 'react-native-svg';
+import {AvatarSource} from '@libs/UserUtils';
 import TIMEZONES from '@src/TIMEZONES';
 import * as OnyxCommon from './OnyxCommon';
 
@@ -32,7 +33,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: string | React.FC<SvgProps>;
+    avatar: AvatarSource;
 
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;

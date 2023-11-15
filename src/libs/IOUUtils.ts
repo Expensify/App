@@ -42,7 +42,7 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: OnyxEntry<Report> = {...iouReport};
+    const iouReportUpdate: Report = {...iouReport};
 
     if (iouReportUpdate.total) {
         if (actorAccountID === iouReport.ownerAccountID) {

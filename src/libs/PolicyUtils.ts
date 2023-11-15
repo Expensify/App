@@ -3,7 +3,7 @@ import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;
@@ -159,7 +159,7 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
 function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
-    if (Object.keys(policyTags ?? {})?.length === 0) {
+    if (isEmptyObject(policyTags)) {
         return {};
     }
 

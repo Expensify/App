@@ -483,12 +483,12 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
  * In this case, we have added the key to the report itself
  */
-function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    if (Object.keys(parentReportAction ?? {}).length > 0 && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
+function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
+    if (isNotEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
         return true;
     }
 
-    if (Object.keys(report ?? {}).length > 0 && report?.isDeletedParentAction) {
+    if (isNotEmptyObject(report) && report?.isDeletedParentAction) {
         return true;
     }
 
@@ -500,7 +500,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction?: On
  *
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
     return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -515,7 +515,7 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is the manager of the supplied report
  */
 function isReportManager(report: OnyxEntry<Report>): boolean {
-    return report?.managerID === currentUserAccountID;
+    return Boolean(report && report.managerID === currentUserAccountID);
 }
 
 /**
@@ -547,13 +547,13 @@ function isSettled(reportID: string | undefined): boolean {
         return false;
     }
     const report: Report | EmptyObject = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
-    if (isEmptyObject(report) || report?.isWaitingOnBankAccount) {
+    if (isEmptyObject(report) || report.isWaitingOnBankAccount) {
         return false;
     }
 
     // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
     // consider the report as paid as well.
-    if (report?.isWaitingOnBankAccount && report?.statusNum === CONST.REPORT.STATUS.APPROVED) {
+    if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS.APPROVED) {
         return true;
     }
 
@@ -568,7 +568,7 @@ function isCurrentUserSubmitter(reportID: string): boolean {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return report?.ownerAccountID === currentUserAccountID;
+    return Boolean(report && report.ownerAccountID === currentUserAccountID);
 }
 
 /**
@@ -701,7 +701,7 @@ function isDM(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
 function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
-    return report?.participantAccountIDs?.length === 1 && Number(report?.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+    return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
 /**
