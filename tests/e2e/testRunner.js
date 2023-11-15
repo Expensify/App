@@ -23,11 +23,10 @@ const killApp = require('./utils/killApp');
 const launchApp = require('./utils/launchApp');
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
-const math = require('./measure/math');
-const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
 const sleep = require('./utils/sleep');
+const compare = require('./compare/compare');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -81,10 +80,8 @@ if (args.includes('--config')) {
 }
 
 // Important set app path after correct config file has been set
-let appPath = config.APP_PATH;
-if (args.includes('--appPath')) {
-    appPath = args[args.indexOf('--appPath') + 1];
-}
+let mainAppPath = config.MAIN_APP_PATH;
+let deltaAppPath = config.DELTA_APP_PATH;
 
 // Create some variables after the correct config file has been loaded
 const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
@@ -113,57 +110,103 @@ if (isDevMode) {
 
 // START OF TEST CODE
 
-const restartApp = async () => {
-    Logger.log('Killing app …');
-    await killApp('android', config.APP_PACKAGE);
-    Logger.log('Launching app …');
-    await launchApp('android', config.APP_PACKAGE);
-};
-
 const runTests = async () => {
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
-        const appExists = fs.existsSync(appPath);
-        if (!appExists) {
+        const mainAppExists = fs.existsSync(mainAppPath);
+        const deltaAppExists = fs.existsSync(deltaAppPath);
+        if (!mainAppExists || !deltaAppExists) {
             Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
-            Logger.note(`App path: ${appPath}`);
+            Logger.note(`App path: ${mainAppPath}`);
 
             buildMode = 'full';
         }
     }
 
-    if (branch != null && !skipCheckout) {
-        // Switch branch
-        Logger.log(`Preparing tests on branch '${branch}' - git checkout`);
-        await execAsync(`git checkout ${branch}`);
-    }
-
-    if (!skipInstallDeps) {
-        Logger.log(`Preparing tests on branch '${branch}' - npm install`);
-        await execAsync('npm i');
-    }
-
     // Build app
     if (buildMode === 'full') {
-        Logger.log(`Preparing tests on branch '${branch}' - building app`);
+        Logger.log(`Test setup - building main branch`);
+
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout main`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
         await execAsync('npm run android-build-e2e');
+
+        if (branch != null && !skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout branch '${branch}'`);
+            await execAsync(`git checkout ${branch}`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
+        Logger.log(`Test setup '${branch}' - building delta branch`);
+        await execAsync('npm run android-build-e2edelta');
     } else if (buildMode === 'js-only') {
-        Logger.log(`Preparing tests on branch '${branch}' - building js bundle`);
+        Logger.log(`Test setup '${branch}' - building js bundle`);
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup '${branch}' - npm install`);
+            await execAsync('npm i');
+        }
 
         // Build a new JS bundle
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout main`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
         const tempDir = `${config.OUTPUT_DIR}/temp`;
-        const tempBundlePath = `${tempDir}/index.android.bundle`;
+        let tempBundlePath = `${tempDir}/index.android.bundle`;
         await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
         await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
         // Repackage the existing native app with the new bundle
-        const tempApkPath = `${tempDir}/app-release.apk`;
-        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
-        appPath = tempApkPath;
+        let tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${mainAppPath} ${tempBundlePath} ${tempApkPath}`);
+        mainAppPath = tempApkPath;
+
+        // Build a new JS bundle
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout ${branch}`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
+        tempBundlePath = `${tempDir}/index.android.bundle`;
+        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
+        // Repackage the existing native app with the new bundle
+        tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${deltaAppPath} ${tempBundlePath} ${tempApkPath}`);
+        deltaAppPath = tempApkPath;
     }
 
-    // Install app and reverse port
-    let progressLog = Logger.progressInfo('Installing app and reversing port');
-    await installApp('android', config.APP_PACKAGE, appPath);
+    let progressLog = Logger.progressInfo('Installing apps and reversing port');
+
+    await installApp('android', config.MAIN_APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
+    await installApp('android', config.DELTA_APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
     await reversePort();
     progressLog.done();
 
@@ -172,39 +215,52 @@ const runTests = async () => {
     await server.start();
 
     // Create a dict in which we will store the run durations for all tests
-    const durationsByTestName = {};
+    const results = {};
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        if (testResult.duration < 0) {
-            return;
+        let result = 0;
+
+        if ('duration' in testResult) {
+            if (testResult.duration < 0) {
+                return;
+            }
+            result = testResult.duration;
+        }
+        if ('renderCount' in testResult) {
+            result = testResult.renderCount;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+        Logger.log(`[LISTENER] Test '${testResult.name}' on '${testResult.branch}' measured ${result}`);
+
+        if (!results[testResult.branch]) {
+            results[testResult.branch] = {};
+        }
+
+        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
     });
 
     // Run the tests
-    const numOfTests = _.values(config.TESTS_CONFIG).length;
-    for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
+    const suites = _.values(config.TESTS_CONFIG);
+    for (let suiteIndex = 0; suiteIndex < suites.length; suiteIndex++) {
+        const suite = _.values(config.TESTS_CONFIG)[suiteIndex];
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
             const includes = args[args.indexOf('--includes') + 1];
 
             // assume that "includes" is a regexp
-            if (!testConfig.name.match(includes)) {
+            if (!suite.name.match(includes)) {
                 // eslint-disable-next-line no-continue
                 continue;
             }
         }
 
-        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-        coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
+        coolDownLogs.updateText(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
 
         // Having the cooldown right at the beginning should hopefully lower the chances of heat
         // throttling from the previous run (which we have no control over and will be a
@@ -212,18 +268,22 @@ const runTests = async () => {
         await sleep(config.BOOT_COOL_DOWN);
         coolDownLogs.done();
 
-        server.setTestConfig(testConfig);
+        server.setTestConfig(suite);
 
-        const warmupLogs = Logger.progressInfo(`Running warmup '${testConfig.name}'`);
+        const warmupLogs = Logger.progressInfo(`Running warmup '${suite.name}'`);
 
-        let progressText = `Warmup for suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}]\n`;
+        let progressText = `Warmup for suite '${suite.name}' [${suiteIndex + 1}/${suites.length}]\n`;
         warmupLogs.updateText(progressText);
 
-        await restartApp();
+        Logger.log('Killing main app');
+        await killApp('android', config.MAIN_APP_PACKAGE);
+        Logger.log('Launching main app');
+        await launchApp('android', config.MAIN_APP_PACKAGE);
 
         await withFailTimeout(
             new Promise((resolve) => {
                 const cleanup = server.addTestDoneListener(() => {
+                    Logger.log('Main warm up ready ✅');
                     cleanup();
                     resolve();
                 });
@@ -231,25 +291,68 @@ const runTests = async () => {
             progressText,
         );
 
+        Logger.log('Killing main app');
+        await killApp('android', config.MAIN_APP_PACKAGE);
+
+        Logger.log('Killing delta app');
+        await killApp('android', config.DELTA_APP_PACKAGE);
+        Logger.log('Launching delta app');
+        await launchApp('android', config.DELTA_APP_PACKAGE);
+
+        await withFailTimeout(
+            new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    Logger.log('Delta warm up ready ✅');
+                    cleanup();
+                    resolve();
+                });
+            }),
+            progressText,
+        );
+
+        Logger.log('Killing delta app');
+        await killApp('android', config.DELTA_APP_PACKAGE);
+
         warmupLogs.done();
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
-            progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
+            progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
-            Logger.log('Killing app...');
-            await killApp('android', config.APP_PACKAGE);
+            Logger.log('Killing delta app');
+            await killApp('android', config.DELTA_APP_PACKAGE);
 
-            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
+            Logger.log('Killing main app');
+            await killApp('android', config.MAIN_APP_PACKAGE);
 
-            // Adding the cool down between booting the app again, had the side-effect of actually causing a cold boot,
-            // which increased TTI/bundle load JS times significantly but also stabilized standard deviation.
-            await sleep(config.SUITE_COOL_DOWN);
+            Logger.log('Starting main app');
+            await launchApp('android', config.MAIN_APP_PACKAGE);
 
-            Logger.log('Starting app...');
-            await launchApp('android', config.APP_PACKAGE);
+            // Wait for a test to finish by waiting on its done call to the http server
+            try {
+                await withFailTimeout(
+                    new Promise((resolve) => {
+                        const cleanup = server.addTestDoneListener(() => {
+                            Logger.log(`Test iteration ${i + 1} done!`);
+                            cleanup();
+                            resolve();
+                        });
+                    }),
+                    progressText,
+                );
+            } catch (e) {
+                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
+                testLog.done();
+                throw e; // Rethrow to abort execution
+            }
+
+            Logger.log('Killing main app');
+            await killApp('android', config.MAIN_APP_PACKAGE);
+
+            Logger.log('Starting delta app');
+            await launchApp('android', config.DELTA_APP_PACKAGE);
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -275,16 +378,8 @@ const runTests = async () => {
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
 
-    for (const testName of _.keys(durationsByTestName)) {
-        const stats = math.getStats(durationsByTestName[testName]);
-        await writeTestStats(
-            {
-                name: testName,
-                ...stats,
-            },
-            OUTPUT_FILE,
-        );
-    }
+    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
+
     progressLog.done();
 
     await server.stop();
