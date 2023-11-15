@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import OptionRow from '@components/OptionRow';
@@ -35,7 +35,7 @@ const defaultProps = {
     ...optionsListDefaultProps,
 };
 
-function BaseOptionsList({
+const BaseOptionsList = forwardRef(({
     keyboardDismissMode,
     onScrollBeginDrag,
     onScroll,
@@ -65,15 +65,17 @@ function BaseOptionsList({
     onSelectRow,
     boldStyle,
     isDisabled,
-    innerRef,
     isRowMultilineSupported,
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
-}) {
+    safeAreaPaddingBottomStyle,
+}, innerRef) => {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
+
+    const listContentContainerStyle = useMemo(() => [contentContainerStyles, safeAreaPaddingBottomStyle], [contentContainerStyles, safeAreaPaddingBottomStyle])
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -270,7 +272,7 @@ function BaseOptionsList({
                         scrollEnabled={nestedScrollEnabled}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onScroll={onScroll}
-                        contentContainerStyle={contentContainerStyles}
+                        contentContainerStyle={listContentContainerStyle}
                         showsVerticalScrollIndicator={showScrollIndicator}
                         sections={sections}
                         keyExtractor={extractKey}
@@ -290,7 +292,7 @@ function BaseOptionsList({
             )}
         </View>
     );
-}
+});
 
 BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
@@ -298,13 +300,7 @@ BaseOptionsList.displayName = 'BaseOptionsList';
 
 // using memo to avoid unnecessary rerenders when parents component rerenders (thus causing this component to rerender because shallow comparison is used for some props).
 export default memo(
-    forwardRef((props, ref) => (
-        <BaseOptionsList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
+    BaseOptionsList,
     (prevProps, nextProps) =>
         nextProps.focusedIndex === prevProps.focusedIndex &&
         nextProps.selectedOptions.length === prevProps.selectedOptions.length &&
