@@ -40,7 +40,7 @@ function ProfileAvatar(props) {
         <AttachmentModal
             headerTitle={lodashGet(personalDetail, 'displayName', '')}
             defaultOpen
-            source={UserUtils.getAvatar(avatarURL, accountID)}
+            source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
                 Navigation.goBack();
             }}
