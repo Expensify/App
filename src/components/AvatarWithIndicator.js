@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import Avatar from './Avatar';
+import AvatarSkeleton from './AvatarSkeleton';
 import * as Expensicons from './Icon/Expensicons';
 import sourcePropTypes from './Image/sourcePropTypes';
 import Indicator from './Indicator';
@@ -18,22 +19,32 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
+
+    /** Indicates whether the avatar is loaded or not  */
+    isLoading: PropTypes.bool,
 };
 
 const defaultProps = {
     tooltipText: '',
     fallbackIcon: Expensicons.FallbackAvatar,
+    isLoading: true,
 };
 
 function AvatarWithIndicator(props) {
     return (
         <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>
-                <Avatar
-                    source={UserUtils.getSmallSizeAvatar(props.source)}
-                    fallbackIcon={props.fallbackIcon}
-                />
-                <Indicator />
+                {props.isLoading ? (
+                    <AvatarSkeleton />
+                ) : (
+                    <>
+                        <Avatar
+                            source={UserUtils.getSmallSizeAvatar(props.source)}
+                            fallbackIcon={props.fallbackIcon}
+                        />
+                        <Indicator />
+                    </>
+                )}
             </View>
         </Tooltip>
     );
