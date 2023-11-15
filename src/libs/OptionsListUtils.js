@@ -943,14 +943,13 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
 
     if (!_.isEmpty(searchInputValue)) {
         const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
-        const cutSearchTags = searchTags.slice(0, CONST.TAGS_MAX_LENGTH);
 
         tagSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(cutSearchTags),
+            data: getTagsOptions(searchTags),
         });
 
         return tagSections;
@@ -1012,14 +1011,12 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         indexOffset += filteredRecentlyUsedTags.length;
     }
 
-    const cutFilteredTags = filteredTags.slice(0, CONST.TAGS_MAX_LENGTH);
-
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getTagsOptions(cutFilteredTags),
+        data: getTagsOptions(filteredTags),
     });
 
     return tagSections;
