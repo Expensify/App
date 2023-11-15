@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-const actionNames = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', "CLOSED"];
+const actionNames = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
 
 const getFakeReportAction = (index, actionName) => ({
     actionName,

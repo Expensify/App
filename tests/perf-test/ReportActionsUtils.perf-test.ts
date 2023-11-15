@@ -4,8 +4,8 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
-import * as ReportTestUtils from '../utils/ReportTestUtils';
+import createCollection from '../utils/collections/createCollection';
+import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.setTimeout(60000);
@@ -25,8 +25,7 @@ afterEach(() => {
 const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 100) => {
     const mockReportActions = Array.from({length: actionsPerReportLength}, (v, i) => {
         const reportActionKey = i + 1;
-        const email = `actor+${reportActionKey}@mail.com`;
-        const reportAction = LHNTestUtils.getFakeReportAction(email);
+        const reportAction = createRandomReportAction(reportActionKey);
 
         return {[reportActionKey]: reportAction};
     });
@@ -41,6 +40,12 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
 };
 
 const mockedReportActionsMap = getMockedReportActionsMap(2, 10000);
+
+const reportActions = createCollection<ReportAction>(
+    (item) => `${item.reportActionID}`,
+    (index) => createRandomReportAction(index),
+);
+
 const reportId = '1';
 
 /**
@@ -64,7 +69,7 @@ test('getLastVisibleAction on 10k reportActions', async () => {
 
 test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
     const parentReportActionId = '1';
-    const fakeParentAction = ReportTestUtils.getMockedReportActionsMap()[parentReportActionId];
+    const fakeParentAction = reportActions[parentReportActionId];
     const actionsToMerge = {
         [parentReportActionId]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -91,23 +96,13 @@ test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () =
     await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge), {runs: 20});
 });
 
-test('getSortedReportActions on 10k ReportActions', async () => {
-    const reportActionsArray = ReportTestUtils.getMockedSortedReportActions() as unknown as ReportAction[];
-
-    await Onyx.multiSet({
-        ...mockedReportActionsMap,
-    });
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getSortedReportActions(reportActionsArray), {runs: 20});
-});
-
 test('getMostRecentIOURequestActionID on 10k ReportActions', async () => {
-    const reportActionsArray = (length = 100) => Array.from({length}, (__, i) => ReportTestUtils.getFakeReportAction(i, 'IOU')) as unknown as ReportAction[];
+    const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray()), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray), {runs: 20});
 });
 
 test('getLastVisibleMessage on 10k ReportActions', async () => {
@@ -120,7 +115,7 @@ test('getLastVisibleMessage on 10k ReportActions', async () => {
 
 test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
     const parentReportActionId = '1';
-    const fakeParentAction = ReportTestUtils.getMockedReportActionsMap()[parentReportActionId];
+    const fakeParentAction = reportActions[parentReportActionId];
     const actionsToMerge = {
         [parentReportActionId]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -148,7 +143,6 @@ test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () 
 });
 
 test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
-    const reportActions = ReportTestUtils.getMockedReportActionsMap();
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -157,7 +151,6 @@ test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
 });
 
 test('getLastClosedReportAction on 10k ReportActions', async () => {
-    const reportActions = ReportTestUtils.getMockedReportActionsMap();
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -172,4 +165,3 @@ test('getMostRecentReportActionLastModified', async () => {
     await waitForBatchedUpdates();
     await measureFunction(() => ReportActionsUtils.getMostRecentReportActionLastModified(), {runs: 20});
 });
-
