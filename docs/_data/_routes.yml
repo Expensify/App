@@ -90,7 +90,7 @@ platforms:
     hubs:
       - href: chat
         title: Chat
-        icon: '/assets/images/gears.svg'
+        icon: /assets/images/chat-bubble.svg
         description: Enhance your financial experience using Expensify's chat feature, offering quick and secure communication for personalized support and payment transfers.
 
       - href: account-settings
