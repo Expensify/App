@@ -1,26 +1,26 @@
 ---
-title: Business Bank Accounts - USD
-description: How to add/remove Business Bank Accounts (US) 
+title: Connect a Business Bank Account - US
+description: How to connect a business bank account to Expensify (US) 
 ---
 # Overview
 Adding a verified business bank account unlocks a myriad of features and automation in Expensify. 
 Once you connect your business bank account, you can:
-- Pay employee expense reports via direct deposit (US)
-- Settle company bills via direct transfer
-- Accept invoice payments through direct transfer
-- Access the Expensify Card
+- Reimburse expenses via direct bank transfer
+- Pay bills
+- Collect invoice payments
+- Issue the Expensify Card
 
 # How to add a verified business bank account
-To connect a business bank account to Expensify, follow the below steps in your USD workspace:
-1. Go to **Settings** > **Workspaces** > _Workspace Name_ > **Reimbursement** > **Connect bank account**
+To connect a business bank account to Expensify, follow the below steps:
+1. Go to **Settings > Workspaces > _Workspace Name_ > Bank account > Connect bank account**
 2. Click **Connect online with Plaid**
 3. Click **Continue** 
 4. When you reach the **Plaid** screen, you'll be shown a list of compatible banks that offer direct online login access
-5. Login to the business bank account
+5. Login to the business bank account:
 - If the bank is not listed, click the X to go back to the connection type
 - Here you’ll see the option to **Connect Manually**
 - Enter your account and routing numbers
-7. Enter your bank login credentials.
+6. Enter your bank login credentials:
 - If your bank requires additional security measures, you will be directed to obtain and enter a security code
 - If you have more than one account available to choose from, you will be directed to choose the desired account
 
@@ -30,11 +30,11 @@ Next, to verify the bank account, you’ll enter some details about the business
 This is where you’ll add the legal business name as well as several other company details. 
 
 ### Company address
-The company address must: 
-- Be located in the US
-- Be a physical location
+**The company address must be:**
+- Located in the US
+- A physical location
 
-If you input a maildrop address (PO box, UPS Store, etc.), the address will be flagged for review and adding the bank account to Expensify will be delayed. 
+If you input a maildrop address (PO box, UPS Store, etc.), the address will be flagged for review, and adding the bank account to Expensify will be delayed. 
 
 ### Tax Identification Number
 This is the identification number that was assigned to the business by the IRS.
@@ -48,14 +48,14 @@ Whoever is connecting the bank account to Expensify, must enter their details un
 - The address must be located in the US
 - The SSN must be US-issued
 
-This does not need to be a signor on the bank account. If someone other than the Expensify account holder enters their personal information in this section, the details will be flagged for review and adding the bank account to Expensify will be delayed. 
+This does not need to be a signor on the bank account. If someone other than the Expensify account holder enters their personal information in this section, the details will be flagged for review, and adding the bank account to Expensify will be delayed. 
 
 ## Upload ID
 After entering your personal details, you’ll be prompted to click a link or scan a QR code so that you can do the following:
 1. Upload a photo of the front and back of your ID (this cannot be a photo of an existing image)
 2. Use your device to take a selfie and record a short video of yourself 
 
-Your ID must be:
+**Your ID must be:**
 - Issued in the US
 - Current (ie: the expiration date must be in the future)
 
@@ -69,39 +69,26 @@ If no individual owns more than 25% of the company you do not need to list any b
 
 # How to validate the bank account
 
-The account you set up can be found under **Settings** > **Workspaces** > _Workspace Name_ > **Reimbursement** section in either **Verifying** or **Pending** status.
-If it is **Verifying**, then this means we sent you a message and need more information from you. Please check your Concierge chat which should include a message with specific details about what we require to move forward. 
-If it is **Pending**, then in 1-2 business days Expensify will administer 3 test transactions to your bank account. Please check your Concierge chat for further instructions. If you do not see these test transactions
+The account you set up can be found under **Settings > Workspaces > _Workspace Name_ > Bank account** in either the **Verifying** or **Pending** state.
 
-After these transactions (2 withdrawals and 1 deposit) have been processed in your account, visit your Expensify Home, where you'll see a prompt to input the transaction amounts.
+If it is **Verifying**, then this means we sent you a message and need more information from you. Please review the automated message sent by Concierge. This should include a message with specific details about what's required to move forward. 
+
+If it is **Pending**, then in 1-2 business days Expensify will administer 3 test transactions to your bank account. If after two business days you do not see these test transactions, reach out to Concierge for assistance.
+
+After these transactions (2 withdrawals and 1 deposit) have been processed to your account, head to the **Bank accounts** section of your workspace settings. Here you'll see a prompt to input the transaction amounts.
+
 Once you've finished these steps, your business bank account is ready to use in Expensify!
-
-# How to share a verified bank account 
-Only admins with access to the verified bank account can reimburse employees or pay vendor bills. To grant another admin access to the bank account in Expensify, go to **Settings > Account > Payments > Bank Accounts** and click **"Share"**. Enter their email address, and they will receive instructions from us. Please note, they must be a policy admin on a policy you also have access to in order to share the bank account with them.
-When a bank account is shared, it must be revalidated with three new microtransactions to ensure the shared admin has access. This process takes 1-2 business days. Once received, the shared admin can enter the transactions via their Expensify account's Inbox tab.
-
-Note: A report is shared with all individuals with access to the same business bank account in Expensify for audit purposes.
-
-
-# How to remove access to a verified bank account
-This step is important when accountants and staff leave your business.
-To remove an admin's access to a shared bank account, go to **Settings > Account > Payments > Shared Business Bank Accounts**. 
-You'll find a list of individuals who have access to the bank account. Next to each user, you'll see the option to Unshare the bank account.
 
 # How to delete a verified bank account
 If you need to delete a bank account from Expensify, run through the following steps:
-1. Go to **Settings** > **Workspaces** > _Workspace Name_ > **Reimbursement**
+1. Go to **Settings > Workspaces > _Workspace Name_ > Bank account**
 2. Click the red **Delete** button under the corresponding bank account
-
-Be cautious, as if it hasn't been shared with someone else, the next user will need to set it up from the beginning. 
-
-If the bank account is set as the settlement account for your Expensify Cards, you’ll need to designate another bank account as your settlement account under **Settings > Domains > Company Cards > Settings** before this account can be deleted. 
 
 # Deep Dive
 
 ## Verified bank account requirements
 
-To add a business bank account to issue reimbursements via ACH (US), to pay invoices (US) or utilize the Expensify Card:
+To add a business bank account to issue reimbursements via ACH (US), to pay invoices (US), or to issue Expensify Cards:
 - You must enter a physical address for yourself, any Beneficial Owner (if one exists), and the business associated with the bank account. We **cannot** accept a PO Box or MailDrop location.
 - If you are adding the bank account to Expensify, you must add it from **your** Expensify account settings.
 - If you are adding a bank account to Expensify, we are required by law to verify your identity. Part of this process requires you to verify a US-issued photo ID. For using features related to US ACH, your ID must be issued by the United States. You and any Beneficial Owner (if one exists), must also have a US address 
@@ -114,13 +101,12 @@ Withdrawal requests can be rejected due to insufficient funds, or if the bank ac
 If you need to enable direct debits from your verified bank account, your bank will require the following details:
 - The ACH CompanyIDs (1270239450, 4270239450 and 2270239450) 
 - The ACH Originator Name (Expensify)
-To request to unlock the bank account, go to **Settings** > **Workspaces** > _Workspace Name_ > **Reimbursement** and click **Fix**
 
-This sends a request to our support team to review why the bank account was locked, who will send you a message to confirm that.
+To request to unlock the bank account, go to **Settings > Workspaces > _Workspace Name_ > Bank account** and click **Fix.** This sends a request to our support team to review why the bank account was locked, who will send you a message to confirm that.
 
 Unlocking a bank account can take 4-5 business days to process, to allow for ACH processing time and clawback periods.
 
-## Error adding ID to Onfido
+## Error adding an ID to Onfido
 
 Expensify is required by both our sponsor bank and federal law to verify the identity of the individual who is initiating the movement of money. We use Onfido to confirm that the person adding a payment method is genuine and not impersonating someone else.
 
@@ -141,28 +127,24 @@ If the issue persists, please contact your Account Manager or Concierge for furt
 
 A Beneficial Owner refers to an **individual** who owns 25% or more of the business. If no individual owns 25% or more of the business, the company does not have a Beneficial Owner.
 
-
-## What do I do if the Beneficial Owner section only asks for personal details, but our business is owned by another company?
-
+## What do I do if the Beneficial Owner section only asks for personal details, but my organization is owned by another company?
 
 Please only indicate you have a Beneficial Owner, if it is an individual that owns 25% or more of the business. 
 
 ## Why can’t I input my address or upload my ID? 
 
-
 Are you entering a US address? When adding a verified business bank account in Expensify, the individual adding the account, and any beneficial owner (if one exists) are required to have a US address, US photo ID, and a US SSN. If you do not meet these requirements, you’ll need to have another admin add the bank account, and then share access with you once verified. 
 
+## Why am I asked for documents when adding my bank account? 
 
-## Why am I being asked for documentation when adding my bank account? 
 When a bank account is added to Expensify, we complete a series of checks to verify the information provided to us. We conduct these checks to comply with both our sponsor bank's requirements and federal government regulations, specifically the Bank Secrecy Act / Anti-Money Laundering (BSA / AML) laws. Expensify also has anti-fraud measures in place.
 If automatic verification fails, we may request manual verification, which could involve documents such as address verification for your business, a letter from your bank confirming bank account ownership, etc. 
 
 If you have any questions regarding the documentation request you received, please contact Concierge and they will be happy to assist. 
 
-
 ## I don’t see all three microtransactions I need to validate my bank account. What should I do? 
 
-It's a good idea to wait till the end of that second business day. If you still don’t see them, please reach out to your bank and ask them to whitelist our ACH ID's **1270239450**, **4270239450** and **2270239450**. Expensify’s ACH Originator Name is "Expensify".
+It's a good idea to wait till the end of that second business day. If you still don’t see them, please reach out to your bank and ask them to whitelist our ACH IDs **1270239450**, **4270239450**, and **2270239450**. Expensify’s ACH Originator Name is "Expensify".
 
-Make sure to reach out to your Account Manager or to Concierge once you have done so and our team will be able to re-trigger those 3 transactions!
+Make sure to reach out to your Account Manager or Concierge once that's all set, and our team will be able to re-trigger those three test transactions!
 
