@@ -36,7 +36,7 @@ const defaultProps = {
 
 function IOURequestStepDescription({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {transactionID, backTo},
     },
     transaction,
 }) {
@@ -61,7 +61,7 @@ function IOURequestStepDescription({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**

@@ -34,14 +34,14 @@ const defaultProps = {
 function IOURequestStepCategory({
     report,
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {transactionID, backTo},
     },
     transaction,
 }) {
     const {translate} = useLocalize();
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**

@@ -44,7 +44,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {iouType, transactionID, reportID},
+        params: {transactionID, backTo},
     },
     transaction: {tag},
 }) {
@@ -55,7 +55,7 @@ function IOURequestStepTag({
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**

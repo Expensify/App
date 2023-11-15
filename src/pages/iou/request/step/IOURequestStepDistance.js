@@ -48,7 +48,7 @@ const defaultProps = {
 function IOURequestStepDistance({
     report,
     route: {
-        params: {iouType, reportID, step, transactionID},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
 }) {
@@ -63,12 +63,6 @@ function IOURequestStepDistance({
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
     const scrollViewRef = useRef(null);
-
-    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
-    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
-    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
-    const isUserComingFromConfirmationStep = !_.isUndefined(step);
-
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isLoading = lodashGet(transaction, 'isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
@@ -99,25 +93,8 @@ function IOURequestStepDistance({
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
-    const navigateToConfirmationStep = useCallback(
-        (goBack = false) => {
-            if (goBack) {
-                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-                return;
-            }
-
-            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-        },
-        [iouType, reportID, transactionID],
-    );
-
     const navigateBack = () => {
-        if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep(true);
-            return;
-        }
-
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
@@ -129,8 +106,8 @@ function IOURequestStepDistance({
     };
 
     const navigateToNextStep = useCallback(() => {
-        if (isUserComingFromConfirmationStep) {
-            navigateToConfirmationStep(true);
+        if (backTo) {
+            Navigation.goBack(backTo);
             return;
         }
 
@@ -139,14 +116,14 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            navigateToConfirmationStep();
+            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
         Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [isUserComingFromConfirmationStep, navigateToConfirmationStep, report, iouType, reportID, transactionID]);
+    }, [report, iouType, reportID, transactionID, backTo]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -199,7 +176,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
-            shouldShowWrapper={isUserComingFromConfirmationStep}
+            shouldShowWrapper={Boolean(backTo)}
         >
             <>
                 <View style={styles.flex1}>

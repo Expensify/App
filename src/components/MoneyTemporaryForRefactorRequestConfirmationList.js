@@ -636,10 +636,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
-                    Navigation.navigate(
-                        ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
-                        CONST.NAVIGATION.TYPE.UP,
-                    );
+                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -676,10 +673,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
-                                Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
-                                    CONST.NAVIGATION.TYPE.UP,
-                                );
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -713,10 +707,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
-                                Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
-                                    CONST.NAVIGATION.TYPE.UP,
-                                );
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -731,10 +722,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
                             onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
-                                    CONST.NAVIGATION.TYPE.UP,
-                                )
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))
                             }
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -748,12 +736,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()),
-                                    CONST.NAVIGATION.TYPE.UP,
-                                )
-                            }
+                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}

@@ -35,7 +35,7 @@ const defaultProps = {
 
 function IOURequestStepMerchant({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {transactionID, backTo},
     },
     transaction: {merchant},
 }) {
@@ -60,7 +60,7 @@ function IOURequestStepMerchant({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
