@@ -150,7 +150,7 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
-    const lastReadRef = useRef(report.lastReadTime);
+    const lastReadTimeRef = useRef(report.lastReadTime);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -205,10 +205,10 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID.current) {
             return;
         }
-        if (!messageManuallyMarkedUnread && lastReadRef.current && lastReadRef.current < report.lastReadTime) {
+        if (!messageManuallyMarkedUnread && lastReadTimeRef.current && lastReadTimeRef.current < report.lastReadTime) {
             cacheUnreadMarkers.delete(report.reportID);
         }
-        lastReadRef.current = report.lastReadTime;
+        lastReadTimeRef.current = report.lastReadTime;
         setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,7 +225,7 @@ function ReportActionsList({
         // Listen to specific reportID for unread event and set the marker to new message
         unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             cacheUnreadMarkers.delete(report.reportID);
-            lastReadRef.current = newLastReadTime;
+            lastReadTimeRef.current = newLastReadTime;
             setCurrentUnreadMarker(null);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
@@ -328,8 +328,8 @@ function ReportActionsList({
             let shouldDisplay = false;
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
-                const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
-                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadRef.current));
+                const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
                 if (!messageManuallyMarkedUnread) {
                     shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
