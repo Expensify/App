@@ -37,10 +37,6 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Details"
