@@ -7,6 +7,7 @@ import AttachmentModal from '@components/AttachmentModal';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import reportPropTypes from './reportPropTypes';
@@ -60,11 +61,12 @@ const defaultProps = {
 function ReportAvatar(props) {
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const policyName = isArchivedRoom ? props.report.oldPolicyName : lodashGet(props.policy, 'name', '');
+    const avatarURL = lodashGet(props.policy, 'avatar', '') || ReportUtils.getDefaultWorkspaceAvatar(policyName);
     return (
         <AttachmentModal
             headerTitle={policyName}
             defaultOpen
-            source={lodashGet(props.policy, 'avatar', '') || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+            source={UserUtils.getFullSizeAvatar(avatarURL, '')}
             onModalClose={() => {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
             }}

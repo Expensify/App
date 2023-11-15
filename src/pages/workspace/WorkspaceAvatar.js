@@ -6,6 +6,7 @@ import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -51,11 +52,12 @@ const defaultProps = {
 };
 
 function WorkspaceAvatar(props) {
+    const avatarURL = lodashGet(props.policy, 'avatar', '') || ReportUtils.getDefaultWorkspaceAvatar(lodashGet(props.policy, 'name', ''));
     return (
         <AttachmentModal
             headerTitle={lodashGet(props.policy, 'name', '')}
             defaultOpen
-            source={lodashGet(props.policy, 'avatar', '') || ReportUtils.getDefaultWorkspaceAvatar(lodashGet(props.policy, 'name', ''))}
+            source={UserUtils.getFullSizeAvatar(avatarURL, '')}
             onModalClose={() => {
                 Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(getPolicyIDFromRoute(props.route)));
             }}
