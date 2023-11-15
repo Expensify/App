@@ -97,7 +97,7 @@ function RoomInvitePage(props) {
         const newUsersToInviteDict = {};
         const newSelectedOptionsDict = {};
 
-        _.each(emails, (email, i) => {
+        _.each(emails, (email, index) => {
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
 
             // Update selectedOptions with the latest personalDetails information
@@ -117,7 +117,7 @@ function RoomInvitePage(props) {
             }
 
             // Only display contact suggestions for the last search term
-            if (i === emails.length - 1) {
+            if (index === emails.length - 1) {
                 setPersonalDetails(inviteOptions.personalDetails);
             }
 
