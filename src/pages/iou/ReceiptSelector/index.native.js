@@ -62,7 +62,7 @@ const defaultProps = {
     selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, selectedTab}) {
+function ReceiptSelector({route, report, iou, transactionID}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -214,7 +214,6 @@ function ReceiptSelector({route, report, iou, transactionID, selectedTab}) {
                     zoom={device.neutralZoom}
                     photo
                     cameraTabIndex={pageIndex}
-                    selectedTab={selectedTab}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
