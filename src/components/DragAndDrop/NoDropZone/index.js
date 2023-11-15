@@ -13,7 +13,6 @@ function NoDropZone({children}) {
     const noDropZone = useRef(null);
     useDragAndDrop({
         dropZone: noDropZone,
-        shouldClosePopover: true,
         shouldAllowDrop: false,
     });
 

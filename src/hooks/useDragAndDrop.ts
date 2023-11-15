@@ -31,7 +31,7 @@ export default function useDragAndDrop({
     shouldAllowDrop = true,
     isDisabled = false,
     shouldAcceptDrop = () => true,
-    shouldClosePopover = false,
+    shouldClosePopover = true,
 }: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
