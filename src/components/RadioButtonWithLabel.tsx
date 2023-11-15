@@ -1,84 +1,70 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import React, {ComponentType} from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import styles from '@styles/styles';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
 import Text from './Text';
 
-const propTypes = {
+type RadioButtonWithLabelProps = {
     /** Whether the radioButton is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: boolean;
 
     /** Called when the radioButton or label is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: () => void;
 
     /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style?: StyleProp<ViewStyle>;
 
     /** Text that appears next to check box */
-    label: PropTypes.string,
+    label: string;
 
     /** Component to display for label */
-    LabelComponent: PropTypes.func,
+    LabelComponent?: ComponentType;
 
     /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
+    hasError?: boolean;
 
     /** Error text to display */
-    errorText: PropTypes.string,
-};
-
-const defaultProps = {
-    style: [],
-    label: undefined,
-    LabelComponent: undefined,
-    hasError: false,
-    errorText: '',
+    errorText?: string;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel(props) {
-    const LabelComponent = props.LabelComponent;
+function RadioButtonWithLabel({LabelComponent, style, label, hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-    const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 
-    if (!props.label && !LabelComponent) {
+    if (!label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
     }
     return (
         <>
-            <View style={wrapperStyles}>
+            <View style={[defaultStyles, style]}>
                 <RadioButton
-                    isChecked={props.isChecked}
-                    onPress={props.onPress}
-                    accessibilityLabel={props.label}
-                    hasError={props.hasError}
+                    isChecked={isChecked}
+                    onPress={onPress}
+                    accessibilityLabel={label}
+                    hasError={hasError}
                 />
                 <PressableWithFeedback
                     tabIndex={-1}
                     accessible={false}
-                    onPress={() => props.onPress()}
+                    onPress={onPress}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
                 >
-                    {Boolean(props.label) && <Text style={[styles.ml1]}>{props.label}</Text>}
-                    {Boolean(LabelComponent) && <LabelComponent />}
+                    {Boolean(label) && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!LabelComponent && <LabelComponent />}
                 </PressableWithFeedback>
             </View>
-            <FormHelpMessage message={props.errorText} />
+            <FormHelpMessage message={errorText} />
         </>
     );
 }
 
-RadioButtonWithLabel.propTypes = propTypes;
-RadioButtonWithLabel.defaultProps = defaultProps;
 RadioButtonWithLabel.displayName = 'RadioButtonWithLabel';
 
 export default RadioButtonWithLabel;
