@@ -45,4 +45,6 @@ type DimensionsCacheValue = {
     height: number;
 };
 
-export type {ImageProps, ImageOnyxProps, ImagePropsWithOnyx, DimensionsCacheValue};
+type FastImageSource = Omit<ImageURISource, 'cache'> | ImageRequireSource | Source;
+
+export type {ImageProps, ImageOnyxProps, ImagePropsWithOnyx, DimensionsCacheValue, FastImageSource};

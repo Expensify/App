@@ -16,8 +16,8 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
         // On native the authToken IS passed in the image request headers
         const authToken = session?.encryptedAuthToken ?? null;
 
-        if (isAuthTokenRequired && authToken && typeof propsSource !== 'number') {
-            return {uri: `${propsSource?.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+        if (isAuthTokenRequired && authToken && typeof propsSource !== 'number' && propsSource.uri) {
+            return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
@@ -31,7 +31,7 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
     useEffect(() => {
         // If an onLoad callback was specified then manually call it and pass
         // the natural image dimensions to match the native API
-        if (onLoad == null || typeof source === 'number' || !source.uri) {
+        if (typeof onLoad !== 'function' || typeof source === 'number' || !source.uri) {
             return;
         }
         RNImage.getSize(source.uri, (width, height) => {
