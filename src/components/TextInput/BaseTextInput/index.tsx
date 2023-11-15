@@ -1,7 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
-import _ from 'underscore';
+import {ActivityIndicator, Animated, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleSheet, TextInput, TextInputFocusEventData, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -22,21 +21,22 @@ import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import BaseTextInputProps from './types';
 
-function BaseTextInput(props) {
-    const initialValue = props.value || props.defaultValue || '';
-    const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+function BaseTextInput(props: BaseTextInputProps) {
+    const initialValue = props.value ?? props.defaultValue ?? '';
+    const initialActiveLabel = !!props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [height, setHeight] = useState(variables.componentSizeLarge);
-    const [width, setWidth] = useState();
+    const [height, setHeight] = useState<number>(variables.componentSizeLarge);
+    const [width, setWidth] = useState<number>();
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
 
-    const input = useRef(null);
+    const input = useRef<TextInput>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -47,7 +47,7 @@ function BaseTextInput(props) {
         }
 
         if (props.shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            const focusTimeout = setTimeout(() => input?.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
@@ -56,16 +56,16 @@ function BaseTextInput(props) {
     }, []);
 
     const animateLabel = useCallback(
-        (translateY, scale) => {
+        (translateY: number, scale: number) => {
             Animated.parallel([
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
-                    duration: styleConst.LABEL_ANIMATION_DURATION,
+                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
-                    duration: styleConst.LABEL_ANIMATION_DURATION,
+                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
             ]).start();
@@ -74,7 +74,7 @@ function BaseTextInput(props) {
     );
 
     const activateLabel = useCallback(() => {
-        const value = props.value || '';
+        const value = props.value ?? '';
 
         if (value.length < 0 || isLabelActive.current) {
             return;
@@ -85,9 +85,9 @@ function BaseTextInput(props) {
     }, [animateLabel, props.value]);
 
     const deactivateLabel = useCallback(() => {
-        const value = props.value || '';
+        const value = props.value ?? '';
 
-        if (props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
+        if (!!props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
             return;
         }
 
@@ -95,22 +95,22 @@ function BaseTextInput(props) {
         isLabelActive.current = false;
     }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, props.value]);
 
-    const onFocus = (event) => {
+    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (props.onFocus) {
             props.onFocus(event);
         }
         setIsFocused(true);
     };
 
-    const onBlur = (event) => {
+    const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (props.onBlur) {
             props.onBlur(event);
         }
         setIsFocused(false);
     };
 
-    const onPress = (event) => {
-        if (props.disabled) {
+    const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!!props.disabled || !event) {
             return;
         }
 
@@ -118,28 +118,28 @@ function BaseTextInput(props) {
             props.onPress(event);
         }
 
-        if (!event.isDefaultPrevented()) {
-            input.current.focus();
+        if ('isDefaultPrevented' in event && !event?.isDefaultPrevented()) {
+            input.current?.focus();
         }
     };
 
     const onLayout = useCallback(
-        (event) => {
+        (event: LayoutChangeEvent) => {
             if (!props.autoGrowHeight && props.multiline) {
                 return;
             }
 
             const layout = event.nativeEvent.layout;
 
-            setWidth((prevWidth) => (props.autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight) => (!props.multiline ? layout.height : prevHeight));
+            setWidth((prevWidth: number | undefined) => (props.autoGrowHeight ? layout.width : prevWidth));
+            setHeight((prevHeight: number) => (!props.multiline ? layout.height : prevHeight));
         },
         [props.autoGrowHeight, props.multiline],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const inputValue = props.value || '';
+    const inputValue = props.value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
     // Activate or deactivate the label when either focus changes, or for controlled
@@ -161,7 +161,7 @@ function BaseTextInput(props) {
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
         // Return early when component uncontrolled, or we still have a value
-        if (props.value === undefined || !_.isEmpty(props.value)) {
+        if (props.value === undefined || !props.value) {
             return;
         }
         hasValueRef.current = false;
@@ -169,17 +169,14 @@ function BaseTextInput(props) {
 
     /**
      * Set Value & activateLabel
-     *
-     * @param {String} value
-     * @memberof BaseTextInput
      */
-    const setValue = (value) => {
+    const setValue = (value: string) => {
         if (props.onInputChange) {
             props.onInputChange(value);
         }
-
-        Str.result(props.onChangeText, value);
-
+        if (props.onChangeText) {
+            Str.result(props.onChangeText, value);
+        }
         if (value && value.length > 0) {
             hasValueRef.current = true;
             // When the componment is uncontrolled, we need to manually activate the label:
@@ -192,7 +189,7 @@ function BaseTextInput(props) {
     };
 
     const togglePasswordVisibility = useCallback(() => {
-        setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
+        setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
     // When adding a new prefix character, adjust this method to add expected character width.
@@ -201,7 +198,7 @@ function BaseTextInput(props) {
     // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
-    const getCharacterPadding = (prefix) => {
+    const getCharacterPadding = (prefix: string) => {
         switch (prefix) {
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
@@ -212,20 +209,20 @@ function BaseTextInput(props) {
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
-    const hasLabel = Boolean(props.label.length);
-    const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : props.readOnly;
+    const hasLabel = Boolean(props.label?.length);
+    const isReadOnly = props.readOnly ?? props.disabled;
     const inputHelpText = props.errorText || props.hint;
-    const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
+    const placeholder = !!props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : undefined;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
     const textInputContainerStyles = StyleSheet.flatten([
         styles.textInputContainer,
-        ...props.textInputContainerStyles,
+        props.textInputContainerStyles,
         props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !props.hideFocusedState && isFocused && styles.borderColorFocus,
-        (props.hasError || props.errorText) && styles.borderColorDanger,
+        (!!props.hasError || !!props.errorText) && styles.borderColorDanger,
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
-    const isMultiline = props.multiline || props.autoGrowHeight;
+    const isMultiline = props.multiline ?? props.autoGrowHeight;
 
     /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
     make sure to include the `lineHeight`.
@@ -236,8 +233,8 @@ function BaseTextInput(props) {
     See https://github.com/Expensify/App/issues/13802 */
 
     const lineHeight = useMemo(() => {
-        if ((Browser.isSafari() || Browser.isMobileChrome()) && _.isArray(props.inputStyle)) {
-            const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
+        if ((Browser.isSafari() || Browser.isMobileChrome()) && Array.isArray(props.inputStyle)) {
+            const lineHeightValue = props.inputStyle.find((f) => f?.lineHeight !== undefined);
             if (lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
@@ -260,7 +257,7 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        ...props.containerStyles,
+                        props.containerStyles,
                     ]}
                 >
                     <View
@@ -281,7 +278,7 @@ function BaseTextInput(props) {
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
-                                    label={props.label}
+                                    label={props.label ?? ''}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
                                     for={props.nativeID}
@@ -367,7 +364,7 @@ function BaseTextInput(props) {
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => e.preventDefault()}
-                                    accessibilityLabel={props.translate('common.visible')}
+                                    accessibilityLabel={props.translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -399,12 +396,12 @@ function BaseTextInput(props) {
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(props.autoGrow || props.autoGrowHeight) && (
+            {(!!props.autoGrow || props.autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
                 <Text
-                    style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                    style={[props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
                         let additionalWidth = 0;
                         if (Browser.isMobileSafari() || Browser.isSafari()) {
@@ -423,7 +420,5 @@ function BaseTextInput(props) {
 }
 
 BaseTextInput.displayName = 'BaseTextInput';
-BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
-BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default withLocalize(BaseTextInput);

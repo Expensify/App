@@ -1,17 +1,17 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated} from 'react-native';
+import {Animated, Text} from 'react-native';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './TextInputLabelPropTypes';
+import TextInputLabelProps from './types';
 
-function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
-    const labelRef = useRef(null);
+function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
+    const labelRef = useRef<Text>(null);
 
     useEffect(() => {
         if (!inputId || !labelRef.current) {
             return;
         }
-        labelRef.current.setAttribute('for', inputId);
+        (labelRef.current as unknown as HTMLFormElement).setAttribute('for', inputId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -27,7 +27,5 @@ function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
 }
 
 TextInputLabel.displayName = 'TextInputLabel';
-TextInputLabel.propTypes = propTypes;
-TextInputLabel.defaultProps = defaultProps;
 
 export default React.memo(TextInputLabel);
