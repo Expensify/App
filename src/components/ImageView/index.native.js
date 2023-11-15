@@ -38,14 +38,15 @@ const defaultProps = {
 // Use the default double click interval from the ImageZoom library
 // https://github.com/ascoders/react-native-image-zoom/blob/master/src/image-zoom/image-zoom.type.ts#L79
 const DOUBLE_CLICK_INTERVAL = 175;
+const DEFAULT_IMAGE_SIZE = 200;
 
 function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const [isLoading, setIsLoading] = useState(true);
     const [imageDimensions, setImageDimensions] = useState({
-        width: 0,
-        height: 0,
+        width: DEFAULT_IMAGE_SIZE,
+        height: DEFAULT_IMAGE_SIZE,
     });
     const [containerHeight, setContainerHeight] = useState(null);
 
@@ -207,8 +208,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                 >
                     <Image
                         style={[
-                            styles.w100,
-                            styles.h100,
+                            {width: imageDimensions.width, height: imageDimensions.height},
                             style,
 
                             // Hide image while loading so ImageZoom can get the image
@@ -219,7 +219,6 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                         source={{uri: url}}
                         isAuthTokenRequired={isAuthTokenRequired}
                         resizeMode={Image.resizeMode.contain}
-                        onLoadStart={imageLoadingStart}
                         onLoad={configureImageZoom}
                     />
                     {/**

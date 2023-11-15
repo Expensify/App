@@ -42,7 +42,7 @@ function Image(props) {
                 const {width, height, url} = evt.source;
                 dimensionsCache.set(url, {width, height});
                 if (props.onLoad) {
-                    props.onLoad(evt);
+                    props.onLoad({nativeEvent: {width, height}});
                 }
             }}
         />
