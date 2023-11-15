@@ -6,14 +6,12 @@ function resetReadyToFocus() {
         resolveIsReadyToFocus = resolve;
     });
 }
-
 function setReadyToFocus() {
     if (!resolveIsReadyToFocus) {
         return;
     }
     resolveIsReadyToFocus();
 }
-
 function isReadyToFocus() {
     return isReadyToFocusPromise;
 }
