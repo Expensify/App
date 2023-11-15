@@ -2,27 +2,22 @@ import {PortalHost} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import styles from '@styles/styles';
-import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
+import type {DragAndDropContextParams, DragAndDropProviderProps, SetOnDropHandlerCallback} from './types';
 
-const DragAndDropContext = React.createContext({});
+const DragAndDropContext = React.createContext<DragAndDropContextParams>({});
 
-/**
- * @param {Event} event – drag event
- * @returns {Boolean}
- */
-function shouldAcceptDrop(event) {
-    return _.some(event.dataTransfer.types, (type) => type === 'Files');
+function shouldAcceptDrop(event: DragEvent): boolean {
+    return !!event.dataTransfer?.types.some((type) => type === 'Files');
 }
 
-function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}) {
-    const dropZone = useRef(null);
+function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}: DragAndDropProviderProps) {
+    const dropZone = useRef<View>(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 
-    const onDropHandler = useRef(() => {});
-    const setOnDropHandler = useCallback((callback) => {
+    const onDropHandler = useRef<SetOnDropHandlerCallback>(() => {});
+    const setOnDropHandler = useCallback((callback: SetOnDropHandlerCallback) => {
         onDropHandler.current = callback;
     }, []);
 
@@ -38,10 +33,11 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
     }, [isDraggingOver, setIsDraggingOver]);
 
     const contextValue = useMemo(() => ({isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}), [isDraggingOver, setOnDropHandler]);
+
     return (
         <DragAndDropContext.Provider value={contextValue}>
             <View
-                ref={(e) => (dropZone.current = e)}
+                ref={dropZone}
                 style={[styles.flex1, styles.w100, styles.h100]}
             >
                 {isDraggingOver && (
@@ -55,7 +51,6 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
     );
 }
 
-DragAndDropProvider.propTypes = dragAndDropProviderPropTypes;
 DragAndDropProvider.displayName = 'DragAndDropProvider';
 
 export default DragAndDropProvider;
