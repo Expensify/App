@@ -11,9 +11,6 @@ export default PropTypes.shape({
         /** The ID of the transaction being configured */
         transactionID: PropTypes.string.isRequired,
 
-        /** The current step the user is on */
-        step: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_STEPS)),
-
         /** The report ID of the IOU */
         reportID: PropTypes.string.isRequired,
 
