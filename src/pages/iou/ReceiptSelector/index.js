@@ -53,21 +53,17 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    isInTabNavigator: true,
 };
 
 function ReceiptSelector({route, transactionID, iou, report}) {
     const iouType = lodashGet(route, 'params.iouType', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -81,7 +77,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
@@ -200,6 +196,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
+                    cameraTabIndex={pageIndex}
                 />
             </View>
 
@@ -208,7 +205,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
@@ -227,7 +224,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -238,7 +235,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}

@@ -208,7 +208,7 @@ function WorkspaceNewRoomPage(props) {
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"

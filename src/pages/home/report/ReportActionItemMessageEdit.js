@@ -169,15 +169,6 @@ function ReportActionItemMessageEdit(props) {
         [props.action.reportActionID],
     );
 
-    // Scroll content of textInputRef to bottom
-    useEffect(() => {
-        if (!textInputRef.current) {
-            return;
-        }
-        textInputRef.current.focus();
-        textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
-    }, []);
-
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -190,6 +181,9 @@ function ReportActionItemMessageEdit(props) {
                 });
                 return prevDraft;
             });
+
+            // Scroll content of textInputRef to bottom
+            textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
         }
 
         return () => {
@@ -386,7 +380,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={styles.composerSizeButton}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
@@ -407,7 +401,7 @@ function ReportActionItemMessageEdit(props) {
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;
                             }}
-                            nativeID={messageEditInput}
+                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -443,7 +437,7 @@ function ReportActionItemMessageEdit(props) {
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => focus(true)}
                             onEmojiSelected={addEmojiToTextBox}
-                            nativeID={emojiButtonID}
+                            id={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
                         />
                     </View>
@@ -454,7 +448,7 @@ function ReportActionItemMessageEdit(props) {
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

@@ -108,7 +108,7 @@ function PressableWithDelayToggle(
                     shouldRender
                 >
                     <PressableWithoutFeedback
-                        focusable={false}
+                        tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
                         style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
@@ -120,7 +120,7 @@ function PressableWithDelayToggle(
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        style={iconStyles}
+                                        additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         inline={inline}

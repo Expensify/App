@@ -118,13 +118,13 @@ function NewContactMethodPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType="go"
+                        enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
