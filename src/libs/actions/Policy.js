@@ -418,9 +418,10 @@ function removeMembers(accountIDs, policyID) {
  *
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
+ * @param {Boolean} hasOutstandingChildRequest
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, hasOutstandingChildRequest = false) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -466,6 +467,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 isOptimisticReport: true,
+                hasOutstandingChildRequest,
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
@@ -1500,7 +1502,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     // Create the workspace chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID});
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
     const newWorkspace = {
         id: policyID,
 
@@ -1742,13 +1744,13 @@ function createWorkspaceFromIOUPayment(iouReport) {
     const transactionsOptimisticData = {};
     const transactionFailureData = {};
     _.each(reportTransactions, (transaction) => {
-        transactionsOptimisticData[transaction.transactionID] = {
+        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
             modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
         };
 
-        transactionFailureData[transaction.transactionID] = transaction;
+        transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     });
 
     optimisticData.push({
@@ -1773,6 +1775,22 @@ function createWorkspaceFromIOUPayment(iouReport) {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[reportPreview.reportActionID]: reportPreview},
+    });
+
+    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
+        value: {
+            hasOutstandingChildRequest: false,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
+        value: {
+            hasOutstandingChildRequest: true,
+        },
     });
 
     // Update the created timestamp of the report preview action to be after the workspace chat created timestamp.
