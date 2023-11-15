@@ -765,7 +765,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
 
     // Optimistically modify the transaction
     optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
