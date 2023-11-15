@@ -21,6 +21,7 @@ import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -29,6 +30,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -1908,10 +1910,10 @@ function getReportPreviewMessage(
  * Get the proper message schema for modified expense message.
  */
 
-function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean): string {
+function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true): string {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
-    const displayValueName = valueName.toLowerCase();
+    const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
 
     if (!oldValue) {
         return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
@@ -1948,6 +1950,11 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
     if (isEmptyObject(reportActionOriginalMessage)) {
         return Localize.translateLocal('iou.changedTheRequest');
     }
+    const reportID = reportAction?.reportID ?? '';
+    const policyID = getReport(reportID)?.policyID ?? '';
+    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagListName = policyTag?.name ?? Localize.translateLocal('common.tag');
 
     const hasModifiedAmount =
         reportActionOriginalMessage &&
@@ -2013,7 +2020,13 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
 
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.tag ?? '', reportActionOriginalMessage?.oldTag ?? '', Localize.translateLocal('common.tag'), true);
+        return getProperSchemaForModifiedExpenseMessage(
+            reportActionOriginalMessage.tag ?? '',
+            reportActionOriginalMessage.oldTag ?? '',
+            policyTagListName,
+            true,
+            policyTagListName === Localize.translateLocal('common.tag'),
+        );
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;

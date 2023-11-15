@@ -9,11 +9,11 @@ type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
 
-    /** The html content of the fragment. */
-    html?: string;
-
     /** The text content of the fragment. */
     text: string;
+
+    /** The html content of the fragment. */
+    html?: string;
 
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
@@ -39,11 +39,14 @@ type Message = {
     isEdited?: boolean;
 
     isDeletedParentAction?: boolean;
+
+    /** Whether the pending transaction was reversed and didn't post to the card */
+    isReversedTransaction?: boolean;
     whisperedTo?: number[];
     reactions?: Reaction[];
-    translationKey?: string;
+
     moderationDecision?: Decision;
-    isReversedTransaction?: boolean;
+    translationKey?: string;
 
     /** ID of a task report */
     taskReportID?: string;
@@ -84,7 +87,6 @@ type ReportActionBase = {
 
     avatar?: string | React.FC<SvgProps>;
 
-    /** Whether timezone is automatically set */
     automatic?: boolean;
 
     shouldShow?: boolean;
@@ -109,10 +111,12 @@ type ReportActionBase = {
     /** The status of the child report */
     childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
 
-    /** The state of the child report */
+    /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
+    timestamp?: number;
+    reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
     isFirstItem?: boolean;
 

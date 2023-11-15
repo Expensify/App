@@ -14,7 +14,7 @@ type Icon = {
     source: AvatarSource;
     type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
     name: string;
-    id?: number;
+    id?: number | string;
     fallbackIcon?: AvatarSource;
 };
 
