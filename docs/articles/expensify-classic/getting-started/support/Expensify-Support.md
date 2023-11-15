@@ -79,7 +79,7 @@ You can contact your Account Manager while logged into your Expensify account by
 
 A Partner Manager is a dedicated point of contact to support our ExpensifyApproved! Accountants with questions about their Expensify account. Partner Managers support our accounting partners by providing recommendations for client’s accounts, assisting with firm-wide training, and ensuring partners receive the full benefits of our partnership program. They will actively monitor open technical issues and be proactive with recommendations to increase efficiency and minimize time spent on expense management.
 
-For your firm to be assigned a Partner Manager, you must complete the [ExpensifyApproved! University]([url](https://use.expensify.com/accountants-program)) training course. Every external accountant or bookkeeper who completes the training is automatically enrolled in our program and receives benefits, including access to a Partner Manager. Everyone at your firm must complete the training to receive the maximum benefit.
+For your firm to be assigned a Partner Manager, you must complete the [ExpensifyApproved! University](https://use.expensify.com/accountants-program) training course. Every external accountant or bookkeeper who completes the training is automatically enrolled in our program and receives benefits, including access to a Partner Manager. Everyone at your firm must complete the training to receive the maximum benefit.
 
 ### How to contact your Partner Manager
 
