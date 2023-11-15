@@ -15,9 +15,18 @@ const getActiveElement: GetActiveElement = () => null;
  */
 const isActiveTextSelection = () => {
     throw new Error('Not implemented in React Native. Use only for web.');
+}
+
+const requestAnimationFrame = (callback: () => void) => {
+    if (!callback) {
+        return;
+    }
+
+    callback();
 };
 
 export default {
     getActiveElement,
     isActiveTextSelection,
+    requestAnimationFrame,
 };

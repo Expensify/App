@@ -244,7 +244,9 @@ function MoneyRequestParticipantsSelector({
             false,
             {},
             [],
-            true,
+            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+            !isDistanceRequest,
             true,
         );
         setNewChatOptions({

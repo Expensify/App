@@ -27,4 +27,5 @@ const isActiveTextSelection = (): boolean => {
 export default {
     getActiveElement,
     isActiveTextSelection,
+    requestAnimationFrame: window.requestAnimationFrame.bind(window),
 };
