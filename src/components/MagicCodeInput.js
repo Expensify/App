@@ -26,6 +26,9 @@ const propTypes = {
     /** Should the input auto focus */
     autoFocus: PropTypes.bool,
 
+    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
+    shouldDelayFocus: PropTypes.bool,
+
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -60,6 +63,7 @@ const defaultProps = {
     value: '',
     name: '',
     autoFocus: true,
+    shouldDelayFocus: false,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
@@ -312,6 +316,7 @@ function MagicCodeInput(props) {
                                 }}
                                 disableKeyboard={props.isDisableKeyboard}
                                 autoFocus={index === 0 && props.autoFocus}
+                                shouldDelayFocus={index === 0 && props.shouldDelayFocus}
                                 inputMode={props.isDisableKeyboard ? 'none' : 'numeric'}
                                 textContentType="oneTimeCode"
                                 name={props.name}
@@ -319,7 +324,6 @@ function MagicCodeInput(props) {
                                 value={input}
                                 hideFocusedState
                                 autoComplete={index === 0 ? props.autoComplete : 'off'}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 onChangeText={(value) => {
                                     // Do not run when the event comes from an input that is
                                     // not currently being responsible for the input, this is
@@ -337,7 +341,7 @@ function MagicCodeInput(props) {
                                 selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
                                 inputStyle={[styles.inputTransparent]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

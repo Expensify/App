@@ -31,7 +31,6 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -175,6 +174,8 @@ function MoneyRequestPreview(props) {
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
+    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
+
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
             return props.translate('common.done');
@@ -223,7 +224,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -242,6 +243,8 @@ function MoneyRequestPreview(props) {
 
         return CurrencyUtils.convertToDisplayString(amount, currency);
     };
+
+    const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
 
     const childContainer = (
         <View>
@@ -288,13 +291,13 @@ function MoneyRequestPreview(props) {
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text
                                         style={[
-                                            styles.moneyRequestPreviewAmount,
-                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                            styles.textHeadline,
+                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
                                     >
-                                        {isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText()}
+                                        {displayAmount}
                                     </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
@@ -319,7 +322,9 @@ function MoneyRequestPreview(props) {
                             </View>
                             {shouldShowMerchant && (
                                 <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
+                                    </Text>
                                 </View>
                             )}
                             <View style={[styles.flexRow, styles.mt1]}>
