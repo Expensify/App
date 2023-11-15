@@ -6,6 +6,7 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
@@ -182,7 +183,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: fontFamily.MONOSPACE,
-                fontSize: 13,
+                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -1352,7 +1353,7 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButtonContainer: {
             position: 'absolute',
-            left: 16,
+            right: 20,
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
@@ -1361,8 +1362,8 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -2578,7 +2579,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3917,34 +3918,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
-        globalNavigation: {
-            width: variables.globalNavigationWidth,
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationMenuContainer: {
-            marginTop: 13,
-        },
-
-        globalAndSubNavigationContainer: {
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationSelectionIndicator: (isFocused: boolean) => ({
-            width: 4,
-            height: 52,
-            borderTopRightRadius: variables.componentBorderRadiusRounded,
-            borderBottomRightRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
-        }),
-
-        globalNavigationMenuItem: (isFocused: boolean) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
-
-        globalNavigationItemContainer: {
-            width: variables.globalNavigationWidth,
-            height: variables.globalNavigationWidth,
-        },
-
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -4004,12 +3977,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
