@@ -231,6 +231,24 @@ export default {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                                 exact: true,
                             },
+                            ReimbursementAccount_BankInfo: {
+                                path: ROUTES.BANK_BANK_INFO,
+                            },
+                            ReimbursementAccount_PersonalInfo: {
+                                path: ROUTES.BANK_PERSONAL_INFO,
+                            },
+                            ReimbursementAccount_BusinessInfo: {
+                                path: ROUTES.BANK_BUSINESS_INFO,
+                            },
+                            ReimbursementAccount_VerifyIdentity: {
+                                path: ROUTES.BANK_VERIFY_IDENTITY,
+                            },
+                            ReimbursementAccount_CompanyOwner: {
+                                path: ROUTES.BANK_COMPANY_OWNER,
+                            },
+                            ReimbursementAccount_CompleteVerification: {
+                                path: ROUTES.BANK_COMPLETE_VERIFICATION,
+                            },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
                             },

@@ -52,10 +52,17 @@ export default {
     BANK_ACCOUNT: 'bank-account',
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
         getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
+    BANK_BANK_INFO: 'bank-account/bank-info',
+    BANK_PERSONAL_INFO: 'bank-account/personal-info',
+    BANK_BUSINESS_INFO: 'bank-account/business-info',
+    BANK_VERIFY_IDENTITY: 'bank-account/verify-identity',
+    BANK_COMPANY_OWNER: 'bank-account/company-owner',
+    BANK_COMPLETE_VERIFICATION: 'bank-account/complete-verification',
 
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

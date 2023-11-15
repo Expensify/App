@@ -181,7 +181,14 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Workspace_Members: () => require('../../../pages/workspace/WorkspaceMembersPage').default,
     Workspace_Invite: () => require('../../../pages/workspace/WorkspaceInvitePage').default,
     Workspace_Invite_Message: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default,
-    ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
+    // ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
+    ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/UpdatedReimbursementAccountPage').default,
+    ReimbursementAccount_BankInfo: () => require('../../../pages/ReimbursementAccount/BankInfo/BankInfo').default,
+    ReimbursementAccount_PersonalInfo: () => require('../../../pages/ReimbursementAccount/PersonalInfo/PersonalInfo').default,
+    ReimbursementAccount_BusinessInfo: () => require('../../../pages/ReimbursementAccount/BusinessInfo/BusinessInfo').default,
+    ReimbursementAccount_VerifyIdentity: () => require('../../../pages/ReimbursementAccount/VerifyIdentity/VerifyIdentity').default,
+    ReimbursementAccount_CompanyOwner: () => require('../../../pages/ReimbursementAccount/CompanyOwner/CompanyOwner').default,
+    ReimbursementAccount_CompleteVerification: () => require('../../../pages/ReimbursementAccount/CompleteVerification/CompleteVerification').default,
     GetAssistance: () => require('../../../pages/GetAssistancePage').default,
     Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
     Settings_ReportCardLostOrDamaged: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
@@ -194,10 +201,6 @@ const EnablePaymentsStackNavigator = createModalStackNavigator({
 
 const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator({
     AddPersonalBankAccount_Root: () => require('../../../pages/AddPersonalBankAccountPage').default,
-});
-
-const ReimbursementAccountModalStackNavigator = createModalStackNavigator({
-    ReimbursementAccount_Root: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
 });
 
 const WalletStatementStackNavigator = createModalStackNavigator({
@@ -239,7 +242,6 @@ export {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
