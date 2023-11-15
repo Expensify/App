@@ -22,7 +22,7 @@ npm run android
 ```js
 require('./src/libs/E2E/reactNativeLaunchingTest');
 ```
-4. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
+4. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
 ```diff
 - import '../../../index';
 + import '../../../appIndex';
@@ -93,7 +93,7 @@ anything here, like connecting to onyx, calling APIs, navigating.
 
 There are some common actions that are common among different test cases:
 
-- `src/libs/E2E/actions/e2eLogin.js` - Log a user into the app.
+- `src/libs/E2E/actions/e2eLogin.ts` - Log a user into the app.
 
 The test will be called once the app is ready, which mean you can immediately start.
 Your test is expected to default export its test function.
@@ -129,7 +129,7 @@ export default test;
 
 ### Last step: register the test in the e2e react native entry
 
-In `src/lib/E2E/reactNativeLaunchingTest.js` you have to add your newly created
+In `src/lib/E2E/reactNativeLaunchingTest.ts` you have to add your newly created
 test file:
 
 ```diff
