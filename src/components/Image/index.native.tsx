@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import RESIZE_MODES from './resizeModes';
-import {DimensionsCacheValue, FastImageSource, ImageOnyxProps, ImagePropsWithOnyx} from './types';
+import {DimensionsCacheValue, FastImageSource, ImageOnyxProps, ImageProps} from './types';
 
 const dimensionsCache = new Map<string, DimensionsCacheValue>();
 
@@ -12,7 +12,7 @@ function resolveDimensions(key: string): DimensionsCacheValue | undefined {
     return dimensionsCache.get(key);
 }
 
-function Image({source, isAuthTokenRequired, session, ...rest}: ImagePropsWithOnyx) {
+function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
     let imageSource: FastImageSource = source;
     if (typeof source !== 'number' && typeof source.uri === 'number') {
         imageSource = source.uri;
@@ -52,7 +52,7 @@ Image.displayName = 'Image';
 Image.resizeMode = RESIZE_MODES;
 Image.resolveDimensions = resolveDimensions;
 
-const ImageWithOnyx = withOnyx<ImagePropsWithOnyx, ImageOnyxProps>({
+const ImageWithOnyx = withOnyx<ImageProps, ImageOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },

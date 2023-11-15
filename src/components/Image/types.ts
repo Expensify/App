@@ -9,7 +9,7 @@ type ImageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type ImageProps = {
+type ImageOwnProps = {
     /** Styles for the Image */
     style?: StyleProp<ImageStyle & FastImageStyle>;
 
@@ -38,7 +38,7 @@ type ImageProps = {
     onProgress?: () => void;
 };
 
-type ImagePropsWithOnyx = ImageOnyxProps & ImageProps;
+type ImageProps = ImageOnyxProps & ImageOwnProps;
 
 type DimensionsCacheValue = {
     width: number;
@@ -47,4 +47,4 @@ type DimensionsCacheValue = {
 
 type FastImageSource = Omit<ImageURISource, 'cache'> | ImageRequireSource | Source;
 
-export type {ImageProps, ImageOnyxProps, ImagePropsWithOnyx, DimensionsCacheValue, FastImageSource};
+export type {ImageOwnProps, ImageOnyxProps, ImageProps, DimensionsCacheValue, FastImageSource};

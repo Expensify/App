@@ -3,9 +3,9 @@ import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import RESIZE_MODES from './resizeModes';
-import {ImageOnyxProps, ImageProps, ImagePropsWithOnyx} from './types';
+import {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImagePropsWithOnyx) {
+function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImageProps) {
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -48,7 +48,7 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
     );
 }
 
-function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
+function imagePropsAreEqual(prevProps: ImageOwnProps, nextProps: ImageOwnProps) {
     return prevProps.source === nextProps.source;
 }
 
@@ -56,7 +56,7 @@ Image.resizeMode = RESIZE_MODES;
 Image.displayName = 'Image';
 
 const ImageWithOnyx = React.memo(
-    withOnyx<ImagePropsWithOnyx, ImageOnyxProps>({
+    withOnyx<ImageProps, ImageOnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
         },
