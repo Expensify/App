@@ -108,9 +108,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -183,7 +180,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -203,7 +199,6 @@ const defaultProps = {
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
-    betas,
     canModifyParticipants,
     currentUserPersonalDetails,
     draftTransaction,
@@ -274,13 +269,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
-    const canUseTags = Permissions.canUseTags(betas);
 
-    // The tags should be shown when the report is a policy expense chat, and the user can use tags, and there are enabled tags
-    const shouldShowTags = isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    // A flag for showing the tags field
+    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
-    const shouldShowBillable = canUseTags && !lodashGet(policy, 'disabledFields.defaultBillable', true);
+    const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transactionData);
     const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
@@ -762,9 +756,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
