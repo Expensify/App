@@ -1794,7 +1794,7 @@ function getTransactionReportName(reportAction) {
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @param {Boolean} isPreviewMessageForParentChatReport
- * @param {Object} policy
+ * @param {Object} [policy]
  * @returns  {String}
  */
 function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false, policy = undefined) {
@@ -2690,7 +2690,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
  * @param {String} fromPolicyID
  * @param {String} toPolicyID
  * @param {Number} newParentReportID
- * @param {Number} movedReportID        An ID of the report we are moveing across workspaces
+ * @param {Number} movedReportID
  *
  * @returns {Object}
  */

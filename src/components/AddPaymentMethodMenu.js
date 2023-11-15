@@ -63,18 +63,7 @@ const defaultProps = {
     session: {},
 };
 
-function AddPaymentMethodMenu({
-    isVisible,
-    onClose,
-    anchorPosition,
-    anchorAlignment,
-    anchorRef,
-    onClose,
-    iouReport,
-    onItemSelected,
-    session,
-    betas
-}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, betas}) {
     const {translate} = useLocalize();
 
     return (
