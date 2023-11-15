@@ -8,7 +8,7 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -88,14 +88,12 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
-    numberOfLines: undefined,
+    numberOfLines: 0,
     onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
@@ -171,6 +169,7 @@ function Composer({
     isComposerFullSize,
     ...props
 }) {
+    const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
     const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
@@ -368,7 +367,7 @@ function Composer({
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
     useEffect(() => {
         updateNumberOfLines();
@@ -468,7 +467,7 @@ function Composer({
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={numberOfLines}
+                rows={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
@@ -491,6 +490,7 @@ function Composer({
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
+Composer.displayName = 'Composer';
 
 const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
@@ -502,4 +502,4 @@ const ComposerWithRef = React.forwardRef((props, ref) => (
 
 ComposerWithRef.displayName = 'ComposerWithRef';
 
-export default compose(withLocalize, withWindowDimensions, withNavigation)(ComposerWithRef);
+export default compose(withLocalize, withNavigation)(ComposerWithRef);
