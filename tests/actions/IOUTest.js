@@ -1757,7 +1757,7 @@ describe('actions/IOU', () => {
                                                     }),
                                                 ]),
                                                 originalMessage: expect.objectContaining({
-                                                    amount,
+                                                    amount: amount * -1,
                                                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                                                     type: 'pay',
                                                 }),
