@@ -137,6 +137,7 @@ type ReportActionBase = {
 
     isAttachment?: boolean;
     childRecentReceiptTransactionIDs?: Record<string, string>;
+    reportID?: string;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
