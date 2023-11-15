@@ -57,7 +57,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const isValidClearAfterDate = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
-        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) {
+        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER || clearAfterTime === '') {
             return true;
         }
 
@@ -68,7 +68,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter;
-            if (!DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime})) {
+            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
+            if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
                 setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
