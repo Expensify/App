@@ -48,7 +48,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             map.fitBounds([northEast, southWest], {padding: mapPadding});
         }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
-        // Reset boundaries when waypoints change
         useEffect(resetBoundaries, [resetBoundaries]);
 
         useEffect(() => {
