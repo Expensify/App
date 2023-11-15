@@ -88,6 +88,9 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
+
+    /** Disable press on ctrl+enter for submit button */
+    disablePressOnCtrlEnter: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -105,6 +108,7 @@ const defaultProps = {
     style: [],
     submitButtonStyles: [],
     validate: () => ({}),
+    disablePressOnCtrlEnter: true,
 };
 
 function Form(props) {
@@ -454,6 +458,7 @@ function Form(props) {
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnter
+                        disablePressOnCtrlEnter={props.disablePressOnCtrlEnter}
                     />
                 )}
             </FormSubmit>
@@ -476,6 +481,7 @@ function Form(props) {
             props.isSubmitButtonVisible,
             props.submitButtonText,
             props.submitButtonStyles,
+            props.disablePressOnCtrlEnter,
         ],
     );
 

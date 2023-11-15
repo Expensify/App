@@ -76,6 +76,9 @@ const propTypes = {
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
+    /** Call the onPress function when Ctrl/CMD + Enter key is pressed */
+    pressOnCtrlEnter: PropTypes.bool,
+
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority: PropTypes.number,
 
@@ -141,6 +144,7 @@ const defaultProps = {
     onPressOut: () => {},
     onMouseDown: undefined,
     pressOnEnter: false,
+    pressOnCtrlEnter: false,
     enterKeyEventListenerPriority: 0,
     style: [],
     innerStyles: [],
@@ -182,6 +186,7 @@ function Button({
     onMouseDown,
 
     pressOnEnter,
+    pressOnCtrlEnter,
     enterKeyEventListenerPriority,
 
     style,
@@ -220,6 +225,12 @@ function Button({
         shouldPreventDefault: false,
     });
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, keyboardShortcutCallback, {
+        isActive: pressOnCtrlEnter,
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    });
     const renderContent = () => {
         if (children) {
             return children;

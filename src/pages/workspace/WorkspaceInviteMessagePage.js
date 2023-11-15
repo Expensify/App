@@ -181,6 +181,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                         validate={this.validate}
                         onSubmit={this.sendInvitation}
+                        disablePressOnCtrlEnter={false}
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={

@@ -41,6 +41,9 @@ const propTypes = {
     /** Disable press on enter for submit button */
     disablePressOnEnter: PropTypes.bool,
 
+    /** Disable press on ctrl+enter for submit button */
+    disablePressOnCtrlEnter: PropTypes.bool,
+
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
@@ -61,6 +64,7 @@ const defaultProps = {
     onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
     disablePressOnEnter: false,
+    disablePressOnCtrlEnter: true,
     isSubmitActionDangerous: false,
     footerContent: null,
     buttonStyles: [],
@@ -91,6 +95,7 @@ function FormAlertWithSubmitButton(props) {
                         <Button
                             success
                             pressOnEnter={!props.disablePressOnEnter}
+                            pressOnCtrlEnter={!props.disablePressOnCtrlEnter}
                             text={props.buttonText}
                             style={buttonStyles}
                             onPress={props.onSubmit}
