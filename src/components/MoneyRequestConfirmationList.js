@@ -226,7 +226,6 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
-
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -244,7 +243,6 @@ function MoneyRequestConfirmationList(props) {
     const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
     const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
-
     // A flag for showing the billable field
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
@@ -705,7 +703,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            rightLabel={Permissions.canUseViolations() && Boolean(props.policy.requiresCategory) ? translate('required') : ''}
+                            rightLabel={Permissions.canUseViolations() && props.policy && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -718,7 +716,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            rightLabel={Permissions.canUseViolations() && Boolean(props.policy.requiresTag) ? translate('required') : ''}
+                            rightLabel={Permissions.canUseViolations() && props.policy && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowBillable && (
