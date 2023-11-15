@@ -103,7 +103,7 @@ If you’re unable to reach your account manager, then you can always reach out 
 ## Can I schedule a call with my Account Manager?
 Of course! You can ask your Account Manager for a call whenever you think one might be helpful. 
 
-What makes a successful call with an Account Manager:
+**What makes a successful call with an Account Manager**:
 - Scheduling the call using their calendar link (this should be shared with you once you're assigned an Account Manager)
 - Listing out exactly what you'd like to go over with the Account Manager, and then sharing that list with them before the call
 - Having anyone else in your organization who regularly manages your Expensify setup join the call
