@@ -242,6 +242,10 @@ function getActiveRoute() {
     return '';
 }
 
+function getCurrentPath() {
+    return getActiveRoute().replace(/\?.*/, '');
+}
+
 /**
  * Returns the current active route without the URL params
  * @returns {String}
@@ -320,6 +324,7 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
+    getCurrentPath,
 };
 
 export {navigationRef};
