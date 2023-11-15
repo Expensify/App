@@ -895,13 +895,18 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return _.map(tags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = (tag.name || '').replace(/(\\)+/g, '');
+
+        return {
+            text: tagName,
+            keyForList: tagName,
+            searchText: tagName,
+            tooltipText: tagName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
