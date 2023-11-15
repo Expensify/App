@@ -1018,7 +1018,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
+function getColoredBackgroundStyle(isColored: boolean): StyleProp<TextStyle> {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
@@ -1263,22 +1263,53 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
+    const baseFontSize = variables.fontSizeXLarge;
+    const baseLineHeight = variables.lineHeightXXLarge;
 
-    if (isSmallScreenWidth) {
-        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const differentWithMaxLength = 17 - displayAmountLength;
+
+    // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
+    if (isSmallScreenWidth && windowWidth < 420) {
+        // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
+        // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
+        const widthDifference = 420 - windowWidth;
         switch (true) {
-            case widthDifference > 450:
+            // It is very rare for native devices to have a width smaller than 350px so add a constant subtract here
+            case widthDifference > 70:
                 toSubtract = 11;
                 break;
-            case widthDifference > 400:
-                toSubtract = 8;
+            case widthDifference > 60:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = numberOfAvatar * 2 - differentWithMaxLength;
+                }
                 break;
-            case widthDifference > 350:
-                toSubtract = 4;
+            case widthDifference > 50:
+                if (19 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 40:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 30:
+                if (21 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 20:
+                if (22 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2 - differentWithMaxLength;
+                }
                 break;
             default:
+                if (displayAmountLength + numberOfAvatar === 21) {
+                    toSubtract = 3;
+                }
                 break;
         }
     }

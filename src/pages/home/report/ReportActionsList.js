@@ -413,7 +413,6 @@ function ReportActionsList({
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
-                    initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
                     onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}

@@ -379,10 +379,7 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(
-        allSortedReportActions[report.reportID],
-        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
@@ -416,18 +413,6 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
-        // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
-                ) || {};
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-        }
     }
     return lastMessageTextFromReport;
 }
