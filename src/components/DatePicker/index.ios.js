@@ -7,12 +7,14 @@ import Popover from '@components/Popover';
 import TextInput from '@components/TextInput';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const dateValue = value || defaultValue;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
@@ -104,12 +106,13 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
                     <Button
                         title={translate('common.reset')}
-                        color={themeColors.textError}
+                        color={theme.textError}
                         onPress={reset}
                     />
+
                     <Button
                         title={translate('common.done')}
-                        color={themeColors.link}
+                        color={theme.link}
                         onPress={selectDate}
                     />
                 </View>
