@@ -49,10 +49,6 @@ const defaultProps = {
     policyID: '',
 };
 
-const STEPS_HEADER_HEIGHT = 40;
-// TODO Will most likely come from different place
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
-
 const bodyContent = [
     NameBusiness,
     TaxIdBusiness,
@@ -95,6 +91,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
+        Navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
     }, [reimbursementAccount, values, getBankAccountFields, policyID]);
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
@@ -121,12 +118,12 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
-                    startStep={2}
-                    stepNames={STEP_NAMES}
+                    startStep={1}
+                    stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
             </View>
             <SubStep

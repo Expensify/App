@@ -37,10 +37,6 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const STEPS_HEADER_HEIGHT = 40;
-// TODO Will most likely come from different place
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
-
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
@@ -56,6 +52,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
+        Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
     }, [reimbursementAccount, values]);
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
@@ -80,12 +77,12 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('personalInfoStep.personalInfo')}
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
-                    startStep={1}
-                    stepNames={STEP_NAMES}
+                    startStep={2}
+                    stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
             </View>
             <SubStep

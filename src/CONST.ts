@@ -168,6 +168,8 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        STEPS_HEADER_HEIGHT: 40,
+        STEPS_HEADER_STEP_NAMES: ['1', '2', '3', '4', '5'],
         BANK_INFO_STEP: {
             INPUT_KEY: {
                 BANK_ACCOUNT_ID: 'bankAccountID',

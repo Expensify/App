@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import navigation from '@navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -17,6 +18,7 @@ import getInitialSubstepForBankInfo from '@pages/ReimbursementAccount/utils/getI
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,10 +42,6 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     reimbursementAccountDraft: {},
 };
-
-const STEPS_HEADER_HEIGHT = 40;
-// TODO Will most likely come from different place
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 const manualSubsteps = [Manual, Confirmation];
@@ -83,7 +81,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN],
             });
         }
-        navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
+        navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
     }, [reimbursementAccount, setupType, values]);
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
@@ -91,8 +89,9 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            // TODO replace it with navigation to ReimbursementAccountPage once base is updated
             BankAccounts.setBankAccountSubStep(null);
+            console.log(reimbursementAccount.policyID, ' bankInfo policyid');
+            ReimbursementAccount.navigateToBankAccountRoute(reimbursementAccount.policyID, Navigation.getActiveRouteWithoutParams());
         } else {
             prevScreen();
         }
@@ -105,12 +104,12 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.bankInfo')}
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
                     startStep={0}
-                    stepNames={STEP_NAMES}
+                    stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
             </View>
             <SubStep

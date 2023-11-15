@@ -358,7 +358,7 @@ function UpdatedReimbursementAccountPage({
 
             const backTo = lodashGet(route.params, 'backTo');
             const policyId = lodashGet(route.params, 'policyID');
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
+            // Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
@@ -542,8 +542,8 @@ function UpdatedReimbursementAccountPage({
                                 title={translate('bankAccount.connectManually')}
                                 disabled={!user.validated}
                                 onPress={() => {
-                                    navigation.navigate(ROUTES.BANK_BANK_INFO);
                                     BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                    navigation.navigate(ROUTES.BANK_BANK_INFO);
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}

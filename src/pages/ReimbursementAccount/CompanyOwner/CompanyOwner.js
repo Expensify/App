@@ -11,6 +11,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -25,10 +26,6 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     reimbursementAccountDraft: {},
 };
-
-const STEPS_HEADER_HEIGHT = 40;
-// TODO Will most likely come from different place
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
@@ -60,12 +57,12 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('beneficialOwnersStep.companyOwner')}
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
                     startStep={4}
-                    stepNames={STEP_NAMES}
+                    stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
             </View>
             <SubStep
