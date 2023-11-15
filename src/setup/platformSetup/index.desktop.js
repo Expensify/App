@@ -17,6 +17,7 @@ function afterAppLoad() {
 function additional() {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
+        mode: 'legacy',
     });
 
     // Send local notification when update is downloaded

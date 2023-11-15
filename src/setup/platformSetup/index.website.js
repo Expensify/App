@@ -60,6 +60,7 @@ function beforeAppLoad() {
 function afterAppLoad() {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
+        mode: 'legacy',
     });
 
     return Promise.resolve();
