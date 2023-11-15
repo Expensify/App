@@ -41,13 +41,13 @@ type Report = {
     lastReadSequenceNumber?: number;
 
     /** The time of the last mention of the report */
-    lastMentionedTime?: string;
+    lastMentionedTime?: string | null;
 
     /** The current user's notification preference for this report */
     notificationPreference?: string | number;
 
     /** The policy name to use */
-    policyName?: string;
+    policyName?: string | null;
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
@@ -66,9 +66,6 @@ type Report = {
 
     /** Linked policy's ID */
     policyID?: string;
-
-    /** Linked policy's name */
-    policyName?: string | null;
 
     /** Name of the report */
     reportName?: string;
@@ -95,7 +92,7 @@ type Report = {
     type?: string;
 
     /** The report visibility */
-    visibility?: string;
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
     /** Report cached total */
     cachedTotal?: string;
@@ -115,9 +112,6 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
-    isDeletedParentAction?: boolean;
-    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
-    lastMentionedTime?: string | null;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
 
@@ -141,13 +135,9 @@ type Report = {
 
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
-    cachedTotal?: string;
-    chatReportID?: string;
-    state?: ValueOf<typeof CONST.REPORT.STATE>;
     isHidden?: boolean;
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
-    description?: string;
     text?: string;
 };
 
