@@ -104,7 +104,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -179,7 +179,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
+                        interactive={canEdit && !isSettled && !isExpensifyCardTransaction}
                         shouldShowRightIcon={canEdit && !isSettled}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -266,7 +266,6 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
-                            interactive={canEdit}
                         />
                     </OfflineWithFeedback>
                 )}
