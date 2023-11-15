@@ -15,19 +15,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import styles from '@styles/styles';
+import * as Constants from './Constants';
 import ImageWrapper from './ImageWrapper';
 import {imageTransformerDefaultProps, imageTransformerPropTypes} from './propTypes';
-
-const getMinZoomScaleWithBounce = (minZoomScaleWithoutBounce) => {
-    'worklet';
-
-    return minZoomScaleWithoutBounce * 0.7;
-};
-const getMaxZoomScaleWithBounce = (maxZoomScaleWithoutBounce) => {
-    'worklet';
-
-    return maxZoomScaleWithoutBounce * 1.5;
-};
 
 const DOUBLE_TAP_SCALE = 3;
 
@@ -464,7 +454,7 @@ function ImageTransformer({
         .onChange((evt) => {
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
-            if (zoomScale.value >= getMinZoomScaleWithBounce(minZoomScale) && zoomScale.value <= getMaxZoomScaleWithBounce(maxZoomScale)) {
+            if (zoomScale.value >= minZoomScale * Constants.MIN_ZOOM_SCALE_BOUNCE && zoomScale.value <= maxZoomScale * Constants.MAX_ZOOM_SCALE_BOUNCE) {
                 zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
