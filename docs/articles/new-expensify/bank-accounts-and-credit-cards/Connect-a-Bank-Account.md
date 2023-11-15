@@ -29,19 +29,11 @@ Next, to verify the bank account, you’ll enter some details about the business
 ## Enter company information
 This is where you’ll add the legal business name as well as several other company details. 
 
-### Company address
-**The company address must be:**
-- Located in the US
-- A physical location
+- **Company address**: The company address must be located in the US and a physical location (If you input a maildrop address, PO box, or UPS Store, the address will be flagged for review, and adding the bank account to Expensify will be delayed)
+- **Tax Identification Number**: This is the identification number that was assigned to the business by the IRS
+- **Company website**: A company website is required to use most of Expensify’s payment features. When adding the website of the business, format it as, https://www.domain.com
+- **Industry Classification Code**: You can locate a list of Industry Classification Codes [here]([url](https://www.census.gov/naics/?input=software&year=2022))
 
-If you input a maildrop address (PO box, UPS Store, etc.), the address will be flagged for review, and adding the bank account to Expensify will be delayed. 
-
-### Tax Identification Number
-This is the identification number that was assigned to the business by the IRS.
-### Company website
-A company website is required to use most of Expensify’s payment features. When adding the website of the business, format it as, https://www.domain.com. 
-### Industry Classification Code
-You can locate a list of Industry Classification Codes here.
 ## Enter personal information 
 Whoever is connecting the bank account to Expensify, must enter their details under the Requestor Information section:
 - The address must be a physical address
