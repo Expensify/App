@@ -138,8 +138,8 @@ const propTypes = {
     /** Callback to fire when the text input changes */
     onChangeText: PropTypes.func,
 
-    /** Keyboard type for the text input */
-    keyboardType: PropTypes.string,
+    /** Input mode for the text input */
+    inputMode: PropTypes.string,
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
@@ -167,6 +167,9 @@ const propTypes = {
 
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
+
+    /** Whether to stop automatic form submission on pressing enter key or not */
+    shouldStopPropagation: PropTypes.bool,
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,

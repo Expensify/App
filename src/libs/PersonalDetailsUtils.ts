@@ -19,7 +19,7 @@ Onyx.connect({
 /**
  * @param [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(displayName?: string, defaultValue?: string): string {
+function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): string {
     return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
 }
 

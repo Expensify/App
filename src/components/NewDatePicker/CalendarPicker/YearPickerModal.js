@@ -76,12 +76,13 @@ function YearPickerModal(props) {
                     textInputValue={searchText}
                     textInputMaxLength={4}
                     onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => props.onYearChange(option.value)}
                     initiallyFocusedOptionKey={props.currentYear.toString()}
                     showScrollIndicator
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

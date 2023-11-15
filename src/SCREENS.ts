@@ -27,17 +27,4 @@ export default {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'Home_OLDDOT',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'Expenses_OLDDOT',
-    REPORTS_OLDDOT: 'Reports_OLDDOT',
-    INSIGHTS_OLDDOT: 'Insights_OLDDOT',
-
-    // Workspaces tab
-    INDIVIDUAL_WORKSPACES_OLDDOT: 'IndividualWorkspaces_OLDDOT',
-    GROUPS_WORKSPACES_OLDDOT: 'GroupWorkspaces_OLDDOT',
-    CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
 } as const;
