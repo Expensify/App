@@ -1,4 +1,6 @@
-export default () => ({
+import Response from '@src/types/onyx/Response';
+
+export default (): Response => ({
     jsonCode: 200,
     requestID: '81b8c48e3bfe5a84-VIE',
     onyxData: [

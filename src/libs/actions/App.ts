@@ -1,7 +1,5 @@
-// Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import 'moment/locale/es';
 import {AppState, AppStateStatus} from 'react-native';
 import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
