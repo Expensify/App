@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,10 +10,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForPersonalInfo';
-import getPersonalInfoValues from '@pages/ReimbursementAccount/utils/getPersonalInfoValues';
+import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Address from './substeps/Address';
@@ -41,15 +42,16 @@ const STEPS_HEADER_HEIGHT = 40;
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
+const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
-    const values = useMemo(() => getPersonalInfoValues(reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: _.get(reimbursementAccount, 'achData.bankAccountID', 0),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKeys.BANK_ACCOUNT_ID, 0),
             ...values,
         };
 

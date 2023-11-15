@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,19 +26,16 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
+const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+
 const INPUT_KEYS = {
-    street: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET,
-    city: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY,
-    state: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE,
-    zipCode: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE,
+    street: personalInfoStepKey.STREET,
+    city: personalInfoStepKey.CITY,
+    state: personalInfoStepKey.STATE,
+    zipCode: personalInfoStepKey.ZIP_CODE,
 };
 
-const REQUIRED_FIELDS = [
-    CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET,
-    CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY,
-    CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE,
-    CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE,
-];
+const REQUIRED_FIELDS = [personalInfoStepKey.STREET, personalInfoStepKey.CITY, personalInfoStepKey.STATE, personalInfoStepKey.ZIP_CODE];
 
 const validate = (values) => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
@@ -58,10 +55,10 @@ function Address({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        street: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-        city: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-        state: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-        zipCode: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
+        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STREET, ''),
+        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.CITY, ''),
+        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STATE, ''),
+        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.ZIP_CODE, ''),
     };
 
     return (

@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,14 +22,13 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
+const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
-const REQUIRED_FIELDS = [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4];
-
 const validate = (values) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoStepKey.SSN_LAST_4]);
 
     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
         errors.ssnLast4 = 'bankAccount.error.ssnLast4';
@@ -40,7 +39,7 @@ const validate = (values) => {
 function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultSsnLast4 = lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], '');
+    const defaultSsnLast4 = getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.SSN_LAST_4, '');
 
     return (
         <Form
@@ -56,7 +55,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
                 <Text style={[styles.mb3]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <TextInput
-                        inputID={CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4}
+                        inputID={personalInfoStepKey.SSN_LAST_4}
                         label={translate('personalInfoStep.last4SSN')}
                         accessibilityLabel={translate('personalInfoStep.last4SSN')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}

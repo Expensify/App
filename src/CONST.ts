@@ -182,6 +182,7 @@ const CONST = {
         },
         PERSONAL_INFO_STEP: {
             INPUT_KEY: {
+                BANK_ACCOUNT_ID: 'bankAccountID',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
@@ -190,6 +191,22 @@ const CONST = {
                 CITY: 'requestorAddressCity',
                 STATE: 'requestorAddressState',
                 ZIP_CODE: 'requestorAddressZipCode',
+            },
+        },
+        BUSINESS_INFO_STEP: {
+            INPUT_KEY: {
+                COMPANY_NAME: 'companyName',
+                COMPANY_TAX_ID: 'companyTaxID',
+                COMPANY_WEBSITE: 'website',
+                COMPANY_PHONE: 'companyPhone',
+                STREET: 'addressStreet',
+                CITY: 'addressCity',
+                STATE: 'addressState',
+                ZIP_CODE: 'addressZipCode',
+                INCORPORATION_TYPE: 'incorporationType',
+                INCORPORATION_DATE: 'incorporationDate',
+                INCORPORATION_STATE: 'incorporationState',
+                HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
             },
         },
         PLAID: {
@@ -494,6 +511,7 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
+    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
