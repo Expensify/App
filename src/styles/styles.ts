@@ -6,6 +6,7 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
@@ -327,10 +328,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
-        },
-
         verticalAlignMiddle: {
             verticalAlign: 'middle',
         },
@@ -391,10 +388,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -414,11 +407,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        textItalic: {
-            fontFamily: fontFamily.EXP_NEUE_ITALIC,
-            fontStyle: 'italic',
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -435,20 +423,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeh1,
         },
 
-        textDecorationNoLine: {
-            textDecorationLine: 'none',
-        },
-
         textWhite: {
             color: theme.textLight,
         },
 
         textBlue: {
             color: theme.link,
-        },
-
-        textUppercase: {
-            textTransform: 'uppercase',
         },
 
         textNoWrap: {
@@ -1361,8 +1341,8 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -2578,7 +2558,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3833,6 +3813,11 @@ const styles = (theme: ThemeColors) =>
             maxWidth: 400,
         },
 
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
@@ -3976,12 +3961,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
