@@ -17,7 +17,7 @@ function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
     if (typeof source !== 'number' && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
-    if (typeof source !== 'number' && isAuthTokenRequired) {
+    if (typeof imageSource !== 'number' && typeof source !== 'number' && isAuthTokenRequired) {
         const authToken = session?.encryptedAuthToken ?? null;
         imageSource = {
             ...source,
