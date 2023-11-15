@@ -89,8 +89,9 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the subscriptions could otherwise be conflicting.
 const newActionUnsubscribeMap = {};
 
-// We cache the unread markers for each report, because the unread marker isn't
-// kept between reports.
+// Caching the reportID and reportActionID for unread markers ensures persistent tracking
+// across multiple reports, preserving the green line placement and allowing retrieval
+// of the relevant reportActionID for displaying the green line.
 const cacheUnreadMarkers = new Map();
 /**
  * Create a unique key for each action in the FlatList.
