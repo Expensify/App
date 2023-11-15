@@ -8,6 +8,7 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -171,6 +172,12 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             />
                         </View>
                     </OfflineWithFeedback>
+                )}
+                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
+                    <ReceiptEmptyState
+                        hasError={hasErrors}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                    />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
