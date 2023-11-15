@@ -53,7 +53,10 @@ function ReferralDetailsPage({route, account}) {
     }
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body`);
-    const generatedURL = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${account && account.primaryLogin}`;
+
+    function generateReferralURL(email) {
+        return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
+    }
 
     return (
         <ScreenWrapper
@@ -78,7 +81,7 @@ function ReferralDetailsPage({route, account}) {
                         <CopyTextToClipboard
                             text={translate('referralProgram.copyReferralLink')}
                             textStyles={[styles.colorMuted]}
-                            urlToCopy={generatedURL}
+                            urlToCopy={generateReferralURL(account.primaryLogin)}
                         />
                     </View>
                 )}
