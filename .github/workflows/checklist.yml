@@ -8,10 +8,13 @@ jobs:
   createChecklist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: ./.github/actions/composite/setupNode
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
-      - uses: ./.github/actions/javascript/createOrUpdateStagingDeploy
+      - name: Create or update deploy checklist
+        uses: ./.github/actions/javascript/createOrUpdateStagingDeploy
         with:
           GITHUB_TOKEN: ${{ github.token }}
