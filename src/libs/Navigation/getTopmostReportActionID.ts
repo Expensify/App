@@ -1,3 +1,4 @@
+import {NavigationState} from '@react-navigation/native';
 import lodashFindLast from 'lodash/findLast';
 import lodashGet from 'lodash/get';
 
@@ -6,10 +7,10 @@ import lodashGet from 'lodash/get';
 /**
  * Find the last visited report screen in the navigation state and get the linked reportActionID of it.
  *
- * @param {Object} state - The react-navigation state
- * @returns {String | undefined} - It's possible that there is no report screen
+ * @param state - The react-navigation state
+ * @returns - It's possible that there is no report screen
  */
-function getTopmostReportActionID(state) {
+function getTopmostReportActionID(state: NavigationState): string | undefined {
     if (!state) {
         return;
     }

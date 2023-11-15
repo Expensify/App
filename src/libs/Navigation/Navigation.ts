@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {CommonActions, getPathFromState, NavigationState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
-import lodashGet from 'lodash/get';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -15,12 +14,12 @@ import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 
-let resolveNavigationIsReadyPromise;
+let resolveNavigationIsReadyPromise: (value?: unknown) => void;
 const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let pendingRoute = null;
+let pendingRoute: string | null = null;
 
 let shouldPopAllStateOnUP = false;
 
@@ -31,12 +30,7 @@ function setShouldPopAllStateOnUP() {
     shouldPopAllStateOnUP = true;
 }
 
-/**
- * @param {String} methodName
- * @param {Object} params
- * @returns {Boolean}
- */
-function canNavigate(methodName, params = {}) {
+function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
     if (navigationRef.isReady()) {
         return true;
     }
@@ -53,19 +47,17 @@ const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => ori
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
+// TODO: MAY ADD OVERLOADING HERE LATER - IF THERE IS INDEX RETURN NUMBER, IF THERE IS NO INDEX PROVIDED YOU MAY RETURN UNDEFINED
 /**
  * Method for finding on which index in stack we are.
- * @param {Object} route
- * @param {Number} index
- * @returns {Number}
  */
-const getActiveRouteIndex = function (route, index) {
+const getActiveRouteIndex = function (route: NavigationState, index?: number): number | undefined {
     if (route.routes) {
         const childActiveRoute = route.routes[route.index || 0];
         return getActiveRouteIndex(childActiveRoute, route.index || 0);
     }
 
-    if (route.state && route.state.routes) {
+    if (route?.state?.routes) {
         const childActiveRoute = route.state.routes[route.state.index || 0];
         return getActiveRouteIndex(childActiveRoute, route.state.index || 0);
     }
@@ -79,10 +71,9 @@ const getActiveRouteIndex = function (route, index) {
 
 /**
  * Main navigation method for redirecting to a route.
- * @param {String} route
- * @param {String} [type] - Type of action to perform. Currently UP is supported.
+ * @param [type] - Type of action to perform. Currently UP is supported.
  */
-function navigate(route = ROUTES.HOME, type) {
+function navigate(route: string = ROUTES.HOME, type?: string) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -95,11 +86,11 @@ function navigate(route = ROUTES.HOME, type) {
 }
 
 /**
- * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param {Boolean} shouldEnforceFallback - Enforces navigation to fallback route
- * @param {Boolean} shouldPopToTop - Should we navigate to LHN on back press
+ * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
+ * @param shouldEnforceFallback - Enforces navigation to fallback route
+ * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute: string, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -107,12 +98,12 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
     if (shouldPopToTop) {
         if (shouldPopAllStateOnUP) {
             shouldPopAllStateOnUP = false;
-            navigationRef.current.dispatch(StackActions.popToTop());
+            navigationRef.current?.dispatch(StackActions.popToTop());
             return;
         }
     }
 
-    if (!navigationRef.current.canGoBack()) {
+    if (!navigationRef.current?.canGoBack()) {
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
@@ -121,9 +112,9 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
 
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
-        const lastRoute = _.last(rootState.routes);
+        const lastRoute = rootState.routes[rootState.routes.length - 1];
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
             navigationRef.current.goBack();
             return;
         }
@@ -139,12 +130,9 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
 
 /**
  * Update route params for the specified route.
- *
- * @param {Object} params
- * @param {String} routeKey
  */
-function setParams(params, routeKey) {
-    navigationRef.current.dispatch({
+function setParams(params: Record<string, string>, routeKey: string) {
+    navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
     });
@@ -153,15 +141,15 @@ function setParams(params, routeKey) {
 /**
  * Dismisses the last modal stack if there is any
  *
- * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
+ * @param targetReportID - The reportID to navigate to after dismissing the modal
  */
-function dismissModal(targetReportID) {
+function dismissModal(targetReportID?: string) {
     if (!canNavigate('dismissModal')) {
         return;
     }
     const rootState = navigationRef.getRootState();
     const lastRoute = _.last(rootState.routes);
-    switch (lastRoute.name) {
+    switch (lastRoute?.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
@@ -171,14 +159,14 @@ function dismissModal(targetReportID) {
 
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
-                navigationRef.current.dispatch(action);
+                navigationRef.current?.dispatch(action);
                 // If not-found page is in the route stack, we need to close it
-            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
+            } else if (targetReportID && rootState.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
                 const lastRouteIndex = rootState.routes.length - 1;
                 const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
-                navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
+                navigationRef.current?.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
-                navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
+                navigationRef.current?.dispatch({...StackActions.pop(), target: rootState.key});
             }
             break;
         default: {
@@ -189,11 +177,10 @@ function dismissModal(targetReportID) {
 
 /**
  * Returns the current active route
- * @returns {String}
  */
-function getActiveRoute() {
+function getActiveRoute(): string {
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
+    const currentRouteHasName = currentRoute?.name ?? false;
     if (!currentRouteHasName) {
         return '';
     }
@@ -209,9 +196,8 @@ function getActiveRoute() {
 
 /**
  * Returns the current active route without the URL params
- * @returns {String}
  */
-function getActiveRouteWithoutParams() {
+function getActiveRouteWithoutParams(): string {
     return getActiveRoute().replace(/\?.*/, '');
 }
 
@@ -219,7 +205,7 @@ function getActiveRouteWithoutParams() {
  * @param {Object} event
  * @returns {String | undefined}
  * */
-function getRouteNameFromStateEvent(event) {
+function getRouteNameFromStateEvent(event): string | undefined {
     if (!event.data.state) {
         return;
     }
@@ -237,10 +223,10 @@ function getRouteNameFromStateEvent(event) {
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
  * is undefined in the first navigation.
  *
- * @param {String} routePath Path to check
- * @return {Boolean} is active
+ * @param routePath Path to check
+ * @return is active
  */
-function isActiveRoute(routePath) {
+function isActiveRoute(routePath: string): boolean {
     // We remove First forward slash from the URL before matching
     return getActiveRoute().substring(1) === routePath;
 }
@@ -258,9 +244,6 @@ function goToPendingRoute() {
     pendingRoute = null;
 }
 
-/**
- * @returns {Promise}
- */
 function isNavigationReady() {
     return navigationIsReadyPromise;
 }

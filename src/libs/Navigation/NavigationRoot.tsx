@@ -1,6 +1,7 @@
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useRef} from 'react';
+import {ColorValue} from 'react-native';
 import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
@@ -22,19 +23,18 @@ const navigationTheme = {
     },
 };
 
-const propTypes = {
+type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
-    authenticated: PropTypes.bool.isRequired,
+    authenticated: boolean;
 
     /** Fired when react-navigation is ready */
-    onReady: PropTypes.func.isRequired,
+    onReady: () => void;
 };
 
 /**
  * Intercept navigation state changes and log it
- * @param {NavigationState} state
  */
-function parseAndLogRoute(state) {
+function parseAndLogRoute(state: NavigationState) {
     if (!state) {
         return;
     }
@@ -51,7 +51,7 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-function NavigationRoot(props) {
+function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const globalNavigation = useContext(SidebarNavigationContext);
@@ -74,24 +74,24 @@ function NavigationRoot(props) {
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        if (!navigationRef.isReady() || !props.authenticated) {
+        if (!navigationRef.isReady() || !authenticated) {
             return;
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, props.authenticated]);
+    }, [isSmallScreenWidth, authenticated]);
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarAnimation = useSharedValue(0);
 
-    const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
+    const updateStatusBarBackgroundColor = (color: ColorValue) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
         (current, previous) => {
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
-            if ([current, previous].includes(null) || current <= previous) {
+            if ([current, previous].includes(null) || current <= (previous ?? 0)) {
                 return;
             }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
@@ -101,7 +101,7 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = currentRoute?.params?.backgroundColor || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
@@ -120,7 +120,7 @@ function NavigationRoot(props) {
         );
     };
 
-    const handleStateChange = (state) => {
+    const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
         }
@@ -138,7 +138,7 @@ function NavigationRoot(props) {
     return (
         <NavigationContainer
             onStateChange={handleStateChange}
-            onReady={props.onReady}
+            onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
@@ -146,11 +146,10 @@ function NavigationRoot(props) {
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={props.authenticated} />
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }
 
 NavigationRoot.displayName = 'NavigationRoot';
-NavigationRoot.propTypes = propTypes;
 export default NavigationRoot;

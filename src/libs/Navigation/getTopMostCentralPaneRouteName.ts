@@ -1,12 +1,13 @@
+import {NavigationState} from '@react-navigation/native';
 import lodashFindLast from 'lodash/findLast';
 
 /**
  * Find the name of top most central pane route.
  *
- * @param {Object} state - The react-navigation state
- * @returns {String | undefined} - It's possible that there is no central pane in the state.
+ * @param state - The react-navigation state
+ * @return - It's possible that there is no central pane in the state.
  */
-function getTopMostCentralPaneRouteName(state) {
+function getTopMostCentralPaneRouteName(state: NavigationState): string | undefined {
     if (!state) {
         return undefined;
     }

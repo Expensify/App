@@ -1,15 +1,15 @@
 import lodashFindLast from 'lodash/findLast';
-import lodashGet from 'lodash/get';
+import {NavigationState} from "@react-navigation/native";
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
 /**
  * Find the last visited report screen in the navigation state and get the id of it.
  *
- * @param {Object} state - The react-navigation state
- * @returns {String | undefined} - It's possible that there is no report screen
+ * @param state - The react-navigation state
+ * @returns It's possible that there is no report screen
  */
-function getTopmostReportId(state) {
+function getTopmostReportId(state: NavigationState): string | undefined {
     if (!state) {
         return;
     }
@@ -19,7 +19,7 @@ function getTopmostReportId(state) {
         return;
     }
 
-    const directReportIdParam = lodashGet(topmostCentralPane, 'params.params.reportID');
+    const directReportIdParam = topmostCentralPane.params?.params.reportID;
 
     if (!topmostCentralPane.state && !directReportIdParam) {
         return;
@@ -29,12 +29,12 @@ function getTopmostReportId(state) {
         return directReportIdParam;
     }
 
-    const topmostReport = lodashFindLast(topmostCentralPane.state.routes, (route) => route.name === 'Report');
+    const topmostReport = lodashFindLast(topmostCentralPane.state?.routes, (route) => route.name === 'Report');
     if (!topmostReport) {
         return;
     }
 
-    const topmostReportId = lodashGet(topmostReport, 'params.reportID');
+    const topmostReportId = topmostReport?.params?.reportID;
 
     return topmostReportId;
 }
