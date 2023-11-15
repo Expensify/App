@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -9,11 +10,11 @@ const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
 type DragAndDropParams = {
-    dropZone: React.MutableRefObject<HTMLDivElement | null>;
-    onDrop?: (event?: DragEvent) => void;
+    dropZone: React.MutableRefObject<HTMLDivElement | View | null>;
+    onDrop?: (event: DragEvent) => void;
     shouldAllowDrop?: boolean;
     isDisabled?: boolean;
-    shouldAcceptDrop?: (event?: DragEvent) => boolean;
+    shouldAcceptDrop?: (event: DragEvent) => boolean;
 };
 
 type DragAndDropOptions = {
@@ -105,7 +106,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
             return;
         }
 
-        const dropZoneRef = dropZone.current;
+        const dropZoneRef = dropZone.current as HTMLDivElement;
 
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome

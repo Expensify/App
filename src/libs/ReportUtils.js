@@ -11,6 +11,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -1864,13 +1865,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
  * @param {String} oldValue
  * @param {String} valueName
  * @param {Boolean} valueInQuotes
+ * @param {Boolean} shouldConvertToLowercase
  * @returns {String}
  */
 
-function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
+function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes, shouldConvertToLowercase = true) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
-    const displayValueName = valueName.toLowerCase();
+    const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
 
     if (!oldValue) {
         return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
@@ -1917,6 +1919,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (_.isEmpty(reportActionOriginalMessage)) {
         return Localize.translateLocal('iou.changedTheRequest');
     }
+    const reportID = lodashGet(reportAction, 'reportID', '');
+    const policyID = lodashGet(getReport(reportID), 'policyID', '');
+    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
     const hasModifiedAmount =
         _.has(reportActionOriginalMessage, 'oldAmount') &&
@@ -1965,7 +1972,13 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+        return getProperSchemaForModifiedExpenseMessage(
+            reportActionOriginalMessage.tag,
+            reportActionOriginalMessage.oldTag,
+            policyTagListName,
+            true,
+            policyTagListName === Localize.translateLocal('common.tag'),
+        );
     }
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
@@ -4091,6 +4104,10 @@ function getIOUReportActionDisplayMessage(reportAction) {
     let translationKey;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
+
+        // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
+        // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
+        // property. If it does, it indicates that this is a 'Send money' action.
         const {amount, currency} = originalMessage.IOUDetails || originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
