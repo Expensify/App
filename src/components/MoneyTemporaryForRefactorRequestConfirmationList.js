@@ -689,7 +689,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), CONST.NAVIGATION.TYPE.UP)
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))
                             }
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!isReadOnly}
