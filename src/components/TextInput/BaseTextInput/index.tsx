@@ -1,6 +1,19 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleSheet, TextInput, TextInputFocusEventData, View} from 'react-native';
+import {
+    ActivityIndicator,
+    Animated,
+    FlexStyle,
+    GestureResponderEvent,
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    StyleProp,
+    StyleSheet,
+    TextInput,
+    TextInputFocusEventData,
+    View,
+    ViewStyle,
+} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -207,20 +220,19 @@ function BaseTextInput(props: BaseTextInputProps) {
         }
     };
 
-    // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
     const hasLabel = Boolean(props.label?.length);
     const isReadOnly = props.readOnly ?? props.disabled;
     const inputHelpText = props.errorText || props.hint;
     const placeholder = !!props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : undefined;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
-    const textInputContainerStyles = StyleSheet.flatten([
+    const textInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         props.textInputContainerStyles,
         props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !props.hideFocusedState && isFocused && styles.borderColorFocus,
         (!!props.hasError || !!props.errorText) && styles.borderColorDanger,
-        props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
+        props.autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
     const isMultiline = props.multiline ?? props.autoGrowHeight;
 
@@ -234,8 +246,8 @@ function BaseTextInput(props: BaseTextInputProps) {
 
     const lineHeight = useMemo(() => {
         if ((Browser.isSafari() || Browser.isMobileChrome()) && Array.isArray(props.inputStyle)) {
-            const lineHeightValue = props.inputStyle.find((f) => f?.lineHeight !== undefined);
-            if (lineHeightValue) {
+            const lineHeightValue = props.inputStyle.find((f) => f && 'lineHeight' in f && f.lineHeight !== undefined);
+            if (lineHeightValue && 'lineHeight' in lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
         }
@@ -253,7 +265,8 @@ function BaseTextInput(props: BaseTextInputProps) {
                 <PressableWithoutFeedback
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={props.label}
+                    accessibilityLabel={props.label ?? ''}
+                    accessible
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
@@ -301,10 +314,11 @@ function BaseTextInput(props: BaseTextInputProps) {
                                 ref={(ref) => {
                                     if (typeof props.innerRef === 'function') {
                                         props.innerRef(ref);
-                                    } else if (props.innerRef && _.has(props.innerRef, 'current')) {
+                                    } else if (props.innerRef && 'current' in props.innerRef) {
                                         // eslint-disable-next-line no-param-reassign
                                         props.innerRef.current = ref;
                                     }
+                                    // @ts-expect-error We need to reassign this ref to the input ref
                                     input.current = ref;
                                 }}
                                 // eslint-disable-next-line
@@ -318,7 +332,7 @@ function BaseTextInput(props: BaseTextInputProps) {
                                     styles.w100,
                                     props.inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
                                     props.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -330,7 +344,7 @@ function BaseTextInput(props: BaseTextInputProps) {
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -383,9 +397,9 @@ function BaseTextInput(props: BaseTextInputProps) {
                         </View>
                     </View>
                 </PressableWithoutFeedback>
-                {!_.isEmpty(inputHelpText) && (
+                {!inputHelpText && (
                     <FormHelpMessage
-                        isError={!_.isEmpty(props.errorText)}
+                        isError={!props.errorText}
                         message={inputHelpText}
                     />
                 )}
@@ -401,7 +415,12 @@ function BaseTextInput(props: BaseTextInputProps) {
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
                 <Text
-                    style={[props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                    style={[
+                        props.inputStyle,
+                        props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxHeight === 'number' ? maxHeight : undefined),
+                        styles.hiddenElementOutsideOfWindow,
+                        styles.visibilityHidden,
+                    ]}
                     onLayout={(e) => {
                         let additionalWidth = 0;
                         if (Browser.isMobileSafari() || Browser.isSafari()) {

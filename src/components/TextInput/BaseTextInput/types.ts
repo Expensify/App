@@ -1,8 +1,9 @@
-import React from 'react';
-import {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, TextInputProps, ViewStyle} from 'react-native';
+import React, {Component} from 'react';
+import {FlexStyle, GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import {SrcProps} from '@components/Icon';
 
-type CustomTextInputProps = {
+type CustomBaseTextInputProps = {
     /** Input label */
     label?: string;
 
@@ -25,13 +26,13 @@ type CustomTextInputProps = {
     icon: (props: SrcProps) => React.ReactNode;
 
     /** Customize the TextInput container */
-    textInputContainerStyles: StyleProp<ViewStyle>;
+    textInputContainerStyles: StyleProp<ViewStyle & FlexStyle>;
 
     /** Customize the main container */
-    containerStyles: StyleProp<ViewStyle>;
+    containerStyles: StyleProp<ViewStyle & FlexStyle>;
 
     /** input style */
-    inputStyle: StyleProp<ViewStyle>;
+    inputStyle: StyleProp<TextStyle>;
 
     /** If present, this prop forces the label to remain in a position where it will not collide with input text */
     forceActiveLabel?: boolean;
@@ -60,7 +61,7 @@ type CustomTextInputProps = {
     hideFocusedState?: boolean;
 
     /** Forward the inner ref */
-    innerRef?: React.RefObject<TextInput>;
+    innerRef?: React.ForwardedRef<Component<AnimatedProps<TextInputProps>, unknown, unknown> | null>;
 
     /** Maximum characters allowed */
     maxLength?: number;
@@ -105,5 +106,6 @@ type CustomTextInputProps = {
     translate?: (key: string) => string;
 };
 
-type BaseTextInputProps = CustomTextInputProps & TextInputProps;
+type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 export default BaseTextInputProps;
+export type {CustomBaseTextInputProps};

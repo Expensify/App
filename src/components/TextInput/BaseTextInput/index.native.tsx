@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, Animated, StyleSheet, TextInput, View} from 'react-native';
 import _ from 'underscore';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -22,10 +22,11 @@ import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import BaseTextInputProps from './types';
 
-function BaseTextInput(props) {
-    const initialValue = props.value || props.defaultValue || '';
-    const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+function BaseTextInput(props: BaseTextInputProps) {
+    const initialValue = props.value ?? props.defaultValue ?? '';
+    const initialActiveLabel = !!props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
@@ -36,7 +37,7 @@ function BaseTextInput(props) {
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
 
-    const input = useRef(null);
+    const input = useRef<TextInput>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -47,7 +48,7 @@ function BaseTextInput(props) {
         }
 
         if (props.shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
@@ -56,16 +57,16 @@ function BaseTextInput(props) {
     }, []);
 
     const animateLabel = useCallback(
-        (translateY, scale) => {
+        (translateY: number, scale: number) => {
             Animated.parallel([
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
-                    duration: styleConst.LABEL_ANIMATION_DURATION,
+                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
-                    duration: styleConst.LABEL_ANIMATION_DURATION,
+                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
             ]).start();
@@ -85,9 +86,9 @@ function BaseTextInput(props) {
     }, [animateLabel, props.value]);
 
     const deactivateLabel = useCallback(() => {
-        const value = props.value || '';
+        const value = props.value ?? '';
 
-        if (props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
+        if (!!props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
             return;
         }
 
@@ -119,7 +120,7 @@ function BaseTextInput(props) {
         }
 
         if (!event.isDefaultPrevented()) {
-            input.current.focus();
+            input.current?.focus();
         }
     };
 
@@ -139,7 +140,7 @@ function BaseTextInput(props) {
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const inputValue = props.value || '';
+    const inputValue = props.value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
     // Activate or deactivate the label when either focus changes, or for controlled
@@ -169,9 +170,6 @@ function BaseTextInput(props) {
 
     /**
      * Set Value & activateLabel
-     *
-     * @param {String} value
-     * @memberof BaseTextInput
      */
     const setValue = (value) => {
         if (props.onInputChange) {
@@ -201,7 +199,7 @@ function BaseTextInput(props) {
     // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
-    const getCharacterPadding = (prefix) => {
+    const getCharacterPadding = (prefix: string) => {
         switch (prefix) {
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
@@ -212,20 +210,21 @@ function BaseTextInput(props) {
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
-    const hasLabel = Boolean(props.label.length);
+    const hasLabel = Boolean(props.label?.length);
     const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : props.readOnly;
     const inputHelpText = props.errorText || props.hint;
-    const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
+    const placeholder = !!props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : undefined;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
+    console.log('maxHeight', maxHeight);
     const textInputContainerStyles = StyleSheet.flatten([
         styles.textInputContainer,
-        ...props.textInputContainerStyles,
+        props.textInputContainerStyles,
         props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !props.hideFocusedState && isFocused && styles.borderColorFocus,
-        (props.hasError || props.errorText) && styles.borderColorDanger,
-        props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
+        (!!props.hasError || props.errorText) && styles.borderColorDanger,
+        props.autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
-    const isMultiline = props.multiline || props.autoGrowHeight;
+    const isMultiline = !!props.multiline || props.autoGrowHeight;
 
     return (
         <>
@@ -241,7 +240,7 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        ...props.containerStyles,
+                        props.containerStyles,
                     ]}
                 >
                     <View
@@ -262,7 +261,7 @@ function BaseTextInput(props) {
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
-                                    label={props.label}
+                                    label={props.label ?? ''}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
                                     for={props.nativeID}
@@ -362,9 +361,9 @@ function BaseTextInput(props) {
                         </View>
                     </View>
                 </PressableWithoutFeedback>
-                {!_.isEmpty(inputHelpText) && (
+                {!inputHelpText && (
                     <FormHelpMessage
-                        isError={!_.isEmpty(props.errorText)}
+                        isError={!!props.errorText}
                         message={inputHelpText}
                     />
                 )}
@@ -375,12 +374,17 @@ function BaseTextInput(props) {
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(props.autoGrow || props.autoGrowHeight) && (
+            {(!!props.autoGrow || props.autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
                 <Text
-                    style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                    style={[
+                        props.inputStyle,
+                        props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, maxHeight ?? 0),
+                        styles.hiddenElementOutsideOfWindow,
+                        styles.visibilityHidden,
+                    ]}
                     onLayout={(e) => {
                         setTextInputWidth(e.nativeEvent.layout.width);
                         setTextInputHeight(e.nativeEvent.layout.height);
