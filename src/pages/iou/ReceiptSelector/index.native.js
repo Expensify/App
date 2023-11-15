@@ -50,16 +50,12 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Name of the selected receipt tab */
-    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    selectedTab: '',
 };
 
 function ReceiptSelector({route, report, iou, transactionID}) {
