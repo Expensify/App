@@ -182,6 +182,7 @@ const CONST = {
         },
         PERSONAL_INFO_STEP: {
             INPUT_KEY: {
+                BANK_ACCOUNT_ID: 'bankAccountID',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',

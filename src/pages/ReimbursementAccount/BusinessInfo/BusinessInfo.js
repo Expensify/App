@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
@@ -87,7 +87,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0),
             ...values,
             ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),

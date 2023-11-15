@@ -10,7 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ const validate = (values) => {
 function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultSsnLast4 = getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.SSN_LAST_4, defaultValue: ''});
+    const defaultSsnLast4 = getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.SSN_LAST_4, '');
 
     return (
         <Form
