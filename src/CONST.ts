@@ -1280,8 +1280,12 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
-            CORPORATE: 'corporate', // aka Control
-            TEAM: 'team', // aka Collect
+
+            // Often referred to as "control" workspaces
+            CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -13,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
@@ -49,8 +49,6 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -62,47 +60,58 @@ const defaultProps = {
     },
     betas: [],
     anchorRef: () => {},
-    session: {
-        accountID: 0,
-    },
+    session: {},
 };
 
-function AddPaymentMethodMenu(props) {
+function AddPaymentMethodMenu({
+    isVisible,
+    onClose,
+    anchorPosition,
+    anchorAlignment,
+    anchorRef,
+    onClose,
+    iouReport,
+    onItemSelected,
+    session,
+    betas
+}) {
+    const {translate} = useLocalize();
+
     return (
         <PopoverMenu
-            isVisible={props.isVisible}
-            onClose={props.onClose}
-            anchorPosition={props.anchorPosition}
-            anchorAlignment={props.anchorAlignment}
-            anchorRef={props.anchorRef}
-            onItemSelected={props.onClose}
+            isVisible={isVisible}
+            onClose={onClose}
+            anchorPosition={anchorPosition}
+            anchorAlignment={anchorAlignment}
+            anchorRef={anchorRef}
+            onItemSelected={onClose}
             menuItems={[
-                ...(ReportUtils.isIOUReport(props.iouReport)
+                ...(ReportUtils.isIOUReport(iouReport)
                     ? [
                           {
-                              text: props.translate('common.personalBankAccount'),
+                              text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                                  onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
                       ]
                     : []),
-                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
+                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0))
                     ? [
                           {
-                              text: props.translate('common.businessBankAccount'),
+                              text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
-                              onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
+                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
                           },
                       ]
                     : []),
-                ...(Permissions.canUseWallet(props.betas)
+                ...(Permissions.canUseWallet(betas)
                     ? [
                           {
-                              text: props.translate('common.debitCard'),
+                              text: translate('common.debitCard'),
                               icon: Expensicons.CreditCard,
-                              onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                           },
                       ]
                     : []),
@@ -118,7 +127,6 @@ AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
