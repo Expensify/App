@@ -92,7 +92,7 @@ const newActionUnsubscribeMap = {};
 // Caching the reportID and reportActionID for unread markers ensures persistent tracking
 // across multiple reports, preserving the green line placement and allowing retrieval
 // of the relevant reportActionID for displaying the green line.
-// Is not persisted across Reports because the are at least 3 ReportScreen components created so the
+// We need to persist it across reports because there are at least 3 ReportScreen components created so the
 // internal states are resetted or recreated.
 const cacheUnreadMarkers = new Map();
 /**
