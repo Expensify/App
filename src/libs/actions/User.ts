@@ -57,9 +57,9 @@ function closeAccount(message: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
-    type CloseAccountParam = {message: string};
+    type CloseAccountParams = {message: string};
 
-    const parameters: CloseAccountParam = {message};
+    const parameters: CloseAccountParams = {message};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -148,9 +148,9 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    type RequestContactMethodValidateCodeParam = {email: string};
+    type RequestContactMethodValidateCodeParams = {email: string};
 
-    const parameters: RequestContactMethodValidateCodeParam = {email: contactMethod};
+    const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
 
     API.write('RequestContactMethodValidateCode', parameters, {optimisticData, successData, failureData});
 }
@@ -159,9 +159,9 @@ function requestContactMethodValidateCode(contactMethod: string) {
  * Sets whether the user is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
-    type UpdateNewsletterSubscriptionParam = {isSubscribed: boolean};
+    type UpdateNewsletterSubscriptionParams = {isSubscribed: boolean};
 
-    const parameters: UpdateNewsletterSubscriptionParam = {isSubscribed};
+    const parameters: UpdateNewsletterSubscriptionParams = {isSubscribed};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -236,9 +236,9 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
         },
     ];
 
-    type DeleteContactMethodParam = {partnerUserID: string};
+    type DeleteContactMethodParams = {partnerUserID: string};
 
-    const parameters: DeleteContactMethodParam = {partnerUserID: contactMethod};
+    const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
@@ -325,9 +325,9 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
         },
     ];
 
-    type AddNewContactMethodParam = {partnerUserID: string};
+    type AddNewContactMethodParams = {partnerUserID: string};
 
-    const parameters: AddNewContactMethodParam = {partnerUserID: contactMethod};
+    const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
 
     API.write('AddNewContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
@@ -349,12 +349,12 @@ function validateLogin(accountID: number, validateCode: string) {
         },
     ];
 
-    type ValidateLoginParam = {
+    type ValidateLoginParams = {
         accountID: number;
         validateCode: string;
     };
 
-    const parameters: ValidateLoginParam = {accountID, validateCode};
+    const parameters: ValidateLoginParams = {accountID, validateCode};
 
     API.write('ValidateLogin', parameters, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
@@ -435,9 +435,9 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
         },
     ];
 
-    type ValidateSecondaryLoginParam = {partnerUserID: string; validateCode: string};
+    type ValidateSecondaryLoginParams = {partnerUserID: string; validateCode: string};
 
-    const parameters: ValidateSecondaryLoginParam = {partnerUserID: contactMethod, validateCode};
+    const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode};
 
     API.write('ValidateSecondaryLogin', parameters, {optimisticData, successData, failureData});
 }
@@ -546,11 +546,11 @@ function updatePreferredSkinTone(skinTone: string) {
         },
     ];
 
-    type UpdatePreferredEmojiSkinTone = {
+    type UpdatePreferredEmojiSkinToneParams = {
         value: string;
     };
 
-    const parameters: UpdatePreferredEmojiSkinTone = {value: skinTone};
+    const parameters: UpdatePreferredEmojiSkinToneParams = {value: skinTone};
 
     API.write('UpdatePreferredEmojiSkinTone', parameters, {optimisticData});
 }
@@ -566,9 +566,9 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[])
             value: frequentlyUsedEmojis,
         },
     ];
-    type UpdateFrequentlyUsedEmojisParam = {value: string};
+    type UpdateFrequentlyUsedEmojisParams = {value: string};
 
-    const parameters: UpdateFrequentlyUsedEmojisParam = {value: JSON.stringify(frequentlyUsedEmojis)};
+    const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
 
     API.write('UpdateFrequentlyUsedEmojis', parameters, {optimisticData});
 }
@@ -585,11 +585,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>) {
         },
     ];
 
-    type UpdateChatPriorityModeParam = {
+    type UpdateChatPriorityModeParams = {
         value: string;
     };
 
-    const parameters: UpdateChatPriorityModeParam = {
+    const parameters: UpdateChatPriorityModeParams = {
         value: mode,
     };
 
@@ -747,11 +747,11 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
 
-    type SetContactMethodAsDefaultParam = {
+    type SetContactMethodAsDefaultParams = {
         partnerUserID: string;
     };
 
-    const parameters: SetContactMethodAsDefaultParam = {
+    const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
 
@@ -772,11 +772,11 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
         },
     ];
 
-    type UpdateThemeParam = {
+    type UpdateThemeParams = {
         value: string;
     };
 
-    const parameters: UpdateThemeParam = {
+    const parameters: UpdateThemeParams = {
         value: theme,
     };
 
@@ -801,13 +801,13 @@ function updateCustomStatus(status: CustomStatus) {
         },
     ];
 
-    type UpdateStatusParam = {
+    type UpdateStatusParams = {
         text: string;
         emojiCode: string;
         clearAfter?: string;
     };
 
-    const parameters: UpdateStatusParam = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
+    const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
 
     API.write('UpdateStatus', parameters, {
         optimisticData,
