@@ -366,7 +366,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 )}
                                 {Boolean(props.rightLabel) && (
-                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
+                                    <View style={[styles.popoverMenuIcon, styles.rightLabelMenuItem, styles.pointerEventsAuto]}>
                                         <Text>{props.rightLabel}</Text>
                                     </View>
                                 )}
