@@ -254,6 +254,17 @@ function AddressSearch(props) {
             values.state = stateFallback;
         }
 
+        // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
+        // We are setting up a fallback to ensure "values.street" is populated with a relevant value
+        if (!values.street && details.adr_address) {
+            const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
+            const adr_address = details.adr_address.match(streetAddressRegex);
+            const streetAddressFallback = lodashGet(adr_address, [1], null);
+            if (streetAddressFallback) {
+                values.street = streetAddressFallback;
+            }
+        }
+
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
         // (e.g. Apt #) to Address Line 1
         if (subpremise && typeof props.renamedInputKeys.street2 === 'undefined') {
@@ -467,6 +478,7 @@ function AddressSearch(props) {
                             },
                             maxLength: props.maxInputLength,
                             spellCheck: false,
+                            selectTextOnFocus: true,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],

@@ -1,4 +1,4 @@
-import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
@@ -8,7 +8,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
-import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -47,9 +46,6 @@ function canNavigate(methodName, params = {}) {
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
-// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
-const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
-
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
@@ -76,6 +72,31 @@ const getActiveRouteIndex = function (route, index) {
 
     return index;
 };
+
+/**
+ * Gets distance from the path in root navigator. In other words how much screen you have to pop to get to the route with this path.
+ * The search is limited to 5 screens from the top for performance reasons.
+ * @param {String} path - Path that you are looking for.
+ * @return {Number} - Returns distance to path or -1 if the path is not found in root navigator.
+ */
+function getDistanceFromPathInRootNavigator(path) {
+    let currentState = navigationRef.getRootState();
+
+    for (let index = 0; index < 5; index++) {
+        if (!currentState.routes.length) {
+            break;
+        }
+
+        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        if (path === pathFromState.substring(1)) {
+            return index;
+        }
+
+        currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
+    }
+
+    return -1;
+}
 
 /**
  * Main navigation method for redirecting to a route.
@@ -118,7 +139,6 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
     }
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
@@ -131,6 +151,21 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+        return;
+    }
+
+    const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+
+    // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
+    }
+
+    // Add posibility to go back more than one screen in root navigator if that screen is on the stack.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
+        navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
         return;
     }
 
@@ -284,7 +319,6 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
-    getTopMostCentralPaneRouteName,
     getTopmostReportActionId,
 };
 

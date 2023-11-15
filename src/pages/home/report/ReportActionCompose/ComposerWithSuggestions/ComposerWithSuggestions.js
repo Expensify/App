@@ -552,7 +552,8 @@ function ComposerWithSuggestions({
                     placeholderTextColor={themeColors.placeholderText}
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4, styles.verticalAlignTop]}
+                    textAlignVertical="top"
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
