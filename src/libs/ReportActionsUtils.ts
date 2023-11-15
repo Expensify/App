@@ -386,6 +386,9 @@ function replaceBaseURLAndUpdateRoomName(reportAction: ReportAction): ReportActi
     if (listMention.length === 1) {
         lastPrefix = ' and ';
     }
+
+    // Base on the html of current action we will replace baseURL placeholder with the current enviromment URL 
+    // and update the room to the newest room name, the rest will remain the same 
     const linkToRoom = `<a href=${environmentURL}/r/${reportID}>${roomName}</a>`;
     updatedReportAction.message[0].html = `<muted-text>${verb} ${listMention.join(', ')}${lastPrefix}${lastMention} ${linkToRoom}</muted-text>`;
     updatedReportAction.originalMessage.roomName = roomName;
