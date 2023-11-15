@@ -177,7 +177,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && Permissions.canUseViolations() && (
+                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
