@@ -38,7 +38,7 @@ function CategoryShortcutButton(props) {
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={`emojiPicker.headers.${props.code}`}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     fill={themeColors.icon}

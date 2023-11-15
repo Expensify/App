@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';

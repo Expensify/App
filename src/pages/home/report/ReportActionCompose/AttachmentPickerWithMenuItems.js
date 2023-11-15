@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -9,9 +9,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
@@ -84,6 +87,9 @@ const propTypes = {
         // eslint-disable-next-line react/forbid-prop-types
         current: PropTypes.object,
     }).isRequired,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -116,6 +122,7 @@ function AttachmentPickerWithMenuItems({
     onAddActionPressed,
     onItemSelected,
     actionButtonRef,
+    isFocused,
 }) {
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -164,10 +171,33 @@ function AttachmentPickerWithMenuItems({
         ];
     }, [betas, report, reportID, translate]);
 
-    const onPopoverMenuClose = () => {
+    const onPopoverMenuClose = useCallback(() => {
         setMenuVisibility(false);
         onMenuClosed();
-    };
+    }, [onMenuClosed, setMenuVisibility]);
+
+    const prevIsFocused = usePrevious(isFocused);
+
+    /**
+     * Check if current screen is inactive and previous screen is active.
+     * Used to close already opened popover menu when any other page is opened over current page.
+     *
+     * @return {Boolean}
+     */
+    const didScreenBecomeInactive = useCallback(
+        () =>
+            // When any other page is opened over LHN
+            !isFocused && prevIsFocused,
+        [isFocused, prevIsFocused],
+    );
+
+    // When the navigation is focused, we want to close the popover menu.
+    useEffect(() => {
+        if (!didScreenBecomeInactive()) {
+            return;
+        }
+        onPopoverMenuClose();
+    }, [didScreenBecomeInactive, onPopoverMenuClose]);
 
     return (
         <AttachmentPicker>
@@ -208,7 +238,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
                                         <Icon src={Expensicons.Collapse} />
@@ -227,7 +257,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
                                         <Icon src={Expensicons.Expand} />
@@ -239,6 +269,10 @@ function AttachmentPickerWithMenuItems({
                                     ref={actionButtonRef}
                                     onPress={(e) => {
                                         e.preventDefault();
+                                        if (!isFocused) {
+                                            return;
+                                        }
+
                                         onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
@@ -247,7 +281,7 @@ function AttachmentPickerWithMenuItems({
                                     }}
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
                                     <Icon src={Expensicons.Plus} />
@@ -256,7 +290,7 @@ function AttachmentPickerWithMenuItems({
                         </View>
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
-                            isVisible={isMenuVisible}
+                            isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
@@ -286,8 +320,11 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(AttachmentPickerWithMenuItems);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(AttachmentPickerWithMenuItems);

@@ -131,7 +131,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             defaultValue={iou.comment}
                             label={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
                                 if (!el) {
                                     return;
@@ -141,7 +141,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            textAlignVertical="top"
+                            inputStyle={[styles.verticalAlignTop]}
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>
