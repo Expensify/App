@@ -1,4 +1,3 @@
-import {some} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
@@ -108,7 +107,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
     }, [report, personalDetailsList, session, translate]);
 
     useEffect(() => {
-        if (some(privateNotes, (item) => item.note)) {
+        if (_.some(privateNotes, (item) => item.note)) {
             return;
         }
         Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
