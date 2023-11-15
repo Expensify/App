@@ -57,7 +57,6 @@ function BaseSelectionList({
     isKeyboardShown = false,
     wrapperStyle = {},
     disableInitialFocusOptionStyle = false,
-    scrollEnabled = true,
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
@@ -147,9 +146,6 @@ function BaseSelectionList({
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
-    // initialFocusedIndex is needed only on component did mount event, don't need to update value
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialFocusedIndex = useMemo(() => (focusedIndex > -1 ? focusedIndex : undefined), []);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -314,9 +310,14 @@ function BaseSelectionList({
             />
         );
     };
-    const handleFirstLayout = useCallback(() => {
+
+    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
+        if (!firstLayoutRef.current) {
+            return;
+        }
+        scrollToIndex(focusedIndex, false);
         firstLayoutRef.current = false;
-    }, []);
+    }, [focusedIndex, scrollToIndex]);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -455,10 +456,7 @@ function BaseSelectionList({
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    scrollEnabled={scrollEnabled}
-                                    style={[styles.flexGrow0]}
-                                    onLayout={handleFirstLayout}
-                                    initialScrollIndex={initialFocusedIndex}
+                                    onLayout={scrollToFocusedIndexOnFirstRender}
                                 />
                                 {children}
                             </>
