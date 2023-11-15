@@ -1,7 +1,7 @@
-import Str from 'expensify-common/lib/str';
+import {some} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -107,6 +107,12 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
             .value();
     }, [report, personalDetailsList, session, translate]);
 
+    useEffect(() => {
+        if (some(privateNotes, (item) => item.note)) {
+            return;
+        }
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+    }, [privateNotes, report.reportID, session.accountID]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
