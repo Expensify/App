@@ -171,7 +171,7 @@ function IOURequestStepWaypoint({
             address: values.address,
         };
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
     return (

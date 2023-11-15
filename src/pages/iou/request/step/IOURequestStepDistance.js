@@ -102,7 +102,7 @@ function IOURequestStepDistance({
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_WAYPOINT.getRoute(iouType, transactionID, reportID, index));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(iouType, transactionID, reportID, index));
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -116,13 +116,13 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     }, [report, iouType, reportID, transactionID, backTo]);
 
     const getError = () => {

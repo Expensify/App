@@ -282,78 +282,78 @@ export default {
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
 
-    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE: {
+    MONEY_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION: {
+    MONEY_REQUEST_STEP_CONFIRMATION: {
         route: 'create/:iouType/confirmation/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}/`,
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_AMOUNT: {
+    MONEY_REQUEST_STEP_AMOUNT: {
         route: 'create/:iouType/amount/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CATEGORY: {
+    MONEY_REQUEST_STEP_CATEGORY: {
         route: 'create/:iouType/category/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CURRENCY: {
+    MONEY_REQUEST_STEP_CURRENCY: {
         route: 'create/:iouType/currency/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DATE: {
+    MONEY_REQUEST_STEP_DATE: {
         route: 'create/:iouType/date/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DESCRIPTION: {
+    MONEY_REQUEST_STEP_DESCRIPTION: {
         route: 'create/:iouType/description/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/description/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DISTANCE: {
+    MONEY_REQUEST_STEP_DISTANCE: {
         route: 'create/:iouType/distance/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_MERCHANT: {
+    MONEY_REQUEST_STEP_MERCHANT: {
         route: 'create/:iouType/merchante/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/merchante/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS: {
+    MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: 'create/:iouType/participants/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_SCAN: {
+    MONEY_REQUEST_STEP_SCAN: {
         route: 'create/:iouType/scan/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/scan/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_TAG: {
+    MONEY_REQUEST_STEP_TAG: {
         route: 'create/:iouType/tag/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}/`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_WAYPOINT: {
+    MONEY_REQUEST_STEP_WAYPOINT: {
         route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex?',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE: {
+    MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance`,
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL: {
+    MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: 'create/:iouType/start/:transactionID/:reportID/manual',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/manual`,
     },
-    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN: {
+    MONEY_REQUEST_CREATE_TAB_SCAN: {
         route: 'create/:iouType/start/:transactionID/:reportID/scan',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan`,
     },

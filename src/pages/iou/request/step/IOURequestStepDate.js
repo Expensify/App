@@ -40,7 +40,7 @@ function IOURequestStepDate({
     const {translate} = useLocalize();
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
     };
 
     /**

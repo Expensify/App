@@ -617,7 +617,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_AMOUNT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -636,7 +636,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -673,7 +673,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -688,9 +688,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))
-                            }
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))}
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!isReadOnly}
                         />
@@ -707,7 +705,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -721,9 +719,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))
-                            }
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -736,7 +732,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()))}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}

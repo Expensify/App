@@ -108,14 +108,14 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     }, [transaction, iouType, requestType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID));
     }, [iouType, transactionID, reportID]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.

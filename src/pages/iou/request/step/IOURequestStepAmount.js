@@ -63,7 +63,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, Navigation.getCurrentPath()));
     };
 
     /**
@@ -83,13 +83,13 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
     return (
