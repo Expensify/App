@@ -26,6 +26,6 @@ jobs:
           git fetch origin main --no-tags --depth=1
           count_new_js=$(git diff --name-only --diff-filter=A origin/main HEAD -- 'src/libs/*.js' 'src/hooks/*.js' 'src/styles/*.js' 'src/languages/*.js' | wc -l)
           if [ "$count_new_js" -gt "0" ]; then
-            echo "ERROR: Found new JavaScript files in the /src/libs, /src/hooks, /src/styles, or /src/languages directories; use TypeScript instead"
+            echo "ERROR: Found new JavaScript files in the /src/libs, /src/hooks, /src/styles, or /src/languages directories; use TypeScript instead."
             exit 1
           fi
