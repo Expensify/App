@@ -1,11 +1,9 @@
 import PropTypes from 'prop-types';
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FixedFooter from '@components/FixedFooter';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormScrollView from '@components/FormScrollView';
+import FormProvider from '@components/Form/FormProvider';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RadioButtons from '@components/RadioButtons';
 import Text from '@components/Text';
@@ -52,7 +50,6 @@ const defaultProps = {
 };
 
 function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
-    const formRef = useRef();
     const {translate} = useLocalize();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -130,7 +127,17 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
                     {translate('additionalDetailsStep.helpLink')}
                 </TextLink>
             </View>
-            <FormScrollView ref={formRef}>
+            <FormProvider
+                customErrorMessage={errorMessage}
+                submitButtonStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd]}
+                formID="idologyQuestionsForm"
+                onSubmit={submitAnswers}
+                scrollContextEnabled
+                style={[styles.mh0, styles.mv0, styles.mb0, styles.flex1]}
+                submitButtonText={translate('common.saveAndContinue')}
+                isLoading={walletAdditionalDetails.isLoading}
+                footerContent={<OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />}
+            >
                 <View
                     style={styles.m5}
                     key={currentQuestion.type}
@@ -142,21 +149,7 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
                         onPress={chooseAnswer}
                     />
                 </View>
-            </FormScrollView>
-            <FixedFooter>
-                <FormAlertWithSubmitButton
-                    isAlertVisible={Boolean(errorMessage)}
-                    onSubmit={submitAnswers}
-                    onFixTheErrorsLinkPressed={() => {
-                        formRef.current.scrollTo({y: 0, animated: true});
-                    }}
-                    message={errorMessage}
-                    isLoading={walletAdditionalDetails.isLoading}
-                    buttonText={translate('common.saveAndContinue')}
-                    containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
-                />
-                <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-            </FixedFooter>
+            </FormProvider>
         </View>
     );
 }

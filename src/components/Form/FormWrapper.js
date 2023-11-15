@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormSubmit from '@components/FormSubmit';
+import refPropTypes from '@components/refPropTypes';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -64,7 +65,9 @@ const propTypes = {
 
     errors: errorsPropType.isRequired,
 
-    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object])).isRequired,
+    inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
+
+    customErrorMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -78,6 +81,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
+    customErrorMessage: '',
 };
 
 function FormWrapper(props) {
@@ -95,13 +99,17 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        customErrorMessage,
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const errorMessage = useMemo(() => {
+        if (customErrorMessage) {
+            return customErrorMessage;
+        }
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
-    }, [formState]);
+    }, [customErrorMessage, formState]);
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
