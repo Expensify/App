@@ -72,7 +72,7 @@ function Checkbox(
     const firePressHandlerOnClick = (event?: GestureResponderEvent | KeyboardEvent) => {
         // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
         // We do not want to toggle it, when Enter key is pressed.
-        if (event?.type !== 'click') {
+        if (event?.type && event.type !== 'click') {
             return;
         }
 
