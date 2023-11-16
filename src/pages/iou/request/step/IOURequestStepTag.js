@@ -11,7 +11,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,6 +48,7 @@ function IOURequestStepTag({
     },
     transaction: {tag},
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Fetches the first tag list of the policy
