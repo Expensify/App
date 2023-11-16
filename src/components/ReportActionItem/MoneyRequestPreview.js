@@ -309,13 +309,15 @@ function MoneyRequestPreview(props) {
                                     )}
                                 </View>
                                 {props.isBillSplit && (
-                                    <MultipleAvatars
-                                        icons={participantAvatars}
-                                        shouldStackHorizontally
-                                        size="small"
-                                        isHovered={props.isHovered}
-                                        shouldUseCardBackground
-                                    />
+                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                        <MultipleAvatars
+                                            icons={participantAvatars}
+                                            shouldStackHorizontally
+                                            size="small"
+                                            isHovered={props.isHovered}
+                                            shouldUseCardBackground
+                                        />
+                                    </View>
                                 )}
                             </View>
                             {shouldShowMerchant && (

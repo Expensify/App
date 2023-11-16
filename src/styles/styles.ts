@@ -2658,6 +2658,12 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        moneyRequestPreviewBoxAvatar: {
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
+            marginBottom: 0,
+        },
+
         moneyRequestPreviewAmount: {
             ...headlineFont,
             ...whiteSpace.preWrap,
