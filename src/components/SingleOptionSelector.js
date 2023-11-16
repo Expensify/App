@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function SingleOptionSelector({options, selectedOptionKey, onSelectOption, translate}) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.pt4}>
             {_.map(options, (option) => (
