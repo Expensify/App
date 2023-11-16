@@ -13,6 +13,8 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,11 +22,10 @@ import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {
     /** Wrapper style for the section list */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: stylePropTypes,
 
     /** Extra styles for the section list container */
-    contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]).isRequired,
+    contentContainerStyles: stylePropTypes.isRequired,
 
     /** Sections for the section list */
     data: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -98,7 +99,7 @@ function LHNOptionsList({
     draftComments,
     currentReportID,
 }) {
-    const styles = useThemeStyles();
+    const themeStyles = useThemeStyles();
     /**
      * Function which renders a row in the list
      *
@@ -141,7 +142,7 @@ function LHNOptionsList({
     );
 
     return (
-        <View style={style || styles.flex1}>
+        <View style={style || themeStyles.flex1}>
             <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
@@ -151,7 +152,7 @@ function LHNOptionsList({
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                extraData={currentReportID}
+                extraData={[currentReportID]}
             />
         </View>
     );
