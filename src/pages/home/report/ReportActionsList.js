@@ -96,7 +96,10 @@ const newActionUnsubscribeMap = {};
 // internal states are resetted or recreated.
 const cacheUnreadMarkers = new Map();
 
+// Seems that there is an architecture issue that prevents us from using the reportID with useRef
+// the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID = null;
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
