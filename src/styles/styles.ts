@@ -2659,7 +2659,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
             marginBottom: 0,
         },
 

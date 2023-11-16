@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
@@ -49,6 +49,8 @@ type MentionSuggestionsProps = {
 const keyExtractor = (item: Mention) => item.alternateText;
 
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     /**
      * Render a suggestion menu item component.
      */
@@ -65,7 +67,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={themeColors.success}
+                        fill={theme.success}
                         fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>
