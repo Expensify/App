@@ -2503,6 +2503,17 @@ function searchInServer(searchInput) {
     debouncedSearchInServer(searchInput);
 }
 
+/**
+ * @param {String} reportID
+ */
+
+function updateLastVisitTime(reportID) {
+    if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
+}
+
 export {
     searchInServer,
     addComment,
@@ -2564,4 +2575,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    updateLastVisitTime,
 };

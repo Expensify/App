@@ -264,6 +264,10 @@ function isReportApproved(report) {
  */
 function sortReportsByLastRead(reports) {
     return _.chain(reports)
+        .map((report) => {
+            const lastReadTime = lodashGet(report, 'lastVisitTime') || lodashGet(report, 'lastReadTime');
+            return {...report, lastReadTime};
+        })
         .toArray()
         .filter((report) => report && report.reportID && report.lastReadTime)
         .sortBy('lastReadTime')
