@@ -208,14 +208,13 @@ function ReportPreview(props) {
     const shouldShowApproveButton = !!lodashGet(props.nextStep, 'buttons.approve', null);
     const shouldShowPayButtonForGroupPolicies = !!lodashGet(props.nextStep, 'buttons.reimburse', null);
     const shouldShowPayButtonForFreePlan =
-        !_.isEmpty(props.iouReport) &&
+        (!_.isEmpty(props.iouReport) || policyType === CONST.POLICY.TYPE.PERSONAL) &&
         isCurrentUserManager &&
         !isReportDraft &&
         !iouSettled &&
         !iouCanceled &&
         !props.iouReport.isWaitingOnBankAccount &&
-        reimbursableSpend !== 0 &&
-        policyType === CONST.POLICY.TYPE.PERSONAL;
+        reimbursableSpend !== 0;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
     const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
     return (
