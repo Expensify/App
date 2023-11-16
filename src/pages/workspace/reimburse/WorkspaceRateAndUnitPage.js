@@ -9,6 +9,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import Picker from '@components/Picker';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +18,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -30,6 +30,7 @@ const propTypes = {
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -159,7 +160,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                         submitButtonText={this.props.translate('common.save')}
-                        style={[styles.mh5, styles.flexGrow1]}
+                        style={[this.props.themeStyles.mh5, this.props.themeStyles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
                         onSubmit={this.submit}
@@ -178,7 +179,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             <TextInput
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
-                                containerStyles={[styles.mt4]}
+                                containerStyles={[this.props.themeStyles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 aria-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
@@ -190,7 +191,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 value={this.state.rate}
                                 onChangeText={(value) => this.setState({rate: value})}
                             />
-                            <View style={[styles.mt4]}>
+
+                            <View style={[this.props.themeStyles.mt4]}>
                                 <Picker
                                     value={this.state.unit}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
@@ -218,4 +220,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withThemeStyles,
 )(WorkspaceRateAndUnitPage);
