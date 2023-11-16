@@ -12,7 +12,7 @@ import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -41,6 +41,7 @@ const defaultProps = {
 };
 
 function WorkspaceBillsFirstSection(props) {
+    const styles = useThemeStyles();
     const emailDomain = Str.extractEmailDomain(props.session.email);
     const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (

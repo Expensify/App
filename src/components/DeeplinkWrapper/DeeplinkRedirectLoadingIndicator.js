@@ -10,8 +10,8 @@ import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -33,6 +33,8 @@ const defaultProps = {
 };
 
 function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -56,7 +58,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

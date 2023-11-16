@@ -8,7 +8,7 @@ import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +26,7 @@ const defaultProps = {
 };
 
 function PriorityModePage(props) {
+    const styles = useThemeStyles();
     const priorityModes = _.map(_.values(CONST.PRIORITY_MODE), (mode) => ({
         value: mode,
         text: props.translate(`priorityModePage.priorityModes.${mode}.label`),

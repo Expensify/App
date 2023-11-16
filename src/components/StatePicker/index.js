@@ -8,7 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import StateSelectorModal from './StateSelectorModal';
 
 const propTypes = {
@@ -41,6 +41,7 @@ const defaultProps = {
 };
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label, wrapperStyle}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
