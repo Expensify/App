@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type TextWithEllipsisProps = {
     /** Leading text before the ellipsis */
@@ -21,6 +21,7 @@ type TextWithEllipsisProps = {
 };
 
 function TextWithEllipsis({leadingText, trailingText, textStyle, leadingTextParentStyle, wrapperStyle}: TextWithEllipsisProps) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, wrapperStyle]}>
             <View style={[styles.flexShrink1, leadingTextParentStyle]}>

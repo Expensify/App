@@ -21,8 +21,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -206,6 +206,7 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -288,7 +289,8 @@ function PaymentMethodList({
                 wrapperStyle={styles.paymentMethod}
             />
         ),
-        [onPress, translate],
+
+        [onPress, styles.paymentMethod, translate],
     );
 
     /**
@@ -328,7 +330,8 @@ function PaymentMethodList({
                 />
             </OfflineWithFeedback>
         ),
-        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+
+        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

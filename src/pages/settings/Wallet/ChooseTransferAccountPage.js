@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -29,6 +29,7 @@ const defaultProps = {
 };
 
 function ChooseTransferAccountPage(props) {
+    const styles = useThemeStyles();
     /**
      * Go back to transfer balance screen with the selected bank account set
      * @param {Object} event Click event object
