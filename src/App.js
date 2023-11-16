@@ -5,7 +5,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import ThemeIllustrationsProvider from '@styles/illustrations/ThemeIllustrationsProvider';
 import '../wdyr';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBar from './components/CustomStatusBar';
@@ -25,6 +24,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
