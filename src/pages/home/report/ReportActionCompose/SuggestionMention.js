@@ -243,7 +243,6 @@ function SuggestionMention({
         [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
-
     useEffect(() => {
         if (value.length < previousValue.length) {
             // A workaround to not show the suggestions list when the user deletes a character before the mention.
