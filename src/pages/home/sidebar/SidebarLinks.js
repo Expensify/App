@@ -177,16 +177,21 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-
-            <LHNOptionsList
-                style={[isLoading ? styles.flexShrink1 : styles.flex1]}
-                contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
-                data={optionListItems}
-                onSelectRow={showReportPage}
-                shouldDisableFocusOptions={isSmallScreenWidth}
-                optionMode={viewMode}
-            />
-            {isLoading && <OptionsListSkeletonView shouldAnimate />}
+            <View style={[styles.pRelative, styles.flex1]}>
+                <LHNOptionsList
+                    style={styles.flex1}
+                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
+                    data={optionListItems}
+                    onSelectRow={showReportPage}
+                    shouldDisableFocusOptions={isSmallScreenWidth}
+                    optionMode={viewMode}
+                />
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
+                        <OptionsListSkeletonView shouldAnimate />
+                    </View>
+                )}
+            </View>
         </View>
     );
 }
