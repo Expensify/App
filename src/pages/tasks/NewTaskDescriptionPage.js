@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -40,6 +41,8 @@ const defaultProps = {
     },
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDescriptionPage(props) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -75,7 +78,7 @@ function NewTaskDescriptionPage(props) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={props.task.description}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
