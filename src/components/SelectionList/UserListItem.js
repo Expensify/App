@@ -4,10 +4,11 @@ import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
 function UserListItem({item, isFocused = false, showTooltip}) {
+    const styles = useThemeStyles();
     return (
         <>
             {Boolean(item.icons) && (
