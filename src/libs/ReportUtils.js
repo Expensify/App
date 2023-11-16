@@ -1620,7 +1620,7 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  * @param {String} fieldToEdit
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction, fieldToEdit) {
+function canEditMoneyRequest(reportAction, fieldToEdit = '') {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
