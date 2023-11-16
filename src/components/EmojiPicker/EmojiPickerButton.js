@@ -5,9 +5,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 
 const propTypes = {
@@ -30,6 +32,7 @@ const defaultProps = {
 };
 
 function EmojiPickerButton(props) {
+    const styles = useThemeStyles();
     const emojiPopoverAnchor = useRef(null);
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
@@ -41,6 +44,9 @@ function EmojiPickerButton(props) {
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => {
+                    if (!props.isFocused) {
+                        return;
+                    }
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
                         EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current, undefined, () => {}, props.emojiPickerID);
                     } else {
@@ -64,4 +70,4 @@ function EmojiPickerButton(props) {
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 EmojiPickerButton.displayName = 'EmojiPickerButton';
-export default withLocalize(EmojiPickerButton);
+export default compose(withLocalize, withNavigationFocus)(EmojiPickerButton);

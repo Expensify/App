@@ -22,7 +22,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -61,6 +61,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
@@ -93,25 +94,26 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // Verification to reset billable with a default value, when value in IOU was changed
-        if (typeof props.iou.billable !== 'boolean') {
-            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
-        }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    const defaultBillable = lodashGet(props.policy, 'defaultBillable', false);
+    useEffect(() => {
+        IOU.setMoneyRequestBillable(defaultBillable);
+    }, [defaultBillable, isOffline]);
 
     useEffect(() => {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
             return;
         }
-        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
-            if (!file) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-            } else {
-                const receipt = file;
-                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                setReceiptFile(receipt);
-            }
-        });
+        const onSuccess = (file) => {
+            const receipt = file;
+            receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            setReceiptFile(receipt);
+        };
+        const onFailure = () => {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
+        };
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess, onFailure);
     }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID]);
 
     useEffect(() => {
@@ -217,7 +219,7 @@ function MoneyRequestConfirmPage(props) {
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
+                const onSuccess = (receipt) => {
                     IOU.startSplitBill(
                         selectedParticipants,
                         props.currentUserPersonalDetails.login,
@@ -226,7 +228,8 @@ function MoneyRequestConfirmPage(props) {
                         receipt,
                         existingSplitChatReportID,
                     );
-                });
+                };
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess);
                 return;
             }
 

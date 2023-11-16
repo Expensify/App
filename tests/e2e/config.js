@@ -23,11 +23,13 @@ const TEST_NAMES = {
  * ```
  */
 module.exports = {
-    APP_PACKAGE: 'com.expensify.chat.adhoc',
+    MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
+    DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
-    APP_PATH: './app-e2eRelease-main.apk',
+    MAIN_APP_PATH: './app-e2eRelease.apk',
+    DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
-    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
+    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
