@@ -2,7 +2,7 @@ import React, {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'r
 import {View} from 'react-native';
 import {SetOptional} from 'type-fest';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type ToggleVisibilityViewProps = {
     /** Whether the content is visible. */
@@ -13,6 +13,7 @@ export default function withToggleVisibilityView<TProps extends ToggleVisibility
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): (props: TProps & RefAttributes<TRef>) => ReactElement | null {
     function WithToggleVisibilityView({isVisible = false, ...rest}: SetOptional<TProps, 'isVisible'>, ref: ForwardedRef<TRef>) {
+        const styles = useThemeStyles();
         return (
             <View style={!isVisible && styles.visuallyHidden}>
                 <WrappedComponent

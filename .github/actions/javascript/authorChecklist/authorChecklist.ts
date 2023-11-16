@@ -1,5 +1,5 @@
-import core from '@actions/core';
-import github from '@actions/github';
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
 import CONST from '../../../libs/CONST';
 import GithubUtils from '../../../libs/GithubUtils';
@@ -77,6 +77,7 @@ function checkPRForCompletedChecklist(expectedNumberOfChecklistItems: number, ch
 
 async function generateDynamicChecksAndCheckForCompletion() {
     // Generate dynamic checks
+    console.log('Generating dynamic checks...');
     const dynamicChecks = await getChecklistCategoriesForPullRequest();
     let isPassing = true;
     let didChecklistChange = false;
@@ -91,6 +92,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         const regex = new RegExp(`- \\[([ x])] ${escapeRegExp(check)}`);
         const match = regex.exec(checklist);
         if (!match) {
+            console.log('Adding check to the checklist:', check);
             // Add it to the PR body
             isPassing = false;
             checklist += `- [ ] ${check}\r\n`;
@@ -98,6 +100,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         } else {
             const isChecked = match[1] === 'x';
             if (!isChecked) {
+                console.log('Found unchecked checklist item:', check);
                 isPassing = false;
             }
         }
@@ -112,6 +115,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             const match = regex.exec(checklist);
             if (match) {
                 // Remove it from the PR body
+                console.log('Check has been removed from the checklist:', check);
                 checklist = checklist.replace(match[0], '');
                 didChecklistChange = true;
             }
@@ -123,6 +127,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
 
     // Update the PR body
     if (didChecklistChange) {
+        console.log('Checklist changed, updating PR...');
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
