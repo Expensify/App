@@ -2,7 +2,9 @@
  * The FocusTrap is only used on web and desktop
  */
 
-function FocusTrapView({children}) {
+import FocusTrapViewProps from "./types";
+
+function FocusTrapView({children}: FocusTrapViewProps) {
     return children;
 }
 
