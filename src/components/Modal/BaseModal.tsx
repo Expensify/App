@@ -7,9 +7,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import getModalStyles from '@styles/getModalStyles';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -41,6 +41,8 @@ function BaseModal(
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -178,7 +180,7 @@ function BaseModal(
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
-            backdropColor={themeColors.overlay}
+            backdropColor={theme.overlay}
             backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}

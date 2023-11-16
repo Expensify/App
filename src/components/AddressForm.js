@@ -76,7 +76,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
      */
     const validator = useCallback((values) => {
         const errors = {};
-        const requiredFields = ['addressLine1', 'city', 'country', 'state', 'zipPostCode'];
+        const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
         // Check "State" dropdown is a valid state if selected Country is USA
         if (values.country === CONST.COUNTRY.US && !COMMON_CONST.STATES[values.state]) {
@@ -100,7 +100,11 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
 
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
-                errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
+                } else {
+                    errors.zipPostCode = 'common.error.fieldRequired';
+                }
             }
         } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
             errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';

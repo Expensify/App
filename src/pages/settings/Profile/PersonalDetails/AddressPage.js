@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,6 +60,7 @@ function updateAddress(values) {
 }
 
 function AddressPage({privatePersonalDetails, route}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);

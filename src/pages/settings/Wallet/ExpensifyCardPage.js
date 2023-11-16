@@ -19,8 +19,8 @@ import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Card from '@userActions/Card';
 import * as FormActions from '@userActions/FormActions';
 import * as Link from '@userActions/Link';
@@ -124,6 +124,8 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
