@@ -27,17 +27,16 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
+import ShowMore from './ShowMore';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
@@ -619,21 +618,7 @@ function MoneyRequestConfirmationList(props) {
                 interactive={!props.isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                    <Button
-                        small
-                        onPress={toggleShouldExpandFields}
-                        text={translate('common.showMore')}
-                        shouldShowRightIcon
-                        iconRight={Expensicons.DownArrow}
-                        iconFill={themeColors.icon}
-                        style={styles.mh0}
-                    />
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-                </View>
-            )}
+            {!shouldShowAllFields && <ShowMore onPress={toggleShouldExpandFields} />}
             {shouldShowAllFields && (
                 <>
                     {shouldShowDate && (
