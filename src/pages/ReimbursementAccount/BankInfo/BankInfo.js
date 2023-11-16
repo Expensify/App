@@ -16,6 +16,7 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getInitialSubstepForBankInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBankInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -90,8 +91,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
             BankAccounts.setBankAccountSubStep(null);
-            console.log(reimbursementAccount.policyID, ' bankInfo policyid');
-            ReimbursementAccount.navigateToBankAccountRoute(reimbursementAccount.policyID, Navigation.getActiveRouteWithoutParams());
+            Navigation.goBack(ROUTES.HOME);
         } else {
             prevScreen();
         }
@@ -106,8 +106,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
-                    // TODO Will be replaced with proper values
+                    onStepSelected={handleStepSelected}
                     startStep={0}
                     stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />

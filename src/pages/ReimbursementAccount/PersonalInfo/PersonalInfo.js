@@ -13,6 +13,7 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -52,7 +53,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-        Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
+        Navigation.navigate(ROUTES.BANK_VERIFY_IDENTITY);
     }, [reimbursementAccount, values]);
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
@@ -79,8 +80,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
-                    // TODO Will be replaced with proper values
+                    onStepSelected={handleStepSelected}
                     startStep={2}
                     stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />

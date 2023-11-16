@@ -1,18 +1,22 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import Navigation from '@navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -36,16 +40,13 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft})
         console.log(reimbursementAccount, reimbursementAccountDraft);
     }, [reimbursementAccount, reimbursementAccountDraft]);
 
-    const bodyContent = [
-        <View>
-            <Text>Complete verification</Text>
-        </View>,
-    ];
+    const UboForm = ({isEditing, onNext, onMove}) => <Text>Complete verification</Text>;
+    const bodyContent = [UboForm];
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            // TODO replace it with navigation to ReimbursementAccountPage once base is updated
+            Navigation.goBack(ROUTES.HOME);
         } else {
             prevScreen();
         }
@@ -59,8 +60,7 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft})
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
-                    // TODO Will be replaced with proper values
+                    onStepSelected={handleStepSelected}
                     startStep={5}
                     stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
