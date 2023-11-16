@@ -255,7 +255,7 @@ export default compose(
     withWritableReportOrNotFound,
     withOnyx({
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
         },
         recentWaypoints: {
             key: ONYXKEYS.NVP_RECENT_WAYPOINTS,

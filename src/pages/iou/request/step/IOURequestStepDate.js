@@ -88,7 +88,7 @@ export default compose(
     withWritableReportOrNotFound,
     withOnyx({
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
         },
     }),
 )(IOURequestStepDate);
