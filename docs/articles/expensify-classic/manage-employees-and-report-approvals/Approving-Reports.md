@@ -1,5 +1,5 @@
 ---
-title: How To: Manage Employees and Reports > Approving Reports
+title: How To Manage Employees and Reports > Approving Reports
 description: This page will help you understand the lifecycle of a report and how to approve reports that are submitted to you.
 ---
 ​
