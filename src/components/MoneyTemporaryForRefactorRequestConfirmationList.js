@@ -562,7 +562,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 {button}
             </>
         );
-    }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipantsFiltered, splitOrRequestOptions, translate, formError]);
+    }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipantsFiltered, splitOrRequestOptions, translate, formError, styles.ph1, styles.mb2]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transactionData, receiptPath, receiptFilename) : {};
     return (
