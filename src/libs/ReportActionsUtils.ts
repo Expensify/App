@@ -461,6 +461,9 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  *    action is always the created action
  */
 function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    if (!Array.isArray(sortedReportActions)) {
+        return '';
+    }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
     return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
