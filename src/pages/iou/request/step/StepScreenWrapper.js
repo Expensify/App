@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */
@@ -31,6 +31,8 @@ const defaultProps = {
 };
 
 function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
+    const styles = useThemeStyles();
+
     if (!shouldShowWrapper) {
         return children;
     }

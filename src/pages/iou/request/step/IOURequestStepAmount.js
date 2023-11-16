@@ -7,8 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,9 +44,11 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency},
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
+    const iouRequestType = getRequestType(transaction);
 
     useFocusEffect(
         useCallback(() => {
@@ -100,12 +104,13 @@ function IOURequestStepAmount({
             shouldShowWrapper={Boolean(backTo)}
         >
             <MoneyRequestAmountForm
-                buttonTranslationText={backTo ? 'common.save' : undefined}
+                isEditing={Boolean(backTo)}
                 currency={currency}
                 amount={transaction.amount}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={navigateToNextPage}
+                selectedTab={iouRequestType}
             />
         </StepScreenWrapper>
     );
