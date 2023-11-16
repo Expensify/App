@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -45,13 +46,22 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
             testID={testID}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
-            {({safeAreaPaddingBottomStyle}) => (
+            {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={onBackButtonPress}
                     />
-                    {children}
+                    {
+                        // If props.children is a function, call it to provide the insets to the children.
+                        _.isFunction(children)
+                            ? children({
+                                  insets,
+                                  safeAreaPaddingBottomStyle,
+                                  didScreenTransitionEnd,
+                              })
+                            : children
+                    }
                 </View>
             )}
         </ScreenWrapper>

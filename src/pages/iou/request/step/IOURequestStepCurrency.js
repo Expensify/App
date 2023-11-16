@@ -5,7 +5,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
+import SelectionList from '@components/SelectionList';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -113,16 +113,23 @@ function IOURequestStepCurrency({
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
         >
-            <OptionsSelector
-                sections={sections}
-                textInputLabel={translate('common.search')}
-                value={searchValue}
-                onChangeText={setSearchValue}
-                onSelectRow={confirmCurrencySelection}
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                showScrollIndicator
-            />
+            {({didScreenTransitionEnd}) => (
+                <SelectionList
+                    sections={sections}
+                    textInputLabel={translate('common.search')}
+                    textInputValue={searchValue}
+                    onChangeText={setSearchValue}
+                    onSelectRow={(option) => {
+                        if (!didScreenTransitionEnd) {
+                            return;
+                        }
+                        confirmCurrencySelection(option);
+                    }}
+                    headerMessage={headerMessage}
+                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    showScrollIndicator
+                />
+            )}
         </StepScreenWrapper>
     );
 }
