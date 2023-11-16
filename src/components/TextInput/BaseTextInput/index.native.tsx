@@ -1,7 +1,19 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, StyleSheet, TextInput, View} from 'react-native';
-import _ from 'underscore';
+import {
+    ActivityIndicator,
+    Animated,
+    FlexStyle,
+    GestureResponderEvent,
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    StyleProp,
+    StyleSheet,
+    TextInput,
+    TextInputFocusEventData,
+    View,
+    ViewStyle,
+} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -24,16 +36,50 @@ import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import BaseTextInputProps from './types';
 
-function BaseTextInput(props: BaseTextInputProps) {
-    const initialValue = props.value ?? props.defaultValue ?? '';
-    const initialActiveLabel = !!props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+function BaseTextInput({
+    label = '',
+    name = '',
+    value = undefined,
+    defaultValue = undefined,
+    placeholder = '',
+    errorText = '',
+    icon = null,
+    textInputContainerStyles = [],
+    containerStyles = [],
+    inputStyle = [],
+    forceActiveLabel = false,
+    autoFocus = false,
+    disableKeyboard = false,
+    autoGrow = false,
+    autoGrowHeight = false,
+    hideFocusedState = false,
+    innerRef = () => {},
+    maxLength = null,
+    hint = '',
+    shouldSaveDraft = false,
+    onInputChange = () => {},
+    shouldDelayFocus = false,
+    submitOnEnter = false,
+    multiline = false,
+    shouldUseDefaultValue = false,
+    shouldInterceptSwipe = false,
+    autoCorrect = true,
+    prefixCharacter,
+    inputID,
+    translate,
+    ...inputProps
+}: BaseTextInputProps) {
+    const {hasError = false} = inputProps;
+    console.log({inputProps});
+    const initialValue = value ?? defaultValue ?? '';
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
-    const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
+    const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [height, setHeight] = useState(variables.componentSizeLarge);
-    const [width, setWidth] = useState();
+    const [height, setHeight] = useState<number>(variables.componentSizeLarge);
+    const [width, setWidth] = useState<number | undefined>();
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
 
@@ -43,11 +89,11 @@ function BaseTextInput(props: BaseTextInputProps) {
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!props.autoFocus || !input.current) {
+        if (!autoFocus || !input.current) {
             return;
         }
 
-        if (props.shouldDelayFocus) {
+        if (shouldDelayFocus) {
             const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => clearTimeout(focusTimeout);
         }
@@ -75,72 +121,72 @@ function BaseTextInput(props: BaseTextInputProps) {
     );
 
     const activateLabel = useCallback(() => {
-        const value = props.value || '';
+        const inputValue = value ?? '';
 
-        if (value.length < 0 || isLabelActive.current) {
+        if (inputValue.length < 0 || isLabelActive.current) {
             return;
         }
 
         animateLabel(styleConst.ACTIVE_LABEL_TRANSLATE_Y, styleConst.ACTIVE_LABEL_SCALE);
         isLabelActive.current = true;
-    }, [animateLabel, props.value]);
+    }, [animateLabel, value]);
 
     const deactivateLabel = useCallback(() => {
-        const value = props.value ?? '';
+        const inputValue = value ?? '';
 
-        if (!!props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
+        if (!!forceActiveLabel || inputValue.length !== 0 || prefixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, props.value]);
+    }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
 
-    const onFocus = (event) => {
-        if (props.onFocus) {
-            props.onFocus(event);
+    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        if (inputProps.onFocus) {
+            inputProps.onFocus(event);
         }
         setIsFocused(true);
     };
 
-    const onBlur = (event) => {
-        if (props.onBlur) {
-            props.onBlur(event);
+    const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        if (inputProps.onBlur) {
+            inputProps.onBlur(event);
         }
         setIsFocused(false);
     };
 
-    const onPress = (event) => {
-        if (props.disabled) {
+    const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!!inputProps.disabled || !event) {
             return;
         }
 
-        if (props.onPress) {
-            props.onPress(event);
+        if (inputProps.onPress) {
+            inputProps.onPress(event);
         }
 
-        if (!event.isDefaultPrevented()) {
+        if ('isDefaultPrevented' in event && !event?.isDefaultPrevented()) {
             input.current?.focus();
         }
     };
 
     const onLayout = useCallback(
-        (event) => {
-            if (!props.autoGrowHeight && props.multiline) {
+        (event: LayoutChangeEvent) => {
+            if (!autoGrowHeight && multiline) {
                 return;
             }
 
             const layout = event.nativeEvent.layout;
 
-            setWidth((prevWidth) => (props.autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight) => (!props.multiline ? layout.height : prevHeight));
+            setWidth((prevWidth: number | undefined) => (autoGrowHeight ? layout.width : prevWidth));
+            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
         },
-        [props.autoGrowHeight, props.multiline],
+        [autoGrowHeight, multiline],
     );
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const inputValue = props.value ?? '';
+    const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
     // Activate or deactivate the label when either focus changes, or for controlled
@@ -162,26 +208,28 @@ function BaseTextInput(props: BaseTextInputProps) {
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
         // Return early when component uncontrolled, or we still have a value
-        if (props.value === undefined || !_.isEmpty(props.value)) {
+        if (value === undefined || value) {
             return;
         }
         hasValueRef.current = false;
-    }, [props.value]);
+    }, [value]);
 
     /**
      * Set Value & activateLabel
      */
-    const setValue = (value) => {
-        if (props.onInputChange) {
-            props.onInputChange(value);
+    const setValue = (newValue: string) => {
+        if (onInputChange) {
+            onInputChange(newValue);
         }
 
-        Str.result(props.onChangeText, value);
+        if (inputProps.onChangeText) {
+            Str.result(inputProps.onChangeText, newValue);
+        }
 
-        if (value && value.length > 0) {
+        if (newValue && newValue.length > 0) {
             hasValueRef.current = true;
             // When the componment is uncontrolled, we need to manually activate the label:
-            if (props.value === undefined) {
+            if (value === undefined) {
                 activateLabel();
             }
         } else {
@@ -209,38 +257,38 @@ function BaseTextInput(props: BaseTextInputProps) {
     };
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
-    const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
-    const hasLabel = Boolean(props.label?.length);
-    const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : props.readOnly;
-    const inputHelpText = props.errorText || props.hint;
-    const placeholder = !!props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : undefined;
-    const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
-    console.log('maxHeight', maxHeight);
-    const textInputContainerStyles = StyleSheet.flatten([
+    // const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
+    const hasLabel = Boolean(label?.length);
+    const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    const inputHelpText = errorText || hint;
+    const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
+    const newTextInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
         styles.textInputContainer,
-        props.textInputContainerStyles,
-        props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
-        !props.hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!props.hasError || props.errorText) && styles.borderColorDanger,
-        props.autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
+        textInputContainerStyles,
+        autoGrow && StyleUtils.getWidthStyle(textInputWidth),
+        !hideFocusedState && isFocused && styles.borderColorFocus,
+        (!!hasError || errorText) && styles.borderColorDanger,
+        autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
-    const isMultiline = !!props.multiline || props.autoGrowHeight;
+    const isMultiline = !!multiline || autoGrowHeight;
 
     return (
         <>
             <View
                 style={styles.pointerEventsNone}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+                {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={props.label}
+                    accessibilityLabel={label ?? ''}
+                    accessible
                     style={[
-                        props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
+                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        props.containerStyles,
+                        containerStyles,
                     ]}
                 >
                     <View
@@ -248,10 +296,10 @@ function BaseTextInput(props: BaseTextInputProps) {
                         // or if multiline is not supplied we calculate the textinput height, using onLayout.
                         onLayout={onLayout}
                         style={[
-                            textInputContainerStyles,
+                            newTextInputContainerStyles,
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
-                            props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
+                            autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
                         ]}
                     >
                         {hasLabel ? (
@@ -261,88 +309,89 @@ function BaseTextInput(props: BaseTextInputProps) {
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
-                                    label={props.label ?? ''}
+                                    label={label ?? ''}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={props.nativeID}
+                                    for={inputProps.nativeID}
                                 />
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {Boolean(props.prefixCharacter) && (
+                            {Boolean(prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
-                                        {props.prefixCharacter}
+                                        {prefixCharacter}
                                     </Text>
                                 </View>
                             )}
                             <RNTextInput
                                 ref={(ref) => {
-                                    if (typeof props.innerRef === 'function') {
-                                        props.innerRef(ref);
-                                    } else if (props.innerRef && _.has(props.innerRef, 'current')) {
+                                    if (typeof innerRef === 'function') {
+                                        innerRef(ref);
+                                    } else if (innerRef && 'current' in innerRef) {
                                         // eslint-disable-next-line no-param-reassign
-                                        props.innerRef.current = ref;
+                                        innerRef.current = ref;
                                     }
+                                    // @ts-expect-error We need to reassign this ref to the input ref
                                     input.current = ref;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                autoCorrect={props.secureTextEntry ? false : props.autoCorrect}
-                                placeholder={placeholder}
+                                autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
+                                placeholder={placeholderValue}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
                                     styles.w100,
-                                    props.inputStyle,
+                                    inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
-                                    props.secureTextEntry && styles.secureInput,
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    inputProps.secureTextEntry && styles.secureInput,
 
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
-                                    props.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
-                                maxLength={props.maxLength}
+                                maxLength={maxLength}
                                 onFocus={onFocus}
                                 onBlur={onBlur}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
-                                onPressOut={props.onPress}
-                                showSoftInputOnFocus={!props.disableKeyboard}
-                                keyboardType={getSecureEntryKeyboardType(props.keyboardType, props.secureTextEntry, passwordHidden)}
-                                inputMode={!props.disableKeyboard ? props.inputMode : CONST.INPUT_MODE.NONE}
-                                value={props.value}
-                                selection={props.selection}
+                                onPressOut={inputProps.onPress}
+                                showSoftInputOnFocus={!disableKeyboard}
+                                keyboardType={getSecureEntryKeyboardType(inputProps.keyboardType, inputProps.secureTextEntry ?? false, passwordHidden ?? false)}
+                                inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
+                                value={value}
+                                selection={inputProps.selection}
                                 readOnly={isReadOnly}
-                                defaultValue={props.defaultValue}
+                                defaultValue={defaultValue}
                                 // FormSubmit Enter key handler does not have access to direct props.
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
+                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
-                            {props.isLoading && (
+                            {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
                                     color={themeColors.iconSuccessFill}
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
-                            {Boolean(props.secureTextEntry) && (
+                            {Boolean(inputProps.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => e.preventDefault()}
-                                    accessibilityLabel={props.translate('common.visible')}
+                                    accessibilityLabel={translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -350,10 +399,10 @@ function BaseTextInput(props: BaseTextInputProps) {
                                     />
                                 </Checkbox>
                             )}
-                            {!props.secureTextEntry && Boolean(props.icon) && (
+                            {!inputProps.secureTextEntry && Boolean(icon) && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
-                                        src={props.icon}
+                                        src={icon}
                                         fill={themeColors.icon}
                                     />
                                 </View>
@@ -363,7 +412,7 @@ function BaseTextInput(props: BaseTextInputProps) {
                 </PressableWithoutFeedback>
                 {!inputHelpText && (
                     <FormHelpMessage
-                        isError={!!props.errorText}
+                        isError={!!errorText}
                         message={inputHelpText}
                     />
                 )}
@@ -374,14 +423,14 @@ function BaseTextInput(props: BaseTextInputProps) {
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!props.autoGrow || props.autoGrowHeight) && (
+            {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[
-                        props.inputStyle,
-                        props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, maxHeight ?? 0),
+                        inputStyle,
+                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxHeight === 'number' ? maxHeight : undefined),
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
@@ -391,7 +440,7 @@ function BaseTextInput(props: BaseTextInputProps) {
                     }}
                 >
                     {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {props.value ? `${props.value}${props.value.endsWith('\n') ? '\u200B' : ''}` : props.placeholder}
+                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
                 </Text>
             )}
         </>

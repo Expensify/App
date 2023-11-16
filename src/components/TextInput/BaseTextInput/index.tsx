@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     ActivityIndicator,
     Animated,
-    FlexStyle,
     GestureResponderEvent,
     LayoutChangeEvent,
     NativeSyntheticEvent,
@@ -174,7 +173,7 @@ function BaseTextInput(props: BaseTextInputProps) {
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
         // Return early when component uncontrolled, or we still have a value
-        if (props.value === undefined || !props.value) {
+        if (props.value === undefined || props.value) {
             return;
         }
         hasValueRef.current = false;
@@ -226,7 +225,7 @@ function BaseTextInput(props: BaseTextInputProps) {
     const inputHelpText = props.errorText || props.hint;
     const placeholder = !!props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : undefined;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
-    const textInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
+    const textInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         props.textInputContainerStyles,
         props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
