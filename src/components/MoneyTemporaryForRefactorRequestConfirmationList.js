@@ -19,8 +19,9 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -238,6 +239,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     transaction,
     transactionID,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const transactionData = isEditingSplitBill ? draftTransaction || transaction : transaction;
 
@@ -344,6 +347,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             text = translate('iou.split');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
+            if (iouAmount !== 0) {
+                text = translate('iou.requestAmount', {amount: formattedAmount});
+            }
         } else {
             const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.requestAmount';
             text = translate(translationKey, {amount: formattedAmount});
@@ -459,7 +465,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+            const activeRoute = Navigation.getActiveRouteWithoutParams();
 
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
@@ -542,7 +548,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                style={[styles.mt2]}
             />
         );
 
@@ -638,7 +643,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
@@ -646,7 +651,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
-                        iconFill={themeColors.icon}
+                        iconFill={theme.icon}
                         style={styles.mh0}
                     />
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
@@ -733,7 +738,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     )}
                     {shouldShowBillable && (
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <Text color={!iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
                                 isOn={iouIsBillable}
@@ -749,6 +754,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
 MoneyTemporaryForRefactorRequestConfirmationList.propTypes = propTypes;
 MoneyTemporaryForRefactorRequestConfirmationList.defaultProps = defaultProps;
+MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
 
 export default compose(
     withCurrentUserPersonalDetails,

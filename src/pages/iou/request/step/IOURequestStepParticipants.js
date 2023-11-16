@@ -44,9 +44,6 @@ function IOURequestStepParticipants({
     const headerTitle = translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
