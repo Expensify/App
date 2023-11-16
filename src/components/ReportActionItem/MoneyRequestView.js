@@ -37,6 +37,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Permissions from '@libs/Permissions';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
