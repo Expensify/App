@@ -55,6 +55,7 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     shouldShowReferralCTA: false,
+    referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -523,7 +524,7 @@ class BaseOptionsSelector extends Component {
                             }}
                             style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
                             accessibilityLabel="referral"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <Text>
                                 {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}

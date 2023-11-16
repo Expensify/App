@@ -30,12 +30,6 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
-
-        /** Whether or not the account is validated */
-        validated: PropTypes.bool,
-
         /** The primaryLogin associated with the account */
         primaryLogin: PropTypes.string,
     }),
@@ -47,9 +41,10 @@ const defaultProps = {
 
 function ReferralDetailsPage({route, account}) {
     const {translate} = useLocalize();
-    const {contentType} = route.params;
+    let {contentType} = route.params;
+
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
-        return <NotFoundPage />;
+        contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     }
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body`);
@@ -76,7 +71,7 @@ function ReferralDetailsPage({route, account}) {
                 />
                 <Text style={[styles.textHeadline, styles.mb3, styles.mt8]}>{contentHeader}</Text>
                 <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
-                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFERRAL_FRIEND && (
+                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
                         <CopyTextToClipboard
                             text={translate('referralProgram.copyReferralLink')}

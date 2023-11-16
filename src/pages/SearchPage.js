@@ -204,7 +204,7 @@ class SearchPage extends Component {
                                     this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
                                 }
                                 shouldShowReferralCTA
-                                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFERRAL_FRIEND}
+                                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus

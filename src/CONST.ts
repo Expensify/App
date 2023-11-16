@@ -2815,7 +2815,7 @@ const CONST = {
             MONEY_REQUEST: 'request',
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
-            REFERRAL_FRIEND: 'referralFriend',
+            REFER_FRIEND: 'referralFriend',
         },
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',

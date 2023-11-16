@@ -2412,7 +2412,7 @@ export default {
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Envía dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFERRAL_FRIEND]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Recomienda a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
