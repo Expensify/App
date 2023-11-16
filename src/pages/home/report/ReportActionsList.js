@@ -16,7 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -130,6 +130,7 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
 }) {
+    const styles = useThemeStyles();
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -281,7 +282,7 @@ function ReportActionsList({
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
-    }, [windowHeight]);
+    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -359,7 +360,7 @@ function ReportActionsList({
 
     const contentContainerStyle = useMemo(
         () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
-        [isLoadingNewerReportActions],
+        [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader],
     );
 
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
