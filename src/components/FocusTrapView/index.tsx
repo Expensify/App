@@ -18,8 +18,9 @@ function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus
         <FocusTrap
             active={isActive}
             focusTrapOptions={{
-                initialFocus: shouldEnableAutoFocus ? ref.current : undefined,
-                fallbackFocus: ref.current,
+                initialFocus: () => (shouldEnableAutoFocus && ref.current) ?? false,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                fallbackFocus: () => ref.current!,
                 clickOutsideDeactivates: true,
             }}
         >
