@@ -23,7 +23,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,6 +85,7 @@ const getPhoneNumber = (details) => {
 };
 
 function DetailsPage(props) {
+    const styles = useThemeStyles();
     const login = lodashGet(props.route.params, 'login', '');
     let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
 

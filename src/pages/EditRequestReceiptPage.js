@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ReceiptSelector from './iou/ReceiptSelector';
 
 const propTypes = {
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function EditRequestReceiptPage({route, transactionID}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 

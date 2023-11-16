@@ -15,7 +15,7 @@ const defaultProps = {
     shouldRender: true,
 };
 
-function UserDetailsTooltip({shouldRender, children, ...props}) {
+function UserDetailsTooltip({shouldRender = true, children, ...props}) {
     if (!shouldRender) {
         return children;
     }

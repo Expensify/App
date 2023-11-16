@@ -101,12 +101,15 @@ function closeSidebarOnClickOutside(event) {
 
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
+    document.getElementById('gsc-i-id1').focus();
 
     // Make body unscrollable
     const yAxis = document.documentElement.style.getPropertyValue('y-axis');
     const body = document.body;
     body.style.position = 'fixed';
     body.style.top = `-${yAxis}`;
+
+    document.getElementById('gsc-i-id1').focus();
 
     // Close the sidebar when clicking sidebar layer (outside the sidebar search)
     const sidebarLayer = document.getElementById('sidebar-layer');
@@ -120,25 +123,12 @@ function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
     const svgsGoogle = document.querySelectorAll('svg');
 
-    // Create a media query for screens wider than tablet
-    const mediaQuery = window.matchMedia('(min-width: 800px)');
-
-    // Check if the viewport is smaller than tablet
-    if (!mediaQuery.matches) {
-        Array.from(svgsGoogle).forEach((svg) => {
-            // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
-            svg.setAttribute('viewBox', '0 0 13 13');
-            svg.setAttribute('height', '13');
-            svg.setAttribute('width', '13');
-        });
-    } else {
-        Array.from(svgsGoogle).forEach((svg) => {
-            // Set the viewBox attribute to '0 0 20 20' to make the svg fit in the tablet-desktop view
-            svg.setAttribute('viewBox', '0 0 20 20');
-            svg.setAttribute('height', '16');
-            svg.setAttribute('width', '16');
-        });
-    }
+    Array.from(svgsGoogle).forEach((svg) => {
+        // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
+        svg.setAttribute('viewBox', '0 0 20 20');
+        svg.setAttribute('height', '16');
+        svg.setAttribute('width', '16');
+    });
 }
 
 // Function to insert element after another
@@ -147,10 +137,22 @@ function insertElementAfter(referenceNode, newNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
 
+// Update the ICON for search input.
+/* Change the path of the Google Search Button icon into Expensify icon */
+function updateGoogleSearchIcon() {
+    const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
+    node.setAttribute(
+        'd',
+        'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
+    );
+}
+
 // Need to wait up until page is load, so the svg viewBox can be changed
 // And the search label can be inserted
 window.addEventListener('load', () => {
     changeSVGViewBoxGoogle();
+
+    updateGoogleSearchIcon();
 
     // Add required into the search input
     const searchInput = document.getElementById('gsc-i-id1');

@@ -42,10 +42,6 @@ function canUseCustomStatus(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
 }
 
-function canUseTags(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
-}
-
 function canUseViolations(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
@@ -66,7 +62,6 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
-    canUseTags,
     canUseLinkPreviews,
     canUseViolations,
 };
