@@ -81,7 +81,7 @@ const defaultProps = {
     ...withCurrentReportIDDefaultProps,
 };
 
-const keyExtractor = (item) => item;
+const keyExtractor = (item) => `report_${item}`;
 
 function LHNOptionsList({
     style,
