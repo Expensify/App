@@ -35,12 +35,44 @@ import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import BaseTextInputProps from './types';
 
-function BaseTextInput(props: BaseTextInputProps) {
-    const initialValue = props.value ?? props.defaultValue ?? '';
-    const initialActiveLabel = !!props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+function BaseTextInput({
+    label = '',
+    name = '',
+    value = undefined,
+    defaultValue = undefined,
+    placeholder = '',
+    errorText = '',
+    icon = null,
+    textInputContainerStyles = [],
+    containerStyles = [],
+    inputStyle = [],
+    forceActiveLabel = false,
+    autoFocus = false,
+    disableKeyboard = false,
+    autoGrow = false,
+    autoGrowHeight = false,
+    hideFocusedState = false,
+    innerRef = () => {},
+    maxLength = null,
+    hint = '',
+    shouldSaveDraft = false,
+    onInputChange = () => {},
+    shouldDelayFocus = false,
+    submitOnEnter = false,
+    multiline = false,
+    shouldUseDefaultValue = false,
+    shouldInterceptSwipe = false,
+    autoCorrect = true,
+    prefixCharacter,
+    inputID,
+    ...inputProps
+}: BaseTextInputProps) {
+    const {hasError = false} = inputProps;
+    const initialValue = value ?? defaultValue ?? '';
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
-    const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
+    const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
@@ -54,11 +86,11 @@ function BaseTextInput(props: BaseTextInputProps) {
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!props.autoFocus || !input.current) {
+        if (!autoFocus || !input.current) {
             return;
         }
 
-        if (props.shouldDelayFocus) {
+        if (shouldDelayFocus) {
             const focusTimeout = setTimeout(() => input?.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => clearTimeout(focusTimeout);
         }

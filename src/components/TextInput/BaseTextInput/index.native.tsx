@@ -66,11 +66,9 @@ function BaseTextInput({
     autoCorrect = true,
     prefixCharacter,
     inputID,
-    translate,
     ...inputProps
 }: BaseTextInputProps) {
     const {hasError = false} = inputProps;
-    console.log({inputProps});
     const initialValue = value ?? defaultValue ?? '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
 
