@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import tagPropTypes from '@components/tagPropTypes';
+import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 
 const propTypes = {
     /** The policyID we are getting tags for */
@@ -20,6 +21,9 @@ const propTypes = {
 
     /** List of recently used tags */
     policyRecentlyUsedTags: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+
+    /** Safe area insets required for mobile devices margins */
+    insets: safeAreaInsetPropTypes.isRequired,
 };
 
 const defaultProps = {

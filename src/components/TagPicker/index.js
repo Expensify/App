@@ -7,11 +7,12 @@ import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './tagPickerPropTypes';
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, insets, onSubmit}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -57,6 +58,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     return (
         <OptionsSelector
+            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
             sections={sections}
@@ -69,6 +71,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
             initialFocusedIndex={initialFocusedIndex}
+            itemsPerPage={CONST.MAX_COUNT_OF_TAGS}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />

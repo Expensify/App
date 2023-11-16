@@ -77,17 +77,22 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
             shouldEnableMaxHeight
             testID={MoneyRequestTagPage.displayName}
         >
-            <HeaderWithBackButton
-                title={policyTagListName}
-                onBackButtonPress={navigateBack}
-            />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-            <TagPicker
-                policyID={report.policyID}
-                tag={tagListKey}
-                selectedTag={iou.tag}
-                onSubmit={updateTag}
-            />
+            {({insets}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={policyTagListName}
+                        onBackButtonPress={navigateBack}
+                    />
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+                    <TagPicker
+                        policyID={report.policyID}
+                        tag={tagListKey}
+                        selectedTag={iou.tag}
+                        insets={insets}
+                        onSubmit={updateTag}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
