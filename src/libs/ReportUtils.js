@@ -11,10 +11,10 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -80,6 +80,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -1921,7 +1940,7 @@ function getModifiedExpenseMessage(reportAction) {
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(getReport(reportID), 'policyID', '');
-    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTags = getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
@@ -4145,6 +4164,48 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
+ * Return room channel log display message
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getChannelLogMemberMessage(reportAction) {
+    const verb =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
+
+    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+
+    const lastMention = mentions.pop();
+    let message = '';
+
+    if (mentions.length === 0) {
+        message = `${verb} ${lastMention}`;
+    } else if (mentions.length === 1) {
+        message = `${verb} ${mentions[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
+    }
+
+    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
+    if (roomName) {
+        const preposition =
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
+    }
+
+    return message;
+}
+
+/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4195,6 +4256,15 @@ function shouldUseFullTitleToDisplay(report) {
 function getRoom(type, policyID) {
     const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
+}
+/**
+ *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
+ * @param {Object} report
+ * @param {Object} policy
+ * @return {Boolean}
+ */
+function shouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
 export {
@@ -4357,5 +4427,7 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getChannelLogMemberMessage,
     getRoom,
+    shouldDisableWelcomeMessage,
 };
