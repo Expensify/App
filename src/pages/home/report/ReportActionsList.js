@@ -95,6 +95,8 @@ const newActionUnsubscribeMap = {};
 // We need to persist it across reports because there are at least 3 ReportScreen components created so the
 // internal states are resetted or recreated.
 const cacheUnreadMarkers = new Map();
+
+let prevReportID = null;
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -140,7 +142,6 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const prevReportID = useRef(null);
     const unreadActionSubscription = useRef(null);
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -174,16 +175,16 @@ function ReportActionsList({
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
         // the parent component is sending the previous reportID even when the user isn't active
         // on the report
-        if (userActiveSince.current && prevReportID.current && prevReportID.current !== report.reportID) {
+        if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
             userActiveSince.current = null;
         } else {
             userActiveSince.current = DateUtils.getDBTime();
         }
-        prevReportID.current = report.reportID;
+        prevReportID = report.reportID;
     }, [report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID.current) {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
 
@@ -206,7 +207,7 @@ function ReportActionsList({
     }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID.current) {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
         if (!messageManuallyMarkedUnread && lastReadTimeRef.current && lastReadTimeRef.current < report.lastReadTime) {
