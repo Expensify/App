@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import Navigation from '@navigation/Navigation';
 import _ from 'underscore';
 import * as ReportUtils from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import updateUnread from './updateUnread/index';
 
