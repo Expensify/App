@@ -96,9 +96,7 @@ function BaseValidateCodeForm(props) {
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            focusTimeoutRef.current = setTimeout(() => {
-                inputValidateCodeRef.current.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
         },
     }));
 
