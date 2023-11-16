@@ -93,6 +93,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts'))}
         >
             <AddPlaidBankAccount
+                text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID) => {
                     ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
                 }}

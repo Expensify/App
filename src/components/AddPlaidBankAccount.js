@@ -256,6 +256,7 @@ function AddPlaidBankAccount({
         return (
             <FullPageOfflineBlockingView>
                 <Text style={[styles.mb5, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                {!_.isEmpty(text) && <Text style={[styles.mb5]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
                         src={icon}
