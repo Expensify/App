@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef} from 'react';
+import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {LocaleContext} from './LocaleContextProvider';
+import {LocaleContext, LocaleContextProps} from './LocaleContextProvider';
 
 const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
@@ -30,24 +30,30 @@ const withLocalizePropTypes = {
     toLocaleDigit: PropTypes.func.isRequired,
 };
 
-export default function withLocalize(WrappedComponent) {
-    const WithLocalize = forwardRef((props, ref) => (
-        <LocaleContext.Consumer>
-            {(translateUtils) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...translateUtils}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            )}
-        </LocaleContext.Consumer>
-    ));
+type WithLocalizeProps = LocaleContextProps;
+
+export default function withLocalize<TProps extends WithLocalizeProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof LocaleContextProps> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithLocalize(props: Omit<TProps, keyof WithLocalizeProps>, ref: ForwardedRef<TRef>) {
+        return (
+            <LocaleContext.Consumer>
+                {(translateUtils) => (
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...translateUtils}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...(props as TProps)}
+                        ref={ref}
+                    />
+                )}
+            </LocaleContext.Consumer>
+        );
+    }
 
     WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
-
-    return WithLocalize;
+    return forwardRef(WithLocalize);
 }
 
 export {withLocalizePropTypes};
+export type {WithLocalizeProps};
