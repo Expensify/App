@@ -118,7 +118,6 @@ const ROUTE_NAMES = {
  * @returns {String}
  */
 function getStepToOpenFromRouteParams(route) {
-
     switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
         case ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
