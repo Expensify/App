@@ -204,14 +204,15 @@ function SuggestionMention({
             let suggestionWord
             let prefix;
 
+            // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
                 atSignIndex = leftString.lastIndexOf(lastWord);
                 suggestionWord = lastWord;
 
                 prefix = suggestionWord.substring(1);
-            } else if (secondToLastWord && secondToLastWord.startsWith('@')) {
+            } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
                 atSignIndex = leftString.lastIndexOf(secondToLastWord);
-                suggestionWord = secondToLastWord + ' ' + lastWord;
+                suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
             } else {
