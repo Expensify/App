@@ -558,9 +558,7 @@ function MoneyRequestConfirmationList(props) {
         props.policyID,
         selectedParticipants,
         splitOrRequestOptions,
-        translate,
         formError,
-        props.isDistanceRequest,
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
