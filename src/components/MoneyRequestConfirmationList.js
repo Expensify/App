@@ -618,7 +618,12 @@ function MoneyRequestConfirmationList(props) {
                 interactive={!props.isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {!shouldShowAllFields && <ShowMore onPress={toggleShouldExpandFields} />}
+            {!shouldShowAllFields && (
+                <ShowMore
+                    containerStyle={styles.mt1}
+                    onPress={toggleShouldExpandFields}
+                />
+            )}
             {shouldShowAllFields && (
                 <>
                     {shouldShowDate && (

@@ -6,10 +6,14 @@ import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
+    /** Additional styles for container */
+    containerStyle: stylePropTypes,
+
     /** A number of current showed items */
     currentCount: PropTypes.number,
 
@@ -21,17 +25,18 @@ const propTypes = {
 };
 
 const defaultProps = {
+    containerStyle: {},
     currentCount: undefined,
     totalCount: undefined,
 };
 
-function ShowMore({currentCount, totalCount, onPress}) {
+function ShowMore({containerStyle, currentCount, totalCount, onPress}) {
     const {translate, preferredLocale} = useLocalize();
 
     const shouldShowCounter = _.isNumber(currentCount) && _.isNumber(totalCount);
 
     return (
-        <View style={styles.alignItemsCenter}>
+        <View style={[styles.alignItemsCenter, containerStyle]}>
             {shouldShowCounter && (
                 <Text style={[styles.mb2, styles.textLabelSupporting]}>
                     {`${translate('common.showing')} `}

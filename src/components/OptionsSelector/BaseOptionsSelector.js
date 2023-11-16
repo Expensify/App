@@ -475,6 +475,7 @@ class BaseOptionsSelector extends Component {
                 renderFooterContent={() =>
                     shouldShowShowMore && (
                         <ShowMore
+                            containerStyle={styles.mv2}
                             currentCount={this.props.itemsPerPage * this.state.paginationPage}
                             totalCount={this.state.allOptions.length}
                             onPress={this.incrementPage}
