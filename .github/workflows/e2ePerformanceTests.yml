@@ -22,7 +22,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -78,7 +78,7 @@ jobs:
     outputs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -154,7 +154,7 @@ jobs:
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main

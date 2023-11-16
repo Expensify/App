@@ -3,13 +3,14 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import {View} from 'react-native';
 import DotLottieAnimation from '@components/LottieAnimations/types';
 import useNetwork from '@hooks/useNetwork';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type Props = {
     source: DotLottieAnimation;
 } & Omit<LottieViewProps, 'source'>;
 
 function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
+    const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
     useNetwork({onReconnect: () => setIsError(false)});
