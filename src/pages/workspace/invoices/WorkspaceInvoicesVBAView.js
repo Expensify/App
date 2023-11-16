@@ -6,7 +6,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 
@@ -18,6 +18,7 @@ const propTypes = {
 };
 
 function WorkspaceInvoicesVBAView(props) {
+    const styles = useThemeStyles();
     const viewUnpaidInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`;
 
     return (

@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,6 +50,7 @@ const defaultProps = {
 };
 
 function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
