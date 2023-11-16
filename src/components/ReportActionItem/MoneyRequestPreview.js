@@ -309,7 +309,7 @@ function MoneyRequestPreview(props) {
                                     )}
                                 </View>
                                 {props.isBillSplit && (
-                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                    <View>
                                         <MultipleAvatars
                                             icons={participantAvatars}
                                             shouldStackHorizontally

@@ -2658,11 +2658,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
-            marginBottom: 0,
-        },
-
         moneyRequestPreviewAmount: {
             ...headlineFont,
             ...whiteSpace.preWrap,
