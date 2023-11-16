@@ -7,7 +7,7 @@ import styles from '@styles/styles';
 function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;
     const textStyles = _.omit(props.textStyle, 'textDecorationLine');
-    console.log(props)
+
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading

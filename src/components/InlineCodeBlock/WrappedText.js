@@ -23,7 +23,6 @@ function WrappedText(props) {
     if (!_.isString(props.children)) {
         return null;
     }
-    console.log(props)
     return (
         <Text style={styles.codeWordWrapper}>
             <Text style={props.textStyles}>{props.children}</Text>
