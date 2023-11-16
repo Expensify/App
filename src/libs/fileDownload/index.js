@@ -11,7 +11,7 @@ import * as FileUtils from './FileUtils';
  */
 export default function fileDownload(url, fileName) {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot())) {
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !resolvedUrl.startsWith('blob')) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);
