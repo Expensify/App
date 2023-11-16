@@ -1,3 +1,4 @@
+import EmptyStateBackgroundImage from '@assets/images/empty-state_background-fade-dark.png';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -59,6 +60,7 @@ export {
     ConciergeExclamation,
     CreditCardsBlue,
     EmailAddress,
+    EmptyStateBackgroundImage,
     InvoiceOrange,
     JewelBoxBlue,
     JewelBoxGreen,
