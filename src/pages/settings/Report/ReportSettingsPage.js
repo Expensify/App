@@ -62,9 +62,8 @@ function ReportSettingsPage(props) {
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    // We only want policy owners and admins to be able to modify the welcome message.
-    const shouldDisableWelcomeMessage =
-        isMoneyRequestReport || ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+    // We only want policy owners and admins to be able to modify the welcome message, but not in thread chat
+    const shouldDisableWelcomeMessage = ReportUtils.shouldDisableWelcomeMessage(report, linkedWorkspace);
 
     const shouldDisableSettings = _.isEmpty(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);

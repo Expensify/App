@@ -8,6 +8,7 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -21,7 +22,6 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -47,9 +47,6 @@ const propTypes = {
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
@@ -66,7 +63,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     parentReport: {},
     policyCategories: {},
     transaction: {
@@ -77,7 +73,7 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -120,8 +116,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
-    const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -170,11 +166,18 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
                                 image={receiptURIs.image}
+                                isLocalFile={receiptURIs.isLocalFile}
                                 transaction={transaction}
                                 enablePreviewModal
                             />
                         </View>
                     </OfflineWithFeedback>
+                )}
+                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
+                    <ReceiptEmptyState
+                        hasError={hasErrors}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                    />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
@@ -300,9 +303,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },

@@ -53,7 +53,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, '');
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
 
     return (
         <OptionsSelector

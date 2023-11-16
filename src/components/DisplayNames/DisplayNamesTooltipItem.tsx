@@ -8,7 +8,7 @@ import styles from '@styles/styles';
 type DisplayNamesTooltipItemProps = {
     index?: number;
 
-    /** The full title of the DisplayNames component (not split up) */
+    /** The function to get a distance to shift the tooltip horizontally */
     getTooltipShiftX?: (index: number) => number | undefined;
 
     /** The Account ID for the tooltip */
