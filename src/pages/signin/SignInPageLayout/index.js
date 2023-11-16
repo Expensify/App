@@ -5,6 +5,7 @@ import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import styles from '@styles/styles';
@@ -61,9 +62,10 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
+    const {windowHeight} = useWindowDimensions();
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
+    const containerHeight = windowHeight - props.insets.top - props.insets.bottom;
 
     if (props.shouldShowSmallScreen) {
         containerStyles = [styles.flex1];
