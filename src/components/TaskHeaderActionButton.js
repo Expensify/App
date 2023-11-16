@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function TaskHeaderActionButton(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button

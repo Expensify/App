@@ -9,10 +9,11 @@ import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,6 +50,7 @@ const defaultProps = {
 };
 
 function MoneyRequestTagPage({route, report, policyTags, iou}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
@@ -95,14 +97,26 @@ MoneyRequestTagPage.displayName = 'MoneyRequestTagPage';
 MoneyRequestTagPage.propTypes = propTypes;
 MoneyRequestTagPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-    },
-})(MoneyRequestTagPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+    }),
+)(MoneyRequestTagPage);
