@@ -481,7 +481,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                         }}
                         withoutOverlay
                         anchorRef={paymentMethodButtonRef}
-                        onModalHide={resetSelectedPaymentMethodData}
                     >
                         {!showConfirmDeleteContent ? (
                             <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
@@ -531,6 +530,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 }}
                                 shouldShowCancelButton
                                 danger
+                                onModalHide={resetSelectedPaymentMethodData}
                             />
                         )}
                     </Popover>
