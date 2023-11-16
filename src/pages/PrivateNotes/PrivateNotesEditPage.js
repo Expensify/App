@@ -58,9 +58,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         () => Report.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
     );
 
-    useEffect(() => {
-        console.log(privateNote)
-    }, [privateNote])
     /**
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.

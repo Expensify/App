@@ -47,13 +47,13 @@ function WrappedText(props) {
     }
 
     useEffect(() => {
-        console.log(props.boxModelStyle)
+        console.log(props.wordStyles)
         console.log(props.textStyles)
     }, [])
     // const textMatrix = getTextMatrix(props.children);
     return (
-        <Text style={styles.codeWordWrapper}>
-            <Text style={[props.textStyles]}>{props.children}</Text>
+        <Text style={[styles.codeWordWrapper, props.wordStyles]}>
+            <Text style={props.textStyles}>{props.children}</Text>
         </Text>
     );
 }
