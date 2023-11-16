@@ -19,7 +19,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,6 +63,7 @@ function IOURequestStartPage({
     transaction,
     betas,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
@@ -90,11 +91,12 @@ function IOURequestStartPage({
     }, [transaction, reportID, iouType]);
 
     const isFromGlobalCreate = _.isEmpty(report.reportID);
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+    const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isExpenseReport = ReportUtils.isExpenseReport(report);
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = isFromGlobalCreate || ReportUtils.canCreateRequest(report, betas, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
