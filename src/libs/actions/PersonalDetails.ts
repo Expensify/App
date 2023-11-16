@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
-import {Timezone} from '@src/types/onyx/PersonalDetails';
+import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
     firstName: string;
@@ -313,7 +313,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
  * Updates user's 'selected' timezone, then navigates to the
  * initial Timezone page.
  */
-function updateSelectedTimezone(selectedTimezone: string) {
+function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
     const timezone: Timezone = {
         selected: selectedTimezone,
     };

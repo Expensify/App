@@ -38,7 +38,6 @@ function EmojiPickerButtonDropdown(props) {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             shiftVertical: 4,
-            shouldUseTargetLocation: true,
         });
     };
 

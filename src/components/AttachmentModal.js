@@ -117,14 +117,14 @@ function AttachmentModal(props) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
-    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
+    const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
     const [file, setFile] = useState(
@@ -173,13 +173,13 @@ function AttachmentModal(props) {
     );
 
     const setDownloadButtonVisibility = useCallback(
-        (shouldShowButton) => {
-            if (shouldShowDownloadButton === shouldShowButton) {
+        (isButtonVisible) => {
+            if (isDownloadButtonReadyToBeShown === isButtonVisible) {
                 return;
             }
-            setShouldShowDownloadButton(shouldShowButton);
+            setIsDownloadButtonReadyToBeShown(isButtonVisible);
         },
-        [shouldShowDownloadButton],
+        [isDownloadButtonReadyToBeShown],
     );
 
     /**
@@ -191,7 +191,7 @@ function AttachmentModal(props) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, file.name);
+        fileDownload(sourceURL, lodashGet(file, 'name', ''));
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -391,7 +391,18 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+
+    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
+    // isAttachmentReceipt will be null until its certain what the file is, in which case it will then be true|false.
+    let headerTitle = props.headerTitle;
+    let shouldShowDownloadButton = false;
+    let shouldShowThreeDotsButton = false;
+    if (!_.isNull(isAttachmentReceipt)) {
+        headerTitle = translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment');
+        shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !isAttachmentReceipt && !isOffline;
+        shouldShowThreeDotsButton = isAttachmentReceipt && isModalOpen;
+    }
 
     return (
         <>
@@ -417,15 +428,15 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={headerTitle}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
+                    shouldShowDownloadButton={shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt && isModalOpen}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay
@@ -443,21 +454,16 @@ function AttachmentModal(props) {
                     ) : (
                         Boolean(sourceForAttachmentView) &&
                         shouldLoadAttachment && (
-                            // We need the following View component on android native
-                            // So that the event will propagate properly and
-                            // the Password protected preview will be shown for pdf attachement we are about to send.
-                            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={sourceForAttachmentView}
-                                    isAuthTokenRequired={isAuthTokenRequired}
-                                    file={file}
-                                    onToggleKeyboard={updateConfirmButtonVisibility}
-                                    isWorkspaceAvatar={props.isWorkspaceAvatar}
-                                    fallbackSource={props.fallbackSource}
-                                    isUsedInAttachmentModal
-                                />
-                            </View>
+                            <AttachmentView
+                                containerStyles={[styles.mh5]}
+                                source={sourceForAttachmentView}
+                                isAuthTokenRequired={isAuthTokenRequired}
+                                file={file}
+                                onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
+                                isUsedInAttachmentModal
+                            />
                         )
                     )}
                 </View>

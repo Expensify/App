@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,7 +25,7 @@ const propTypes = {
 };
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
-    const localize = useLocalize();
+    const {translate} = useLocalize();
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
     const draftEmojiCode = lodashGet(draftStatus, 'emojiCode');
@@ -50,7 +49,15 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         User.clearDraftCustomStatus();
     };
 
-    const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const navigateBackToSettingsPage = useCallback(() => {
+        const topMostReportID = Navigation.getTopmostReportId();
+        if (topMostReportID) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(topMostReportID));
+        } else {
+            Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true);
+        }
+    }, []);
+
     const updateStatus = useCallback(() => {
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji});
 
@@ -62,18 +69,18 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             hasDraftStatus ? (
                 <Button
                     success
-                    text={localize.translate('statusPage.save')}
+                    text={translate('statusPage.save')}
                     onPress={updateStatus}
                 />
             ) : null,
-        [hasDraftStatus, localize, updateStatus],
+        [hasDraftStatus, translate, updateStatus],
     );
 
     useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
         <HeaderPageLayout
-            title={localize.translate('statusPage.status')}
+            title={translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
             headerContent={
                 <MobileBackgroundImage
@@ -86,12 +93,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             footer={footerComponent}
         >
             <View style={[styles.mh5, styles.mb5]}>
-                <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
-                <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
+                <Text style={[styles.textHeadline]}>{translate('statusPage.setStatusTitle')}</Text>
+                <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
             </View>
             <MenuItemWithTopDescription
                 title={customStatus}
-                description={localize.translate('statusPage.status')}
+                description={translate('statusPage.status')}
                 shouldShowRightIcon
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
@@ -99,7 +106,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                 <MenuItem
-                    title={localize.translate('statusPage.clearStatus')}
+                    title={translate('statusPage.clearStatus')}
                     titleStyle={styles.ml0}
                     icon={Expensicons.Close}
                     onPress={clearStatus}
@@ -115,7 +122,6 @@ StatusPage.displayName = 'StatusPage';
 StatusPage.propTypes = propTypes;
 
 export default compose(
-    withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
         draftStatus: {
