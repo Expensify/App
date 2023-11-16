@@ -1,4 +1,3 @@
-import {SvgProps} from 'react-native-svg';
 import {AvatarSource} from '@libs/UserUtils';
 import TIMEZONES from '@src/TIMEZONES';
 import * as OnyxCommon from './OnyxCommon';
