@@ -5,13 +5,13 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
-import {defaultProps, propTypes} from './modalPropTypes';
+import BaseModalProps from './types';
 
-function Modal(props) {
-    const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
+function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, ...rest}: BaseModalProps) {
+    const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
     const setStatusBarColor = (color = themeColors.appBG) => {
-        if (!props.fullscreen) {
+        if (!fullscreen) {
             return;
         }
 
@@ -20,33 +20,37 @@ function Modal(props) {
 
     const hideModal = () => {
         setStatusBarColor(previousStatusBarColor);
-        props.onModalHide();
+        onModalHide();
     };
 
     const showModal = () => {
         const statusBarColor = StatusBar.getBackgroundColor();
-        const isFullScreenModal =
-            props.type === CONST.MODAL.MODAL_TYPE.CENTERED || props.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || props.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
-        setPreviousStatusBarColor(statusBarColor);
-        // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
-        setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
-        props.onModalShow();
+
+        const isFullScreenModal = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+
+        if (statusBarColor) {
+            setPreviousStatusBarColor(statusBarColor);
+            // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
+            setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
+        }
+
+        onModalShow?.();
     };
 
     return (
         <BaseModal
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}
             avoidKeyboard={false}
+            fullscreen={fullscreen}
+            type={type}
         >
-            {props.children}
+            {children}
         </BaseModal>
     );
 }
 
-Modal.propTypes = propTypes;
-Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
 export default withWindowDimensions(Modal);
