@@ -1,8 +1,11 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -14,7 +17,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -87,6 +90,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     isSearchingForReports,
 }) {
+    const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
         recentReports: [],
@@ -140,8 +144,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
-                undefined,
-                data: [newChatOptions.userToInvite],
+                title: undefined,
+                data: _.map([newChatOptions.userToInvite], (participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                }),
                 shouldShow: true,
                 indexOffset,
             });
@@ -280,8 +287,35 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
-    const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+    const shouldShowSplitBillErrorMessage = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
     const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
+
+    const handleConfirmSelection = useCallback(() => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        onFinish();
+    }, [shouldShowSplitBillErrorMessage, onFinish]);
+
+    const footerContent = (
+        <View>
+            {shouldShowSplitBillErrorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                />
+            )}
+            <Button
+                success
+                text={translate('iou.addToSplit')}
+                onPress={handleConfirmSelection}
+                pressOnEnter
+                isDisabled={shouldShowSplitBillErrorMessage}
+            />
+        </View>
+    );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -298,7 +332,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
+                shouldShowConfirmButton={shouldShowSplitBillErrorMessage && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={onFinish}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -307,6 +341,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
+                footerContent={isAllowedToSplit && footerContent}
                 isLoadingNewOptions={isSearchingForReports}
             />
         </View>
