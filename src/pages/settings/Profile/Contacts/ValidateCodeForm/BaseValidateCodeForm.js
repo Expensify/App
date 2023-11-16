@@ -91,7 +91,12 @@ function BaseValidateCodeForm(props) {
             if (!inputValidateCodeRef.current) {
                 return;
             }
-            inputValidateCodeRef.current.focusLastSelected();
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            focusTimeoutRef.current = setTimeout(() => {
+                inputValidateCodeRef.current.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
         },
     }));
 
@@ -99,6 +104,9 @@ function BaseValidateCodeForm(props) {
         useCallback(() => {
             if (!inputValidateCodeRef.current) {
                 return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
             }
             focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focus, CONST.ANIMATED_TRANSITION);
             return () => {
