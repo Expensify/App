@@ -78,7 +78,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
         () =>
-            (ReportUtils.isIOUReport(moneyRequestReport) || policyType === CONST.POLICY.TYPE.PERSONAL) &&
+            (ReportUtils.isIOUReport(moneyRequestReport) || policyType === CONST.POLICY.TYPE.FREE) &&
             isPayer &&
             !isDraft &&
             !isSettled &&

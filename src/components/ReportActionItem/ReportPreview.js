@@ -208,7 +208,7 @@ function ReportPreview(props) {
     const shouldShowApproveButton = !!lodashGet(props.nextStep, 'buttons.approve', null);
     const shouldShowPayButtonForGroupPolicies = !!lodashGet(props.nextStep, 'buttons.reimburse', null);
     const shouldShowPayButtonForFreePlan =
-        (!_.isEmpty(props.iouReport) || policyType === CONST.POLICY.TYPE.PERSONAL) &&
+        (ReportUtils.isIOUReport(props.iouReport) || policyType === CONST.POLICY.TYPE.FREE) &&
         isCurrentUserManager &&
         !isReportDraft &&
         !iouSettled &&
