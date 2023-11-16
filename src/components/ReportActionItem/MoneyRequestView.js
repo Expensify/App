@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -76,6 +77,7 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -173,7 +175,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
+                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
