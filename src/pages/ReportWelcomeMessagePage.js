@@ -13,7 +13,7 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
@@ -80,7 +80,7 @@ function ReportWelcomeMessagePage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportWelcomeMessagePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(props.report, props.policy)}>
                 <HeaderWithBackButton
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
@@ -98,7 +98,7 @@ function ReportWelcomeMessagePage(props) {
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => {
@@ -111,7 +111,7 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
-                            textAlignVertical="top"
+                            inputStyle={[styles.verticalAlignTop]}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
