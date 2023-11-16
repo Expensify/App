@@ -18,7 +18,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -125,6 +125,7 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     isFocused,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
 
