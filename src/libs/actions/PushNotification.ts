@@ -6,15 +6,18 @@ import * as Device from './Device';
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => (isUserOptedInToPushNotifications = val),
+    callback: (val) => {
+        if (val === null) {
+            return;
+        }
+        isUserOptedInToPushNotifications = val;
+    },
 });
 
 /**
  * Record that user opted-in or opted-out of push notifications on the current device.
- *
- * @param {Boolean} isOptingIn
  */
-function setPushNotificationOptInStatus(isOptingIn) {
+function setPushNotificationOptInStatus(isOptingIn: boolean) {
     Device.getDeviceID().then((deviceID) => {
         const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
         const optimisticData = [
