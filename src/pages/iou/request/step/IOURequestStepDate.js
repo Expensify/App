@@ -33,7 +33,7 @@ const defaultProps = {
 
 function IOURequestStepDate({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, backTo, transactionID},
     },
     transaction,
 }) {
@@ -41,7 +41,7 @@ function IOURequestStepDate({
     const {translate} = useLocalize();
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**

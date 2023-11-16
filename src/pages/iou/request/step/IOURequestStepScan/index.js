@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
 import _ from 'underscore';
@@ -24,7 +23,6 @@ import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStep
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import themeColors from '@styles/themes/default';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
@@ -48,7 +46,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, step, transactionID},
+        params: {iouType, reportID, transactionID, pageIndex, backTo},
     },
 }) {
     const theme = useTheme();
@@ -68,11 +66,6 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
-
-    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
-    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
-    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
-    const isUserComingFromConfirmationStep = !_.isUndefined(step);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -111,7 +104,7 @@ function IOURequestStepScan({
     }
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
@@ -314,7 +307,7 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={isUserComingFromConfirmationStep}
+            shouldShowWrapper={Boolean(backTo)}
             testID={IOURequestStepScan.displayName}
         >
             <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
