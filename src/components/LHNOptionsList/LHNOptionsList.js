@@ -21,7 +21,7 @@ import OptionRowLHNData from './OptionRowLHNData';
 const propTypes = {
     /** Wrapper style for the section list */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]).isRequired,
