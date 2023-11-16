@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
@@ -126,14 +127,8 @@ function Form(props) {
      */
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            // Trim all string values
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(props.formID, null);
@@ -191,7 +186,7 @@ function Form(props) {
 
             return touchedInputErrors;
         },
-        [errors, touchedInputs, props.formID, validate],
+        [props.formID, validate, errors],
     );
 
     useEffect(() => {
@@ -228,11 +223,14 @@ function Form(props) {
             return;
         }
 
+        // Trim all string values
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -242,8 +240,8 @@ function Form(props) {
         }
 
         // Call submit handler
-        onSubmit(inputValues);
-    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
+        onSubmit(trimmedStringValues);
+    }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, inputValues, onValidate, onSubmit]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
