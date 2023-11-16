@@ -111,7 +111,7 @@ function IOURequestStepMerchant({
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         ref={(el) => (inputRef.current = el)}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     />
                 </View>
             </FormProvider>
