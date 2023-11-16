@@ -1,8 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -43,7 +43,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, {description: parser.replace(values.description)});
+            Task.editTaskAndNavigate(props.report, {description: values.description});
         },
         [props],
     );

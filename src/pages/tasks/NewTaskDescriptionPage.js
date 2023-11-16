@@ -1,8 +1,8 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -47,7 +47,7 @@ function NewTaskDescriptionPage(props) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const onSubmit = (values) => {
-        Task.setDescriptionValue(parser.htmlToMarkdown(parser.replace(values.taskDescription)));
+        Task.setDescriptionValue(values.taskDescription);
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
@@ -77,7 +77,7 @@ function NewTaskDescriptionPage(props) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={props.task.description}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

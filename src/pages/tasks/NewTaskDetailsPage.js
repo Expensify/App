@@ -1,9 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -47,11 +46,11 @@ function NewTaskDetailsPage(props) {
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
     const {inputCallbackRef} = useAutoFocusInput();
-    const isFocused = useIsFocused();
+
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description || '');
-    }, [props.task, isFocused]);
+        setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
+    }, [props.task]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -71,7 +70,7 @@ function NewTaskDetailsPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        Task.setDetailsValue(values.taskTitle, parser.htmlToMarkdown(parser.replace(values.taskDescription)));
+        Task.setDetailsValue(values.taskTitle, values.taskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
@@ -122,6 +121,7 @@ function NewTaskDetailsPage(props) {
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
