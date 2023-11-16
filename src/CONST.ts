@@ -260,7 +260,6 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
         PDF_META_STORE: 'pdfMetaStore',
         REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',

@@ -5,9 +5,9 @@ import _ from 'underscore';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -57,6 +57,8 @@ const isReceiptError = (message) => {
 };
 
 function DotIndicatorMessage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -83,7 +85,7 @@ function DotIndicatorMessage(props) {
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={isErrorMessage ? themeColors.danger : themeColors.success}
+                    fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>

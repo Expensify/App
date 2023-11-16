@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Clipboard from '@libs/Clipboard';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ContextMenuItem from './ContextMenuItem';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -26,6 +26,7 @@ const defaultProps = {
 };
 
 function CommunicationsLink(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.communicationsLinkHeight]}>
