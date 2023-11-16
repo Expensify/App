@@ -199,6 +199,8 @@ function fetchTag(tag) {
     while (shouldRetry) {
         try {
             if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
                 execSync('git repack -d');
             }
 
