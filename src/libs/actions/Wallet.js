@@ -366,9 +366,7 @@ function requestPhysicalExpensifyCard(cardID, authToken, privatePersonalDetails)
             },
         ],
     };
-    // TODO: Remove the return below and uncomment API.write when this work is ready for production
-    return {params, onyxData};
-    // API.write('RequestPhysicalExpensifyCard', params, onyxData);
+    API.write('RequestPhysicalExpensifyCard', params, onyxData);
 }
 
 export {
