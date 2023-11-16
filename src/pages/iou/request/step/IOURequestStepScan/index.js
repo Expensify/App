@@ -24,8 +24,9 @@ import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStep
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -35,10 +36,6 @@ const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
 
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isInTabNavigator: PropTypes.bool,
-
     /* Onyx Props */
     /** The report that the transaction belongs to */
     report: reportPropTypes,
@@ -46,7 +43,6 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    isInTabNavigator: true,
 };
 
 function IOURequestStepScan({
@@ -55,6 +51,9 @@ function IOURequestStepScan({
         params: {iouType, reportID, step, transactionID},
     },
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -67,7 +66,7 @@ function IOURequestStepScan({
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
@@ -93,7 +92,7 @@ function IOURequestStepScan({
 
     function validateReceipt(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -188,7 +187,7 @@ function IOURequestStepScan({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 )}
                 {cameraPermissionState === 'denied' && (
@@ -213,6 +212,7 @@ function IOURequestStepScan({
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
+                    cameraTabIndex={pageIndex}
                 />
             </View>
 
@@ -221,7 +221,7 @@ function IOURequestStepScan({
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: setReceiptAndNavigate,
@@ -232,13 +232,13 @@ function IOURequestStepScan({
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -249,7 +249,7 @@ function IOURequestStepScan({
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}
@@ -259,7 +259,7 @@ function IOURequestStepScan({
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

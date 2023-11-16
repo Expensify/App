@@ -1,17 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Webcam from 'react-webcam';
+import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 
 const propTypes = {
-    /* Flag to turn on/off the torch/flashlight - if available */
+    /** Flag to turn on/off the torch/flashlight - if available */
     torchOn: PropTypes.bool,
 
-    /* Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
+    /** The index of the tab that contains this camera */
+    cameraTabIndex: PropTypes.number.isRequired,
+
+    /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
     onUserMedia: PropTypes.func,
 
-    /* Callback function passing torch/flashlight capability as bool param of the browser */
+    /** Callback function passing torch/flashlight capability as bool param of the browser */
     onTorchAvailability: PropTypes.func,
 };
 
@@ -20,10 +23,13 @@ const defaultProps = {
     onTorchAvailability: undefined,
     torchOn: false,
 };
+
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, ...props}, ref) => {
+const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, cameraTabIndex, ...props}, ref) => {
     const trackRef = useRef(null);
-    const isCameraActive = useIsFocused();
+    const shouldShowCamera = useTabNavigatorFocus({
+        tabIndex: cameraTabIndex,
+    });
 
     const handleOnUserMedia = (stream) => {
         if (props.onUserMedia) {
@@ -50,7 +56,7 @@ const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, .
         });
     }, [torchOn]);
 
-    if (!isCameraActive) {
+    if (!shouldShowCamera) {
         return null;
     }
     return (
