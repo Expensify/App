@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +16,7 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -66,6 +66,7 @@ const defaultProps = {
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -116,7 +117,7 @@ function BankAccountStep(props) {
                 />
                 <ScrollView style={[styles.flex1]}>
                     <Section
-                        icon={Illustrations.MoneyWings}
+                        icon={illustrations.MoneyWings}
                         title={props.translate('workspace.bankAccount.streamlinePayments')}
                     >
                         <View style={[styles.mv3]}>

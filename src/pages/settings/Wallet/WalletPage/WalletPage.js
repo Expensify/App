@@ -10,7 +10,6 @@ import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,6 +27,7 @@ import * as PaymentUtils from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -41,6 +41,7 @@ import {defaultProps, propTypes} from './walletPagePropTypes';
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -338,7 +339,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                             >
                                 {hasWallet && (
                                     <WalletSection
-                                        icon={Illustrations.MoneyIntoWallet}
+                                        icon={illustrations.MoneyIntoWallet}
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                     >
@@ -440,7 +441,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 )}
                                 {hasAssignedCard ? (
                                     <WalletSection
-                                        icon={Illustrations.CreditCardsNew}
+                                        icon={illustrations.CreditCardsNew}
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
                                     >
@@ -460,7 +461,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                     </WalletSection>
                                 ) : null}
                                 <WalletSection
-                                    icon={Illustrations.BankArrow}
+                                    icon={illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
                                 >

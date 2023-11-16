@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
@@ -16,10 +16,11 @@ const propTypes = {
 
 function WorkspaceTravelVBAView(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     return (
         <Section
             title={props.translate('workspace.travel.packYourBags')}
-            icon={Illustrations.Luggage}
+            icon={illustrations.Luggage}
             menuItems={[
                 {
                     title: props.translate('workspace.common.issueAndManageCards'),

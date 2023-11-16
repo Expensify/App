@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
@@ -12,6 +12,7 @@ const propTypes = {
 
 function DangerCardSection({title, description}) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     return (
         <View style={[styles.pageWrapper, styles.walletDangerSection]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
@@ -20,7 +21,7 @@ function DangerCardSection({title, description}) {
                     <Text styles={[styles.walletDangerSectionText]}>{description}</Text>
                 </View>
                 <View>
-                    <Illustrations.SmartScan />
+                    <illustrations.SmartScan />
                 </View>
             </View>
         </View>

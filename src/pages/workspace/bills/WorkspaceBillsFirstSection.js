@@ -5,13 +5,13 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,12 +42,13 @@ const defaultProps = {
 
 function WorkspaceBillsFirstSection(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const emailDomain = Str.extractEmailDomain(props.session.email);
     const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
-            icon={Illustrations.PinkBill}
+            icon={illustrations.PinkBill}
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),

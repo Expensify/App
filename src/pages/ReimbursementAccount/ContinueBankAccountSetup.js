@@ -6,7 +6,6 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +13,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ const defaultProps = {policyName: ''};
 
 function ContinueBankAccountSetup(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
@@ -56,7 +57,7 @@ function ContinueBankAccountSetup(props) {
             <ScrollView style={styles.flex1}>
                 <Section
                     title={props.translate('workspace.bankAccount.almostDone')}
-                    icon={Illustrations.BankArrow}
+                    icon={illustrations.BankArrow}
                 >
                     <OfflineWithFeedback
                         errors={errors}

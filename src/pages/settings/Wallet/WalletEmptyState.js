@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Illustrations from '@styles/illustrations/dark';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -33,11 +33,12 @@ const WALLET_FEATURES = [
 
 function WalletEmptyState({onAddPaymentMethod}) {
     const theme = useTheme();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     return (
         <IllustratedHeaderPageLayout
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WALLET]}
-            illustration={LottieAnimations.FastMoney}
+            illustration={illustrations.LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}
             footer={

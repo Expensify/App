@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
@@ -54,6 +54,7 @@ const defaultProps = {
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, linkKey, onBackButtonPress, shouldShowLink, shouldShowBackButton, onLinkPress}) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     if (shouldShow) {
         return (
@@ -64,7 +65,7 @@ function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, link
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
+                        icon={illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}

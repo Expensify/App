@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
@@ -19,6 +19,7 @@ const propTypes = {
 
 function WorkspaceInvoicesVBAView(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const viewUnpaidInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`;
 
     return (
@@ -27,7 +28,7 @@ function WorkspaceInvoicesVBAView(props) {
 
             <Section
                 title={props.translate('workspace.invoices.moneyBackInAFlash')}
-                icon={Illustrations.MoneyBadge}
+                icon={illustrations.MoneyBadge}
                 menuItems={[
                     {
                         title: props.translate('workspace.invoices.viewUnpaidInvoices'),

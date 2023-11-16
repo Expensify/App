@@ -5,13 +5,13 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
@@ -45,6 +45,7 @@ const defaultProps = {
 
 function GetAssistancePage(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
@@ -87,7 +88,7 @@ function GetAssistancePage(props) {
             <ScrollView>
                 <Section
                     title={props.translate('getAssistancePage.subtitle')}
-                    icon={Illustrations.ConciergeNew}
+                    icon={illustrations.ConciergeNew}
                     menuItems={menuItems}
                 >
                     <View style={styles.mv3}>

@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONFIG from '@src/CONFIG';
@@ -27,6 +27,7 @@ const defaultProps = {
 function SAMLSignInPage({credentials}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -40,7 +41,7 @@ function SAMLSignInPage({credentials}) {
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>

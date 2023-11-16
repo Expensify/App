@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -17,6 +16,7 @@ import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function CodesStep({account = defaultAccount}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const [error, setError] = useState('');
@@ -54,7 +55,7 @@ function CodesStep({account = defaultAccount}) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     containerStyles={[styles.twoFactorAuthSection]}
                     iconContainerStyles={[styles.ml6]}
                 >

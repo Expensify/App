@@ -5,7 +5,6 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
@@ -73,21 +72,6 @@ const defaultProps = {
     },
 };
 
-const workspaceFeatures = [
-    {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
-    },
-    {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.emptyWorkspace.features.companyCards',
-    },
-    {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
-    },
-];
-
 /**
  * Dismisses the errors on one item
  *
@@ -110,9 +94,28 @@ function dismissWorkspaceError(policyID, pendingAction) {
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
+
+    const workspaceFeatures = useMemo(
+        () => [
+            {
+                icon: illustrations.MoneyReceipts,
+                translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
+            },
+            {
+                icon: illustrations.CreditCardsNew,
+                translationKey: 'workspace.emptyWorkspace.features.companyCards',
+            },
+            {
+                icon: illustrations.MoneyWings,
+                translationKey: 'workspace.emptyWorkspace.features.reimbursements',
+            },
+        ],
+        [illustrations],
+    );
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item

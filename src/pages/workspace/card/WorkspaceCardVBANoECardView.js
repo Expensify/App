@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -28,11 +28,12 @@ const defaultProps = {
 
 function WorkspaceCardVBANoECardView(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     return (
         <>
             <Section
                 title={props.translate('workspace.card.header')}
-                icon={Illustrations.CreditCardsNew}
+                icon={illustrations.CreditCardsNew}
             >
                 <View style={[styles.mv3]}>
                     <UnorderedList

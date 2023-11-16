@@ -6,11 +6,11 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
@@ -48,6 +48,7 @@ const defaultProps = {
 function LogInWithShortLivedAuthTokenPage(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -89,7 +90,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>

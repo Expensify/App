@@ -4,10 +4,10 @@ import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +20,7 @@ import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
@@ -127,7 +128,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         >
             {page === -1 ? (
                 <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
+                    icon={illustrations.ToddBehindCloud}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

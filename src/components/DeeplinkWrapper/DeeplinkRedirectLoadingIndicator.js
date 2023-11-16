@@ -4,12 +4,12 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ const defaultProps = {
 function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -42,7 +43,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
