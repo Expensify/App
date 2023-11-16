@@ -13,7 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import {htmlToMarkdown} from '@libs/parser';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
@@ -79,7 +79,7 @@ function ReportWelcomeMessagePage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportWelcomeMessagePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(props.report, props.policy)}>
                 <HeaderWithBackButton
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}

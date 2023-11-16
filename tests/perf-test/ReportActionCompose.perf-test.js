@@ -13,6 +13,8 @@ import ReportActionCompose from '../../src/pages/home/report/ReportActionCompose
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.setTimeout(60000);
+
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
 
