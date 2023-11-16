@@ -198,10 +198,10 @@ function SuggestionMention({
             const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
-            const secondToLastWord = words[words.length - 3];    
+            const secondToLastWord = words[words.length - 3];
 
             let atSignIndex;
-            let suggestionWord
+            let suggestionWord;
             let prefix;
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
