@@ -95,6 +95,19 @@ Onyx.connect({
     },
 });
 
+const reportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActions[reportID] = actions;
+    },
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -3303,8 +3316,8 @@ function canAccessReport(report, policies, betas, allReportActions) {
  */
 function shouldHideReport(report, currentReportId) {
     const parentReport = getParentReport(getReport(currentReportId));
-    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-    const isChildReportHasComment = _.some(reportActions, (reportAction) => (reportAction.childVisibleActionCount || 0) > 0);
+    const allReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const isChildReportHasComment = _.some(allReportActions, (reportAction) => (reportAction.childVisibleActionCount || 0) > 0);
     return parentReport.reportID !== report.reportID && !isChildReportHasComment;
 }
 
@@ -3332,8 +3345,6 @@ function transactionThreadHasViolations(report) {
     if (!report.parentReportActionID) {
         return false;
     }
-
-    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
 
     const parentReportAction = lodashGet(reportActions, `${report.parentReportID}.${report.parentReportActionID}`);
     if (!parentReportAction) {
