@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -163,12 +164,12 @@ function revealVirtualCardDetails(cardID) {
         API.makeRequestWithSideEffects('RevealExpensifyCardDetails', {cardID})
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject();
+                    reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
                     return;
                 }
                 resolve(response);
             })
-            .catch(reject);
+            .catch(() => reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')));
     });
 }
 
