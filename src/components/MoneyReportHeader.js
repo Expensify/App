@@ -78,13 +78,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
         () =>
+            (ReportUtils.isIOUReport(moneyRequestReport) || policyType === CONST.POLICY.TYPE.PERSONAL) &&
             isPayer &&
             !isDraft &&
             !isSettled &&
             !moneyRequestReport.isWaitingOnBankAccount &&
             reimbursableTotal !== 0 &&
-            !ReportUtils.isArchivedRoom(chatReport) &&
-            policyType === CONST.POLICY.TYPE.PERSONAL,
+            !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, policyType],
     );
 
