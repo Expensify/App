@@ -38,11 +38,16 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+function canUseNewVbbaFlow(): boolean {
+    return true;
+}
+
 export default {
     canUseChronos,
     canUseDefaultRooms,
     canUseCommentLinking,
     canUsePolicyRooms,
     canUseLinkPreviews,
+    canUseNewVbbaFlow,
     canUseViolations,
 };

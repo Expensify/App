@@ -137,9 +137,9 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         BankAccounts.updateCompanyInformationForBankAccount(bankAccount, policyID);
     };
 
-    const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0);
-    const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
-    const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
+    const shouldDisableNonEditableFields = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0) && lodashGet(reimbursementAccount, 'achData.state') !== 'SETUP';
+    const shouldDisableCompanyName = Boolean(shouldDisableNonEditableFields && getDefaultStateForField('companyName')) ;
+    const shouldDisableCompanyTaxID = Boolean(shouldDisableNonEditableFields && getDefaultStateForField('companyTaxID'));
 
     return (
         <ScreenWrapper

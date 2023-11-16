@@ -187,8 +187,9 @@ const CONST = {
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
-            COMPANY: 'CompanyStep',
             REQUESTOR: 'RequestorStep',
+            COMPANY: 'CompanyStep',
+            BENEFICIAL_OWNERS: 'BeneficialOwnersStep',
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',

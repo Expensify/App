@@ -139,8 +139,13 @@ function ACHContractStep(props) {
         BankAccounts.updateBeneficialOwnersForBankAccount({
             ownsMoreThan25Percent: values.ownsMoreThan25Percent,
             hasOtherBeneficialOwners: values.hasOtherBeneficialOwners,
+            beneficialOwners: JSON.stringify(updatedBeneficialOwners),
+            bankAccountID,
+        });
+        BankAccounts.acceptACHContractForBankAccount({
             acceptTermsAndConditions: values.acceptTermsAndConditions,
             certifyTrueInformation: values.certifyTrueInformation,
+            isAuthorizedToUseBankAccount: true,
             beneficialOwners: JSON.stringify(updatedBeneficialOwners),
             bankAccountID,
         });

@@ -1,6 +1,7 @@
 type OnfidoData = Record<string, unknown>;
 
 type BankAccountStepProps = {
+    bankAccountID?: number;
     accountNumber?: string;
     routingNumber?: string;
     acceptTerms?: boolean;
@@ -9,6 +10,7 @@ type BankAccountStepProps = {
 };
 
 type CompanyStepProps = {
+    bankAccountID?: number;
     companyName?: string;
     addressStreet?: string;
     addressCity?: string;
@@ -24,6 +26,7 @@ type CompanyStepProps = {
 };
 
 type RequestorStepProps = {
+    bankAccountID?: number;
     firstName?: string;
     lastName?: string;
     requestorAddressStreet?: string;
@@ -37,12 +40,18 @@ type RequestorStepProps = {
     onfidoData?: OnfidoData;
 };
 
-type ACHContractStepProps = {
+type BeneficialOwnersStepProps = {
+    bankAccountID?: number;
     ownsMoreThan25Percent?: boolean;
     hasOtherBeneficialOwners?: boolean;
+    beneficialOwners?: string[];
+};
+
+type ACHContractStepProps = {
+    bankAccountID?: number;
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
-    beneficialOwners?: string[];
+    isAuthorizedToUseBankAccount?: boolean;
 };
 
 type ReimbursementAccountProps = {
@@ -55,7 +64,7 @@ type ReimbursementAccountProps = {
     amount3?: string;
 };
 
-type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps;
+type ReimbursementAccountDraft = BankAccountStepProps & RequestorStepProps & CompanyStepProps & BeneficialOwnersStepProps & ACHContractStepProps & ReimbursementAccountProps;
 
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};
+export type {ACHContractStepProps, BeneficialOwnersStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};
