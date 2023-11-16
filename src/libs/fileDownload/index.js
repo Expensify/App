@@ -1,5 +1,6 @@
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import * as Link from '@userActions/Link';
 import * as FileUtils from './FileUtils';
 
@@ -11,7 +12,7 @@ import * as FileUtils from './FileUtils';
  */
 export default function fileDownload(url, fileName) {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !resolvedUrl.startsWith('blob')) {
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !resolvedUrl.startsWith(CONST.ATTACHMENT_TEMPORARY_URL_START)) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);
