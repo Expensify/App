@@ -1,11 +1,10 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Illustrations from '@styles/illustrations/dark';
 import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import ROUTES from '@src/ROUTES';
@@ -16,25 +15,29 @@ const propTypes = {
     onAddPaymentMethod: PropTypes.func.isRequired,
 };
 
-const WALLET_FEATURES = [
-    {
-        icon: Illustrations.MoneyIntoWallet,
-        translationKey: 'walletPage.getPaidBackFaster',
-    },
-    {
-        icon: Illustrations.OpenSafe,
-        translationKey: 'walletPage.secureAccessToYourMoney',
-    },
-    {
-        icon: Illustrations.HandEarth,
-        translationKey: 'walletPage.receiveMoney',
-    },
-];
-
 function WalletEmptyState({onAddPaymentMethod}) {
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
+
+    const WALLET_FEATURES = useMemo(
+        () => [
+            {
+                icon: illustrations.MoneyIntoWallet,
+                translationKey: 'walletPage.getPaidBackFaster',
+            },
+            {
+                icon: illustrations.OpenSafe,
+                translationKey: 'walletPage.secureAccessToYourMoney',
+            },
+            {
+                icon: illustrations.HandEarth,
+                translationKey: 'walletPage.receiveMoney',
+            },
+        ],
+        [illustrations],
+    );
+
     return (
         <IllustratedHeaderPageLayout
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WALLET]}
