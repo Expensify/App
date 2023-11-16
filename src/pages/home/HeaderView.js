@@ -173,7 +173,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !(props.report && title);
+    const isLoading = !props.report || !title;
 
     return (
         <View
