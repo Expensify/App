@@ -500,7 +500,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, pare
  *
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
     return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -4062,13 +4062,11 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
     const room = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === type && !isThread(report));
     return room;
 }
+
 /**
  *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
- * @param {Object} report
- * @param {Object} policy
- * @return {Boolean}
  */
-function shouldDisableWelcomeMessage(report, policy) {
+function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
