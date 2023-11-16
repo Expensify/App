@@ -254,7 +254,10 @@ function buildOnyxDataForMoneyRequest(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingAction: null, 
+                pendingFields: null
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -331,6 +334,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 pendingAction: null,
+                pendingFields: null,
             },
         },
         {
