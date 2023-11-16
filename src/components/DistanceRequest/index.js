@@ -70,7 +70,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const [hasError, setHasError] = useState(false);
-    const isEditing = lodashGet(route, 'path', '').includes('address');
+    const isEditing = Navigation.getActiveRoute().includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
