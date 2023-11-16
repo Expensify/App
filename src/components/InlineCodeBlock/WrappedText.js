@@ -6,23 +6,6 @@ import Text from '@components/Text';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
-/**
- * Breaks the text into matrix
- * for eg: My Name  is Rajat
- *  [
- *    [My,' ',Name,' ',' ',is,' ',Rajat],
- *  ]
- *
- * @param {String} text
- * @returns {Array<String[]>}
- */
-function getTextMatrix(text) {
-    console.log(text)
-    const result = _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.SPACE_OR_EMOJI), ''));
-    console.log(result)
-    return result
-}
-
 const propTypes = {
     /** Required text */
     children: PropTypes.string.isRequired,
@@ -30,29 +13,19 @@ const propTypes = {
     /** Style to be applied to Text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
-    // eslint-disable-next-line react/forbid-prop-types
-    wordStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     textStyles: [],
-    wordStyles: [],
 };
 
 function WrappedText(props) {
     if (!_.isString(props.children)) {
         return null;
     }
-
-    useEffect(() => {
-        console.log(props.wordStyles)
-        console.log(props.textStyles)
-    }, [])
-    // const textMatrix = getTextMatrix(props.children);
+    console.log(props)
     return (
-        <Text style={[styles.codeWordWrapper, props.wordStyles]}>
+        <Text style={styles.codeWordWrapper}>
             <Text style={props.textStyles}>{props.children}</Text>
         </Text>
     );

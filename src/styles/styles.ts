@@ -2704,9 +2704,11 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
+            whiteSpace: 'break-spaces',
+            display: 'flex',
             ...codeStyles.codeWordWrapper,
         },
-        
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,

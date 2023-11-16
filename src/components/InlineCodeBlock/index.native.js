@@ -13,7 +13,6 @@ function InlineCodeBlock(props) {
             <WrappedText
                 textStyles={[props.textStyle]}
                 boxModelStyle={[props.boxModelStyle]}
-                wordStyles={[styles.codeWordStyle]}
             >
                 {props.defaultRendererProps.tnode.data}
             </WrappedText>
