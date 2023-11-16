@@ -180,93 +180,95 @@ function HeaderView(props) {
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && !isLoading && styles.pl5]}>
-                {props.isSmallScreenWidth && (
-                    <PressableWithoutFeedback
-                        onPress={props.onNavigationMenuButtonClicked}
-                        style={[styles.LHNToggle]}
-                        accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
-                        accessibilityLabel={props.translate('common.back')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    >
-                        <Tooltip
-                            text={props.translate('common.back')}
-                            shiftVertical={4}
-                        >
-                            <View>
-                                <Icon src={Expensicons.BackArrow} />
-                            </View>
-                        </Tooltip>
-                    </PressableWithoutFeedback>
-                )}
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {isLoading ? (
                     <ReportHeaderSkeletonView />
                 ) : (
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={shouldDisableDetailPage}
-                            accessibilityLabel={title}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        >
-                            {shouldShowSubscript ? (
-                                <SubscriptAvatar
-                                    mainAvatar={icons[0]}
-                                    secondaryAvatar={icons[1]}
-                                    size={defaultSubscriptSize}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    shouldShowTooltip={!isChatRoom || isChatThread}
-                                />
-                            )}
-                            <View style={[styles.flex1, styles.flexColumn]}>
-                                <DisplayNames
-                                    fullTitle={title}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
-                                />
-                                {!_.isEmpty(parentNavigationSubtitleData) && (
-                                    <ParentNavigationSubtitle
-                                        parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                        parentReportID={props.report.parentReportID}
-                                        pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                    <>
+                        {props.isSmallScreenWidth && (
+                            <PressableWithoutFeedback
+                                onPress={props.onNavigationMenuButtonClicked}
+                                style={[styles.LHNToggle]}
+                                accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
+                                accessibilityLabel={props.translate('common.back')}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            >
+                                <Tooltip
+                                    text={props.translate('common.back')}
+                                    shiftVertical={4}
+                                >
+                                    <View>
+                                        <Icon src={Expensicons.BackArrow} />
+                                    </View>
+                                </Tooltip>
+                            </PressableWithoutFeedback>
+                        )}
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <PressableWithoutFeedback
+                                onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                                disabled={shouldDisableDetailPage}
+                                accessibilityLabel={title}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            >
+                                {shouldShowSubscript ? (
+                                    <SubscriptAvatar
+                                        mainAvatar={icons[0]}
+                                        secondaryAvatar={icons[1]}
+                                        size={defaultSubscriptSize}
+                                    />
+                                ) : (
+                                    <MultipleAvatars
+                                        icons={icons}
+                                        shouldShowTooltip={!isChatRoom || isChatThread}
                                     />
                                 )}
-                                {!_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                <View style={[styles.flex1, styles.flexColumn]}>
+                                    <DisplayNames
+                                        fullTitle={title}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled
                                         numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                        textStyles={[styles.headerText, styles.pre]}
+                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                    />
+                                    {!_.isEmpty(parentNavigationSubtitleData) && (
+                                        <ParentNavigationSubtitle
+                                            parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                            parentReportID={props.report.parentReportID}
+                                            pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                        />
+                                    )}
+                                    {!_.isEmpty(subtitle) && (
+                                        <Text
+                                            style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                            numberOfLines={1}
+                                        >
+                                            {subtitle}
+                                        </Text>
+                                    )}
+                                </View>
+                                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={themeColors.danger}
+                                        />
+                                    </View>
+                                )}
+                            </PressableWithoutFeedback>
+                            <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                                {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
+                                {shouldShowThreeDotsButton && (
+                                    <ThreeDotsMenu
+                                        anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
+                                        menuItems={threeDotMenuItems}
+                                        shouldSetModalVisibility={false}
+                                    />
                                 )}
                             </View>
-                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
-                                    />
-                                </View>
-                            )}
-                        </PressableWithoutFeedback>
-                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
-                            {shouldShowThreeDotsButton && (
-                                <ThreeDotsMenu
-                                    anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
-                                    menuItems={threeDotMenuItems}
-                                    shouldSetModalVisibility={false}
-                                />
-                            )}
                         </View>
-                    </View>
+                    </>
                 )}
             </View>
         </View>
