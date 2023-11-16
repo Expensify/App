@@ -4,21 +4,22 @@ description: How to manage your Expensify Profile
 ---
 # Overview
 Your Profile in Expensify allows you to:
-- set your public profile pic
-- set a display name
-- manage your contact methods
-- set your pronouns
-- set your timezone
-- store your personal details (for travel and payment purposes)
+- Set your public profile photo
+- Set a display name
+- Manage your contact methods
+- Communicate your current status
+- Set your pronouns
+- Configure your timezone
+- Store your personal details (for travel and payment purposes)
 
-# How to set your profile pic
+# How to set your public profile photo
 
-To set or update your profile pic: 
+To set or update your profile photo: 
 1. Go to **Settings > Profile**
-2. Tap on the default or your existing profile pic,
-3. You can either either upload (to set a new profile pic), remove or view your profile pic
+2. Tap on the default or your existing profile photo,
+3. You can either either upload (to set a new profile photo), remove or view your profile photo
 
-Your profile pic is visible to all Expensify users. 
+Your profile photo is visible to all Expensify users. 
 
 # How to set a display name
 
@@ -29,9 +30,9 @@ To set or update your display name:
 
 Your display name is public to all Expensify users.
 
-# How to add or remove a contact methods (email address and phone number)
+# How to add or remove contact methods (email address and phone number)
 
-Your contact methods allow people to contact you, and allow you to forward receipts to receipts@expensify.com from multiple email addresses.
+Your contact methods allow people to contact you (using your email address or phone number), and allow you to forward receipts to receipts@expensify.com from multiple email addresses.
 
 To manage your contact methods:
 1. Go to **Settings > Profile**
@@ -42,6 +43,23 @@ Your default contact method (email address or phone number) will be visible to "
 
 To change the email address or phone number that's displayed on your Expensify account, add a new contact method, then tap on that email address and tap **Set as default**.
 
+# How to communicate your current status
+
+You can use your status emoji to communicate your mood, focus or current activity. You can optionally add a status message too! 
+
+To set your status emoji and status message:
+1. Go to **Settings > Profile**
+2. Tap on **Status** then **Status**
+3. Choose a status emoji, and optionally set a status message
+4. Tap on **Save**
+
+Your status emoji will be visible next to your name in Expensify, and your status emoji and status message will appear in your profile (which is public to all Expensify users). On a computer, your status message will also be visible by hovering your mouse over your name.
+
+You can also remove your current status:
+1. Go to **Settings > Profile**
+2. Tap on **Status**
+3. Tap on **Clear status**
+
 # How to set your pronouns
 
 To set your pronouns:
@@ -51,7 +69,7 @@ To set your pronouns:
 
 Your pronouns will be visible to "known" users, with whom you have interacted or are part of your team.
 
-# How to set your timezone
+# How to configure your timezone
 
 Your timezone is automatically set using an estimation based on your IP address.
 
