@@ -28,7 +28,7 @@ function ReportHeaderSkeletonView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (
-        <View style={styles.appContentHeader}>
+        <View style={[styles.appContentHeader]}>
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
                     <PressableWithFeedback
