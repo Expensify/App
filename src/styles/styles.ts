@@ -2696,36 +2696,17 @@ const styles = (theme: ThemeColors) =>
         },
 
         codeWordWrapper: {
-            ...codeStyles.codeWordWrapper,
-        },
-
-        codeWordStyle: {
-            borderLeftWidth: 0,
-            borderRightWidth: 0,
-            borderTopLeftRadius: 0,
-            borderBottomLeftRadius: 0,
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
-            paddingLeft: 0,
-            paddingRight: 0,
-            justifyContent: 'center',
-            ...codeStyles.codeWordStyle,
-        },
-
-        codeFirstWordStyle: {
             borderLeftWidth: 1,
             borderTopLeftRadius: 4,
             borderBottomLeftRadius: 4,
             paddingLeft: 5,
-        },
-
-        codeLastWordStyle: {
             borderRightWidth: 1,
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
+            ...codeStyles.codeWordWrapper,
         },
-
+        
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,

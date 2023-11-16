@@ -52,8 +52,8 @@ function WrappedText(props) {
     }, [])
     // const textMatrix = getTextMatrix(props.children);
     return (
-        <Text style={{"backgroundColor": "#07271F", "borderBottomColor": "#1A3D32", "borderBottomLeftRadius": 5, "borderBottomRightRadius": 5, "borderBottomWidth": 1, "borderLeftColor": "#1A3D32", "borderLeftWidth": 1, "borderRightColor": "#1A3D32", "borderRightWidth": 1, "borderTopColor": "#1A3D32", "borderTopLeftRadius": 5, "borderTopRightRadius": 5, "borderTopWidth": 1, "paddingLeft": 5, "paddingRight": 5}}>
-            <Text style={{"color": "#E7ECE9", "fontFamily": "ExpensifyMono-Regular", "fontSize": 13, "fontStyle": undefined, "fontWeight": undefined, "writingDirection": "ltr"}}>{props.children}</Text>
+        <Text style={styles.codeWordWrapper}>
+            <Text style={[props.textStyles]}>{props.children}</Text>
         </Text>
     );
 }
