@@ -100,6 +100,9 @@ const propTypes = {
 
     /** Whether the list should have a bounce effect on iOS */
     bounces: PropTypes.bool,
+
+    /** Custom content to display in the floating footer */
+    renderFooterContent: PropTypes.func,
 };
 
 const defaultProps = {
@@ -130,6 +133,7 @@ const defaultProps = {
     isLoadingNewOptions: false,
     nestedScrollEnabled: true,
     bounces: true,
+    renderFooterContent: undefined,
 };
 
 export {propTypes, defaultProps};

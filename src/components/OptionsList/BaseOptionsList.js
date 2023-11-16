@@ -70,6 +70,7 @@ function BaseOptionsList({
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
+    renderFooterContent,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -285,6 +286,7 @@ function BaseOptionsList({
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
+                        ListFooterComponent={renderFooterContent}
                     />
                 </>
             )}
