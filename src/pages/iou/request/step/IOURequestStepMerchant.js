@@ -8,10 +8,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,25 +40,9 @@ function IOURequestStepMerchant({
     },
     transaction: {merchant},
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef(null);
-    const focusTimeoutRef = useRef(null);
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                if (inputRef.current) {
-                    inputRef.current.focus();
-                }
-                return () => {
-                    if (!focusTimeoutRef.current) {
-                        return;
-                    }
-                    clearTimeout(focusTimeoutRef.current);
-                };
-            }, CONST.ANIMATED_TRANSITION);
-        }, []),
-    );
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -106,12 +91,12 @@ function IOURequestStepMerchant({
                         InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
-                        label={translate('common.merchant')}
                         defaultValue={merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
-                        ref={(el) => (inputRef.current = el)}
+                        label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
