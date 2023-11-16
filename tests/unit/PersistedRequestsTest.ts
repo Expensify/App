@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 describe('PersistedRequests', () => {
-    it('save a new request with an idempotency key which currently exists in PersistedRequests', () => {
+    it('save a new request with an idempotency key which currently exists in the PersistedRequests array', () => {
         PersistedRequests.save(request);
         expect(PersistedRequests.getAll().length).toBe(1);
     });
@@ -36,7 +36,7 @@ describe('PersistedRequests', () => {
         expect(PersistedRequests.getAll().length).toBe(2);
     });
 
-    it('merge a new request with one existing in PersistedRequests array', () => {
+    it('replace a request existing in the PersistedRequests array with a new one', () => {
         const newRequest: Request = {
             command: 'OpenReport',
             data: {
@@ -54,8 +54,10 @@ describe('PersistedRequests', () => {
 
         const mergedRequest = persistedRequests[0];
 
-        expect(mergedRequest.successData?.length).toBe(2);
-        expect(mergedRequest.failureData?.length).toBe(2);
+        expect(mergedRequest.successData?.length).toBe(1);
+        expect(mergedRequest.failureData?.length).toBe(1);
+        expect(mergedRequest.successData?.[0]?.key).toBe('reportMetadata_3');
+        expect(mergedRequest.failureData?.[0]?.key).toBe('reportMetadata_4');
     });
 
     it('remove a request from the PersistedRequests array', () => {

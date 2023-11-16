@@ -1,6 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import mergeWith from 'lodash/mergeWith';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Request} from '@src/types/onyx';
 
@@ -18,22 +17,12 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
-function createUpdatedRequest(oldRequest: Request, newRequest: Request): Request {
-    // Merge the requests together, but concat Onyx update arrays together
-    return mergeWith(oldRequest, newRequest, (objValue, srcValue) => {
-        if (!Array.isArray(objValue) || !objValue.some((obj) => 'onyxMethod' in obj)) {
-            return;
-        }
-        return (objValue as OnyxUpdate[]).concat(srcValue);
-    });
-}
-
 function save(requestToPersist: Request) {
     // Check for a request w/ matching idempotencyKey in the queue
     const existingRequestIndex = persistedRequests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
     if (existingRequestIndex > -1) {
         // Merge the new request into the existing one, keeping its place in the queue
-        persistedRequests.splice(existingRequestIndex, 1, createUpdatedRequest(persistedRequests[existingRequestIndex], requestToPersist));
+        persistedRequests.splice(existingRequestIndex, 1, requestToPersist);
     } else {
         // If not, push the new request to the end of the queue
         persistedRequests.push(requestToPersist);

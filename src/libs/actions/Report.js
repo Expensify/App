@@ -616,6 +616,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        params.idempotencyKey = `${params.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
