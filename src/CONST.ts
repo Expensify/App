@@ -2880,7 +2880,7 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
-    TAGS_MAX_LENGTH: 500,
+    MAX_COUNT_OF_TAGS: 500,
 } as const;
 
 export default CONST;
