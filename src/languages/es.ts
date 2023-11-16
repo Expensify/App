@@ -896,6 +896,7 @@ export default {
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
             thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+            throttled: 'Se han agotado los intentos para activar la tarjeta. Comprueba los datos de tu tarjeta e inténtalo de nuevo dentro de una hora.',
         },
     },
     transferAmountPage: {
