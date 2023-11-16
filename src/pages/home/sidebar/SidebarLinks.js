@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, View, StyleSheet} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
@@ -180,7 +180,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
             <LHNOptionsList
                 style={[isLoading ? styles.flexShrink1 : styles.flex1]}
-                contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+                contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
                 data={optionListItems}
                 onSelectRow={showReportPage}
                 shouldDisableFocusOptions={isSmallScreenWidth}
