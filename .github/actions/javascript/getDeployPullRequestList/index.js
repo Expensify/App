@@ -263,7 +263,7 @@ function getPullRequestsMergedBetween(fromTag, toTag) {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList);
+        const pullRequestNumbers = getValidMergedPRs(commitList).sort();
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
         return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
     });
