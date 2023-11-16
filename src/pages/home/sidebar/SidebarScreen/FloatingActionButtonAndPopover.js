@@ -14,7 +14,7 @@ import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -87,6 +87,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function FloatingActionButtonAndPopover(props) {
+    const styles = useThemeStyles();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const anchorRef = useRef(null);

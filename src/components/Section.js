@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import sourcePropTypes from './Image/sourcePropTypes';
 import MenuItemList from './MenuItemList';
@@ -46,9 +46,6 @@ const propTypes = {
     /** Customize the Icon container */
     // eslint-disable-next-line react/forbid-prop-types
     iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** The fill color for the icon displayed in the section. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
-    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
@@ -62,10 +59,10 @@ const defaultProps = {
     subtitleStyles: [],
     childrenStyles: [],
     subtitle: null,
-    iconFill: null,
 };
 
-function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles, iconFill}) {
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+    const styles = useThemeStyles();
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
@@ -79,7 +76,6 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
                                 src={icon}
                                 height={68}
                                 width={68}
-                                fill={iconFill}
                             />
                         )}
                         {Boolean(IconComponent) && <IconComponent />}

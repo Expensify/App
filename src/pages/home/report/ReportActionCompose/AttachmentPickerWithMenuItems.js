@@ -17,8 +17,8 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -125,6 +125,8 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     isFocused,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
 
@@ -243,7 +245,7 @@ function AttachmentPickerWithMenuItems({
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
                                         <Icon
-                                            fill={themeColors.icon}
+                                            fill={theme.icon}
                                             src={Expensicons.Collapse}
                                         />
                                     </PressableWithFeedback>
@@ -265,7 +267,7 @@ function AttachmentPickerWithMenuItems({
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
                                         <Icon
-                                            fill={themeColors.icon}
+                                            fill={theme.icon}
                                             src={Expensicons.Expand}
                                         />
                                     </PressableWithFeedback>
@@ -292,7 +294,7 @@ function AttachmentPickerWithMenuItems({
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
                                     <Icon
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                         src={Expensicons.Plus}
                                     />
                                 </PressableWithFeedback>

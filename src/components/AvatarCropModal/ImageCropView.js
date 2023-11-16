@@ -6,9 +6,9 @@ import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ControlSelection from '@libs/ControlSelection';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
@@ -51,6 +51,8 @@ const defaultProps = {
 };
 
 function ImageCropView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
 
     const originalImageHeight = props.originalImageHeight;
@@ -87,7 +89,7 @@ function ImageCropView(props) {
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={props.maskImage}
-                        fill={themeColors.icon}
+                        fill={theme.icon}
                         width={props.containerSize}
                         height={props.containerSize}
                     />

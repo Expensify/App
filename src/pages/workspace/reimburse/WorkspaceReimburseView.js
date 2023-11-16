@@ -18,7 +18,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy';
@@ -66,6 +66,7 @@ const defaultProps = {
 };
 
 function WorkspaceReimburseView(props) {
+    const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);

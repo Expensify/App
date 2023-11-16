@@ -5,9 +5,9 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -67,6 +67,8 @@ const defaultProps = {
 };
 
 function Avatar(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [imageError, setImageError] = useState(false);
     useNetwork({onReconnect: () => setImageError(false)});
 
@@ -102,11 +104,11 @@ function Avatar(props) {
                         src={imageError ? fallbackAvatar : props.source}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? themeColors.offline : iconFillColor}
+                        fill={imageError ? theme.offline : iconFillColor}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(props.size, props.type),
                             isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name) : {},
-                            imageError ? StyleUtils.getBackgroundColorStyle(themeColors.fallbackIconColor) : {},
+                            imageError ? StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor) : {},
                             ...props.iconAdditionalStyles,
                         ]}
                     />

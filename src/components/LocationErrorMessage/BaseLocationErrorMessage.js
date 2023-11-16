@@ -9,9 +9,9 @@ import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import colors from '@styles/colors';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
@@ -27,6 +27,8 @@ const propTypes = {
 };
 
 function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (!locationErrorCode) {
         return null;
     }
@@ -67,7 +69,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon
-                            fill={themeColors.icon}
+                            fill={theme.icon}
                             src={Expensicons.Close}
                         />
                     </PressableWithoutFeedback>

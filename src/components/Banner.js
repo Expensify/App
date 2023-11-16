@@ -3,9 +3,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -57,6 +57,8 @@ const defaultProps = {
 };
 
 function Banner(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Hoverable>
             {(isHovered) => {
@@ -104,7 +106,7 @@ function Banner(props) {
                                 >
                                     <Icon
                                         src={Expensicons.Close}
-                                        fill={themeColors.Icon}
+                                        fill={theme.icon}
                                     />
                                 </PressableWithFeedback>
                             </Tooltip>

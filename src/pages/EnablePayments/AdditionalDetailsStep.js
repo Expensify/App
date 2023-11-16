@@ -17,7 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -79,6 +79,7 @@ const fieldNameTranslationKeys = {
 };
 
 function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
+    const styles = useThemeStyles();
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);

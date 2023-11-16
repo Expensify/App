@@ -18,7 +18,7 @@ import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -42,6 +42,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
+    const styles = useThemeStyles();
     const {translate} = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();

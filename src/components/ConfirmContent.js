@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Button from './Button';
 import Header from './Header';
@@ -89,6 +89,8 @@ const defaultProps = {
 };
 
 function ConfirmContent(props) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -102,7 +104,7 @@ function ConfirmContent(props) {
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={props.iconSource}
-                                fill={themeColors.icon}
+                                fill={theme.icon}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
                                 additionalStyles={[...props.iconAdditionalStyles]}

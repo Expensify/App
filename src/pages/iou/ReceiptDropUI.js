@@ -5,7 +5,7 @@ import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import ImageSVG from '@components/ImageSVG';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -21,6 +21,7 @@ const defaultProps = {
 };
 
 function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>

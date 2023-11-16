@@ -4,8 +4,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -34,6 +34,8 @@ const providerData = {
 };
 
 function IconButton({onPress, translate, provider}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
             onPress={onPress}
@@ -42,7 +44,7 @@ function IconButton({onPress, translate, provider}) {
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon
-                fill={themeColors.icon}
+                fill={theme.icon}
                 src={providerData[provider].icon}
                 height={40}
                 width={40}

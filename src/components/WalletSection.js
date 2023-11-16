@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import sourcePropTypes from './Image/sourcePropTypes';
 import Section from './Section';
 
@@ -25,6 +25,7 @@ const defaultProps = {
 };
 
 function WalletSection({children, icon, subtitle, title}) {
+    const styles = useThemeStyles();
     return (
         <Section
             icon={icon}

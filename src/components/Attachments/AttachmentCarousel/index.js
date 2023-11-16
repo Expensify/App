@@ -10,8 +10,8 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
@@ -29,6 +29,8 @@ const viewabilityConfig = {
 };
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -166,7 +168,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
-                    iconColor={themeColors.offline}
+                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -39,6 +39,8 @@ const defaultProps = {
 };
 
 function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;
@@ -60,7 +62,7 @@ function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon
-                            fill={themeColors.icon}
+                            fill={theme.icon}
                             src={Expensicons.Close}
                         />
                     </PressableWithoutFeedback>

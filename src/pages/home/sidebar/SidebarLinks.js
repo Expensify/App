@@ -20,9 +20,9 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import defaultTheme from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -53,6 +53,8 @@ const propTypes = {
 };
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -159,7 +161,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                             src={LogoComponent}
                             width={variables.lhnLogoWidth}
                             height={variables.lhnLogoHeight}
-                            fill={defaultTheme.text}
+                            fill={theme.text}
                             contentFit="contain"
                         />
                     }
@@ -174,7 +176,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
                         <Icon
-                            fill={defaultTheme.icon}
+                            fill={theme.icon}
                             src={Expensicons.MagnifyingGlass}
                         />
                     </PressableWithoutFeedback>

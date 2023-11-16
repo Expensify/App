@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 
@@ -51,6 +51,7 @@ const defaultProps = {
 };
 
 function PopoverMenu(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const selectedItemIndex = useRef(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});

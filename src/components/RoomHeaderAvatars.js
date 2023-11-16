@@ -3,8 +3,8 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
@@ -21,6 +21,7 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const styles = useThemeStyles();
     if (!props.icons.length) {
         return null;
     }

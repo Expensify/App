@@ -18,9 +18,9 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
@@ -62,6 +62,8 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -382,7 +384,7 @@ function AvatarCropModal(props) {
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             style={[styles.flex1]}
                             size="large"
                         />
@@ -403,8 +405,9 @@ function AvatarCropModal(props) {
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
                                     src={Expensicons.Zoom}
-                                    fill={themeColors.icons}
+                                    fill={theme.icons}
                                 />
+
                                 <PressableWithoutFeedback
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
@@ -425,7 +428,7 @@ function AvatarCropModal(props) {
                                         <Button
                                             medium
                                             icon={Expensicons.Rotate}
-                                            iconFill={themeColors.inverse}
+                                            iconFill={theme.inverse}
                                             iconStyles={[styles.mr0]}
                                             onPress={rotateImage}
                                         />

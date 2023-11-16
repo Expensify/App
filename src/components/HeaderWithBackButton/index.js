@@ -14,15 +14,15 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 
 function HeaderWithBackButton({
-    iconFill = themeColors.icon,
+    iconFill = null,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -55,6 +55,8 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -82,7 +84,7 @@ function HeaderWithBackButton({
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
-                                fill={iconFill}
+                                fill={iconFill || theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </Tooltip>

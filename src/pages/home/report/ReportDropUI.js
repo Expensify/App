@@ -6,8 +6,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Callback to execute when a file is dropped. */
@@ -15,13 +15,15 @@ const propTypes = {
 };
 
 function ReportDropUI({onDrop}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.mb3}>
                     <Icon
-                        fill={themeColors.icon}
+                        fill={theme.icon}
                         src={Expensicons.DragAndDrop}
                         width={100}
                         height={100}

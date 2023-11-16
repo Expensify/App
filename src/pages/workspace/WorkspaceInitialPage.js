@@ -26,7 +26,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -68,6 +68,7 @@ function dismissError(policyID) {
 }
 
 function WorkspaceInitialPage(props) {
+    const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -304,9 +305,9 @@ function WorkspaceInitialPage(props) {
                                     </View>
                                 </View>
                                 {/*
-                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                                */}
+                   Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                   In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
