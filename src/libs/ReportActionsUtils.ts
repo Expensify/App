@@ -379,12 +379,12 @@ function replaceBaseURLAndUpdateRoomName(reportAction: ReportAction): ReportActi
     const listMention = (reportAction.originalMessage.targetAccountIDs ?? []).map((accountID) => `<mention-user accountID=${accountID}></mention-user>`);
 
     const lastMention = listMention.pop();
-    let lastPrefix = ', and';
+    let lastPrefix = ', and ';
     if (listMention.length === 0) {
         lastPrefix = '';
     }
     if (listMention.length === 1) {
-        lastPrefix = ' and';
+        lastPrefix = ' and ';
     }
     const preposition = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? ' to' : ' from';
 
