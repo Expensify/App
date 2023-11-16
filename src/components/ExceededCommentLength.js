@@ -4,7 +4,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
@@ -26,6 +26,7 @@ const defaultProps = {
 };
 
 function ExceededCommentLength(props) {
+    const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
