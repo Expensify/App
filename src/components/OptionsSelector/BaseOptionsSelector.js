@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsList from '@components/OptionsList';
+import ShowMore from '@components/ShowMore';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -58,6 +59,7 @@ class BaseOptionsSelector extends Component {
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
+        this.incrementPage = this.incrementPage.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -68,6 +70,7 @@ class BaseOptionsSelector extends Component {
             focusedIndex,
             shouldDisableRowSelection: false,
             errorMessage: '',
+            paginationPage: 1,
         };
     }
 
@@ -172,8 +175,30 @@ class BaseOptionsSelector extends Component {
         return defaultIndex;
     }
 
+    /**
+     * When pagination is enabled,
+     * maps sections to render only allowed count of them.
+     */
+    get sections() {
+        if (!_.isNumber(this.props.itemsPerPage)) {
+            return this.props.sections;
+        }
+
+        return _.map(this.props.sections, (section) => {
+            if (_.isEmpty(section.data)) {
+                return section;
+            }
+
+            return {
+                ...section,
+                data: section.data.slice(0, this.props.itemsPerPage * this.state.paginationPage),
+            };
+        });
+    }
+
     updateSearchValue(value) {
         this.setState({
+            paginationPage: 1,
             errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
         });
 
@@ -366,7 +391,17 @@ class BaseOptionsSelector extends Component {
         this.props.onAddToSelection(option);
     }
 
+    /**
+     * Increments a pagination page to show more items
+     */
+    incrementPage() {
+        this.setState((prev) => ({
+            paginationPage: prev.paginationPage + 1,
+        }));
+    }
+
     render() {
+        const shouldShowShowMore = this.state.allOptions.length > this.props.itemsPerPage * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
@@ -403,7 +438,7 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.props.sections}
+                sections={this.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
@@ -437,6 +472,15 @@ class BaseOptionsSelector extends Component {
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
+                renderFooterContent={() =>
+                    shouldShowShowMore && (
+                        <ShowMore
+                            currentCount={this.props.itemsPerPage * this.state.paginationPage}
+                            totalCount={this.state.allOptions.length}
+                            onPress={this.incrementPage}
+                        />
+                    )
+                }
             />
         );
 
