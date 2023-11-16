@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as IOU from './actions/IOU';
+import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -79,6 +80,19 @@ let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
+});
+
+const transactionViolations = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    callback: (violations, key) => {
+        if (!key || !violations) {
+            return;
+        }
+
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        transactionViolations[transactionID] = violations;
+    },
 });
 
 function getChatType(report) {
@@ -3295,6 +3309,63 @@ function shouldHideReport(report, currentReportId) {
 }
 
 /**
+ * @param {String} transactionID
+ * @returns {Boolean}
+ */
+
+function transactionHasViolation(transactionID) {
+    const violations = lodashGet(transactionViolations, transactionID, []);
+    return _.some(violations, (violation) => violation.type === 'violation');
+}
+
+/**
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+
+function transactionThreadHasViolations(report) {
+    if (!Permissions.canUseViolations()) {
+        return false;
+    }
+    // eslint-disable-next-line es/no-nullish-coalescing-operators
+    if (!report.parentReportActionID ?? 0) {
+        return false;
+    }
+
+    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+
+    const parentReportAction = lodashGet(reportActions, `${report.parentReportID}.${report.parentReportActionID}`);
+    if (!parentReportAction) {
+        return false;
+    }
+    // eslint-disable-next-line es/no-nullish-coalescing-operators
+    const transactionID = parentReportAction.originalMessage.IOUTransactionID ?? 0;
+    if (!transactionID) {
+        return false;
+    }
+    // eslint-disable-next-line es/no-nullish-coalescing-operators
+    const reportID = parentReportAction.originalMessage.IOUReportID ?? 0;
+    if (!reportID) {
+        return false;
+    }
+    if (!isCurrentUserSubmitter(reportID)) {
+        return false;
+    }
+    return transactionHasViolation(transactionID);
+}
+
+/**
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+
+function reportHasViolations(reportID) {
+    const transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return _.some(transactions, (transaction) => transactionHasViolation(transaction.transactionID));
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -3366,6 +3437,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields && report.errorFields.addWorkspaceRoom) {
+        return true;
+    }
+
+    // Always show IOU reports with violations
+    if (isExpenseRequest(report) && transactionThreadHasViolations(report)) {
         return true;
     }
 
@@ -4358,4 +4434,6 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    transactionThreadHasViolations,
+    reportHasViolations,
 };
