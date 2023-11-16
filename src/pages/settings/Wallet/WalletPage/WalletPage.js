@@ -61,7 +61,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
+    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = !_.isEmpty(userWallet);
@@ -215,9 +215,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
         InteractionManager.runAfterInteractions(() => {
-            setShowConfirmDeleteContent(false);
+            setShowConfirmDeleteModal(false);
         });
-    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent]);
+    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList || {};
@@ -503,7 +503,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                             )}
                             <Button
                                 onPress={() => {
-                                    setShowConfirmDeleteContent(true);
+                                    setShowConfirmDeleteModal(true);
                                 }}
                                 style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                 text={translate('common.delete')}
@@ -514,7 +514,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                 </ScreenWrapper>
             )}
             <ConfirmModal
-                isVisible={showConfirmDeleteContent}
+                isVisible={showConfirmDeleteModal}
                 onConfirm={() => {
                     deletePaymentMethod();
                     hideDefaultDeleteMenu();
