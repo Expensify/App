@@ -22,7 +22,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -68,17 +68,15 @@ function IOURequestStepConfirmation({
     },
     transaction,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [receiptFile, setReceiptFile] = useState();
-
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
-
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-
     const participants = useMemo(
         () =>
             _.chain(transaction.participants)
@@ -97,12 +95,12 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-
-        // Verification to reset billable with a default value, when value in IOU was changed
-        if (typeof transaction.billable !== 'boolean') {
-            IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, lodashGet(policy, 'defaultBillable', false));
-        }
     }, [participants, transaction.billable, policy, transactionID]);
+
+    const defaultBillable = lodashGet(policy, 'defaultBillable', false);
+    useEffect(() => {
+        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
+    }, [transactionID, defaultBillable]);
 
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
@@ -200,7 +198,7 @@ function IOURequestStepConfirmation({
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType === CONST.IOU.TYPE.SPLIT && !_.isEmpty(report.reportID)) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID)) {
                 IOU.splitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
