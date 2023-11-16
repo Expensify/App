@@ -1,56 +1,82 @@
-import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import {withOnyx, OnyxEntry} from 'react-native-onyx';
+/* eslint-disable rulesdir/no-negated-variables */
 import {RouteProp} from '@react-navigation/native';
-import getComponentDisplayName from '../../../libs/getComponentDisplayName';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import ONYXKEYS from '../../../ONYXKEYS';
-import type {Report, Policy, Beta} from '../../../types/onyx';
-import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import React, {ComponentType, ForwardedRef, RefAttributes, useCallback, useEffect} from 'react';
+import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import withWindowDimensions from '@components/withWindowDimensions';
+import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import compose from '@libs/compose';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as Report from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObjectOrString} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
-    report: OnyxEntry<Report>;
+    report: OnyxEntry<OnyxTypes.Report>;
+
+    /** The report metadata */
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** Array of report actions for this report */
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** The policies which the user has access to */
-    policies: OnyxEntry<Policy>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
 
     /** Beta features list */
-    betas: OnyxEntry<Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps & {
-    route: RouteProp<{params: {reportID: string}}>;
-};
+type ComponentProps = OnyxProps &
+    WindowDimensionsProps & {
+        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
+    };
 
 export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const contentShown = React.useRef(false);
+        const getReportAction = useCallback(() => {
+            let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
 
-        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
-        // eslint-disable-next-line rulesdir/no-negated-variables
-        const shouldShowNotFoundPage = !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+            // Handle threads if needed
+            if (!reportAction || !reportAction.reportActionID) {
+                reportAction = ReportActionsUtils.getParentReportAction(props.report);
+            }
 
-        // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
-        // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-        if (shouldShowNotFoundPage && contentShown.current) {
-            return null;
-        }
+            return reportAction;
+        }, [props.report, props.reportActions, props.route.params.reportActionID]);
 
-        if (shouldShowFullScreenLoadingIndicator) {
+        const reportAction = getReportAction();
+
+        // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+        // So we need to call openReport here for small screen
+        useEffect(() => {
+            if (!props.isSmallScreenWidth || (isEmptyObjectOrString(props.report) && isEmptyObjectOrString(reportAction))) {
+                return;
+            }
+            Report.openReport(props.route.params.reportID);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [props.isSmallScreenWidth, props.route.params.reportID]);
+
+        // Perform all the loading checks
+        const isLoadingReport = props.isLoadingReportData && isEmptyObjectOrString(props.report?.reportID);
+        const isLoadingReportAction = isEmptyObjectOrString(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObjectOrString(getReportAction()));
+        const shouldHideReport = !isLoadingReport && (isEmptyObjectOrString(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {}));
+
+        if ((isLoadingReport ?? isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
         }
 
-        if (shouldShowNotFoundPage) {
+        // Perform the access/not found checks
+        if (shouldHideReport || isEmptyObjectOrString(reportAction)) {
             return <NotFoundPage />;
-        }
-
-        if (!contentShown.current) {
-            contentShown.current = true;
         }
 
         return (
@@ -64,21 +90,28 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
-
-    return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    })(withReportOrNotFound);
+    return compose(
+        withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
+            },
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+            reportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+                canEvict: false,
+            },
+        }),
+        withWindowDimensions,
+    )(React.forwardRef(WithReportOrNotFound));
 }
