@@ -1,28 +1,29 @@
-import React, {memo, useState} from 'react';
-import {View, ScrollView, ActivityIndicator} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import React, {memo, useState} from 'react';
+import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
-import Icon from '../../Icon';
-import * as Expensicons from '../../Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import compose from '../../../libs/compose';
-import Text from '../../Text';
-import Tooltip from '../../Tooltip';
-import themeColors from '../../../styles/themes/default';
-import variables from '../../../styles/variables';
+import _ from 'underscore';
+import DistanceEReceipt from '@components/DistanceEReceipt';
+import EReceipt from '@components/EReceipt';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import compose from '@libs/compose';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import cursor from '@styles/utilities/cursor';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
-import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
-import DistanceEReceipt from '../../DistanceEReceipt';
-import useNetwork from '../../../hooks/useNetwork';
-import ONYXKEYS from '../../../ONYXKEYS';
-import EReceipt from '../../EReceipt';
+import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -75,6 +76,7 @@ function AttachmentView({
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
+    isUsedInAttachmentModal,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -120,19 +122,26 @@ function AttachmentView({
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        // We need the following View component on android native
+        // So that the event will propagate properly and
+        // the Password protected preview will be shown for pdf attachement we are about to send.
         return (
-            <AttachmentViewPdf
-                source={source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                encryptedSourceUrl={encryptedSourceUrl}
-                isUsedInCarousel={isUsedInCarousel}
-                isFocused={isFocused}
-                onPress={onPress}
-                onScaleChanged={onScaleChanged}
-                onToggleKeyboard={onToggleKeyboard}
-                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-            />
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                <AttachmentViewPdf
+                    source={source}
+                    file={file}
+                    isAuthTokenRequired={isAuthTokenRequired}
+                    encryptedSourceUrl={encryptedSourceUrl}
+                    isUsedInCarousel={isUsedInCarousel}
+                    isFocused={isFocused}
+                    onPress={onPress}
+                    onScaleChanged={onScaleChanged}
+                    onToggleKeyboard={onToggleKeyboard}
+                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                />
+            </View>
         );
     }
 

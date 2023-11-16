@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import SectionList from '../SectionList';
-import styles from '../../styles/styles';
-import optionPropTypes from '../optionPropTypes';
+import optionPropTypes from '@components/optionPropTypes';
+import SectionList from '@components/SectionList';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** option flexStyle for the options list container */
@@ -13,6 +14,9 @@ const propTypes = {
 
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
 
     /** Sections for the section list */
     sections: PropTypes.arrayOf(
@@ -101,6 +105,7 @@ const propTypes = {
 const defaultProps = {
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
+    sectionHeaderStyle: undefined,
     listContainerStyles: [styles.flex1],
     sections: [],
     focusedIndex: 0,

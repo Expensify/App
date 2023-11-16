@@ -83,8 +83,7 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
-    globalNavigationWidth: 72,
-    sideBarWidth: 303 + 72,
+    sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 12,
@@ -174,6 +173,7 @@ export default {
     reportActionImagesSingleImageHeight: 147,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
+    reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
 

@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import FormHelpMessage from './FormHelpMessage';
+import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
-import compose from '../libs/compose';
-import networkPropTypes from './networkPropTypes';
-import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Wrapped child components */

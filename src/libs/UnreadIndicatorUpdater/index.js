@@ -1,9 +1,9 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Navigation from '../Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
+import Navigation from '@navigation/Navigation';
+import _ from 'underscore';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import updateUnread from './updateUnread/index';
-import * as ReportUtils from '../ReportUtils';
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,

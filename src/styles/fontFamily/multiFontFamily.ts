@@ -1,3 +1,5 @@
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import {multiBold} from './bold';
 import FontFamilyStyles from './types';
 
@@ -15,5 +17,11 @@ const fontFamily: FontFamilyStyles = {
     MONOSPACE_BOLD: 'ExpensifyMono-Bold, Segoe UI Emoji, Noto Color Emoji',
     MONOSPACE_BOLD_ITALIC: 'ExpensifyMono-Bold, Segoe UI Emoji, Noto Color Emoji',
 };
+
+if (getOperatingSystem() === CONST.OS.WINDOWS) {
+    Object.keys(fontFamily).forEach((key) => {
+        fontFamily[key as keyof FontFamilyStyles] = fontFamily[key as keyof FontFamilyStyles].replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
+    });
+}
 
 export default fontFamily;

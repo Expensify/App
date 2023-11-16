@@ -1,24 +1,24 @@
+import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Keyboard, PixelRatio} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentCarouselPager from './Pager';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import useCarouselArrows from './useCarouselArrows';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
-import compose from '../../../libs/compose';
-import withLocalize from '../../withLocalize';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselPager from './Pager';
+import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
@@ -27,21 +27,21 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+    const [isReceipt, setIsReceipt] = useState(false);
 
     const compareImage = useCallback(
         (attachment) => {
-            if (attachment.isReceipt) {
-                const action = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
-                return attachment.transactionID === transactionID;
+            if (attachment.isReceipt && isReceipt) {
+                return attachment.transactionID === transaction.transactionID;
             }
             return attachment.source === source;
         },
-        [source, report],
+        [source, isReceipt, transaction],
     );
 
     useEffect(() => {
-        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
+        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -76,6 +76,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
+            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
 
             onNavigate(item);
@@ -167,12 +168,30 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
 }
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
     withLocalize,

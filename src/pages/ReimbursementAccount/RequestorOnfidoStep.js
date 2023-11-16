@@ -1,22 +1,26 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import styles from '../../styles/styles';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Onfido from '../../components/Onfido';
-import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
-import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import StepPropTypes from './StepPropTypes';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import useLocalize from '../../hooks/useLocalize';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Onfido from '@components/Onfido';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import Growl from '@libs/Growl';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {
-    ...StepPropTypes,
+    /** The bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
@@ -79,6 +83,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
 RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
+RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
 export default withOnyx({
     onfidoToken: {

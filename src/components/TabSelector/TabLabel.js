@@ -1,7 +1,7 @@
-import {StyleSheet, View, Text, Animated} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
+import React from 'react';
+import {Animated, StyleSheet, Text, View} from 'react-native';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Title of the tab */

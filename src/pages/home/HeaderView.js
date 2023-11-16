@@ -1,39 +1,41 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
-import ZoomIcon from '../../../assets/images/zoom-icon.svg';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import DisplayNames from '../../components/DisplayNames';
-import Icon from '../../components/Icon';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import MultipleAvatars from '../../components/MultipleAvatars';
-import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import SubscriptAvatar from '../../components/SubscriptAvatar';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
-import Text from '../../components/Text';
-import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import Tooltip from '../../components/Tooltip';
-import participantPropTypes from '../../components/participantPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as HeaderUtils from '../../libs/HeaderUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Link from '../../libs/actions/Link';
-import * as Report from '../../libs/actions/Report';
-import * as Task from '../../libs/actions/Task';
-import compose from '../../libs/compose';
-import * as Session from '../../libs/actions/Session';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import reportPropTypes from '../reportPropTypes';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
+import DisplayNames from '@components/DisplayNames';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
+import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import {getGroupChatName} from '@libs/GroupChatUtils';
+import * as HeaderUtils from '@libs/HeaderUtils';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -80,7 +82,8 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = ReportUtils.isGroupChat(props.report) ? getGroupChatName(props.report) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -182,7 +185,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -201,7 +204,7 @@ function HeaderView(props) {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -269,20 +272,23 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        guideCalendarLink: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) => (account && account.guideCalendarLink) || null,
-            initialValue: null,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(HeaderView);
+export default memo(
+    compose(
+        withWindowDimensions,
+        withLocalize,
+        withOnyx({
+            guideCalendarLink: {
+                key: ONYXKEYS.ACCOUNT,
+                selector: (account) => (account && account.guideCalendarLink) || null,
+                initialValue: null,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+                selector: reportWithoutHasDraftSelector,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(HeaderView),
+);

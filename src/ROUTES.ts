@@ -2,17 +2,15 @@ import {ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
+ * This is a file containing constants for all the routes we want to be able to go to
  */
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
- * Returns an encoded URI component for the backTo param which can be added to the end of URLs
- * @param backTo
- * @returns
+ * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
  */
-function getBackToParam(backTo?: string): string {
-    return backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+function getUrlWithBackToParam(url: string, backTo?: string): string {
+    const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
+    return url + backToParam;
 }
 
 export default {
@@ -30,7 +28,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => `a/${accountID}${getBackToParam(backTo)}`,
+        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -56,7 +54,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
 
     SETTINGS: 'settings',
@@ -108,9 +106,12 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => `settings/profile/personal-details/address/country?country=${country}${getBackToParam(backTo)}`,
+        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
-    SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
+    SETTINGS_CONTACT_METHODS: {
+        route: 'settings/profile/contact-methods',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
+    },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,
@@ -362,17 +363,4 @@ export default {
     SAASTR: 'saastr',
     SBE: 'sbe',
     MONEY2020: 'money2020',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'home',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'expenses',
-    REPORTS_OLDDOT: 'reports',
-    INSIGHTS_OLDDOT: 'insights',
-
-    // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspaces',
-    GROUPS_OLDDOT: 'group_workspaces',
-    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;
