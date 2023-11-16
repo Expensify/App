@@ -37,7 +37,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Permissions from '@libs/Permissions';
+import usePermissions from '@hooks/usePermissions';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
@@ -77,6 +77,7 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -174,7 +175,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
+                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
