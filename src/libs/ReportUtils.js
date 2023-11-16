@@ -11,7 +11,6 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -81,6 +80,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -1922,7 +1940,7 @@ function getModifiedExpenseMessage(reportAction) {
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(getReport(reportID), 'policyID', '');
-    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTags = getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
