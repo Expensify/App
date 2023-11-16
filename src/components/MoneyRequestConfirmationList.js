@@ -543,7 +543,7 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={props.isDistanceRequest ? formError : translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
@@ -687,7 +687,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || !isTypeRequest}
-                            brickRoadIndicator={shouldDisplayFieldError && hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             interactive={!props.isReadOnly}
                         />
                     )}

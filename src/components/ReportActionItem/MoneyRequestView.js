@@ -222,7 +222,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                             brickRoadIndicator={hasErrors && hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={hasErrors && hasRouteError ? 'bankAccount.error.address' : ''}
+                            error={hasErrors && hasRouteError ? translate('bankAccount.error.address') : ''}
                         />
                     </OfflineWithFeedback>
                 ) : (
