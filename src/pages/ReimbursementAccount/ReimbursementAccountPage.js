@@ -569,4 +569,3 @@ export default compose(
     }),
     withPolicy,
 )(ReimbursementAccountPage);
-
