@@ -1278,7 +1278,16 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+
+    // This is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user while offline
+    if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
+        return LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+    }
+
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
     const longName = personalDetails.displayName || formattedLogin;
     const shortName = personalDetails.firstName || longName;
