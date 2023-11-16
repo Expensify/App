@@ -110,7 +110,7 @@ const baseCodeTagStyles = (theme: ThemeColors) =>
         borderWidth: 1,
         borderRadius: 5,
         borderColor: theme.border,
-        backgroundColor: theme.textBackground,
+        backgroundColor: theme.textBackground
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const headlineFont = {
@@ -2705,7 +2705,7 @@ const styles = (theme: ThemeColors) =>
             borderBottomRightRadius: 4,
             paddingRight: 5,
             whiteSpace: 'break-spaces',
-            display: 'flex',
+            justifyContent: 'center',
             ...codeStyles.codeWordWrapper,
         },
 

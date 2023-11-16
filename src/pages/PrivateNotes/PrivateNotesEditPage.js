@@ -92,7 +92,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
     );
 
     const savePrivateNote = () => {
-        console.log('CURRENT PRIVATE NOTE: ', privateNote)
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
         if (privateNote.trim() !== originalNote.trim()) {

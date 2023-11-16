@@ -13,7 +13,7 @@ function InlineCodeBlock(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props.defaultRendererProps}
         >
-            <Text style={{...props.boxModelStyle, ...textStyles, ...styles.codeWordWrapper}}>{props.defaultRendererProps.tnode.data}</Text>
+            <Text style={{...props.boxModelStyle, ...textStyles, ...styles.codeWordWrapper, display: 'inline-block'}}>{props.defaultRendererProps.tnode.data}</Text>
         </TDefaultRenderer>
     );
 }

@@ -2,7 +2,6 @@ import {CodeTextStyles, CodeWordWrapperStyles} from './types';
 
 const codeWordWrapper: CodeWordWrapperStyles = {
     height: 22,
-    justifyContent: 'center',
 };
 
 const codeTextStyle: CodeTextStyles = {
