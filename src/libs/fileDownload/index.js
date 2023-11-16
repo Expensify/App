@@ -1,7 +1,7 @@
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import CONST from '@src/CONST';
 import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 
 /**
