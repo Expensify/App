@@ -5,6 +5,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import ThemeIllustrationsProvider from '@styles/illustrations/ThemeIllustrationsProvider';
 import '../wdyr';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBar from './components/CustomStatusBar';

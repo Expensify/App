@@ -1,5 +1,5 @@
 import {useContext} from 'react';
-import ThemeIllustrationsContext from '@styles/illustrations/ThemeIllustrationsContext';
+import ThemeIllustrationsContext from './ThemeIllustrationsContext';
 
 function useThemeIllustrations() {
     const illustrations = useContext(ThemeIllustrationsContext);
