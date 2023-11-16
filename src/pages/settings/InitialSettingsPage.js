@@ -34,8 +34,8 @@ import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActi
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -130,6 +130,8 @@ const defaultProps = {
 };
 
 function InitialSettingsPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
@@ -333,7 +335,7 @@ function InitialSettingsPage(props) {
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView
-                    backgroundColor={themeColors.appBG}
+                    backgroundColor={theme.appBG}
                     avatarSize={CONST.AVATAR_SIZE.XLARGE}
                 />
             ) : (
@@ -390,7 +392,7 @@ function InitialSettingsPage(props) {
             title={translate('common.settings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
         >
             <View style={styles.w100}>
                 {getMenuItems}
