@@ -255,8 +255,8 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                pendingAction: null, 
-                pendingFields: null
+                pendingAction: null,
+                pendingFields: null,
             },
         },
         {
