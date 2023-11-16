@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import NotFoundPage from './ErrorPage/NotFoundPage';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
