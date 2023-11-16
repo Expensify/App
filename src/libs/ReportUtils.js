@@ -4196,6 +4196,15 @@ function getRoom(type, policyID) {
     const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
 }
+/**
+ *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
+ * @param {Object} report
+ * @param {Object} policy
+ * @return {Boolean}
+ */
+function shouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
+}
 
 export {
     getReportParticipantsTitle,
@@ -4358,4 +4367,5 @@ export {
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    shouldDisableWelcomeMessage,
 };
