@@ -3813,6 +3813,11 @@ const styles = (theme: ThemeColors) =>
             maxWidth: 400,
         },
 
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
