@@ -3329,7 +3329,7 @@ function transactionThreadHasViolations(report) {
         return false;
     }
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    if (!report.parentReportActionID ?? 0) {
+    if (!report.parentReportActionID) {
         return false;
     }
 
