@@ -64,6 +64,7 @@ function App() {
                     EnvironmentProvider,
                     ThemeProvider,
                     ThemeStylesProvider,
+                    ThemeIllustrationsProvider,
                 ]}
             >
                 <CustomStatusBar />
