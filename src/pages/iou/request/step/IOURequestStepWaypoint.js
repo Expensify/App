@@ -21,7 +21,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +50,7 @@ const propTypes = {
             geometry: PropTypes.shape({
                 /** Data about the location */
                 location: PropTypes.shape({
-                    /** Lattitude of the location */
+                    /** Latitude of the location */
                     lat: PropTypes.number,
 
                     /** Longitude of the location */
@@ -73,6 +73,7 @@ function IOURequestStepWaypoint({
     },
     transaction,
 }) {
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
@@ -82,10 +83,12 @@ function IOURequestStepWaypoint({
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const waypointCount = _.keys(allWaypoints).length;
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
 
-    const wayPointDescriptionKey = useMemo(() => {
+    const waypointCount = _.size(allWaypoints);
+    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+
+    const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
@@ -97,10 +100,11 @@ function IOURequestStepWaypoint({
     }, [parsedWaypointIndex, waypointCount]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
-
     // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = totalWaypoints > 2;
+    const shouldShowThreeDotsButton = waypointCount > 2;
+    const shouldDisableEditor =
+        isFocused &&
+        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
     const validate = (values) => {
         const errors = {};
@@ -109,7 +113,7 @@ function IOURequestStepWaypoint({
             ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
         }
 
-        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.errors.selectSuggestedAddress');
@@ -118,15 +122,7 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => {
-        if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, pageIndex, waypoint);
-        } else {
-            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, pageIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, pageIndex - 1, waypoint);
-        }
-    };
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
@@ -181,9 +177,9 @@ function IOURequestStepWaypoint({
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
+            <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={translate(wayPointDescriptionKey)}
+                    title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
@@ -268,6 +264,7 @@ export default compose(
             // that the google autocomplete component expects for it's "predefined places" feature.
             selector: (waypoints) =>
                 _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                    name: waypoint.name,
                     description: waypoint.address,
                     geometry: {
                         location: {
