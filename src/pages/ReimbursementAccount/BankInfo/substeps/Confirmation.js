@@ -3,11 +3,13 @@ import React, {useMemo} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -44,6 +46,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
     const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
     const setupType = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'subStep');
     const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const handleConnectDifferentAccount = () => {
         const bankAccountData = {
@@ -108,11 +111,18 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                     />
                 </View>
                 <View style={[styles.ph5, styles.mtAuto]}>
+                    {error.length > 0 && (
+                        <DotIndicatorMessage
+                            textStyles={[styles.formError]}
+                            type="error"
+                            messages={{0: error}}
+                        />
+                    )}
                     <Button
                         isLoading={isLoading}
                         isDisabled={isLoading}
                         success
-                        style={[styles.w100, styles.pb5]}
+                        style={[styles.w100, styles.pb5, styles.mt2]}
                         onPress={onNext}
                         text={translate('common.confirm')}
                     />

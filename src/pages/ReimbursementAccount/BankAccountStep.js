@@ -21,6 +21,7 @@ import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +65,8 @@ const defaultProps = {
     policyID: '',
 };
 
+const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+
 function BankAccountStep(props) {
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
@@ -76,6 +79,19 @@ function BankAccountStep(props) {
         props.policyID,
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
+
+    const removeExistingBankAccountDetails = () => {
+        const bankAccountData = {
+            [bankInfoStepKeys.ROUTING_NUMBER]: '',
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
+            [bankInfoStepKeys.PLAID_MASK]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.BANK_NAME]: '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+        };
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+    };
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return <BankInfo />;
@@ -138,6 +154,7 @@ function BankAccountStep(props) {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
                                 }
+                                removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
@@ -153,7 +170,10 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => {
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
