@@ -386,11 +386,14 @@ function replaceBaseURLAndUpdateRoomName(reportAction: ReportAction): ReportActi
     if (listMention.length === 1) {
         lastPrefix = ' and ';
     }
+    const preposition = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? 'to' : 'from';
 
     // Base on the html of current action we will replace baseURL placeholder with the current enviromment URL
     // and update the room to the newest room name, the rest will remain the same
-    const linkToRoom = `<a href=${environmentURL}/r/${reportID}>${roomName}</a>`;
-    updatedReportAction.message[0].html = `<muted-text>${verb} ${listMention.join(', ')}${lastPrefix}${lastMention} ${linkToRoom}</muted-text>`;
+    // Example input: <muted-text>invited <mention-user accountID=15916449></mention-user> to <a href=\"%baseURL/r/1269292939621581\" target=\"_blank\">#room-name</a></muted-text>
+    // Example result: <muted-text>invited ... to <a ... href=new.expensify.com/r/1269292939621581>#room-name-newest</a><muted-text>
+    const linkToRoom = `<a target=_blank href=${environmentURL}/r/${reportID}>${roomName}</a>`;
+    updatedReportAction.message[0].html = `<muted-text>${verb} ${listMention.join(', ')}${lastPrefix}${lastMention}${preposition} ${linkToRoom}</muted-text>`;
     updatedReportAction.originalMessage.roomName = roomName;
     return updatedReportAction;
 }
