@@ -325,12 +325,6 @@ function InitialSettingsPage(props) {
         );
     }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
-    // On the very first sign in or after clearing storage these
-    // details will not be present on the first render so we'll just
-    // return nothing for now.
-    if (_.isEmpty(props.currentUserPersonalDetails)) {
-        return null;
-    }
     const headerContent = (
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
