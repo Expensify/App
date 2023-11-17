@@ -120,7 +120,7 @@ class BaseOptionsSelector extends Component {
         this.setState(
             {
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
+                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -151,14 +151,14 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
-        if (_.isNumber(this.props.initialFocusedIndex)) {
-            return this.props.initialFocusedIndex;
+        let defaultIndex;
+        if (this.props.shouldTextInputAppearBelowOptions) {
+            defaultIndex = allOptions.length;
+        } else if (this.props.focusedIndex >= 0) {
+            defaultIndex = this.props.focusedIndex;
+        } else {
+            defaultIndex = this.props.selectedOptions.length;
         }
-
-        if (this.props.selectedOptions.length > 0) {
-            return this.props.selectedOptions.length;
-        }
-        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
         if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
             return defaultIndex;
         }

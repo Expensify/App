@@ -52,18 +52,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryOptions;
     }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
 
-    const initialFocusedIndex = useMemo(() => {
-        let categoryInitialFocusedIndex = 0;
-
-        if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
-            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory);
-
-            categoryInitialFocusedIndex = index === -1 ? 0 : index;
-        }
-
-        return categoryInitialFocusedIndex;
-    }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
-
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
@@ -74,7 +62,8 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            focusedIndex={0}
+            initiallyFocusedOptionKey={lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList')}
             headerMessage={headerMessage}
             shouldShowTextInput={shouldShowTextInput}
             textInputLabel={translate('common.search')}

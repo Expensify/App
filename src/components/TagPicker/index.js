@@ -18,8 +18,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
     const policyTagList = PolicyUtils.getTagList(policyTags, tag);
-    const enabledTags = _.filter(policyTagList, (policyTag) => policyTag.enabled);
-    const policyTagsCount = _.size(enabledTags);
+    const policyTagsCount = _.size(_.filter(policyTagList, (policyTag) => policyTag.enabled));
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
@@ -37,17 +36,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             },
         ];
     }, [selectedTag]);
-
-    const initialFocusedIndex = useMemo(() => {
-        if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(enabledTags)
-                .values()
-                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
-                .value();
-        }
-
-        return 0;
-    }, [enabledTags, selectedOptions, isTagsCountBelowThreshold]);
 
     const sections = useMemo(
         () =>
@@ -70,7 +58,8 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            focusedIndex={0}
+            initiallyFocusedOptionKey={lodashGet(_.filter(lodashGet(sections, '[0].data', []), (policyTag) => policyTag.searchText === selectedTag)[0], 'keyForList')}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
@@ -83,9 +72,9 @@ TagPicker.defaultProps = defaultProps;
 
 export default withOnyx({
     policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}72EBA7BA2835EE2C`,
     },
     policyRecentlyUsedTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}72EBA7BA2835EE2C`,
     },
 })(TagPicker);
