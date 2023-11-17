@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
@@ -74,6 +75,7 @@ const defaultProps = {
 };
 
 function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();

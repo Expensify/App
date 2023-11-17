@@ -15,9 +15,11 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -56,7 +58,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */
@@ -168,6 +170,8 @@ function Composer({
     isComposerFullSize,
     ...props
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
@@ -444,7 +448,8 @@ function Composer({
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
-        [style, maxLines, numberOfLines, isComposerFullSize],
+
+        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, isComposerFullSize],
     );
 
     return (
@@ -452,7 +457,7 @@ function Composer({
             <RNTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
+                placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}

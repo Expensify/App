@@ -29,8 +29,8 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import reportPropTypes from '@pages/reportPropTypes';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -81,6 +81,8 @@ const messageEditInput = 'messageEditInput';
 const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionItemMessageEdit(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -475,7 +477,7 @@ function ReportActionItemMessageEdit(props) {
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
