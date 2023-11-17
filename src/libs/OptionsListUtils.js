@@ -897,7 +897,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 function getTagsOptions(tags) {
     return _.map(tags, (tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = (tag.name || '').replace(/(\\)+/g, '');
+        const tagName = tag?.name?.replace(/(\\)+/g, '');
 
         return {
             text: tagName,
