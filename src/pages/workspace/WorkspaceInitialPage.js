@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -15,17 +15,18 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -37,7 +38,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     ...policyPropTypes,
-    ...withLocalizePropTypes,
 
     /** All reports shared with the user (coming from Onyx) */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -68,6 +68,7 @@ function dismissError(policyID) {
 }
 
 function WorkspaceInitialPage(props) {
+    const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -75,16 +76,46 @@ function WorkspaceInitialPage(props) {
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
 
+    const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
+
+    const policyID = useMemo(() => policy.id, [policy]);
+    const [policyReports, adminsRoom, announceRoom] = useMemo(() => {
+        const reports = [];
+        let admins;
+        let announce;
+        _.each(props.reports, (report) => {
+            if (!report || report.policyID !== policyID) {
+                return;
+            }
+
+            reports.push(report);
+
+            if (!report.reportID || ReportUtils.isThread(report)) {
+                return;
+            }
+
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
+                admins = report;
+                return;
+            }
+
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE) {
+                announce = report;
+            }
+        });
+        return [reports, admins, announce];
+    }, [policyID, props.reports]);
+
     /**
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
-        Policy.deleteWorkspace(policy.id, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [props.reports, policy]);
+    }, [policyID, policy.name, policyReports]);
 
     useEffect(() => {
         const policyDraftId = lodashGet(props.policyDraft, 'id', null);
@@ -108,22 +139,10 @@ function WorkspaceInitialPage(props) {
      * Call update workspace currency and hide the modal
      */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        Policy.updateGeneralSettings(policyID, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policy.id);
-    }, [policy]);
-
-    /**
-     * Navigates to workspace rooms
-     * @param {String} chatType
-     */
-    const goToRoom = useCallback(
-        (type) => {
-            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
-            Navigation.dismissModal(room.reportID);
-        },
-        [props.reports, policy],
-    );
+        ReimbursementAccount.navigateToBankAccountRoute(policyID);
+    }, [policyID, policy.name]);
 
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
@@ -173,29 +192,45 @@ function WorkspaceInitialPage(props) {
             icon: Expensicons.Bank,
             action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))))()
+                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRouteWithoutParams())))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
 
-    const threeDotsMenuItems = [
-        {
-            icon: Expensicons.Trashcan,
-            text: props.translate('workspace.common.delete'),
-            onSelected: () => setIsDeleteModalOpen(true),
-        },
-        {
-            icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
-        },
-        {
-            icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
-        },
-    ];
+    const threeDotsMenuItems = useMemo(() => {
+        const items = [
+            {
+                icon: Expensicons.Trashcan,
+                text: translate('workspace.common.delete'),
+                onSelected: () => setIsDeleteModalOpen(true),
+            },
+        ];
+        if (adminsRoom) {
+            items.push({
+                icon: Expensicons.Hashtag,
+                text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+                onSelected: () => Navigation.dismissModal(adminsRoom.reportID),
+            });
+        }
+        if (announceRoom) {
+            items.push({
+                icon: Expensicons.Hashtag,
+                text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+                onSelected: () => Navigation.dismissModal(announceRoom.reportID),
+            });
+        }
+        return items;
+    }, [adminsRoom, announceRoom, translate]);
+
+    const prevPolicy = usePrevious(policy);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage =
+        _.isEmpty(policy) ||
+        !PolicyUtils.isPolicyAdmin(policy) ||
+        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
+        (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
         <ScreenWrapper
@@ -205,11 +240,11 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={shouldShowNotFoundPage}
                     subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
-                        title={props.translate('workspace.common.workspace')}
+                        title={translate('workspace.common.workspace')}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         singleExecution={singleExecution}
@@ -217,7 +252,7 @@ function WorkspaceInitialPage(props) {
                         shouldDisableThreeDotsButton={isExecuting}
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
@@ -230,13 +265,13 @@ function WorkspaceInitialPage(props) {
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Tooltip text={props.translate('workspace.common.settings')}>
+                                        <Tooltip text={translate('workspace.common.settings')}>
                                             <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
-                                                accessibilityLabel={props.translate('workspace.common.settings')}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                accessibilityLabel={translate('workspace.common.settings')}
+                                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -250,13 +285,13 @@ function WorkspaceInitialPage(props) {
                                             </PressableWithoutFeedback>
                                         </Tooltip>
                                         {!_.isEmpty(policy.name) && (
-                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Tooltip text={translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError || isExecuting}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
-                                                    accessibilityLabel={props.translate('workspace.common.settings')}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                    accessibilityLabel={translate('workspace.common.settings')}
+                                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
                                                     <Text
                                                         numberOfLines={1}
@@ -270,15 +305,15 @@ function WorkspaceInitialPage(props) {
                                     </View>
                                 </View>
                                 {/*
-                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                                */}
+                   Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                   In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
                                         disabled={hasPolicyCreationError || isExecuting}
                                         interactive={!hasPolicyCreationError}
-                                        title={props.translate(item.translationKey)}
+                                        title={translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
                                         onPress={item.action}
@@ -290,23 +325,23 @@ function WorkspaceInitialPage(props) {
                         </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
-                        title={props.translate('workspace.bankAccount.workspaceCurrency')}
+                        title={translate('workspace.bankAccount.workspaceCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
                         onCancel={() => setIsCurrencyModalOpen(false)}
-                        prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
-                        confirmText={props.translate('workspace.bankAccount.updateToUSD')}
-                        cancelText={props.translate('common.cancel')}
+                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={translate('common.cancel')}
                         danger
                     />
                     <ConfirmModal
-                        title={props.translate('workspace.common.delete')}
+                        title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
                         onConfirm={confirmDeleteAndHideModal}
                         onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={props.translate('workspace.common.deleteConfirmation')}
-                        confirmText={props.translate('common.delete')}
-                        cancelText={props.translate('common.cancel')}
+                        prompt={translate('workspace.common.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
                         danger
                     />
                 </FullPageNotFoundView>
@@ -320,9 +355,7 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
-    withLocalize,
     withPolicyAndFullscreenLoading,
-    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

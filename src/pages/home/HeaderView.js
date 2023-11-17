@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -21,14 +21,16 @@ import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
+import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -72,6 +74,8 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const participants = lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -82,7 +86,7 @@ function HeaderView(props) {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.isGroupChat(props.report) ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.isGroupChat(props.report) ? getGroupChatName(props.report) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -91,7 +95,11 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
+    const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy));
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -118,20 +126,21 @@ function HeaderView(props) {
         }
     }
 
-    if (isChatThread && !isEmptyChat) {
+    if ((isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                text: props.translate('common.joinThread'),
+                text: props.translate('common.join'),
                 onSelected: Session.checkIfActionIsAllowed(() =>
                     Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
                 ),
             });
-        } else if (props.report.notificationPreference.length) {
+        } else if ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom) {
+            const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                text: props.translate('common.leaveThread'),
-                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
+                text: props.translate('common.leave'),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
             });
         }
     }
@@ -184,7 +193,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -203,7 +212,7 @@ function HeaderView(props) {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -246,7 +255,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
+                                        fill={theme.danger}
                                     />
                                 </View>
                             )}
@@ -287,6 +296,9 @@ export default memo(
             },
             session: {
                 key: ONYXKEYS.SESSION,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
             },
         }),
     )(HeaderView),

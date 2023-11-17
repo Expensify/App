@@ -3,8 +3,8 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -56,6 +56,7 @@ const defaultProps = {
 };
 
 function Banner(props) {
+    const styles = useThemeStyles();
     return (
         <Hoverable>
             {(isHovered) => {
@@ -98,7 +99,7 @@ function Banner(props) {
                             <Tooltip text={props.translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={props.onClose}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />

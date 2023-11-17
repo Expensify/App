@@ -142,7 +142,7 @@ export default {
                                 exact: true,
                             },
                             Settings_ContactMethods: {
-                                path: ROUTES.SETTINGS_CONTACT_METHODS,
+                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                                 exact: true,
                             },
                             Settings_ContactMethodDetails: {
@@ -420,6 +420,11 @@ export default {
                     SignIn: {
                         screens: {
                             SignIn_Root: ROUTES.SIGN_IN_MODAL,
+                        },
+                    },
+                    Referral: {
+                        screens: {
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
                 },

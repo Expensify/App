@@ -107,6 +107,7 @@ export default {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
+        referral: 'Remisión',
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',
@@ -205,7 +206,7 @@ export default {
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
-        joinThread: 'Unirse al hilo',
+        leave: 'Salir',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
@@ -586,8 +587,7 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
-            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
-            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
+            atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos direcciones diferentes',
             splitBillMultipleParticipantsErrorMessage: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor actualiza tu selección.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
@@ -806,7 +806,6 @@ export default {
         title: 'Notas privadas',
         personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
-        notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
     },
@@ -883,6 +882,7 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
+        cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -1661,6 +1661,7 @@ export default {
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -2392,7 +2393,31 @@ export default {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
     },
-    globalNavigationOptions: {
-        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
+    referralProgram: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
+            buttonText1: 'Inicia un chat y ',
+            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Inicia un chat con una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+            buttonText1: 'Pide dinero, ',
+            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Pide dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+            buttonText1: 'Envía dinero, ',
+            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Envía dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
+            buttonText1: 'Recomienda a un amigo y ',
+            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+        },
+        copyReferralLink: 'Copiar enlace de invitación',
     },
 } satisfies EnglishTranslation;

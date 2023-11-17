@@ -16,7 +16,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +58,7 @@ const addNewContactMethod = (values) => {
 };
 
 function NewContactMethodPage(props) {
+    const styles = useThemeStyles();
     const loginInputRef = useRef(null);
 
     const validate = React.useCallback(
@@ -103,7 +104,7 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
@@ -118,13 +119,13 @@ function NewContactMethodPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType="go"
+                        enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
