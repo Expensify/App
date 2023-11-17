@@ -174,7 +174,7 @@ function MultipleAvatars({
                     >
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
-                                key={`stackedAvatars-${icon.id}`}
+                                key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
                                 fallbackUserDetails={{
