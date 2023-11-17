@@ -2879,6 +2879,9 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    /** <input /> types that will show a virtual keyboard in a mobile browser */
+    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
 } as const;
 
 export default CONST;
