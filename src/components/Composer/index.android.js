@@ -94,7 +94,6 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const [numberOfLines, setNumberOfLines] = useState(1);
     const maxHeightStyle = useMemo(
         () => ({
             maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
@@ -109,10 +108,10 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => setNumberOfLines(ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e))}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             textAlignVertical="center"
-            style={[...props.style, maxHeightStyle]}
+            style={[...props.style, isComposerFullSize ? undefined : maxHeightStyle]}
             readOnly={isDisabled}
         />
     );
