@@ -1,4 +1,6 @@
-import React, {ForwardedRef, useEffect, useRef} from 'react';
+import React, {Component, ForwardedRef, useEffect, useRef} from 'react';
+import {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
@@ -8,17 +10,20 @@ import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes'
 import BaseTextInputProps from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<HTMLFormElement>) {
+function TextInput(
+    {label = '', name = '', textInputContainerStyles, inputStyle, disableKeyboard = false, multiline = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
+    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+) {
     const textInputRef = useRef<HTMLFormElement>(null);
     const removeVisibilityListenerRef = useRef<() => void>(null);
 
     useEffect(() => {
-        if (props.disableKeyboard) {
+        if (disableKeyboard) {
             textInputRef.current?.setAttribute('inputmode', 'none');
         }
 
-        if (props.name) {
-            textInputRef.current?.setAttribute('name', props.name);
+        if (name) {
+            textInputRef.current?.setAttribute('name', name);
         }
         // @ts-expect-error We need to reassign this ref to the input ref
         removeVisibilityListenerRef.current = Visibility.onVisibilityChange(() => {
@@ -38,7 +43,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<HTMLFormElement>
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isLabeledMultiline = Boolean(props.label?.length) && props.multiline;
+    const isLabeledMultiline = Boolean(label?.length) && multiline;
     const labelAnimationStyle = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
@@ -50,7 +55,9 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<HTMLFormElement>
 
     return (
         <BaseTextInput
-            innerRef={(el: HTMLFormElement | null) => {
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={(el) => {
                 // @ts-expect-error We need to reassign this ref to the input ref
                 textInputRef.current = el;
                 if (!ref) {
@@ -65,10 +72,8 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<HTMLFormElement>
                 // eslint-disable-next-line no-param-reassign
                 ref.current = el;
             }}
-            inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle, props.textInputContainerStyles]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, inputStyle]}
+            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, textInputContainerStyles]}
         />
     );
 }

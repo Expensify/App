@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {FlexStyle, GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
+import React from 'react';
+import {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {SrcProps} from '@components/Icon';
+import {LocaleContextProps} from '@components/LocaleContextProvider';
 
 type CustomBaseTextInputProps = {
     /** Input label */
@@ -23,7 +23,7 @@ type CustomBaseTextInputProps = {
     errorText: string | string[] | Record<string, string>;
 
     /** Icon to display in right side of text input */
-    icon: (props: SrcProps) => React.ReactNode;
+    icon: ((props: SrcProps) => React.ReactNode) | null;
 
     /** Customize the TextInput container */
     textInputContainerStyles: StyleProp<ViewStyle & FlexStyle>;
@@ -59,9 +59,6 @@ type CustomBaseTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-
-    /** Forward the inner ref */
-    innerRef?: React.ForwardedRef<Component<AnimatedProps<TextInputProps>, unknown, unknown> | null>;
 
     /** Maximum characters allowed */
     maxLength?: number;
@@ -103,9 +100,9 @@ type CustomBaseTextInputProps = {
     hasError?: boolean;
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
     isLoading?: boolean;
-    translate?: (key: string) => string;
+    autoCompleteType?: string;
 };
 
-type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
+type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps & LocaleContextProps;
 export default BaseTextInputProps;
 export type {CustomBaseTextInputProps};

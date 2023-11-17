@@ -1,12 +1,17 @@
-import React, {forwardRef, useEffect} from 'react';
-import {AppState, Keyboard} from 'react-native';
+import React, {Component, ForwardedRef, forwardRef, useEffect} from 'react';
+import {AppState, Keyboard, TextInputProps} from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import styles from '@styles/styles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
+import BaseTextInputProps from './BaseTextInput/types';
 
-const TextInput = forwardRef((props, ref) => {
+// eslint-disable-next-line react/function-component-definition
+const TextInput = (
+    {inputStyle, disableKeyboard = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
+    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+) => {
     useEffect(() => {
-        if (!props.disableKeyboard) {
+        if (!disableKeyboard) {
             return;
         }
 
@@ -21,8 +26,7 @@ const TextInput = forwardRef((props, ref) => {
         return () => {
             appStateSubscription.remove();
         };
-    }, [props.disableKeyboard]);
-
+    }, [disableKeyboard]);
     return (
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -30,14 +34,14 @@ const TextInput = forwardRef((props, ref) => {
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
-            innerRef={ref}
-            inputStyle={[styles.baseTextInput, ...props.inputStyle]}
+            ref={ref}
+            inputStyle={[styles.baseTextInput, inputStyle]}
         />
     );
-});
+};
 
-TextInput.propTypes = baseTextInputPropTypes.propTypes;
-TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
+// TextInput.propTypes = baseTextInputPropTypes.propTypes;
+// TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 TextInput.displayName = 'TextInput';
 
-export default TextInput;
+export default forwardRef(TextInput);

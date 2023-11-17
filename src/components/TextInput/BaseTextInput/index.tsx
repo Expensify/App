@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {Component, ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     ActivityIndicator,
     Animated,
@@ -11,9 +11,11 @@ import {
     StyleSheet,
     TextInput,
     TextInputFocusEventData,
+    TextInputProps,
     View,
     ViewStyle,
 } from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -35,38 +37,40 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseTextInputProps from './types';
 
-function BaseTextInput({
-    label = '',
-    name = '',
-    value = undefined,
-    defaultValue = undefined,
-    placeholder = '',
-    errorText = '',
-    icon = null,
-    textInputContainerStyles = [],
-    containerStyles = [],
-    inputStyle = [],
-    forceActiveLabel = false,
-    autoFocus = false,
-    disableKeyboard = false,
-    autoGrow = false,
-    autoGrowHeight = false,
-    hideFocusedState = false,
-    innerRef = () => {},
-    maxLength = null,
-    hint = '',
-    shouldSaveDraft = false,
-    onInputChange = () => {},
-    shouldDelayFocus = false,
-    submitOnEnter = false,
-    multiline = false,
-    shouldUseDefaultValue = false,
-    shouldInterceptSwipe = false,
-    autoCorrect = true,
-    prefixCharacter,
-    inputID,
-    ...inputProps
-}: BaseTextInputProps) {
+function BaseTextInput(
+    {
+        label = '',
+        // name = '',
+        value = undefined,
+        defaultValue = undefined,
+        placeholder = '',
+        errorText = '',
+        icon = null,
+        textInputContainerStyles = [],
+        containerStyles = [],
+        inputStyle = [],
+        forceActiveLabel = false,
+        autoFocus = false,
+        disableKeyboard = false,
+        autoGrow = false,
+        autoGrowHeight = false,
+        hideFocusedState = false,
+        maxLength = undefined,
+        hint = '',
+        // shouldSaveDraft = false,
+        onInputChange = () => {},
+        shouldDelayFocus = false,
+        submitOnEnter = false,
+        multiline = false,
+        // shouldUseDefaultValue = false,
+        shouldInterceptSwipe = false,
+        autoCorrect = true,
+        prefixCharacter,
+        inputID,
+        ...inputProps
+    }: BaseTextInputProps,
+    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+) {
     const {hasError = false} = inputProps;
     const initialValue = value ?? defaultValue ?? '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
@@ -137,7 +141,7 @@ function BaseTextInput({
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, forceActiveLabel,prefixCharacter, value]);
+    }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
 
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (inputProps.onFocus) {
@@ -194,7 +198,7 @@ function BaseTextInput({
             isFocused ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
-            isInputAutoFilled(input.current)
+            isInputAutoFilled(input.current as unknown as Element)
         ) {
             activateLabel();
         } else {
@@ -256,7 +260,7 @@ function BaseTextInput({
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
-    const textInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
+    const newTextInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
         autoGrow && StyleUtils.getWidthStyle(textInputWidth),
@@ -298,7 +302,7 @@ function BaseTextInput({
                     accessibilityLabel={label ?? ''}
                     accessible
                     style={[
-                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
+                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
                         containerStyles,
                     ]}
@@ -308,10 +312,10 @@ function BaseTextInput({
                         // or if multiline is not supplied we calculate the textinput height, using onLayout.
                         onLayout={onLayout}
                         style={[
-                            textInputContainerStyles,
+                            newTextInputContainerStyles,
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
-                            autoGrow && !textInputContainerStyles?.minWidth && styles.mnw2,
+                            autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
                         ]}
                     >
                         {hasLabel ? (
@@ -341,15 +345,15 @@ function BaseTextInput({
                                 </View>
                             )}
                             <RNTextInput
-                                ref={(ref) => {
-                                    if (typeof innerRef === 'function') {
-                                        innerRef(ref);
-                                    } else if (innerRef && 'current' in innerRef) {
+                                ref={(el) => {
+                                    if (typeof ref === 'function') {
+                                        ref(el);
+                                    } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        innerRef.current = ref;
+                                        ref.current = el;
                                     }
                                     // @ts-expect-error We need to reassign this ref to the input ref
-                                    input.current = ref;
+                                    input.current = el;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -362,7 +366,7 @@ function BaseTextInput({
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -416,7 +420,7 @@ function BaseTextInput({
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && Boolean(icon) && (
+                            {!inputProps.secureTextEntry && icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}
@@ -427,7 +431,7 @@ function BaseTextInput({
                         </View>
                     </View>
                 </PressableWithoutFeedback>
-                {!inputHelpText && (
+                {!!inputHelpText && (
                     <FormHelpMessage
                         isError={!errorText}
                         message={inputHelpText}
@@ -470,4 +474,4 @@ function BaseTextInput({
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default withLocalize(BaseTextInput);
+export default withLocalize(forwardRef(BaseTextInput));
