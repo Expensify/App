@@ -45,8 +45,10 @@ function ReferralDetailsPage({route, account}) {
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     }
+
     const contentHeader = translate(`referralProgram.${contentType}.header`);
-    const contentBody = translate(`referralProgram.${contentType}.body`);
+    const contentBody = translate(`referralProgram.${contentType}.body1`);
+    const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
 
     function generateReferralURL(email) {
         return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
@@ -70,7 +72,7 @@ function ReferralDetailsPage({route, account}) {
                 />
                 <Text style={[styles.textHeadline, styles.mb3, styles.mt8]}>{contentHeader}</Text>
                 <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
-                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND && (
+                {shouldShowClipboard && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
                         <CopyTextToClipboard
                             text={translate('referralProgram.copyReferralLink')}
@@ -78,6 +80,11 @@ function ReferralDetailsPage({route, account}) {
                             urlToCopy={generateReferralURL(account.primaryLogin)}
                         />
                     </View>
+                )}
+                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE && (
+                    <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>
+                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.body2`)}
+                    </Text>
                 )}
                 <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate('requestorStep.learnMore')}</TextLink>
             </View>

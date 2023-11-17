@@ -100,11 +100,9 @@ class ShareCodePage extends React.Component {
                     <View style={{marginTop: 36}}>
                         <MenuItem
                             isAnonymousAction
-                            // TODO: Use translation with a const
-                            title="Get 250$"
+                            title={this.props.translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                             icon={Expensicons.Cash}
-                            // TODO: Navigate to the Referral Details Page
-                            // onPress={() => Navigation.navigate()}
+                            onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
                         />
 
                         <ContextMenuItem
