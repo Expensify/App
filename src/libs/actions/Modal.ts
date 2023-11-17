@@ -30,8 +30,7 @@ function close(onModalCloseCallback: () => void, isNavigating = true) {
         return;
     }
     onModalClose = onModalCloseCallback;
-    const reverseCloseModals = [...closeModals].reverse();
-    reverseCloseModals.forEach((onClose) => {
+    [...closeModals].reverse().forEach((onClose) => {
         onClose(isNavigating);
     });
 }

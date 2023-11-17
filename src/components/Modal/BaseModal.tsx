@@ -72,7 +72,7 @@ function BaseModal(
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
-        let removeOnCloseListener;
+        let removeOnCloseListener: () => void;
         if (isVisible) {
             Modal.willAlertModalBecomeVisible(true);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
