@@ -1,26 +1,22 @@
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
+import {StyleProp, TextStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import {WithLocalizeProps} from './withLocalize';
 
-const propTypes = {
+type CopyTextToClipboardProps = WithLocalizeProps & {
     /** The text to display and copy to the clipboard */
-    text: PropTypes.string.isRequired,
+    text: string;
 
     /** Styles to apply to the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
+    textStyles?: StyleProp<TextStyle>;
 };
 
-const defaultProps = {
-    textStyles: [],
-};
+function CopyTextToClipboard(props: CopyTextToClipboardProps) {
+    const {translate} = useLocalize();
 
-function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
         Clipboard.setString(props.text);
     }, [props.text]);
@@ -28,17 +24,17 @@ function CopyTextToClipboard(props) {
     return (
         <PressableWithDelayToggle
             text={props.text}
-            tooltipText={props.translate('reportActionContextMenu.copyToClipboard')}
-            tooltipTextChecked={props.translate('reportActionContextMenu.copied')}
+            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
+            tooltipTextChecked={translate('reportActionContextMenu.copied')}
             icon={Expensicons.Copy}
             textStyles={props.textStyles}
             onPress={copyToClipboard}
+            accessible
+            accessibilityLabel={translate('reportActionContextMenu.copyEmailToClipboard')}
         />
     );
 }
 
-CopyTextToClipboard.propTypes = propTypes;
-CopyTextToClipboard.defaultProps = defaultProps;
 CopyTextToClipboard.displayName = 'CopyTextToClipboard';
 
-export default withLocalize(CopyTextToClipboard);
+export default CopyTextToClipboard;
