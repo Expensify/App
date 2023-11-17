@@ -12,6 +12,7 @@ function PressableWithSecondaryInteraction(
         onSecondaryInteraction,
         inline = false,
         needsOffscreenAlphaCompositing = false,
+        suppressHighlighting = false,
         activeOpacity = 1,
         preventDefaultContextMenu,
         withoutFocusOnSecondaryInteraction,
@@ -31,6 +32,7 @@ function PressableWithSecondaryInteraction(
             <Text
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(rest as TextProps)}
+                suppressHighlighting={suppressHighlighting}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             >
                 {children}

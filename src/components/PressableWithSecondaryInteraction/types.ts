@@ -46,6 +46,9 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps &
 
         /** Whether the long press with hover behavior is enabled */
         enableLongPressWithHover?: boolean;
+
+        /** Whether the text has a gray highlights on press down (for IOS only) */
+        suppressHighlighting?: boolean;
     };
 
 export default PressableWithSecondaryInteractionProps;
