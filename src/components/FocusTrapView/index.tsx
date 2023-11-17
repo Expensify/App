@@ -6,13 +6,15 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import FocusTrapViewProps from './types';
 
+const viewRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<View>;
+
 function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus = false, ...props}: FocusTrapViewProps) {
     /**
      * Focus trap always needs a focusable element.
      * In case that we don't have any focusable elements in the modal,
      * the FocusTrap will use fallback View element using this ref.
      */
-    const ref = useRef<HTMLElement>();
+    const ref = useRef<HTMLDivElement>(null);
 
     return isEnabled ? (
         <FocusTrap
@@ -25,7 +27,7 @@ function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus
             }}
         >
             <View
-                ref={ref as unknown as React.RefObject<View>}
+                ref={viewRef(ref)}
                 tabIndex={0}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
