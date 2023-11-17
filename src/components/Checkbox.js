@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -67,6 +67,8 @@ const defaultProps = {
 };
 
 function Checkbox(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const handleSpaceKey = (event) => {
         if (event.code !== 'Space') {
             return;
@@ -93,8 +95,8 @@ function Checkbox(props) {
             ref={props.forwardedRef}
             style={[StyleUtils.getCheckboxPressableStyle(props.containerBorderRadius + 2), props.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-            accessibilityState={{checked: props.isChecked}}
+            role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+            ariaChecked={props.isChecked}
             accessibilityLabel={props.accessibilityLabel}
             pressDimmingValue={1}
         >
@@ -115,7 +117,7 @@ function Checkbox(props) {
                     {props.isChecked && (
                         <Icon
                             src={Expensicons.Checkmark}
-                            fill={themeColors.textLight}
+                            fill={theme.textLight}
                             height={props.caretSize}
                             width={props.caretSize}
                         />

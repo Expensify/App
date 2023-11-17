@@ -10,6 +10,10 @@ type Response = {
     authToken?: string;
     encryptedAuthToken?: string;
     message?: string;
+    shortLivedAuthToken?: string;
+    auth?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    shared_secret?: string;
 };
 
 export default Response;

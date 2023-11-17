@@ -19,7 +19,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +57,7 @@ const defaultProps = {
 };
 
 function MoneyRequestSelectorPage(props) {
+    const styles = useThemeStyles();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
@@ -69,8 +70,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const isFromGlobalCreate = !reportID;
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+    const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;

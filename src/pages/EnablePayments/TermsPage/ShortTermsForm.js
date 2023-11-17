@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const defaultProps = {
 };
 
 function ShortTermsForm(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Text style={styles.mb5}>
