@@ -174,6 +174,7 @@ function MultipleAvatars({
                     >
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
+                                /* eslint-disable-next-line react/no-array-index-key */
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
