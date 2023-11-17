@@ -563,7 +563,6 @@ function MoneyRequestConfirmationList(props) {
         formError,
         styles.ph1,
         styles.mb2,
-        translate,
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
