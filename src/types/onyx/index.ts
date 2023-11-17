@@ -49,6 +49,11 @@ import WalletOnfido from './WalletOnfido';
 import WalletStatement from './WalletStatement';
 import WalletTerms from './WalletTerms';
 import WalletTransfer from './WalletTransfer';
+import {
+    TransactionViolation,
+    ViolationName,
+    ViolationType,
+} from './TransactionViolation';
 
 export type {
     Account,
@@ -102,8 +107,11 @@ export type {
     Session,
     Task,
     Transaction,
+    TransactionViolation,
     User,
     UserWallet,
+    ViolationName,
+    ViolationType,
     WalletAdditionalDetails,
     WalletOnfido,
     WalletStatement,
