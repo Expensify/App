@@ -11,7 +11,7 @@ type SwipeableViewProps = {
     /** Callback to fire when the user swipes up on the child content */
     onSwipeUp?: () => void;
 
-    /** Style for the wrapper View */
+    /** Style for the wrapper View, applied only for the web version. Not used by the native version, as it brakes the layout. */
     style?: StyleProp<ViewStyle>;
 };
 
