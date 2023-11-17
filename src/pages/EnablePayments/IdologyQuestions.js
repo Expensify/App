@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import OfflineIndicator from '@components/OfflineIndicator';
 import RadioButtons from '@components/RadioButtons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
