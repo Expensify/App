@@ -17,7 +17,7 @@ type RadioButtonWithLabelProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Text that appears next to check box */
-    label: string;
+    label?: string;
 
     /** Component to display for label */
     LabelComponent?: ComponentType;
@@ -31,7 +31,7 @@ type RadioButtonWithLabelProps = {
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({LabelComponent, style, label, hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
