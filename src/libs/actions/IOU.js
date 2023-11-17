@@ -2780,7 +2780,7 @@ function markAsDone(chatReport, iouReport) {
         },
     ];
 
-    API.write('MarkAsDone', {iouReportID: iouReport.reportID, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write('MarkMoneyRequestAsDone', {iouReportID: iouReport.reportID, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
