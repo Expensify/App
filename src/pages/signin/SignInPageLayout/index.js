@@ -6,6 +6,7 @@ import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -61,7 +62,7 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
-    const shouldShowSmallScreen = props.shouldUseNarrowLayout;
+    const shouldShowSmallScreen = useResponsiveLayout();
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
