@@ -17,8 +17,8 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +37,8 @@ const propTypes = {
 const initialEmoji = '💬';
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
@@ -126,7 +128,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             childrenContainerStyles={[styles.flex1, styles.pt0]}
             scrollViewContainerStyles={[styles.flex1]}
         >
@@ -174,14 +176,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                         containerStyle={styles.pr2}
                         brickRoadIndicator={brickRoadIndicator}
                     />
-
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
                             titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
-                            iconFill={themeColors.danger}
+                    iconFill={theme.danger}
                             wrapperStyle={[styles.pl2]}
                         />
                     )}

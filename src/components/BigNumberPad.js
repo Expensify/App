@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
@@ -38,6 +38,7 @@ const padNumbers = [
 ];
 
 function BigNumberPad(props) {
+    const styles = useThemeStyles();
     const [timer, setTimer] = useState(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
 import TextInput from './TextInput';
@@ -48,6 +48,7 @@ const defaultProps = {
 };
 
 function AmountTextInput(props) {
+    const styles = useThemeStyles();
     return (
         <TextInput
             disableKeyboard

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -8,50 +7,42 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import getModalStyles from '@styles/getModalStyles';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import {defaultProps as modalDefaultProps, propTypes as modalPropTypes} from './modalPropTypes';
+import BaseModalProps from './types';
 
-const propTypes = {
-    ...modalPropTypes,
-
-    /** The ref to the modal container */
-    forwardedRef: PropTypes.func,
-};
-
-const defaultProps = {
-    ...modalDefaultProps,
-    forwardedRef: () => {},
-};
-
-function BaseModal({
-    isVisible,
-    onClose,
-    shouldSetModalVisibility,
-    onModalHide,
-    type,
-    popoverAnchorPosition,
-    innerContainerStyle,
-    outerStyle,
-    onModalShow,
-    propagateSwipe,
-    fullscreen,
-    animationIn,
-    animationOut,
-    useNativeDriver: useNativeDriverProp,
-    hideModalContentWhileAnimating,
-    animationInTiming,
-    animationOutTiming,
-    statusBarTranslucent,
-    onLayout,
-    avoidKeyboard,
-    forwardedRef,
-    children,
-}) {
+function BaseModal(
+    {
+        isVisible,
+        onClose,
+        shouldSetModalVisibility = true,
+        onModalHide = () => {},
+        type,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
+        outerStyle,
+        onModalShow = () => {},
+        propagateSwipe,
+        fullscreen = true,
+        animationIn,
+        animationOut,
+        useNativeDriver: useNativeDriverProp,
+        hideModalContentWhileAnimating = false,
+        animationInTiming,
+        animationOutTiming,
+        statusBarTranslucent = true,
+        onLayout,
+        avoidKeyboard = false,
+        children,
+    }: BaseModalProps,
+    ref: React.ForwardedRef<View>,
+) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -61,7 +52,7 @@ function BaseModal({
 
     /**
      * Hides modal
-     * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
+     * @param callHideCallback - Should we call the onModalHide callback
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
@@ -113,10 +104,11 @@ function BaseModal({
         onModalShow();
     };
 
-    const handleBackdropPress = (e) => {
-        if (e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+    const handleBackdropPress = (e?: KeyboardEvent) => {
+        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
+
         onClose();
     };
 
@@ -188,7 +180,7 @@ function BaseModal({
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
-            backdropColor={themeColors.overlay}
+            backdropColor={theme.overlay}
             backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
@@ -196,8 +188,8 @@ function BaseModal({
             style={modalStyle}
             deviceHeight={windowHeight}
             deviceWidth={windowWidth}
-            animationIn={animationIn || modalStyleAnimationIn}
-            animationOut={animationOut || modalStyleAnimationOut}
+            animationIn={animationIn ?? modalStyleAnimationIn}
+            animationOut={animationOut ?? modalStyleAnimationOut}
             useNativeDriver={useNativeDriverProp && useNativeDriver}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             animationInTiming={animationInTiming}
@@ -208,7 +200,7 @@ function BaseModal({
         >
             <View
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={forwardedRef}
+                ref={ref}
             >
                 {children}
             </View>
@@ -216,18 +208,6 @@ function BaseModal({
     );
 }
 
-BaseModal.propTypes = propTypes;
-BaseModal.defaultProps = defaultProps;
-BaseModal.displayName = 'BaseModal';
+BaseModal.displayName = 'BaseModalWithRef';
 
-const BaseModalWithRef = forwardRef((props, ref) => (
-    <BaseModal
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-BaseModalWithRef.displayName = 'BaseModalWithRef';
-
-export default BaseModalWithRef;
+export default forwardRef(BaseModal);

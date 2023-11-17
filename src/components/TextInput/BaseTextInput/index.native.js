@@ -16,14 +16,16 @@ import withLocalize from '@components/withLocalize';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
 function BaseTextInput(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
@@ -258,7 +260,7 @@ function BaseTextInput(props) {
                         {hasLabel ? (
                             <>
                                 {/* Adding this background to the label only for multiline text input,
-                                 to prevent text overlapping with label when scrolling */}
+                to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
@@ -295,7 +297,7 @@ function BaseTextInput(props) {
                                 {...inputProps}
                                 autoCorrect={props.secureTextEntry ? false : props.autoCorrect}
                                 placeholder={placeholder}
-                                placeholderTextColor={themeColors.placeholderText}
+                                placeholderTextColor={theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -334,7 +336,7 @@ function BaseTextInput(props) {
                             {props.isLoading && (
                                 <ActivityIndicator
                                     size="small"
-                                    color={themeColors.iconSuccessFill}
+                                    color={theme.iconSuccessFill}
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
@@ -347,7 +349,7 @@ function BaseTextInput(props) {
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                     />
                                 </Checkbox>
                             )}
@@ -355,7 +357,7 @@ function BaseTextInput(props) {
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={props.icon}
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                     />
                                 </View>
                             )}
@@ -370,11 +372,11 @@ function BaseTextInput(props) {
                 )}
             </View>
             {/*
-                 Text input component doesn't support auto grow by default.
-                 We're using a hidden text input to achieve that.
-                 This text view is used to calculate width or height of the input value given textStyle in this component.
-                 This Text component is intentionally positioned out of the screen.
-             */}
+            Text input component doesn't support auto grow by default.
+            We're using a hidden text input to achieve that.
+            This text view is used to calculate width or height of the input value given textStyle in this component.
+            This Text component is intentionally positioned out of the screen.
+        */}
             {(props.autoGrow || props.autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158

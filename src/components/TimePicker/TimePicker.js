@@ -175,10 +175,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         }
 
         setHours(newHour);
+        setSelectionHour({start: newSelection, end: newSelection});
         if (newSelection === 2) {
             focusMinuteInputOnFirstCharacter();
         }
-        setSelectionHour({start: newSelection, end: newSelection});
     };
 
     // This function receive value from minute input and validate it
@@ -287,17 +287,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     );
 
     useEffect(() => {
-        // The first focus event on the input defaults to the end of the text. Subsequent focuses can occur at any position within the text input. Therefore, we need to ensure the hour input is focused correctly.
-        hourInputRef.current.focus();
-
-        setSelectionMinute({start: 2, end: 2});
-        const timer = setTimeout(() => {
-            minuteInputRef.current.focus();
-        }, 10);
-
-        validate();
-        return () => clearTimeout(timer);
-    }, [validate]);
+        // we implement this to ensure the hour input focuses on the first character upon initial focus
+        // https://github.com/facebook/react-native/issues/20214
+        setSelectionHour({start: 0, end: 0});
+    }, []);
 
     const arrowConfig = useMemo(
         () => ({
@@ -309,7 +302,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const arrowLeftCallback = useCallback(() => {
         const isMinuteFocused = minuteInputRef.current.isFocused();
         if (isMinuteFocused && selectionMinute.start === 0) {
-            // hourInputRef.current.focus();
             focusHourInputOnLastCharacter();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

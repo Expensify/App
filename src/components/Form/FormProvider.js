@@ -340,7 +340,7 @@ const FormProvider = forwardRef(({validate, formID, shouldValidateOnBlur, should
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );
