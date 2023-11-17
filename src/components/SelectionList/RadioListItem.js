@@ -1,10 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
 function RadioListItem({item, isFocused = false}) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
             <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>{item.text}</Text>
