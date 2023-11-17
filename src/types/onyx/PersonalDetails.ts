@@ -23,7 +23,7 @@ type PersonalDetails = {
     lastName?: string;
 
     /** Display name of the current user from their personal details */
-    displayName: string;
+    displayName?: string;
 
     /** Is current user validated */
     validated?: boolean;

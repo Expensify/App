@@ -99,16 +99,20 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
         return {firstName: '', lastName: ''};
     }
 
-    const firstSpaceIndex = displayName.indexOf(' ');
-    const lastSpaceIndex = displayName.lastIndexOf(' ');
-    if (firstSpaceIndex === -1) {
-        return {firstName: displayName, lastName: ''};
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
-    return {
-        firstName: displayName.substring(0, firstSpaceIndex).trim(),
-        lastName: displayName.substring(lastSpaceIndex).trim(),
-    };
+    return {firstName: '', lastName: ''};
 }
 
 /**

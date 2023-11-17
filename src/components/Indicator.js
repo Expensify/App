@@ -10,8 +10,8 @@ import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import bankAccountPropTypes from './bankAccountPropTypes';
@@ -63,6 +63,8 @@ const defaultProps = {
 };
 
 function Indicator(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
@@ -89,7 +91,7 @@ function Indicator(props) {
     const shouldShowErrorIndicator = _.some(errorCheckingMethods, (errorCheckingMethod) => errorCheckingMethod());
     const shouldShowInfoIndicator = !shouldShowErrorIndicator && _.some(infoCheckingMethods, (infoCheckingMethod) => infoCheckingMethod());
 
-    const indicatorColor = shouldShowErrorIndicator ? themeColors.danger : themeColors.success;
+    const indicatorColor = shouldShowErrorIndicator ? theme.danger : theme.success;
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />;

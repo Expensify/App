@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /**
@@ -32,6 +32,7 @@ const defaultProps = {
 };
 
 function ReactionTooltipContent(props) {
+    const styles = useThemeStyles();
     const users = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true),
         [props.currentUserPersonalDetails.accountID, props.accountIDs],

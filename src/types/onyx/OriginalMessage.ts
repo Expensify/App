@@ -135,6 +135,11 @@ type ChronosOOOTimestamp = {
     timezone_type: number;
 };
 
+type ChangeLog = {
+    targetAccountIDs?: number[];
+    roomName?: string;
+};
+
 type ChronosOOOEvent = {
     id: string;
     lengthInDays: number;
@@ -163,18 +168,12 @@ type OriginalMessageReportPreview = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessagePolicyTask = {
@@ -213,4 +212,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};

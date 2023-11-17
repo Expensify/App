@@ -14,17 +14,17 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
+import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -399,6 +399,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (value) => (loginList = value),
 });
+
+let allPolicyTags: Record<string, PolicyTags | null> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID: string) {
+    return allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
 
 function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
@@ -1346,18 +1365,22 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
     if (personalDetails.isOptimisticPersonalDetail === true) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return personalDetails.login || '';
+        return formattedLogin;
     }
-    const longName = personalDetails.displayName;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    const longName = personalDetails.displayName ?? formattedLogin;
+
+    const shortName = personalDetails.firstName ?? longName;
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1689,7 +1712,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1711,6 +1734,10 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isReportSettled = isSettled(moneyRequestReport?.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
+    }
 
     if (isAdmin) {
         return true;
@@ -1734,7 +1761,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, repor
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
 
@@ -1952,7 +1979,7 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
     }
     const reportID = reportAction?.reportID ?? '';
     const policyID = getReport(reportID)?.policyID ?? '';
-    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTags = getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = policyTag?.name ?? Localize.translateLocal('common.tag');
 
@@ -4031,6 +4058,44 @@ function isReportDraft(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Return room channel log display message
+ */
+function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): string {
+    const verb =
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
+
+    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map(() => {
+        const personalDetail = allPersonalDetails?.accountID;
+        const displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || (personalDetail?.displayName ?? '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+
+    const lastMention = mentions?.pop();
+    let message = '';
+
+    if (mentions?.length === 0) {
+        message = `${verb} ${lastMention}`;
+    } else if (mentions?.length === 1) {
+        message = `${verb} ${mentions?.[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions?.join(', ')}, and ${lastMention}`;
+    }
+
+    const roomName = (reportAction?.originalMessage as ChangeLog)?.roomName ?? '';
+    if (roomName) {
+        const preposition =
+            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
+    }
+
+    return message;
+}
+
+/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4229,6 +4294,7 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
 };
