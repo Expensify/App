@@ -1,5 +1,5 @@
 ---
-title: Account-Preferences.md
+title: Account Preferences
 description: Preferences
 ---
 
