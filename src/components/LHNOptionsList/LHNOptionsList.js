@@ -152,6 +152,7 @@ function LHNOptionsList({
                 renderItem={renderItem}
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                 extraData={[currentReportID]}
+                showsVerticalScrollIndicator={false}
             />
         </View>
     );
