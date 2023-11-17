@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
@@ -14,7 +14,6 @@ const propTypes = {
 };
 function Enable2FAPrompt(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const secureYourAccountUrl = encodeURI(
         `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
     );
@@ -22,7 +21,7 @@ function Enable2FAPrompt(props) {
     return (
         <Section
             title={props.translate('validationStep.enable2FATitle')}
-            icon={illustrations.ShieldYellow}
+            icon={Illustrations.ShieldYellow}
             menuItems={[
                 {
                     title: props.translate('validationStep.secureYourAccount'),

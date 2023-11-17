@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
@@ -18,14 +18,13 @@ const propTypes = {
 
 function WorkspaceBillsNoVBAView(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     return (
         <>
             <WorkspaceBillsFirstSection policyID={props.policyID} />
 
             <Section
                 title={props.translate('workspace.bills.unlockOnlineBillPayment')}
-                icon={illustrations.LockOpen}
+                icon={Illustrations.LockOpen}
                 containerStyles={[styles.cardSection]}
             >
                 <View style={[styles.mv3]}>

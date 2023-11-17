@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +18,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
@@ -48,7 +48,6 @@ const defaultProps = {
 
 function EnableStep(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
@@ -73,7 +72,7 @@ function EnableStep(props) {
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
-                    icon={!isUsingExpensifyCard ? illustrations.ConciergeNew : illustrations.ThumbsUpStars}
+                    icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                 >
                     <OfflineWithFeedback
                         pendingAction={pendingAction}

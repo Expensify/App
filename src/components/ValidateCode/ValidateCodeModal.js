@@ -6,10 +6,10 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -41,7 +41,6 @@ const defaultProps = {
 function ValidateCodeModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code), [props.accountID, props.code]);
 
     return (
@@ -51,7 +50,7 @@ function ValidateCodeModal(props) {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
-                        src={illustrations.MagicCode}
+                        src={Illustrations.MagicCode}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.title')}</Text>

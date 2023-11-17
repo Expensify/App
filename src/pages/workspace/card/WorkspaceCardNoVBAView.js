@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
@@ -18,11 +18,10 @@ const propTypes = {
 
 function WorkspaceCardNoVBAView(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     return (
         <Section
             title={props.translate('workspace.card.header')}
-            icon={illustrations.CreditCardsNew}
+            icon={Illustrations.CreditCardsNew}
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.card.noVBACopy')}</Text>

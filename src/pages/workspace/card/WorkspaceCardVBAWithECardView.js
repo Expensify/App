@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 
@@ -21,7 +21,6 @@ const MENU_LINKS = {
 
 function WorkspaceCardVBAWithECardView(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const menuItems = [
         {
             title: props.translate('workspace.common.issueAndManageCards'),
@@ -55,7 +54,7 @@ function WorkspaceCardVBAWithECardView(props) {
     return (
         <Section
             title={props.translate('workspace.card.headerWithEcard')}
-            icon={illustrations.CreditCardsNew}
+            icon={Illustrations.CreditCardsNew}
             menuItems={menuItems}
         >
             <View style={[styles.mv3]}>

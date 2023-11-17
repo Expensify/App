@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
@@ -19,7 +19,6 @@ const propTypes = {
 
 function WorkspaceBillsVBAView(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const reportsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`;
 
     return (
@@ -28,7 +27,7 @@ function WorkspaceBillsVBAView(props) {
 
             <Section
                 title={props.translate('workspace.bills.hassleFreeBills')}
-                icon={illustrations.MoneyBadge}
+                icon={Illustrations.MoneyBadge}
                 menuItems={[
                     {
                         title: props.translate('workspace.common.bills'),

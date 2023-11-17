@@ -5,12 +5,12 @@ import {ActivityIndicator, View} from 'react-native';
 import _ from 'underscore';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import networkPropTypes from '@components/networkPropTypes';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
@@ -35,7 +35,6 @@ const propTypes = {
 function WorkspaceReimburseSection(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
@@ -54,7 +53,7 @@ function WorkspaceReimburseSection(props) {
         return (
             <Section
                 title={props.translate('workspace.reimburse.reimburseReceipts')}
-                icon={illustrations.MoneyWings}
+                icon={Illustrations.MoneyWings}
             >
                 <View style={[styles.mv3]}>
                     <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -84,7 +83,7 @@ function WorkspaceReimburseSection(props) {
             {hasVBA ? (
                 <Section
                     title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                    icon={illustrations.TreasureChest}
+                    icon={Illustrations.TreasureChest}
                     menuItems={[
                         {
                             title: props.translate('workspace.reimburse.reimburseReceipts'),
@@ -104,7 +103,7 @@ function WorkspaceReimburseSection(props) {
             ) : (
                 <Section
                     title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                    icon={illustrations.OpenSafe}
+                    icon={Illustrations.OpenSafe}
                 >
                     <View style={[styles.mv3]}>
                         <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>

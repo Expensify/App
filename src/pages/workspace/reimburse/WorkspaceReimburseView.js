@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import networkPropTypes from '@components/networkPropTypes';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,7 +18,6 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
@@ -67,7 +67,6 @@ const defaultProps = {
 
 function WorkspaceReimburseView(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -107,7 +106,7 @@ function WorkspaceReimburseView(props) {
         <>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
-                icon={illustrations.MoneyReceipts}
+                icon={Illustrations.MoneyReceipts}
                 menuItems={[
                     {
                         title: translate('workspace.reimburse.viewAllReceipts'),
@@ -134,7 +133,7 @@ function WorkspaceReimburseView(props) {
 
             <Section
                 title={translate('workspace.reimburse.trackDistance')}
-                icon={illustrations.TrackShoe}
+                icon={Illustrations.TrackShoe}
             >
                 <View style={[styles.mv3]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>

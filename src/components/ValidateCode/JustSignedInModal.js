@@ -3,9 +3,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -20,7 +20,6 @@ const propTypes = {
 function JustSignedInModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -28,7 +27,7 @@ function JustSignedInModal(props) {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={props.is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight}
-                        src={props.is2FARequired ? illustrations.SafeBlue : illustrations.Abracadabra}
+                        src={props.is2FARequired ? Illustrations.SafeBlue : Illustrations.Abracadabra}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>

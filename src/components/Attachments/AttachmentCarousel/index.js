@@ -4,12 +4,12 @@ import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +29,6 @@ const viewabilityConfig = {
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction}) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -166,7 +165,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         >
             {page === -1 ? (
                 <BlockingView
-                    icon={illustrations.ToddBehindCloud}
+                    icon={Illustrations.ToddBehindCloud}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

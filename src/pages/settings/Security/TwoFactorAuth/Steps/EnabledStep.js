@@ -2,11 +2,11 @@ import React, {useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 function EnabledStep() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -27,7 +26,7 @@ function EnabledStep() {
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
-                    icon={illustrations.ShieldYellow}
+                    icon={Illustrations.ShieldYellow}
                     menuItems={[
                         {
                             title: translate('twoFactorAuth.disableTwoFactorAuth'),

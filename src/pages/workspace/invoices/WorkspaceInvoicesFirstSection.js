@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 
@@ -18,14 +18,13 @@ const propTypes = {
 
 function WorkspaceInvoicesFirstSection(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const sendInvoiceUrl = encodeURI('reports?param={"createInvoice":true}');
     const viewAllInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
 
     return (
         <Section
             title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
-            icon={illustrations.InvoiceBlue}
+            icon={Illustrations.InvoiceBlue}
             menuItems={[
                 {
                     title: props.translate('workspace.invoices.sendInvoice'),

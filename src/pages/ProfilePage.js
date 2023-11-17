@@ -14,6 +14,7 @@ import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,7 +29,6 @@ import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -101,7 +101,6 @@ const getPhoneNumber = (details) => {
 
 function ProfilePage(props) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
@@ -267,7 +266,7 @@ function ProfilePage(props) {
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
                 {shouldShowBlockingView && (
                     <BlockingView
-                        icon={illustrations.ToddBehindCloud}
+                        icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}

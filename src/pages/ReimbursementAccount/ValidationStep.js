@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import Form from '@components/Form';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
@@ -20,7 +21,6 @@ import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
@@ -75,7 +75,6 @@ const filterInput = (amount) => {
 
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
     const styles = useThemeStyles();
-    const illustrations = useThemeIllustrations();
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -190,7 +189,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                 <ScrollView style={[styles.flex1]}>
                     <Section
                         title={translate('workspace.bankAccount.letsFinishInChat')}
-                        icon={illustrations.ConciergeBubble}
+                        icon={Illustrations.ConciergeBubble}
                     >
                         <Text>{translate('validationStep.letsChatText')}</Text>
                         <Button
