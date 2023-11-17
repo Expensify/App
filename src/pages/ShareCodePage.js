@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withEnvironment from '@components/withEnvironment';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
@@ -19,7 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import reportPropTypes from './reportPropTypes';
@@ -33,6 +33,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -83,8 +84,8 @@ class ShareCodePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
-                <ScrollView style={[styles.flex1, styles.mt3]}>
-                    <View style={styles.shareCodePage}>
+                <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
+                    <View style={this.props.themeStyles.shareCodePage}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
@@ -136,4 +137,4 @@ ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
+export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails, withThemeStyles)(ShareCodePage);

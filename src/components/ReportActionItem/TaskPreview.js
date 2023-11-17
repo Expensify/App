@@ -7,19 +7,23 @@ import _ from 'underscore';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import refPropTypes from '@components/refPropTypes';
 import RenderHTML from '@components/RenderHTML';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -27,9 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** All personal details asssociated with user */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
-
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
@@ -52,6 +53,16 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
+    /** The chat report associated with taskReport */
+    chatReportID: PropTypes.string.isRequired,
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: refPropTypes,
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
+
+    /* Onyx Props */
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -59,12 +70,13 @@ const propTypes = {
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
-    personalDetailsList: {},
     taskReport: {},
     isHovered: false,
 };
 
 function TaskPreview(props) {
+    const styles = useThemeStyles();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
@@ -73,8 +85,8 @@ function TaskPreview(props) {
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
-    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
-    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');
+    const assigneeDisplayName = lodashGet(personalDetails, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
         taskAssignee && taskAssigneeAccountID !== 0
@@ -90,8 +102,11 @@ function TaskPreview(props) {
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
@@ -130,10 +145,6 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-            initialValue: {},
-        },
-        personalDetailsList: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             initialValue: {},
         },
     }),

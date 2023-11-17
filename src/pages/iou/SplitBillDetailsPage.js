@@ -19,7 +19,7 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,6 +70,7 @@ const defaultProps = {
 };
 
 function SplitBillDetailsPage(props) {
+    const styles = useThemeStyles();
     const {reportID} = props.report;
     const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
@@ -111,10 +112,7 @@ function SplitBillDetailsPage(props) {
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
-                <View
-                    pointerEvents="box-none"
-                    style={[styles.containerWithSpaceBetween]}
-                >
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
                         <MoneyRequestHeaderStatusBar
                             title={translate('iou.receiptStatusTitle')}
