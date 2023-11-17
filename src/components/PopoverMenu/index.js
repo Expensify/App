@@ -9,7 +9,7 @@ import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
@@ -52,7 +52,7 @@ const defaultProps = {
 
 function PopoverMenu(props) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const selectedItemIndex = useRef(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
@@ -96,7 +96,7 @@ function PopoverMenu(props) {
             withoutOverlay={props.withoutOverlay}
             shouldSetModalVisibility={props.shouldSetModalVisibility}
         >
-            <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+            <View style={shouldUseNarrowLayout ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
                 {_.map(props.menuItems, (item, menuIndex) => (
                     <MenuItem

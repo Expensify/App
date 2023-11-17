@@ -20,6 +20,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import WalletSection from '@components/WalletSection';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
@@ -42,7 +43,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -313,7 +315,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
+    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
@@ -492,7 +494,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                         onModalHide={resetSelectedPaymentMethodData}
                     >
                         {!showConfirmDeleteContent ? (
-                            <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                            <View style={[styles.m5, !shouldUseNarrowLayout ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title || ''}
@@ -527,7 +529,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                     hideDefaultDeleteMenu();
                                 }}
                                 onCancel={hideDefaultDeleteMenu}
-                                contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
+                                contentStyles={!shouldUseNarrowLayout ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
                                 title={translate('walletPage.deleteAccount')}
                                 prompt={translate('walletPage.deleteConfirmation')}
                                 confirmText={translate('common.delete')}

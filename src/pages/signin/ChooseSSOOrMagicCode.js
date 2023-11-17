@@ -8,7 +8,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -56,12 +56,12 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <>
             <View>
-                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
                 <Button
                     isDisabled={isOffline}
                     success
@@ -74,7 +74,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                 />
 
                 <View style={[styles.mt5]}>
-                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>
                         {translate('samlSignIn.orContinueWithMagicCode')}
                     </Text>
                 </View>

@@ -15,7 +15,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -73,7 +73,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
 
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
 
@@ -271,12 +271,12 @@ function ReceiptSelector({route, transactionID, iou, report}) {
             >
                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
                 <Text style={[styles.subTextReceiptUpload]}>
-                    {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                    {shouldUseNarrowLayout ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
                         textStyles={[styles.textBlue]}
                     />
-                    {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                    {shouldUseNarrowLayout ? null : translate('receipt.dragReceiptAfterEmail')}
                 </Text>
             </View>
 
@@ -302,7 +302,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     );
 
     return (
-        <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+        <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(shouldUseNarrowLayout)]}>
             {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
             <ReceiptDropUI
                 onDrop={(e) => {

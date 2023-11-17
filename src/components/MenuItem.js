@@ -2,7 +2,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -85,7 +85,7 @@ const defaultProps = {
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [html, setHtml] = React.useState('');
 
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
@@ -171,7 +171,7 @@ const MenuItem = React.forwardRef((props, ref) => {
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
                     onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
-                    onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressIn={() => props.shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [

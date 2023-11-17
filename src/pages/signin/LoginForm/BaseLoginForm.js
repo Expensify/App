@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
@@ -70,9 +71,6 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     isVisible: PropTypes.bool.isRequired,
 
     /** Whether navigation is focused */
@@ -91,7 +89,6 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
-    isInModal: false,
 };
 
 function LoginForm(props) {
@@ -101,6 +98,7 @@ function LoginForm(props) {
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
+    const route = useRoute();
 
     const {translate} = props;
 
@@ -211,7 +209,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.isInModal) {
+        if (_.get(route, 'params.isInRHP', false)) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();

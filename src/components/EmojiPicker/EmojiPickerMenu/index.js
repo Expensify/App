@@ -11,6 +11,7 @@ import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -51,7 +52,8 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -473,7 +475,7 @@ function EmojiPickerMenu(props) {
         <View
             style={[
                 styles.emojiPickerContainer,
-                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout),
                 // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
             ]}

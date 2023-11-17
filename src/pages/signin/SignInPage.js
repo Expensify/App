@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
@@ -68,9 +68,6 @@ const propTypes = {
     /** Active Clients connected to ONYX Database */
     activeClients: PropTypes.arrayOf(PropTypes.string),
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     /** The user's preferred locale */
     preferredLocale: PropTypes.string,
 };
@@ -78,7 +75,6 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    isInModal: false,
     activeClients: [],
     preferredLocale: '',
 };
@@ -135,11 +131,10 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
+function SignInPage({credentials, account, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
@@ -196,12 +191,12 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
         welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
     } else if (shouldShowLoginForm) {
-        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
-        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
+        welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
-            welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             const userLogin = Str.removeSMSDomain(credentials.login || '');
@@ -209,19 +204,19 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = shouldShowSmallScreen
+                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldUseNarrowLayout
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldShowSmallScreen
+                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldUseNarrowLayout
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
-        welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
@@ -238,15 +233,13 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
-                isInModal={isInModal}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
-                    isInModal={isInModal}
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}

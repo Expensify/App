@@ -9,7 +9,7 @@ import withKeyboardState from '@components/withKeyboardState';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -122,8 +122,8 @@ function ComposerWithSuggestions({
     });
     const commentRef = useRef(value);
 
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const parentAction = ReportActionsUtils.getParentReportAction(report);
@@ -148,7 +148,7 @@ function ComposerWithSuggestions({
 
     const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions.length);
 
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+    const isAutoSuggestionPickerLarge = !shouldUseNarrowLayout || (shouldUseNarrowLayout && hasEnoughSpaceForLargeSuggestion);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -333,7 +333,7 @@ function ComposerWithSuggestions({
 
     const triggerHotkeyActions = useCallback(
         (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
 
@@ -363,7 +363,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isKeyboardShown, shouldUseNarrowLayout, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onSelectionChange = useCallback(

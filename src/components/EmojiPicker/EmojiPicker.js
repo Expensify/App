@@ -4,6 +4,7 @@ import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -33,7 +34,8 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Show the emoji picker menu.
@@ -125,7 +127,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             if (!emojiPopoverAnchor.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
-                if (isEmojiPickerVisible && !isSmallScreenWidth) {
+                if (isEmojiPickerVisible && !shouldUseNarrowLayout) {
                     hideEmojiPicker();
                 }
                 return;
@@ -140,7 +142,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

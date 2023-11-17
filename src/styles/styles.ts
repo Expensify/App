@@ -802,10 +802,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        uploadReceiptView: (isSmallScreenWidth: boolean) =>
+        uploadReceiptView: (shouldUseNarrowLayout: boolean) =>
             ({
                 borderRadius: variables.componentBorderRadiusLarge,
-                borderWidth: isSmallScreenWidth ? 0 : 2,
+                borderWidth: shouldUseNarrowLayout ? 0 : 2,
                 borderColor: theme.borderFocus,
                 borderStyle: 'dotted',
                 marginBottom: 20,

@@ -16,7 +16,7 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Permissions from '@libs/Permissions';
@@ -78,7 +78,7 @@ function WorkspaceNewRoomPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -247,7 +247,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </Form>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {shouldUseNarrowLayout && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

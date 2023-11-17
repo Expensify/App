@@ -14,6 +14,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import styles from '@styles/styles';
@@ -42,7 +43,8 @@ const ScreenWrapper = React.forwardRef(
         },
         ref,
     ) => {
-        const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+        const {windowHeight} = useWindowDimensions();
+        const {shouldUseNarrowLayout} = useResponsiveLayout();
         const {initialHeight} = useInitialDimensions();
         const keyboardState = useKeyboardState();
         const {isDevelopment} = useEnvironment();
@@ -159,7 +161,7 @@ const ScreenWrapper = React.forwardRef(
                                                   })
                                                 : children
                                         }
-                                        {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                        {shouldUseNarrowLayout && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>

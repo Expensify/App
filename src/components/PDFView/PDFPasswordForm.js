@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -43,7 +43,7 @@ const defaultProps = {
 
 function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicator, onSubmit, onPasswordUpdated, onPasswordFieldFocused}) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const [password, setPassword] = useState('');
@@ -113,7 +113,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
-            style={styles.getPDFPasswordFormStyle(isSmallScreenWidth)}
+            style={styles.getPDFPasswordFormStyle(shouldUseNarrowLayout)}
             contentContainerStyle={styles.p5}
         >
             <View style={styles.mb4}>

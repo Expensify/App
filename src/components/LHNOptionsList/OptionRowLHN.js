@@ -15,7 +15,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {getGroupChatName} from '@libs/GroupChatUtils';
@@ -73,7 +73,7 @@ function OptionRowLHN(props) {
     const styles = useThemeStyles();
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {translate} = useLocalize();
 
@@ -130,7 +130,7 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
-        if (!isFocusedRef.current && isSmallScreenWidth) {
+        if (!isFocusedRef.current && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);

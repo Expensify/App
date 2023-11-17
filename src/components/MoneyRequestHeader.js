@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -72,7 +73,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
@@ -126,7 +128,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     }}
                     policy={policy}
                     personalDetails={personalDetails}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 />
                 {isPending && (

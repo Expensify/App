@@ -12,7 +12,7 @@ import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -109,7 +109,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     const onCanceled = useRef();
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -313,7 +313,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
-                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
+                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {_.map(menuItemData, (item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}
