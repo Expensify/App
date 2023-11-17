@@ -20,7 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import focusWithDelay from '@libs/focusWithDelay';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -28,8 +28,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import reportPropTypes from '@pages/reportPropTypes';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -80,6 +80,8 @@ const messageEditInput = 'messageEditInput';
 const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionItemMessageEdit(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -181,6 +183,9 @@ function ReportActionItemMessageEdit(props) {
                 });
                 return prevDraft;
             });
+
+            // Scroll content of textInputRef to bottom
+            textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
         }
 
         return () => {
@@ -316,7 +321,7 @@ function ReportActionItemMessageEdit(props) {
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current.blur();
-            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, true, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
@@ -358,7 +363,7 @@ function ReportActionItemMessageEdit(props) {
     /**
      * Focus the composer text input
      */
-    const focus = focusWithDelay(textInputRef.current);
+    const focus = focusComposerWithDelay(textInputRef.current);
 
     return (
         <>
@@ -377,7 +382,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={styles.composerSizeButton}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
@@ -398,7 +403,7 @@ function ReportActionItemMessageEdit(props) {
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;
                             }}
-                            nativeID={messageEditInput}
+                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -432,12 +437,9 @@ function ReportActionItemMessageEdit(props) {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
-                            onModalHide={() => {
-                                setIsFocused(true);
-                                focus(true);
-                            }}
+                            onModalHide={() => focus(true)}
                             onEmojiSelected={addEmojiToTextBox}
-                            nativeID={emojiButtonID}
+                            id={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
                         />
                     </View>
@@ -448,7 +450,7 @@ function ReportActionItemMessageEdit(props) {
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
@@ -457,7 +459,7 @@ function ReportActionItemMessageEdit(props) {
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>

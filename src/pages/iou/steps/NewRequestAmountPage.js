@@ -15,7 +15,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -62,7 +63,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isEditing = lodashGet(route, 'path', '').includes('amount');
+    const isEditing = Navigation.getActiveRoute().includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
@@ -123,7 +124,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         }
 
         // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
@@ -148,6 +149,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
+            selectedTab={selectedTab}
         />
     );
 
