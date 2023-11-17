@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '@components/withToggleVisibilityView';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -26,7 +26,8 @@ import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import Visibility from '@libs/Visibility';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -72,14 +73,14 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    isVisible: PropTypes.bool.isRequired,
+
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
-
-    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -94,22 +95,57 @@ const defaultProps = {
 };
 
 function LoginForm(props) {
+    const styles = useThemeStyles();
     const input = useRef();
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
+    const firstBlurred = useRef(false);
 
     const {translate} = props;
 
     /**
-     * Handle text input and clear formError upon text change
+     * Validate the input value and set the error for formError
+     *
+     * @param {String} value
+     */
+    const validate = useCallback(
+        (value) => {
+            const loginTrim = value.trim();
+            if (!loginTrim) {
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
+                return false;
+            }
+
+            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+                if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                    setFormError('common.error.phoneNumber');
+                } else {
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
+                }
+                return false;
+            }
+
+            setFormError(null);
+            return true;
+        },
+        [setFormError],
+    );
+
+    /**
+     * Handle text input and validate the text input if it is blurred
      *
      * @param {String} text
      */
     const onTextInput = useCallback(
         (text) => {
             setLogin(text);
-            setFormError(null);
+            if (firstBlurred.current) {
+                validate(text);
+            }
 
             if (props.account.errors || props.account.message) {
                 Session.clearAccountMessages();
@@ -120,7 +156,7 @@ function LoginForm(props) {
                 CloseAccount.setDefaultData();
             }
         },
-        [props.account, props.closeAccount, input, setFormError, setLogin],
+        [props.account, props.closeAccount, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
@@ -140,23 +176,17 @@ function LoginForm(props) {
             CloseAccount.setDefaultData();
         }
 
+        // For native, the single input doesn't lost focus when we click outside.
+        // So we need to change firstBlurred here to make the validate function is called whenever the text input is changed after the first validation.
+        if (!firstBlurred.current) {
+            firstBlurred.current = true;
+        }
+
+        if (!validate(login)) {
+            return;
+        }
+
         const loginTrim = login.trim();
-        if (!loginTrim) {
-            setFormError('common.pleaseEnterEmailOrPhoneNumber');
-            return;
-        }
-
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                setFormError('common.error.phoneNumber');
-            } else {
-                setFormError('loginForm.error.invalidFormatEmailLogin');
-            }
-            return;
-        }
 
         // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
         if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
@@ -164,11 +194,12 @@ function LoginForm(props) {
             MemoryOnlyKeys.enable();
         }
 
-        setFormError(null);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.account, props.closeAccount, props.network, setFormError]);
+    }, [login, props.account, props.closeAccount, props.network, validate]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
@@ -221,18 +252,24 @@ function LoginForm(props) {
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
-                    nativeID="username"
+                    id="username"
                     name="username"
+                    onBlur={() => {
+                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                            return;
+                        }
+                        firstBlurred.current = true;
+                        validate(login);
+                    }}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formErrorText}
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
@@ -277,8 +314,12 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <AppleSignIn />
-                                        <GoogleSignIn />
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <AppleSignIn />
+                                        </View>
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <GoogleSignIn />
+                                        </View>
                                     </View>
                                 </View>
                             )

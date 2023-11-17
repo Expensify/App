@@ -1,9 +1,10 @@
 import React from 'react';
 import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import defaultPropTypes from './propTypes';
 
 function BackgroundImage(props) {
+    const styles = useThemeStyles();
     return (
         <AndroidBackgroundImage
             pointerEvents={props.pointerEvents}

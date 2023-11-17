@@ -4,13 +4,13 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +29,8 @@ const defaultProps = {
 };
 
 function SaveTheWorldPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTeacherAlreadyInvited = !_.isUndefined(props.policy) && props.policy.role === CONST.POLICY.ROLE.USER;
 
@@ -36,7 +38,7 @@ function SaveTheWorldPage(props) {
         <IllustratedHeaderPageLayout
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SAVE_THE_WORLD.ROOT]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SAVE_THE_WORLD.ROOT]}
             onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             illustration={LottieAnimations.SaveTheWorld}
         >

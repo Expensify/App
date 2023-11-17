@@ -42,7 +42,7 @@ const useAutoHitSlop = () => {
         },
         [frameSize],
     );
-    return [getHitSlopForSize(frameSize), onLayout];
+    return [getHitSlopForSize(frameSize), onLayout] as const;
 };
 
 export default {
