@@ -192,6 +192,9 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
     if (shouldInitiateSAMLLogin) {
         setHasInitiatedSAMLLogin(true);
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
+    } else if (hasInitiatedSAMLLogin) {
+        // Return early because we're already navigating to a different page
+        return;
     }
 
     let welcomeHeader = '';

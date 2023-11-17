@@ -48,7 +48,7 @@ function SAMLSignInPage({credentials}) {
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
-            if (searchParams.has('error')) {;
+            if (searchParams.has('error')) {
                 Session.setAccountError(searchParams.get('error'));
                 Navigation.navigate(ROUTES.HOME);
             }
