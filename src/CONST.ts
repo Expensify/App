@@ -2887,7 +2887,7 @@ const CONST = {
         TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
         BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
     },
-    
+
     BACK_BUTTON_NATIVE_ID: 'backButton',
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
