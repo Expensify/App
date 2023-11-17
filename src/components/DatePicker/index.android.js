@@ -3,11 +3,12 @@ import {format, parseISO} from 'date-fns';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 const DatePicker = forwardRef(({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) => {
+    const styles = useThemeStyles();
     const ref = useRef();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
