@@ -93,7 +93,7 @@ async function run() {
                 });
             }
 
-            const didVersionChange = newVersionTag ? newVersionTag !== currentChecklistData.tag : false;
+            const didVersionChange = newVersionTag !== currentChecklistData.tag;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
                 newVersionTag,
                 _.pluck(PRList, 'url'),
