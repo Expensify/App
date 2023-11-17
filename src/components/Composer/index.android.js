@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -96,32 +95,24 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
     }, [shouldClear, onClear]);
 
     const [numberOfLines, setNumberOfLines] = useState(1);
-    const heightStyle = useMemo(
-        () =>
-            StyleSheet.create({
-                composerHeight: {
-                    height: numberOfLines * COMPOSER_LINE_HEIGHT,
-                    maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
-                },
-            }).composerHeight,
-        [maxLines, numberOfLines],
+    const maxHeightStyle = useMemo(
+        () => ({
+            maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
+        }),
+        [maxLines],
     );
-
-    const composerStyles = useMemo(() => {
-        StyleSheet.flatten(props.style);
-    }, [props.style]);
 
     return (
         <RNTextInput
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
             onContentSizeChange={(e) => setNumberOfLines(ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e))}
             rejectResponderTermination={false}
             textAlignVertical="center"
-            style={[composerStyles, heightStyle]}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
+            style={[...props.style, maxHeightStyle]}
             readOnly={isDisabled}
         />
     );
