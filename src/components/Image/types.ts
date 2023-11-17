@@ -40,11 +40,6 @@ type ImageOwnProps = {
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;
 
-type DimensionsCacheValue = {
-    width: number;
-    height: number;
-};
-
 type FastImageSource = Omit<ImageURISource, 'cache'> | ImageRequireSource | Source;
 
-export type {ImageOwnProps, ImageOnyxProps, ImageProps, DimensionsCacheValue, FastImageSource};
+export type {ImageOwnProps, ImageOnyxProps, ImageProps, FastImageSource};
