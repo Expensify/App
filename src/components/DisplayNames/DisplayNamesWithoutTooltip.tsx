@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type DisplayNamesWithoutTooltipProps = {
     /** The full title of the DisplayNames component (not split up) */
@@ -15,6 +15,7 @@ type DisplayNamesWithoutTooltipProps = {
 };
 
 function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = ''}: DisplayNamesWithoutTooltipProps) {
+    const styles = useThemeStyles();
     return (
         <Text
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}

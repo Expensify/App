@@ -1,8 +1,8 @@
 import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
@@ -61,6 +61,9 @@ function Checkbox(
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
     const handleSpaceKey = (event?: ReactKeyboardEvent) => {
         if (event?.code !== 'Space') {
             return;
@@ -107,7 +110,7 @@ function Checkbox(
                     {isChecked && (
                         <Icon
                             src={Expensicons.Checkmark}
-                            fill={themeColors.textLight}
+                            fill={theme.textLight}
                             height={caretSize}
                             width={caretSize}
                         />
