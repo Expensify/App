@@ -403,12 +403,21 @@ function AttachmentModal(props) {
         shouldShowThreeDotsButton = isAttachmentReceipt && isModalOpen;
     }
 
+    const handleCloseModal = () => {
+        console.log('duke handle close');
+        if (isOverlayModalVisible) {
+            return;
+        }
+        return closeModal;
+    };
+
     return (
         <>
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={isOverlayModalVisible ? null : closeModal}
+                onClose={handleCloseModal}
+                // onClose={isOverlayModalVisible ? null : closeModal}
                 isVisible={isModalOpen}
                 backgroundColor={theme.componentBG}
                 onModalShow={() => {
@@ -489,7 +498,10 @@ function AttachmentModal(props) {
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
                         onConfirm={deleteAndCloseModal}
-                        onCancel={closeConfirmModal}
+                        onCancel={() => {
+                            console.log('duke oncancel');
+                            closeConfirmModal();
+                        }}
                         prompt={translate('receipt.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}

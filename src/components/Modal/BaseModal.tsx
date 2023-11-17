@@ -1,7 +1,7 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
+import { View } from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -20,12 +20,12 @@ function BaseModal(
         isVisible,
         onClose,
         shouldSetModalVisibility = true,
-        onModalHide = () => {},
+        onModalHide = () => { },
         type,
         popoverAnchorPosition = {},
         innerContainerStyle = {},
         outerStyle,
-        onModalShow = () => {},
+        onModalShow = () => { },
         propagateSwipe,
         fullscreen = true,
         animationIn,
@@ -43,7 +43,7 @@ function BaseModal(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const { windowWidth, windowHeight, isSmallScreenWidth } = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -171,7 +171,11 @@ function BaseModal(
             onBackdropPress={handleBackdropPress}
             // Note: Escape key on web/desktop will trigger onBackButtonPress callback
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={onClose}
+            onBackButtonPress={() => {
+                console.log('duke onBackButtonPress ', type);
+                onClose()
+            }}
+            // onBackButtonPress={onClose}
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
