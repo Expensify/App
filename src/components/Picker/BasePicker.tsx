@@ -1,6 +1,6 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {ForwardedRef, forwardRef, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -177,7 +177,7 @@ function BasePicker(
                             disableHighlight();
                         }),
                     }}
-                    scrollViewRef={context?.scrollViewRef}
+                    scrollViewRef={context?.scrollViewRef as RefObject<ScrollView>}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
             </View>
