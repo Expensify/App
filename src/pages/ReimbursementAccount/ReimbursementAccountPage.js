@@ -9,7 +9,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/TextInput';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -136,6 +136,28 @@ function getStepToOpenFromRouteParams(route) {
     }
 }
 
+/**
+ * @param {String} currentStep
+ * @returns {String}
+ */
+function getRouteForCurrentStep(currentStep) {
+    switch (currentStep) {
+        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+            return ROUTE_NAMES.COMPANY;
+        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+            return ROUTE_NAMES.PERSONAL_INFORMATION;
+        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+            return ROUTE_NAMES.CONTRACT;
+        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+            return ROUTE_NAMES.VALIDATE;
+        case CONST.BANK_ACCOUNT.STEP.ENABLE:
+            return ROUTE_NAMES.ENABLE;
+        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+        default:
+            return ROUTE_NAMES.NEW;
+    }
+}
+
 function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
     /**  
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -145,28 +167,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         next step.
     */
     const achData = lodashGet(reimbursementAccount, 'achData', {});
-
-    /**
-     * @param {String} currentStep
-     * @returns {String}
-     */
-    function getRouteForCurrentStep(currentStep) {
-        switch (currentStep) {
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return ROUTE_NAMES.COMPANY;
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ROUTE_NAMES.PERSONAL_INFORMATION;
-            case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                return ROUTE_NAMES.CONTRACT;
-            case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                return ROUTE_NAMES.VALIDATE;
-            case CONST.BANK_ACCOUNT.STEP.ENABLE:
-                return ROUTE_NAMES.ENABLE;
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            default:
-                return ROUTE_NAMES.NEW;
-        }
-    }
 
     /**
      * @param {Array} fieldNames
