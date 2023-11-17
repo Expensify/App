@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -14,7 +15,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +41,10 @@ const defaultProps = {
     },
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDescriptionPage(props) {
+    const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const onSubmit = (values) => {
@@ -74,7 +78,7 @@ function NewTaskDescriptionPage(props) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={props.task.description}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
