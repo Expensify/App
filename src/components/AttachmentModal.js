@@ -23,7 +23,6 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -362,12 +361,8 @@ function AttachmentModal(props) {
         }
         const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
-        const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-        const isSettled = ReportUtils.isSettled(props.parentReport.reportID);
 
-        const isAdmin = Policy.isAdminOfFreePolicy([props.policy]) && ReportUtils.isExpenseReport(props.parentReport);
-        const isRequestor = ReportUtils.isMoneyRequestReport(props.parentReport) && lodashGet(props.session, 'accountID', null) === parentReportAction.actorAccountID;
-        const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
