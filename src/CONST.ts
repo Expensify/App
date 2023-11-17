@@ -2769,17 +2769,61 @@ const CONST = {
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
+    /**
+     * Acceptable values for the `accessibilityRole` prop on react native components.
+     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
+     */
     ACCESSIBILITY_ROLE: {
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         BUTTON: 'button',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         LINK: 'link',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         MENUITEM: 'menuitem',
-        TEXT: 'presentation',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXT: 'text',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         RADIO: 'radio',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         IMAGEBUTTON: 'img button',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         CHECKBOX: 'checkbox',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         SWITCH: 'switch',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         ADJUSTABLE: 'slider',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         IMAGE: 'img',
+    },
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
