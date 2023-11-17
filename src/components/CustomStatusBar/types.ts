@@ -1,3 +1,6 @@
-type CustomStatusBar = () => React.ReactNode;
+type CustomStatusBar = {
+    (): React.ReactNode;
+    displayName?: string;
+};
 
 export default CustomStatusBar;

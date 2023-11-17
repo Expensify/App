@@ -10,4 +10,6 @@ const CustomStatusBar: CustomStatusBarType = () =>
     // MainActivity.java and styles.xml.
     null;
 
+CustomStatusBar.displayName = 'CustomStatusBar';
+
 export default CustomStatusBar;
