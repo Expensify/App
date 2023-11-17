@@ -13,7 +13,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes}
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +38,7 @@ const INPUT_IDS = {
 };
 
 function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '💬');
     const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
@@ -66,7 +67,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             <InputWrapper
                                 InputComponent={EmojiPickerButtonDropdown}
                                 inputID={INPUT_IDS.EMOJI_CODE}
-                                accessibilityLabel={INPUT_IDS.EMOJI_CODE}
+                                aria-label={INPUT_IDS.EMOJI_CODE}
                                 defaultValue={defaultEmoji}
                             />
                         </View>
@@ -74,8 +75,8 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={INPUT_IDS.STATUS_TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                             autoFocus

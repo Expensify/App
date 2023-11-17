@@ -6,6 +6,7 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
@@ -17,6 +18,7 @@ import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
 import {ThemeColors} from './themes/types';
@@ -181,7 +183,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: fontFamily.MONOSPACE,
-                fontSize: 13,
+                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -326,8 +328,12 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
+
+        verticalAlignTop: {
+            verticalAlign: 'top',
         },
 
         label: {
@@ -382,10 +388,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -405,11 +407,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        textItalic: {
-            fontFamily: fontFamily.EXP_NEUE_ITALIC,
-            fontStyle: 'italic',
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -426,20 +423,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeh1,
         },
 
-        textDecorationNoLine: {
-            textDecorationLine: 'none',
-        },
-
         textWhite: {
             color: theme.textLight,
         },
 
         textBlue: {
             color: theme.link,
-        },
-
-        textUppercase: {
-            textTransform: 'uppercase',
         },
 
         textNoWrap: {
@@ -1050,7 +1039,7 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
             paddingTop: 10,
             paddingBottom: 10,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         textInputPrefixWrapper: {
@@ -1069,7 +1058,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         pickerContainer: {
@@ -1343,7 +1332,7 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButtonContainer: {
             position: 'absolute',
-            left: 16,
+            right: 20,
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
@@ -1352,8 +1341,8 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -1651,7 +1640,7 @@ const styles = (theme: ThemeColors) =>
 
         chatContentScrollView: {
             flexGrow: 1,
-            justifyContent: 'flex-start',
+            justifyContent: 'flex-end',
             paddingBottom: 16,
         },
 
@@ -1795,13 +1784,13 @@ const styles = (theme: ThemeColors) =>
                 ...overflowXHidden,
 
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-                // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+                // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
                 paddingHorizontal: variables.avatarChatSpacing,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
             },
             0,
         ),
@@ -1810,7 +1799,7 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'stretch',
             flex: 1,
             maxHeight: '100%',
-            textAlignVertical: 'top',
+            verticalAlign: 'top',
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2140,6 +2129,8 @@ const styles = (theme: ThemeColors) =>
         pointerEventsNone,
 
         pointerEventsAuto,
+
+        pointerEventsBoxNone,
 
         headerBar: {
             overflow: 'hidden',
@@ -2477,7 +2468,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: [{rotate: '180deg'}],
+            transform: `rotate(180deg)`,
         },
 
         navigationScreenCardStyle: {
@@ -2567,7 +2558,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -2668,7 +2659,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
             marginBottom: 0,
         },
 
@@ -2778,7 +2770,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            shadowColor: theme.shadow,
+            boxShadow: `${theme.shadow}`,
             ...spacing.p5,
         },
 
@@ -2877,7 +2869,7 @@ const styles = (theme: ThemeColors) =>
             },
             text: {
                 color: theme.textSupporting,
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
                 fontSize: variables.fontSizeLabel,
             },
             errorDot: {
@@ -3218,11 +3210,11 @@ const styles = (theme: ThemeColors) =>
         miniQuickEmojiReactionText: {
             fontSize: 15,
             lineHeight: 20,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         emojiReactionBubbleText: {
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         reactionCounterText: {
@@ -3420,7 +3412,6 @@ const styles = (theme: ThemeColors) =>
 
         linkPreviewImage: {
             flex: 1,
-            resizeMode: 'contain',
             borderRadius: 8,
             marginTop: 8,
         },
@@ -3788,7 +3779,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: [{rotate: '90deg'}],
+            transform: 'rotate(90deg)',
         },
 
         emojiStatusLHN: {
@@ -3821,6 +3812,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
         },
 
         mapViewContainer: {
@@ -3907,34 +3903,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
-        globalNavigation: {
-            width: variables.globalNavigationWidth,
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationMenuContainer: {
-            marginTop: 13,
-        },
-
-        globalAndSubNavigationContainer: {
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationSelectionIndicator: (isFocused: boolean) => ({
-            width: 4,
-            height: 52,
-            borderTopRightRadius: variables.componentBorderRadiusRounded,
-            borderBottomRightRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
-        }),
-
-        globalNavigationMenuItem: (isFocused: boolean) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
-
-        globalNavigationItemContainer: {
-            width: variables.globalNavigationWidth,
-            height: variables.globalNavigationWidth,
-        },
-
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -3994,12 +3962,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,

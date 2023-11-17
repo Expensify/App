@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
 type UnorderedListProps = {
@@ -9,6 +9,8 @@ type UnorderedListProps = {
 };
 
 function UnorderedList({items = []}: UnorderedListProps) {
+    const styles = useThemeStyles();
+
     return items.map((itemText) => (
         <View
             key={itemText}

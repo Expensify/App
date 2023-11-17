@@ -5,7 +5,7 @@ description: Learn more about your pay-per-use subscription.
 # Overview
 Pay-per-use is a billing option for people who prefer to use Expensify month to month or on an as-needed basis. On a pay-per-use subscription, you will only pay for active users in that given month. 
 
-**We recommend this billing setup for companies that use Expensify a few months out of the year**. If you have expenses to manage for more than 6 out of 12 months, an [**Annual Subscription**](https://help.expensify.com/articles/expensify-classic/billing-and-subscriptions/Annual-Subscription#gsc.tab=0)  may better suit your needs. 
+**We recommend this billing setup for companies that use Expensify a few months out of the year**. If you have expenses to manage for more than 6 out of 12 months, an [**Annual Subscription**](https://help.expensify.com/articles/expensify-classic/billing-and-subscriptions/Annual-Subscription)  may better suit your needs. 
 
 # How to start a pay-per-use subscription 
 1. Create a Group Workspace if you haven’t already by going to **Settings > Workspaces > Group > New Workspace** 
