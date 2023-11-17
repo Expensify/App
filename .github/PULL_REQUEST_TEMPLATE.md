@@ -94,17 +94,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
 - [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
-- [ ] If a new component is created I verified that:
-    - [ ] A similar component doesn't exist in the codebase
-    - [ ] All props are defined accurately and each prop has a `/** comment above it */`
-    - [ ] The file is named correctly
-    - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
-    - [ ] The only data being stored in the state is data necessary for rendering and nothing else
-    - [ ] If we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes
-    - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
-    - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
-    - [ ] All JSX used for rendering exists in the render method
-    - [ ] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
 - [ ] If any new file was added I verified that:
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
 - [ ] If a new CSS style is added I verified that:
@@ -116,7 +105,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
-- [ ] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.
 
 ### Screenshots/Videos
 <details>
