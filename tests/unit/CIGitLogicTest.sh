@@ -165,6 +165,7 @@ function cherry_pick_pr {
 
 function tag_staging {
   info "Tagging new version from the staging branch..."
+  checkout_repo
   setup_git_as_osbotify
   if ! git rev-parse --verify staging 2>/dev/null; then
     git fetch origin staging --depth=1
@@ -383,6 +384,42 @@ assert_prs_merged_between '1.0.0-2' '1.0.1-4' '[ 2, 5, 6, 7, 9 ]'
 assert_prs_merged_between '1.0.1-4' '1.0.2-0' '[ 8, 10 ]'
 
 success "Scenario #6 completed successfully!"
+
+title "Scenario #7: Force-pushing to a branch after rebasing older commits"
+
+create_basic_pr 11
+git push origin pr-11
+
+create_basic_pr 12
+merge_pr 12
+deploy_staging
+
+# Verify PRs for checklist
+assert_prs_merged_between '1.0.1-4' '1.0.2-1' '[ 8, 10, 12 ]'
+
+# Verify PRs for deploy comments
+assert_prs_merged_between '1.0.2-0' '1.0.2-1' '[ 12 ]'
+
+info "Rebasing PR #11 onto main and merging it..."
+checkout_repo
+setup_git_as_human
+git fetch origin pr-11
+git switch pr-11
+git rebase main -Xours
+git push --force origin pr-11
+merge_pr 11
+success "Rebased PR #11 and merged it to main..."
+
+deploy_production
+
+# Verify PRs for deploy comments / release
+assert_prs_merged_between '1.0.1-4' '1.0.2-1' '[ 8, 10, 12 ]'
+
+# Verify PRs for new checklist
+assert_prs_merged_between '1.0.2-1' '1.0.3-0' '[ 11 ]'
+
+success "Scenario #7 complete!"
+
 
 ### Cleanup
 title "Cleaning up..."
