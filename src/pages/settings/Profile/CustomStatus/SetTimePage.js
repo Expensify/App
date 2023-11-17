@@ -12,7 +12,7 @@ import * as User from '@libs/actions/User';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -22,6 +22,8 @@ const propTypes = {
 
 function SetTimePage({translate, privatePersonalDetails, customStatus}) {
     usePrivatePersonalDetails();
+
+    const styles = useThemeStyles();
     const clearAfter = lodashGet(customStatus, 'clearAfter', '');
 
     const onSubmit = (time) => {

@@ -19,10 +19,10 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import styles from '@src/styles/styles';
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -86,6 +86,7 @@ const useValidateCustomDate = (data) => {
 };
 
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
+    const styles = useThemeStyles();
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');

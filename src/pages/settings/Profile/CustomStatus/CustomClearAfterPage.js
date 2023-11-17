@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,7 +11,7 @@ import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -21,6 +20,7 @@ const propTypes = {
 };
 
 function CustomClearAfterPage({translate, customStatus}) {
+    const styles = useThemeStyles();
     const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
     const onSubmit = (v) => {
@@ -62,7 +62,7 @@ function CustomClearAfterPage({translate, customStatus}) {
                     inputID="dateTime"
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
-                    minDate={moment().toDate()}
+                    minDate={new Date()}
                 />
             </FormProvider>
         </ScreenWrapper>

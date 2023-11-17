@@ -182,7 +182,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                             titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
-                    iconFill={theme.danger}
+                            iconFill={theme.danger}
                             wrapperStyle={[styles.pl2]}
                         />
                     )}
