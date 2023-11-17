@@ -1443,7 +1443,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         rightLabelMenuItem: {
-            width: 65,
+            width: 'auto',
         },
 
         popoverMenuText: {
