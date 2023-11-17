@@ -25,18 +25,18 @@ const logoComponents = {
     [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };
 
-function ExpensifyWordmark({isSmallScreenWidth, style = {}}: ExpensifyWordmarkProps) {
+function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
-    const LogoComponent = (environment && logoComponents[environment]) ?? AdHocLogo;
+    const LogoComponent = environment ? logoComponents[environment] : AdHocLogo;
 
     return (
         <>
             <View
                 style={[
-                    StyleUtils.getSignInWordmarkWidthStyle(environment ?? '', isSmallScreenWidth),
+                    StyleUtils.getSignInWordmarkWidthStyle(environment, isSmallScreenWidth),
                     StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
                     isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
                     style,
