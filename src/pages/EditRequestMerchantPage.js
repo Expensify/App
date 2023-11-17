@@ -57,7 +57,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         defaultValue={defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         ref={(e) => (merchantInputRef.current = e)}
                     />
                 </View>

@@ -47,7 +47,7 @@ const DatePicker = forwardRef(({value, defaultValue, label, placeholder, errorTe
             <TextInput
                 label={label}
                 accessibilityLabel={label}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 value={dateAsText}
                 forceActiveLabel
                 placeholder={placeholder}

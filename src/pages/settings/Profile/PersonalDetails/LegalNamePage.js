@@ -104,7 +104,7 @@ function LegalNamePage(props) {
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
                             aria-label={props.translate('privatePersonalDetails.legalFirstName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalFirstName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
@@ -117,7 +117,7 @@ function LegalNamePage(props) {
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
                             aria-label={props.translate('privatePersonalDetails.legalLastName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalLastName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}

@@ -98,25 +98,25 @@ function BankAccountManualStep(props) {
                     style={[styles.exampleCheckImage, styles.mb5]}
                     source={exampleCheckImage(preferredLocale)}
                 />
-                <TextInput
+                <TextInput accessibilityLabel="Text input field"
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
                     aria-label={translate('bankAccount.routingNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <TextInput
+                <TextInput accessibilityLabel="Text input field"
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
                     aria-label={translate('bankAccount.accountNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
