@@ -151,7 +151,7 @@ function SuggestionMention({
 
             const filteredPersonalDetails = _.filter(_.values(personalDetailsParam), (detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
-                if (!detail.login) {
+                if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
                 if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {

@@ -27,8 +27,8 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -68,6 +68,8 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const participants = lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
     const isMultipleParticipant = participants.length > 1;
@@ -242,7 +244,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
+                                        fill={theme.danger}
                                     />
                                 </View>
                             )}

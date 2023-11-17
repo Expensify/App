@@ -25,7 +25,7 @@ import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -104,6 +104,7 @@ function ReportActionCompose({
     shouldShowComposeInput,
     isReportReadyForDisplay,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const actionButtonRef = useRef(null);

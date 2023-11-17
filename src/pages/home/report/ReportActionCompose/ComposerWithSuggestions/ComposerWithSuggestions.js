@@ -33,8 +33,8 @@ import SendButton from '@pages/home/report/ReportActionCompose/SendButton';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -112,6 +112,8 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -566,7 +568,7 @@ function ComposerWithSuggestions({
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
-                    placeholderTextColor={themeColors.placeholderText}
+                    placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"

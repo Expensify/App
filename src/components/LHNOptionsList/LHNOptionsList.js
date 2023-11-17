@@ -10,7 +10,7 @@ import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +64,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    style: styles.flex1,
+    style: undefined,
     shouldDisableFocusOptions: false,
     reportActions: {},
     reports: {},
@@ -92,6 +92,7 @@ function LHNOptionsList({
     draftComments,
     currentReportID,
 }) {
+    const styles = useThemeStyles();
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -156,7 +157,7 @@ function LHNOptionsList({
     );
 
     return (
-        <View style={style}>
+        <View style={style || styles.flex1}>
             <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
