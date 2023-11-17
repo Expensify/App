@@ -71,7 +71,7 @@ function getAccountIDsByLogins(logins) {
                 return detail.login === login;
             });
             if (!currentDetail) {
-                // If the account login match login and the account login is undefined, we check if account display name matches login
+                // If the account login does not match login and the account login is undefined, we check if account display name matches login
                 const currentDetailWithNoLogin = _.find(personalDetails, (detail) => detail.displayName === login);
                 if (isUserWithNoLogin && currentDetailWithNoLogin) {
                     foundAccountIDs.push(Number(currentDetailWithNoLogin.accountID));

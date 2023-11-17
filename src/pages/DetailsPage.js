@@ -87,6 +87,7 @@ const getPhoneNumber = (details) => {
 function DetailsPage(props) {
     const login = lodashGet(props.route.params, 'login', '');
     let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
+
     if (!details) {
         if (login === CONST.EMAIL.CONCIERGE) {
             details = {
