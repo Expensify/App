@@ -331,6 +331,16 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 }
 
 /**
+ * Determine whether a transaction is made with a card.
+ */
+function isCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
+    }
+    return transaction.cardID > 0;
+}
+
+/**
  * Check if the transaction status is set to Pending.
  */
 function isPending(transaction: Transaction): boolean {
@@ -475,6 +485,7 @@ export {
     getValidWaypoints,
     isDistanceRequest,
     isExpensifyCardTransaction,
+    isCardTransaction,
     isPending,
     isPosted,
     getWaypoints,

@@ -99,13 +99,13 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
-    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const canEditAmount = canEdit && !isSettled && !isExpensifyCardTransaction;
+    const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -121,7 +121,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    if (isExpensifyCardTransaction) {
+    if (isCardTransaction) {
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
@@ -261,7 +261,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         />
                     </OfflineWithFeedback>
                 )}
-                {isExpensifyCardTransaction && (
+                {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
