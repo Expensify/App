@@ -71,7 +71,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
     };
 
     return (
-        <AutoCompleteSuggestions<SimpleEmoji>
+        <AutoCompleteSuggestions
             suggestions={emojis}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}

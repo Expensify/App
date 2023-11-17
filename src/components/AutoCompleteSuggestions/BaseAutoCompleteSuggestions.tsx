@@ -16,6 +16,8 @@ type RenderSuggestionMenuItemProps<TSuggestion> = {
 
 type GetItemLayout<TSuggestion> = FlatListProps<TSuggestion>['getItemLayout'];
 
+const viewForwardedRef = (ref: ForwardedRef<Animated.View | HTMLDivElement>) => ref as ForwardedRef<Animated.View>;
+
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
         if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
@@ -96,7 +98,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
     return (
         <Animated.View
-            ref={ref as ForwardedRef<Animated.View>}
+            ref={viewForwardedRef(ref)}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >

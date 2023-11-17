@@ -105,7 +105,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
     };
 
     return (
-        <AutoCompleteSuggestions<Mention>
+        <AutoCompleteSuggestions
             suggestions={mentions}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}
