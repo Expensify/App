@@ -456,7 +456,8 @@ function getMoneyRequestInformation(
     }
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
-    const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport) || ReportUtils.isReportApproved(ReportUtils.getReport(chatReport.iouReportID));
+    const isNewIOUReport =
+        !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport) || ReportUtils.isReportApproved(ReportUtils.getReport(chatReport.iouReportID));
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     if (iouReport) {
