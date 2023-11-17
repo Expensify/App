@@ -1,3 +1,7 @@
-import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
+import GetNavigationModalCardStyles from './types';
 
-export default getBaseNavigationModalCardStyles;
+const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
+    height: '100%',
+});
+
+export default getNavigationModalCardStyles;

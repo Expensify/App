@@ -1,10 +1,10 @@
-import React, {useEffect, useCallback, useRef, useMemo} from 'react';
-import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
-import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import RNTextInput from '@components/RNTextInput';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -97,11 +97,13 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
      * @return {Number}
      */
     const maxNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) return 1000000;
+        if (isComposerFullSize) {
+            return 1000000;
+        }
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const styles = useMemo(() => {
+    const composerStyles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -112,16 +114,16 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
-            textAlignVertical="center"
             // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
             // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
             // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
             // TODO: remove this comment once upstream PR is merged and available in a future release
             maxNumberOfLines={maxNumberOfLines}
-            style={styles}
+            textAlignVertical="center"
+            style={[composerStyles]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            editable={!isDisabled}
+            readOnly={isDisabled}
         />
     );
 }
@@ -129,10 +131,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;

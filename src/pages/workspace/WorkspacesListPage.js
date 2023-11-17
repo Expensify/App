@@ -1,35 +1,34 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import MenuItem from '../../components/MenuItem';
-import * as Policy from '../../libs/actions/Policy';
-import policyMemberPropType from '../policyMemberPropType';
-import Button from '../../components/Button';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import Button from '@components/Button';
+import FeatureList from '@components/FeatureList';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as App from '@userActions/App';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import * as App from '../../libs/actions/App';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import usePermissions from '../../hooks/usePermissions';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
-import SCREENS from '../../SCREENS';
-import * as LottieAnimations from '../../components/LottieAnimations';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import FeatureList from '../../components/FeatureList';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -109,10 +108,11 @@ function dismissWorkspaceError(policyID, pendingAction) {
 }
 
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -170,8 +170,8 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconFill: themeColors.textLight,
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy.pendingAction,
@@ -181,11 +181,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
             illustration={LottieAnimations.WorkspacePlanet}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.workspaces')}
@@ -194,7 +194,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
+                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                 />
             }
         >
@@ -213,6 +213,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
 WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
+WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
     withPolicyAndFullscreenLoading,

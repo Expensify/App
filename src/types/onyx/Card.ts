@@ -1,32 +1,37 @@
-type AdditionalData = {
-    isBillingCard?: boolean;
-    isP2PDebitCard?: boolean;
-};
-
-type AccountData = {
-    additionalData?: AdditionalData;
-    addressName?: string;
-    addressState?: string;
-    addressStreet?: string;
-    addressZip?: number;
-    cardMonth?: number;
-
-    /** The masked credit card number */
-    cardNumber?: string;
-
-    cardYear?: number;
-    created?: string;
-    currency?: string;
-    fundID?: number;
-};
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
+import * as OnyxCommon from './OnyxCommon';
 
 type Card = {
-    accountData?: AccountData;
-    accountType?: string;
-    description?: string;
-    key?: string;
-    methodID?: number;
-    title?: string;
+    cardID: number;
+    state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
+    bank: string;
+    availableSpend: number;
+    domainName: string;
+    maskedPan?: string; // do not reference, removing as part of Expensify/App#27943
+    lastFourPAN?: string;
+    cardName: string;
+    isVirtual: boolean;
+    fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
+    cardholderFirstName: string;
+    cardholderLastName: string;
+    errors?: OnyxCommon.Errors;
+    isLoading?: boolean;
+};
+
+type TCardDetails = {
+    pan: string;
+    expiration: string;
+    cvv: string;
+    address: {
+        street: string;
+        street2: string;
+        city: string;
+        state: string;
+        zip: string;
+        country: string;
+    };
 };
 
 export default Card;
+export type {TCardDetails};

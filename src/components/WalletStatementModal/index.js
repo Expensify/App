@@ -1,79 +1,74 @@
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import withLocalize from '../withLocalize';
-import ONYXKEYS from '../../ONYXKEYS';
-import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
-import styles from '../../styles/styles';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as Report from '../../libs/actions/Report';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
-class WalletStatementModal extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isLoading: true,
-        };
-    }
+function WalletStatementModal({statementPageURL, session}) {
+    const styles = useThemeStyles();
+    const [isLoading, setIsLoading] = useState(true);
+    const authToken = lodashGet(session, 'authToken', null);
 
     /**
      * Handles in-app navigation for iframe links
      *
-     * @param {MessageEvent} e
+     * @param {MessageEvent} event
      */
-    navigate(e) {
-        if (!e.data || !e.data.type || (e.data.type !== 'STATEMENT_NAVIGATE' && e.data.type !== 'CONCIERGE_NAVIGATE')) {
+    const navigate = (event) => {
+        if (!event.data || !event.data.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
             return;
         }
 
-        if (e.data.type === 'CONCIERGE_NAVIGATE') {
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
             Report.navigateToConciergeChat();
         }
 
-        if (e.data.type === 'STATEMENT_NAVIGATE' && e.data.url) {
-            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => e.data.url.includes(iouRoute));
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
+            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {
                 Navigation.navigate(navigateToIOURoute);
             }
         }
-    }
+    };
 
-    render() {
-        const authToken = lodashGet(this.props, 'session.authToken', null);
-        return (
-            <>
-                {this.state.isLoading && <FullScreenLoadingIndicator />}
-                <View style={[styles.flex1]}>
-                    <iframe
-                        src={`${this.props.statementPageURL}&authToken=${authToken}`}
-                        title="Statements"
-                        height="100%"
-                        width="100%"
-                        seamless="seamless"
-                        frameBorder="0"
-                        onLoad={() => {
-                            this.setState({isLoading: false});
+    return (
+        <>
+            {isLoading && <FullScreenLoadingIndicator />}
+            <View style={[styles.flex1]}>
+                <iframe
+                    src={`${statementPageURL}&authToken=${authToken}`}
+                    title="Statements"
+                    height="100%"
+                    width="100%"
+                    seamless="seamless"
+                    frameBorder="0"
+                    onLoad={() => {
+                        setIsLoading(false);
 
-                            // We listen to a message sent from the iframe to the parent component when a link is clicked.
-                            // This lets us handle navigation in the app, outside of the iframe.
-                            window.onmessage = (e) => this.navigate(e);
-                        }}
-                    />
-                </View>
-            </>
-        );
-    }
+                        // We listen to a message sent from the iframe to the parent component when a link is clicked.
+                        // This lets us handle navigation in the app, outside of the iframe.
+                        window.onmessage = navigate;
+                    }}
+                />
+            </View>
+        </>
+    );
 }
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
+WalletStatementModal.displayName = 'WalletStatementModal';
 
 export default compose(
     withLocalize,

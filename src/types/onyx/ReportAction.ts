@@ -1,5 +1,5 @@
-import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
+import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -7,6 +7,9 @@ type Message = {
 
     /** The text content of the fragment. */
     text: string;
+
+    /** The html content of the fragment. */
+    html?: string;
 
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
@@ -29,11 +32,20 @@ type Message = {
     iconUrl?: string;
 
     /** Fragment edited flag */
-    isEdited: boolean;
+    isEdited?: boolean;
 
-    isDeletedParentAction: boolean;
-    whisperedTo: number[];
-    reactions: Reaction[];
+    isDeletedParentAction?: boolean;
+
+    /** Whether the pending transaction was reversed and didn't post to the card */
+    isReversedTransaction?: boolean;
+    whisperedTo?: number[];
+    reactions?: Reaction[];
+
+    moderationDecision?: Decision;
+    translationKey?: string;
+
+    /** ID of a task report */
+    taskReportID?: string;
 };
 
 type Person = {
@@ -44,7 +56,13 @@ type Person = {
 
 type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID?: string;
+    reportActionID: string;
+
+    /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
+    sequenceNumber?: number;
+
+    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
+    previousReportActionID?: string;
 
     actorAccountID?: number;
 
@@ -52,7 +70,7 @@ type ReportActionBase = {
     person?: Person[];
 
     /** ISO-formatted datetime */
-    created?: string;
+    created: string;
 
     /** report action message */
     message?: Message[];
@@ -60,26 +78,45 @@ type ReportActionBase = {
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** Error message that's come back from the server. */
-    error?: string;
-
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
+
+    /** Report action child status number */
+    childStatusNum?: number;
+
+    /** Report action child status name */
+    childStateNum?: number;
 
     avatar?: string;
     automatic?: boolean;
     shouldShow?: boolean;
     childReportID?: string;
+    childReportName?: string;
     childType?: string;
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    timestamp?: number;
+    reportActionTimestamp?: number;
+    childMoneyRequestCount?: number;
+
+    /** ISO-formatted datetime */
+    lastModified?: string;
 
     pendingAction?: OnyxCommon.PendingAction;
+    delegateAccountID?: string;
+
+    /** Server side errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+
+    isAttachment?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
+type ReportActions = Record<string, ReportAction>;
+
 export default ReportAction;
+export type {ReportActions, Message};

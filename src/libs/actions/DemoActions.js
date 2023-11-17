@@ -1,56 +1,50 @@
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
-import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Localize from '../Localize';
+import Config from 'react-native-config';
+import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
-/**
- * @param {String} workspaceOwnerEmail email of the workspace owner
- * @param {String} apiCommand
- */
-function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
-    // Try to navigate to existing demo workspace expense chat if it exists in Onyx
-    const demoWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(workspaceOwnerEmail);
-    if (demoWorkspaceChatReportID) {
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
+    },
+});
+
+function runMoney2020Demo() {
+    // Try to navigate to existing demo chat if it exists in Onyx
+    const money2020AccountID = Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_MONEY2020', 15864555));
+    const existingChatReport = ReportUtils.getChatByParticipants([money2020AccountID]);
+    if (existingChatReport) {
         // We must call goBack() to remove the demo route from nav history
         Navigation.goBack();
-        Navigation.navigate(ROUTES.getReportRoute(demoWorkspaceChatReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(existingChatReport.reportID));
         return;
     }
 
-    // We use makeRequestWithSideEffects here because we need to get the workspace chat report ID to navigate to it after it's created
+    // We use makeRequestWithSideEffects here because we need to get the chat report ID to navigate to it after it's created
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(apiCommand).then((response) => {
-        // Get report updates from Onyx response data
-        const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
-        if (!reportUpdate) {
+    API.makeRequestWithSideEffects('CreateChatReport', {
+        emailList: `${currentUserEmail},money2020@expensify.com`,
+        activationConference: 'money2020',
+    }).then((response) => {
+        // If there's no response or no reportID in the response, navigate the user home so user doesn't get stuck.
+        if (!response || !response.reportID) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.HOME);
             return;
         }
 
-        // Get the policy expense chat update
-        const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-        if (!policyExpenseChatReport) {
-            return;
-        }
-
-        // Navigate to the new policy expense chat report
+        // Get reportID & navigate to it
         // Note: We must call goBack() to remove the demo route from history
+        const chatReportID = response.reportID;
         Navigation.goBack();
-        Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
     });
-}
-
-function runSbeDemo() {
-    createDemoWorkspaceAndNavigate(CONST.EMAIL.SBE, 'CreateSbeDemoWorkspace');
-}
-
-function runSaastrDemo() {
-    createDemoWorkspaceAndNavigate(CONST.EMAIL.SAASTR, 'CreateSaastrDemoWorkspace');
 }
 
 /**
@@ -61,32 +55,16 @@ function runSaastrDemo() {
 function runDemoByURL(url = '') {
     const cleanUrl = (url || '').toLowerCase();
 
-    if (cleanUrl.endsWith(ROUTES.SAASTR)) {
+    if (cleanUrl.endsWith(ROUTES.MONEY2020)) {
         Onyx.set(ONYXKEYS.DEMO_INFO, {
-            saastr: {
-                isBeginningDemo: true,
-            },
-        });
-    } else if (cleanUrl.endsWith(ROUTES.SBE)) {
-        Onyx.set(ONYXKEYS.DEMO_INFO, {
-            sbe: {
+            money2020: {
                 isBeginningDemo: true,
             },
         });
     } else {
         // No demo is being run, so clear out demo info
-        Onyx.set(ONYXKEYS.DEMO_INFO, null);
+        Onyx.set(ONYXKEYS.DEMO_INFO, {});
     }
 }
 
-function getHeadlineKeyByDemoInfo(demoInfo = {}) {
-    if (lodashGet(demoInfo, 'saastr.isBeginningDemo')) {
-        return Localize.translateLocal('demos.saastr.signInWelcome');
-    }
-    if (lodashGet(demoInfo, 'sbe.isBeginningDemo')) {
-        return Localize.translateLocal('demos.sbe.signInWelcome');
-    }
-    return '';
-}
-
-export {runSaastrDemo, runSbeDemo, runDemoByURL, getHeadlineKeyByDemoInfo};
+export {runMoney2020Demo, runDemoByURL};

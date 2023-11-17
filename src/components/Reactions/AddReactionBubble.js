@@ -1,19 +1,19 @@
-import React, {useRef, useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Tooltip from '../Tooltip';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import getButtonState from '../../libs/getButtonState';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import variables from '../../styles/variables';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Session from '../../libs/actions/Session';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -54,6 +54,7 @@ const defaultProps = {
 };
 
 function AddReactionBubble(props) {
+    const styles = useThemeStyles();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -88,18 +89,26 @@ function AddReactionBubble(props) {
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
-                // Prevent text input blur when Add reaction is clicked
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Allow text input blur when Add reaction is right clicked
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur when Add reaction is left clicked
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
-                            emoji reaction. We make the text invisible and put the
-                            icon on top of it. */}
+               emoji reaction. We make the text invisible and put the
+               icon on top of it. */}
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon

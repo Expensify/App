@@ -24,6 +24,7 @@ module.exports = (env = {}) =>
                           '/api': 'http://[::1]:9000',
                           '/staging': 'http://[::1]:9000',
                           '/chat-attachments': 'http://[::1]:9000',
+                          '/receipts': 'http://[::1]:9000',
                       },
                   };
 
@@ -43,6 +44,14 @@ module.exports = (env = {}) =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
+                host: 'dev.new.expensify.com',
+                server: {
+                    type: 'https',
+                    options: {
+                        key: path.join(__dirname, 'key.pem'),
+                        cert: path.join(__dirname, 'certificate.pem'),
+                    },
+                },
             },
             plugins: [
                 new DefinePlugin({

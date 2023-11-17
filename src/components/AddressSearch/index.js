@@ -1,22 +1,26 @@
-import _ from 'underscore';
-import React, {useMemo, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View, Text} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import TextInput from '../TextInput';
-import * as ApiUtils from '../../libs/ApiUtils';
-import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
-import variables from '../../styles/variables';
-import {withNetwork} from '../OnyxProvider';
-import networkPropTypes from '../networkPropTypes';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LocationErrorMessage from '@components/LocationErrorMessage';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as ApiUtils from '@libs/ApiUtils';
+import compose from '@libs/compose';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import CurrentLocationButton from './CurrentLocationButton';
+import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -34,7 +38,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Hint text to display */
     hint: PropTypes.string,
@@ -61,11 +65,17 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
+    /** Shows a current location button in suggestion list */
+    canUseCurrentLocation: PropTypes.bool,
+
     /** A list of predefined places that can be shown when the user isn't searching for something */
     predefinedPlaces: PropTypes.arrayOf(
         PropTypes.shape({
             /** A description of the location (usually the address) */
             description: PropTypes.string,
+
+            /** The name of the location */
+            name: PropTypes.string,
 
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
             geometry: PropTypes.shape({
@@ -95,6 +105,9 @@ const propTypes = {
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
 
+    /** The result types to return from the Google Places Autocomplete request */
+    resultTypes: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -112,6 +125,7 @@ const defaultProps = {
     defaultValue: undefined,
     containerStyles: [],
     isLimitedToUSA: false,
+    canUseCurrentLocation: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',
@@ -123,22 +137,32 @@ const defaultProps = {
     },
     maxInputLength: undefined,
     predefinedPlaces: [],
+    resultTypes: 'address',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
 // Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+    const [searchValue, setSearchValue] = useState(props.value || props.defaultValue || '');
+    const [locationErrorCode, setLocationErrorCode] = useState(null);
+    const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
             language: props.preferredLocale,
-            types: 'address',
+            types: props.resultTypes,
             components: props.isLimitedToUSA ? 'country:us' : undefined,
         }),
-        [props.preferredLocale, props.isLimitedToUSA],
+        [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
+    const shouldShowCurrentLocationButton = props.canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
@@ -148,9 +172,10 @@ function AddressSearch(props) {
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 props.onPress({
-                    address: lodashGet(details, 'description', ''),
+                    address: lodashGet(details, 'description'),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
+                    name: lodashGet(details, 'name'),
                 });
             }
             return;
@@ -201,18 +226,19 @@ function AddressSearch(props) {
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-
+            name: lodashGet(details, 'name', ''),
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
-
+            // Make sure country is updated first, since city and state will be reset if the country changes
+            country: '',
+            state: state || stateAutoCompleteFallback,
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
             // Salagatan, Upssala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
-            country: '',
-            state: state || stateAutoCompleteFallback,
+
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
             address: lodashGet(details, 'formatted_address', ''),
@@ -228,6 +254,17 @@ function AddressSearch(props) {
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
+        }
+
+        // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
+        // We are setting up a fallback to ensure "values.street" is populated with a relevant value
+        if (!values.street && details.adr_address) {
+            const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
+            const adr_address = details.adr_address.match(streetAddressRegex);
+            const streetAddressFallback = lodashGet(adr_address, [1], null);
+            if (streetAddressFallback) {
+                values.street = streetAddressFallback;
+            }
         }
 
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
@@ -256,6 +293,72 @@ function AddressSearch(props) {
         props.onPress(values);
     };
 
+    /** Gets the user's current location and registers success/error callbacks */
+    const getCurrentLocation = () => {
+        if (isFetchingCurrentLocation) {
+            return;
+        }
+
+        setIsTyping(false);
+        setIsFocused(false);
+        setDisplayListViewBorder(false);
+        setIsFetchingCurrentLocation(true);
+
+        Keyboard.dismiss();
+
+        getCurrentPosition(
+            (successData) => {
+                if (!shouldTriggerGeolocationCallbacks.current) {
+                    return;
+                }
+
+                setIsFetchingCurrentLocation(false);
+                setLocationErrorCode(null);
+
+                const location = {
+                    lat: successData.coords.latitude,
+                    lng: successData.coords.longitude,
+                    address: CONST.YOUR_LOCATION_TEXT,
+                };
+                props.onPress(location);
+            },
+            (errorData) => {
+                if (!shouldTriggerGeolocationCallbacks.current) {
+                    return;
+                }
+
+                setIsFetchingCurrentLocation(false);
+                setLocationErrorCode(errorData.code);
+            },
+            {
+                maximumAge: 0, // No cache, always get fresh location info
+                timeout: 5000,
+            },
+        );
+    };
+
+    const renderHeaderComponent = () =>
+        props.predefinedPlaces.length > 0 && (
+            <>
+                {/* This will show current location button in list if there are some recent destinations */}
+                {shouldShowCurrentLocationButton && (
+                    <CurrentLocationButton
+                        onPress={getCurrentLocation}
+                        isDisabled={props.network.isOffline}
+                    />
+                )}
+                {!props.value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>}
+            </>
+        );
+
+    // eslint-disable-next-line arrow-body-style
+    useEffect(() => {
+        return () => {
+            // If the component unmounts we don't want any of the callback for geolocation to run.
+            shouldTriggerGeolocationCallbacks.current = false;
+        };
+    }, []);
+
     return (
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
@@ -263,103 +366,160 @@ function AddressSearch(props) {
          * To work around this, we wrap the GooglePlacesAutocomplete component with a horizontal ScrollView
          * that has scrolling disabled and would otherwise not be needed
          */
-        <ScrollView
-            horizontal
-            contentContainerStyle={styles.flex1}
-            scrollEnabled={false}
-            // keyboardShouldPersistTaps="always" is required for Android native,
-            // otherwise tapping on a result doesn't do anything. More information
-            // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
-            keyboardShouldPersistTaps="always"
-        >
-            <View
-                style={styles.w100}
-                ref={containerRef}
+        <>
+            <ScrollView
+                horizontal
+                contentContainerStyle={styles.flex1}
+                scrollEnabled={false}
+                // keyboardShouldPersistTaps="always" is required for Android native,
+                // otherwise tapping on a result doesn't do anything. More information
+                // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
+                keyboardShouldPersistTaps="always"
             >
-                <GooglePlacesAutocomplete
-                    disableScroll
-                    fetchDetails
-                    suppressDefaultStyles
-                    enablePoweredByContainer={false}
-                    predefinedPlaces={props.predefinedPlaces}
-                    ListEmptyComponent={
-                        props.network.isOffline ? null : (
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
-                        )
-                    }
-                    onPress={(data, details) => {
-                        saveLocationDetails(data, details);
+                <View
+                    style={styles.w100}
+                    ref={containerRef}
+                >
+                    <GooglePlacesAutocomplete
+                        disableScroll
+                        fetchDetails
+                        suppressDefaultStyles
+                        enablePoweredByContainer={false}
+                        predefinedPlaces={props.predefinedPlaces}
+                        listEmptyComponent={
+                            props.network.isOffline || !isTyping ? null : (
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                            )
+                        }
+                        listLoaderComponent={
+                            <View style={[styles.pv4]}>
+                                <ActivityIndicator
+                                    color={theme.spinner}
+                                    size="small"
+                                />
+                            </View>
+                        }
+                        renderRow={(data) => {
+                            const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
+                            const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            return (
+                                <View>
+                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                </View>
+                            );
+                        }}
+                        renderHeaderComponent={renderHeaderComponent}
+                        onPress={(data, details) => {
+                            saveLocationDetails(data, details);
+                            setIsTyping(false);
 
-                        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                        setDisplayListViewBorder(false);
-                    }}
-                    query={query}
-                    requestUrl={{
-                        useOnPlatform: 'all',
-                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
-                    }}
-                    textInputProps={{
-                        InputComp: TextInput,
-                        ref: (node) => {
-                            if (!props.innerRef) {
-                                return;
-                            }
+                            // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                            setDisplayListViewBorder(false);
+                            setIsFocused(false);
 
-                            if (_.isFunction(props.innerRef)) {
-                                props.innerRef(node);
-                                return;
-                            }
+                            // Clear location error code after address is selected
+                            setLocationErrorCode(null);
+                        }}
+                        query={query}
+                        requestUrl={{
+                            useOnPlatform: 'all',
+                            url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        }}
+                        textInputProps={{
+                            InputComp: TextInput,
+                            ref: (node) => {
+                                if (!props.innerRef) {
+                                    return;
+                                }
 
-                            // eslint-disable-next-line no-param-reassign
-                            props.innerRef.current = node;
-                        },
-                        label: props.label,
-                        containerStyles: props.containerStyles,
-                        errorText: props.errorText,
-                        hint: displayListViewBorder ? undefined : props.hint,
-                        value: props.value,
-                        defaultValue: props.defaultValue,
-                        inputID: props.inputID,
-                        shouldSaveDraft: props.shouldSaveDraft,
-                        onBlur: (event) => {
-                            resetDisplayListViewBorderOnBlur(setDisplayListViewBorder, event, containerRef);
-                            props.onBlur();
-                        },
-                        autoComplete: 'off',
-                        onInputChange: (text) => {
-                            if (props.inputID) {
-                                props.onInputChange(text);
-                            } else {
-                                props.onInputChange({street: text});
-                            }
+                                if (_.isFunction(props.innerRef)) {
+                                    props.innerRef(node);
+                                    return;
+                                }
 
-                            // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                            if (_.isEmpty(text)) {
-                                setDisplayListViewBorder(false);
-                            }
-                        },
-                        maxLength: props.maxInputLength,
-                        spellCheck: false,
-                    }}
-                    styles={{
-                        textInputContainer: [styles.flexColumn],
-                        listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight],
-                        row: [styles.pv4, styles.ph3, styles.overflowAuto],
-                        description: [styles.googleSearchText],
-                        separator: [styles.googleSearchSeparator],
-                    }}
-                    numberOfLines={2}
-                    isRowScrollable={false}
-                    listHoverColor={themeColors.border}
-                    listUnderlayColor={themeColors.buttonPressedBG}
-                    onLayout={(event) => {
-                        // We use the height of the element to determine if we should hide the border of the listView dropdown
-                        // to prevent a lingering border when there are no address suggestions.
-                        setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
-                    }}
-                />
-            </View>
-        </ScrollView>
+                                // eslint-disable-next-line no-param-reassign
+                                props.innerRef.current = node;
+                            },
+                            label: props.label,
+                            containerStyles: props.containerStyles,
+                            errorText: props.errorText,
+                            hint:
+                                displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) || (props.canUseCurrentLocation && isTyping)
+                                    ? undefined
+                                    : props.hint,
+                            value: props.value,
+                            defaultValue: props.defaultValue,
+                            inputID: props.inputID,
+                            shouldSaveDraft: props.shouldSaveDraft,
+                            onFocus: () => {
+                                setIsFocused(true);
+                            },
+                            onBlur: (event) => {
+                                if (!isCurrentTargetInsideContainer(event, containerRef)) {
+                                    setDisplayListViewBorder(false);
+                                    setIsFocused(false);
+                                    setIsTyping(false);
+                                }
+                                props.onBlur();
+                            },
+                            autoComplete: 'off',
+                            onInputChange: (text) => {
+                                setSearchValue(text);
+                                setIsTyping(true);
+                                if (props.inputID) {
+                                    props.onInputChange(text);
+                                } else {
+                                    props.onInputChange({street: text});
+                                }
+
+                                // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
+                                if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
+                                    setDisplayListViewBorder(false);
+                                }
+                            },
+                            maxLength: props.maxInputLength,
+                            spellCheck: false,
+                            selectTextOnFocus: true,
+                        }}
+                        styles={{
+                            textInputContainer: [styles.flexColumn],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
+                            row: [styles.pv4, styles.ph3, styles.overflowAuto],
+                            description: [styles.googleSearchText],
+                            separator: [styles.googleSearchSeparator],
+                        }}
+                        numberOfLines={2}
+                        isRowScrollable={false}
+                        listHoverColor={theme.border}
+                        listUnderlayColor={theme.buttonPressedBG}
+                        onLayout={(event) => {
+                            // We use the height of the element to determine if we should hide the border of the listView dropdown
+                            // to prevent a lingering border when there are no address suggestions.
+                            setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
+                        }}
+                        inbetweenCompo={
+                            // We want to show the current location button even if there are no recent destinations
+                            props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
+                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                    <CurrentLocationButton
+                                        onPress={getCurrentLocation}
+                                        isDisabled={props.network.isOffline}
+                                    />
+                                </View>
+                            ) : (
+                                <></>
+                            )
+                        }
+                    />
+                    <LocationErrorMessage
+                        onClose={() => setLocationErrorCode(null)}
+                        locationErrorCode={locationErrorCode}
+                    />
+                </View>
+            </ScrollView>
+            {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
+        </>
     );
 }
 
@@ -367,15 +527,14 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default compose(
-    withNetwork(),
-    withLocalize,
-)(
-    React.forwardRef((props, ref) => (
-        <AddressSearch
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const AddressSearchWithRef = React.forwardRef((props, ref) => (
+    <AddressSearch
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+AddressSearchWithRef.displayName = 'AddressSearchWithRef';
+
+export default compose(withNetwork(), withLocalize)(AddressSearchWithRef);

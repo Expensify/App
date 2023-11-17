@@ -1,28 +1,28 @@
-import _ from 'underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import {withNetwork} from '../OnyxProvider';
-import compose from '../../libs/compose';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import networkPropTypes from '../networkPropTypes';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import refPropTypes from '@components/refPropTypes';
+import RenderHTML from '@components/RenderHTML';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestPreview from './MoneyRequestPreview';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import * as IOUUtils from '../../libs/IOUUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Report from '../../libs/actions/Report';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import refPropTypes from '../refPropTypes';
-import RenderHTML from '../RenderHTML';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import reportPropTypes from '../../pages/reportPropTypes';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** All the data of the action */
@@ -58,6 +58,9 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
@@ -71,6 +74,7 @@ const defaultProps = {
     reportActions: {},
     isHovered: false,
     style: [],
+    isWhisper: false,
 };
 
 function MoneyRequestAction({
@@ -86,14 +90,16 @@ function MoneyRequestAction({
     isHovered,
     network,
     style,
+    isWhisper,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = lodashGet(action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(chatReportID, reportActionID));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
             return;
         }
 
@@ -103,15 +109,16 @@ function MoneyRequestAction({
             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
             return;
         }
         Report.openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
@@ -123,8 +130,8 @@ function MoneyRequestAction({
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return isDeletedParentAction ? (
-        <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
+    return isDeletedParentAction || isReversedTransaction ? (
+        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
     ) : (
         <MoneyRequestPreview
             iouReportID={requestReportID}
@@ -137,6 +144,7 @@ function MoneyRequestAction({
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
             isHovered={isHovered}
+            isWhisper={isWhisper}
         />
     );
 }

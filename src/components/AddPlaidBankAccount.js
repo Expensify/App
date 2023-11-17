@@ -1,27 +1,31 @@
-import _ from 'underscore';
-import React, {useEffect, useRef, useCallback} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Log from '../libs/Log';
-import PlaidLink from './PlaidLink';
-import * as BankAccounts from '../libs/actions/BankAccounts';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Picker from './Picker';
-import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
-import Text from './Text';
-import getBankIcon from './Icon/BankIcons';
-import Icon from './Icon';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
+import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as App from '@userActions/App';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import CONST from '../CONST';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from '../hooks/useNetwork';
+import Icon from './Icon';
+import getBankIcon from './Icon/BankIcons';
+import Picker from './Picker';
+import PlaidLink from './PlaidLink';
+import Text from './Text';
 
 const propTypes = {
+    /** If the user has been throttled from Plaid */
+    isPlaidDisabled: PropTypes.bool,
+
     /** Contains plaid data */
     plaidData: plaidDataPropTypes.isRequired,
 
@@ -63,9 +67,24 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    isPlaidDisabled: false,
 };
 
-function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken, onExitPlaid, onSelect, text, receivedRedirectURI, plaidLinkOAuthToken, bankAccountID, allowDebit}) {
+function AddPlaidBankAccount({
+    plaidData,
+    selectedPlaidAccountID,
+    plaidLinkToken,
+    onExitPlaid,
+    onSelect,
+    text,
+    receivedRedirectURI,
+    plaidLinkOAuthToken,
+    bankAccountID,
+    allowDebit,
+    isPlaidDisabled,
+}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
@@ -149,10 +168,18 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
         value: account.plaidAccountID,
         label: `${account.addressName} ${account.mask}`,
     }));
-    const {icon, iconSize} = getBankIcon();
+    const {icon, iconSize, iconStyles} = getBankIcon();
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
+
+    if (isPlaidDisabled) {
+        return (
+            <View>
+                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            </View>
+        );
+    }
 
     // Plaid Link view
     if (!plaidBankAccounts.length) {
@@ -161,7 +188,7 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
                 {lodashGet(plaidData, 'isLoading') && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             size="large"
                         />
                     </View>
@@ -176,6 +203,21 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
                         }}
                         onError={(error) => {
                             Log.hmmm('[PlaidLink] Error: ', error.message);
+                        }}
+                        onEvent={(event, metadata) => {
+                            BankAccounts.setPlaidEvent(event);
+                            // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
+                            if (event === 'ERROR') {
+                                Log.hmmm('[PlaidLink] Error: ', metadata);
+                                if (bankAccountID && metadata.error_code) {
+                                    BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                                }
+                            }
+
+                            // Limit the number of times a user can submit Plaid credentials
+                            if (event === 'SUBMIT_CREDENTIALS') {
+                                App.handleRestrictedEvent(event);
+                            }
                         }}
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
@@ -196,10 +238,11 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
                     src={icon}
                     height={iconSize}
                     width={iconSize}
+                    additionalStyles={iconStyles}
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View>
                 <Picker
                     label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
                     onInputChange={onSelect}
@@ -223,5 +266,8 @@ export default withOnyx({
     plaidLinkToken: {
         key: ONYXKEYS.PLAID_LINK_TOKEN,
         initWithStoredValues: false,
+    },
+    isPlaidDisabled: {
+        key: ONYXKEYS.IS_PLAID_DISABLED,
     },
 })(AddPlaidBankAccount);

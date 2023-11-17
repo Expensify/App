@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <bool name="portrait_only">false</bool>
+    <bool name="portrait_only">true</bool>
 </resources>

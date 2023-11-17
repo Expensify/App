@@ -3,8 +3,6 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
-
-
 ```yaml
 name: CI
 on: pull_request
@@ -44,12 +42,12 @@ Due to the large, ever-growing history of this repo, do not do any full-fetches 
 
 ```yaml
 # Bad
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
   with:
     fetch-depth: 0
 
 # Good
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
 ```
 
 ```sh
@@ -85,7 +83,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
    1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/chat_expensify_adhoc.mobileprovision.gpg`
+   1. `ios/expensify_chat_adhoc.mobileprovision.gpg`
    1. `ios/chat_expensify_appstore.mobileprovision.gpg`
    1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM

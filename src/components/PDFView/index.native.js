@@ -1,23 +1,24 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import Text from '../Text';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import withLocalize from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import withLocalize from '../withLocalize';
-import CONST from '../../CONST';
+import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
 const propTypes = {
     ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 /**
@@ -127,27 +128,31 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
-        const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
+        const pdfStyles = [this.props.themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
         // is positioned nicely. We're specifically hiding it because we still need to render
         // the PDF component so that it can validate the password.
         if (this.state.shouldRequestPassword) {
-            pdfStyles.push(styles.invisible);
+            pdfStyles.push(this.props.themeStyles.invisible);
         }
 
-        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth ? [styles.w100, styles.flex1] : [styles.alignItemsCenter, styles.flex1];
+        const containerStyles =
+            this.state.shouldRequestPassword && this.props.isSmallScreenWidth
+                ? [this.props.themeStyles.w100, this.props.themeStyles.flex1]
+                : [this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flex1];
 
         return (
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
+                    <View style={[this.props.themeStyles.flex1, this.props.themeStyles.justifyContentCenter]}>
+                        <Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (
                     <PDF
+                        fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: this.props.sourceURL}}
@@ -159,8 +164,9 @@ class PDFView extends Component {
                         onScaleChanged={this.props.onScaleChanged}
                     />
                 )}
+
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView style={styles.flex1}>
+                    <KeyboardAvoidingView style={this.props.themeStyles.flex1}>
                         <PDFPasswordForm
                             isFocused={this.props.isFocused}
                             onSubmit={this.attemptPDFLoadWithPassword}
@@ -178,8 +184,8 @@ class PDFView extends Component {
         return this.props.onPress && !this.state.successToLoadPDF ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
-                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                style={[this.props.themeStyles.flex1, this.props.themeStyles.flexRow, this.props.themeStyles.alignSelfStretch]}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
                 {this.renderPDFView()}
@@ -193,4 +199,4 @@ class PDFView extends Component {
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withKeyboardState, withLocalize)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles)(PDFView);

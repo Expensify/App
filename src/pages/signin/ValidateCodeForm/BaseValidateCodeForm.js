@@ -1,31 +1,32 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
-import Button from '../../../components/Button';
-import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
-import * as Session from '../../../libs/actions/Session';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import * as User from '../../../libs/actions/User';
-import FormHelpMessage from '../../../components/FormHelpMessage';
-import MagicCodeInput from '../../../components/MagicCodeInput';
-import Terms from '../Terms';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import usePrevious from '../../../hooks/usePrevious';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MagicCodeInput from '@components/MagicCodeInput';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrevious from '@hooks/usePrevious';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
+import Terms from '@pages/signin/Terms';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +38,12 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+
+        /** Whether or not the user has SAML enabled on their account */
+        isSAMLEnabled: PropTypes.bool,
+
+        /** Whether or not SAML is required on the account */
+        isSAMLRequired: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -51,14 +58,20 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+
+    /** Determines if user is switched to using recovery code instead of 2fa code */
+    isUsingRecoveryCode: PropTypes.bool.isRequired,
+
+    /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
+    setIsUsingRecoveryCode: PropTypes.func.isRequired,
+
+    /** Function to change `isUsingMagicCode` state when the user goes back to the login page */
+    setIsUsingMagicCode: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -69,14 +82,16 @@ const defaultProps = {
     session: {
         authToken: null,
     },
-    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
+    const [recoveryCode, setRecoveryCode] = useState('');
 
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(props.credentials.validateCode);
@@ -87,6 +102,9 @@ function BaseValidateCodeForm(props) {
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
     const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
+    const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
+    const isValidateCodeFormSubmitting =
+        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
@@ -148,7 +166,17 @@ function BaseValidateCodeForm(props) {
      * @param {String} key
      */
     const onTextInput = (text, key) => {
-        const setInput = key === 'validateCode' ? setValidateCode : setTwoFactorAuthCode;
+        let setInput;
+        if (key === 'validateCode') {
+            setInput = setValidateCode;
+        }
+        if (key === 'twoFactorAuthCode') {
+            setInput = setTwoFactorAuthCode;
+        }
+        if (key === 'recoveryCode') {
+            setInput = setRecoveryCode;
+        }
+
         setInput(text);
         setFormError((prevError) => ({...prevError, [key]: ''}));
 
@@ -162,6 +190,7 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.resendValidateCode(props.credentials.login);
+        inputValidateCodeRef.current.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         setTimeRemaining(30);
     };
@@ -173,14 +202,34 @@ function BaseValidateCodeForm(props) {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
+        props.setIsUsingRecoveryCode(false);
+        setRecoveryCode('');
     };
 
     /**
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
+        // Reset the user's preference for signing in with SAML versus magic codes
+        props.setIsUsingMagicCode(false);
         clearLocalSignInData();
         Session.clearSignInData();
+    };
+
+    /**
+     * Switches between 2fa and recovery code, clears inputs and errors
+     */
+    const switchBetween2faAndRecoveryCode = () => {
+        props.setIsUsingRecoveryCode(!props.isUsingRecoveryCode);
+
+        setRecoveryCode('');
+        setTwoFactorAuthCode('');
+
+        setFormError((prevError) => ({...prevError, recoveryCode: '', twoFactorAuthCode: ''}));
+
+        if (props.account.errors) {
+            Session.clearAccountMessages();
+        }
     };
 
     useEffect(() => {
@@ -188,6 +237,9 @@ function BaseValidateCodeForm(props) {
             return;
         }
         clearLocalSignInData();
+        // `clearLocalSignInData` is not required as a dependency, and adding it
+        // overcomplicates things requiring clearLocalSignInData function to use useCallback
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     /**
@@ -202,13 +254,27 @@ function BaseValidateCodeForm(props) {
             if (input2FARef.current) {
                 input2FARef.current.blur();
             }
-            if (!twoFactorAuthCode.trim()) {
-                setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
-                return;
-            }
-            if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
-                setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
-                return;
+            /**
+             * User could be using either recovery code or 2fa code
+             */
+            if (!props.isUsingRecoveryCode) {
+                if (!twoFactorAuthCode.trim()) {
+                    setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
+                    return;
+                }
+                if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+                    setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
+                    return;
+                }
+            } else {
+                if (!recoveryCode.trim()) {
+                    setFormError({recoveryCode: 'recoveryCodeForm.error.pleaseFillRecoveryCode'});
+                    return;
+                }
+                if (!ValidationUtils.isValidRecoveryCode(recoveryCode)) {
+                    setFormError({recoveryCode: 'recoveryCodeForm.error.incorrectRecoveryCode'});
+                    return;
+                }
             }
         } else {
             if (inputValidateCodeRef.current) {
@@ -225,33 +291,64 @@ function BaseValidateCodeForm(props) {
         }
         setFormError({});
 
+        const recoveryCodeOr2faCode = props.isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
+
         const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
+            Session.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
-            Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
+            Session.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [props.account, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
+    }, [props.account, props.credentials, twoFactorAuthCode, validateCode, props.isUsingRecoveryCode, recoveryCode]);
 
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
             {props.account.requiresTwoFactorAuth ? (
                 <View style={[styles.mv3]}>
-                    <MagicCodeInput
-                        autoComplete={props.autoComplete}
-                        ref={input2FARef}
-                        label={props.translate('common.twoFactorCode')}
-                        name="twoFactorAuthCode"
-                        value={twoFactorAuthCode}
-                        onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
-                        onFulfill={validateAndSubmitForm}
-                        maxLength={CONST.TFA_CODE_LENGTH}
-                        errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
-                        hasError={hasError}
-                        autoFocus
-                    />
+                    {props.isUsingRecoveryCode ? (
+                        <TextInput
+                            shouldDelayFocus
+                            accessibilityLabel={props.translate('recoveryCodeForm.recoveryCode')}
+                            value={recoveryCode}
+                            onChangeText={(text) => onTextInput(text, 'recoveryCode')}
+                            maxLength={CONST.RECOVERY_CODE_LENGTH}
+                            label={props.translate('recoveryCodeForm.recoveryCode')}
+                            errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
+                            hasError={hasError}
+                            onSubmitEditing={validateAndSubmitForm}
+                            autoFocus
+                        />
+                    ) : (
+                        <MagicCodeInput
+                            shouldDelayFocus
+                            autoComplete={props.autoComplete}
+                            ref={input2FARef}
+                            label={props.translate('common.twoFactorCode')}
+                            name="twoFactorAuthCode"
+                            value={twoFactorAuthCode}
+                            onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
+                            onFulfill={validateAndSubmitForm}
+                            maxLength={CONST.TFA_CODE_LENGTH}
+                            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                            hasError={hasError}
+                            autoFocus
+                            key="twoFactorAuthCode"
+                        />
+                    )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
+                    <PressableWithFeedback
+                        style={[styles.mt2]}
+                        onPress={switchBetween2faAndRecoveryCode}
+                        underlayColor={theme.componentBG}
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
+                        disabled={isValidateCodeFormSubmitting}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
+                    >
+                        <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>
+                    </PressableWithFeedback>
                 </View>
             ) : (
                 <View style={[styles.mv3]}>
@@ -266,6 +363,7 @@ function BaseValidateCodeForm(props) {
                         errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
+                        key="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -278,14 +376,14 @@ function BaseValidateCodeForm(props) {
                             <PressableWithFeedback
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
-                                underlayColor={themeColors.componentBG}
-                                disabled={props.network.isOffline}
+                                underlayColor={theme.componentBG}
+                                disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
                                     {hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>
@@ -299,9 +397,7 @@ function BaseValidateCodeForm(props) {
                     success
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
-                    isLoading={
-                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                    }
+                    isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
@@ -322,7 +418,6 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
-        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),

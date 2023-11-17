@@ -1,13 +1,14 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as App from '../../../libs/actions/App';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import SelectionList from '../../../components/SelectionList';
+import React from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as App from '@userActions/App';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -17,15 +18,18 @@ const propTypes = {
 };
 
 function LanguagePage(props) {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        text: language.label,
-        keyForList: key,
-        isSelected: props.preferredLocale === key,
+    const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
+        value: language,
+        text: props.translate(`languagePage.languages.${language}.label`),
+        keyForList: language,
+        isSelected: props.preferredLocale === language,
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={LanguagePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}

@@ -1,29 +1,30 @@
-import _ from 'underscore';
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import StatePicker from '../../components/StatePicker';
-import CONST from '../../CONST';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Text from '../../components/Text';
-import DatePicker from '../../components/DatePicker';
-import TextInput from '../../components/TextInput';
-import styles from '../../styles/styles';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import TextLink from '../../components/TextLink';
-import withLocalize from '../../components/withLocalize';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import Picker from '../../components/Picker';
+import _ from 'underscore';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NewDatePicker from '@components/NewDatePicker';
+import Picker from '@components/Picker';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AddressForm from './AddressForm';
-import Form from '../../components/Form';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -54,6 +55,7 @@ const defaultProps = {
 };
 
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+    const styles = useThemeStyles();
     /**
      * @param {Array} fieldNames
      *
@@ -140,7 +142,10 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={CompanyStep.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('companyStep.headerTitle')}
                 stepCounter={{step: 2, total: 5}}
@@ -148,7 +153,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
@@ -157,10 +162,11 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     inputID="companyName"
                     containerStyles={[styles.mt4]}
                     disabled={shouldDisableCompanyName}
@@ -185,35 +191,38 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     shouldSaveDraft
                     streetTranslationKey="common.companyAddress"
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="companyPhone"
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                    inputMode={CONST.INPUT_MODE.TEL}
                     placeholder={translate('common.phoneNumberPlaceholder')}
                     defaultValue={getDefaultStateForField('companyPhone')}
                     shouldSaveDraft
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="website"
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
                     hint={translate('common.websiteExample')}
-                    keyboardType={CONST.KEYBOARD_TYPE.URL}
+                    inputMode={CONST.INPUT_MODE.URL}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="companyTaxID"
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableCompanyTaxID}
                     placeholder={translate('companyStep.taxIDNumberPlaceholder')}
                     defaultValue={getDefaultStateForField('companyTaxID')}
@@ -221,17 +230,18 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     shouldUseDefaultValue={shouldDisableCompanyTaxID}
                 />
                 <View style={styles.mt4}>
-                    <Picker
+                    <InputWrapper
+                        InputComponent={Picker}
                         inputID="incorporationType"
                         label={translate('companyStep.companyType')}
-                        items={_.map(translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
+                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`companyStep.incorporationTypes.${key}`)}))}
                         placeholder={{value: '', label: '-'}}
                         defaultValue={getDefaultStateForField('incorporationType')}
                         shouldSaveDraft
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <DatePicker
+                    <NewDatePicker
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
@@ -240,14 +250,16 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker
+                    <InputWrapper
+                        InputComponent={StatePicker}
                         inputID="incorporationState"
                         label={translate('companyStep.incorporationState')}
                         defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
                     />
                 </View>
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('companyStep.confirmCompanyIsNot')} ${translate('companyStep.listOfRestrictedBusinesses')}`}
                     inputID="hasNoConnectionToCannabis"
                     defaultValue={getDefaultStateForField('hasNoConnectionToCannabis', false)}
@@ -265,7 +277,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     style={[styles.mt4]}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

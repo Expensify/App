@@ -1,18 +1,18 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ProductionLogo from '../../assets/images/expensify-wordmark.svg';
-import DevLogo from '../../assets/images/expensify-logo--dev.svg';
-import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
-import AdHocLogo from '../../assets/images/expensify-logo--adhoc.svg';
-import CONST from '../CONST';
+import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
+import DevLogo from '@assets/images/expensify-logo--dev.svg';
+import StagingLogo from '@assets/images/expensify-logo--staging.svg';
+import ProductionLogo from '@assets/images/expensify-wordmark.svg';
+import useEnvironment from '@hooks/useEnvironment';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import themeColors from '../styles/themes/default';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import variables from '../styles/variables';
-import useEnvironment from '../hooks/useEnvironment';
 
 const propTypes = {
     /** Additional styles to add to the component */
@@ -32,6 +32,8 @@ const logoComponents = {
 };
 
 function ExpensifyWordmark(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
 
@@ -46,7 +48,7 @@ function ExpensifyWordmark(props) {
                     ...(_.isArray(props.style) ? props.style : [props.style]),
                 ]}
             >
-                <LogoComponent fill={themeColors.success} />
+                <LogoComponent fill={theme.success} />
             </View>
         </>
     );

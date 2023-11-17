@@ -1,8 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import * as Animatable from 'react-native-animatable';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -47,7 +48,7 @@ function AnimatedStep(props) {
             }}
             duration={CONST.ANIMATED_TRANSITION}
             animation={getAnimationStyle(props.direction)}
-            useNativeDriver
+            useNativeDriver={useNativeDriver}
             style={props.style}
         >
             {props.children}

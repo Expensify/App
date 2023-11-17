@@ -1,13 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import lodashGet from 'lodash/get';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import useLocalize from '../../hooks/useLocalize';
-import FormHelpMessage from '../FormHelpMessage';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import refPropTypes from '@components/refPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 import StateSelectorModal from './StateSelectorModal';
-import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Error text to display */
@@ -35,17 +36,12 @@ const defaultProps = {
 };
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
-
-    useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }, [value, allStates]);
+    const [searchValue, setSearchValue] = useState('');
 
     const showPickerModal = () => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
         setIsPickerVisible(true);
     };
 
@@ -54,11 +50,13 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     };
 
     const updateStateInput = (state) => {
-        onInputChange(state.value);
+        if (state.value !== value) {
+            onInputChange(state.value);
+        }
         hidePickerModal();
     };
 
-    const title = allStates[value] ? allStates[value].stateName : '';
+    const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -91,10 +89,14 @@ StatePicker.propTypes = propTypes;
 StatePicker.defaultProps = defaultProps;
 StatePicker.displayName = 'StatePicker';
 
-export default React.forwardRef((props, ref) => (
+const StatePickerWithRef = React.forwardRef((props, ref) => (
     <StatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+StatePickerWithRef.displayName = 'StatePickerWithRef';
+
+export default StatePickerWithRef;

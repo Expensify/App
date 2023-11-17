@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import * as StyleUtils from '../../styles/StyleUtils';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
-import CONST from '../../CONST';
+import React from 'react';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Text from '@components/Text';
+import {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /**
@@ -54,12 +54,14 @@ const defaultProps = {
 };
 
 function EmojiReactionBubble(props) {
+    const styles = useThemeStyles();
     return (
         <PressableWithSecondaryInteraction
             style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
                 StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
                 props.shouldBlockReactions && styles.cursorDisabled,
+                styles.userSelectNone,
             ]}
             onPress={() => {
                 if (props.shouldBlockReactions) {
@@ -81,11 +83,12 @@ function EmojiReactionBubble(props) {
                 // Prevent text input blur when emoji reaction is left clicked
                 e.preventDefault();
             }}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.emojiCodes.join('')}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
-            {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
+            {props.count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
         </PressableWithSecondaryInteraction>
     );
 }
@@ -94,12 +97,14 @@ EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
-export default withWindowDimensions(
-    React.forwardRef((props, ref) => (
-        <EmojiReactionBubble
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const EmojiReactionBubbleWithRef = React.forwardRef((props, ref) => (
+    <EmojiReactionBubble
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiReactionBubbleWithRef.displayName = 'EmojiReactionBubbleWithRef';
+
+export default withWindowDimensions(EmojiReactionBubbleWithRef);

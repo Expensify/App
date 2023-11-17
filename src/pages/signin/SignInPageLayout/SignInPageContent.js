@@ -1,18 +1,18 @@
-import React from 'react';
-import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
-import styles from '../../../styles/styles';
-import ExpensifyWordmark from '../../../components/ExpensifyWordmark';
-import Text from '../../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import SignInPageForm from '../../../components/SignInPageForm';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import SignInHeroImage from '../SignInHeroImage';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import variables from '../../../styles/variables';
+import ExpensifyWordmark from '@components/ExpensifyWordmark';
+import OfflineIndicator from '@components/OfflineIndicator';
+import SignInPageForm from '@components/SignInPageForm';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import SignInHeroImage from '@pages/signin/SignInHeroImage';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -37,12 +37,9 @@ const propTypes = {
 };
 
 function SignInPageContent(props) {
+    const styles = useThemeStyles();
     return (
-        <ScrollView
-            contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
-            keyboardShouldPersistTaps="handled"
-            style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide, styles.flex1]}
-        >
+        <View style={[styles.flex1, styles.signInPageLeftContainer]}>
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                 <View style={[styles.flexGrow1, props.isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
@@ -82,7 +79,7 @@ function SignInPageContent(props) {
                     ) : null}
                 </View>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 

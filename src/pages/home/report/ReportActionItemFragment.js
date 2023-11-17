@@ -1,25 +1,20 @@
-import React, {memo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
+import React, {memo} from 'react';
+import avatarPropTypes from '@components/avatarPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
+import TextCommentFragment from './comment/TextCommentFragment';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
-import RenderHTML from '../../../components/RenderHTML';
-import Text from '../../../components/Text';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import compose from '../../../libs/compose';
-import convertToLTR from '../../../libs/convertToLTR';
-import {withNetwork} from '../../../components/OnyxProvider';
-import CONST from '../../../CONST';
-import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import avatarPropTypes from '../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Users accountID */
@@ -27,9 +22,6 @@ const propTypes = {
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
-
-    /** Is this fragment an attachment? */
-    isAttachment: PropTypes.bool,
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
@@ -49,9 +41,6 @@ const propTypes = {
     /** Message(text) of an IOU report action */
     iouMessage: PropTypes.string,
 
-    /** Does this fragment belong to a reportAction that has not yet loaded? */
-    loading: PropTypes.bool,
-
     /** The reportAction's source */
     source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
 
@@ -67,6 +56,18 @@ const propTypes = {
     /** icon */
     actorIcon: avatarPropTypes,
 
+    /** Whether the comment is a thread parent message/the first message in a thread */
+    isThreadParentMessage: PropTypes.bool,
+
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool,
+
+    /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
+    isApprovedOrSubmittedReportAction: PropTypes.bool,
+
+    /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
+    isFragmentContainingDisplayName: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -74,7 +75,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isAttachment: false,
     attachmentInfo: {
         name: '',
         size: 0,
@@ -82,82 +82,63 @@ const defaultProps = {
         source: '',
     },
     iouMessage: '',
-    loading: false,
     isSingleLine: false,
     source: '',
     style: [],
     delegateAccountID: 0,
     actorIcon: {},
+    isThreadParentMessage: false,
+    isApprovedOrSubmittedReportAction: false,
+    isFragmentContainingDisplayName: false,
+    displayAsGroup: false,
 };
 
 function ReportActionItemFragment(props) {
-    switch (props.fragment.type) {
+    const styles = useThemeStyles();
+    const fragment = props.fragment;
+
+    switch (fragment.type) {
         case 'COMMENT': {
-            // If this is an attachment placeholder, return the placeholder component
-            if (props.isAttachment && props.loading) {
-                return Str.isImage(props.attachmentInfo.name) ? (
-                    <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                ) : (
-                    <View style={[styles.chatItemAttachmentPlaceholder]}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.textSupporting}
-                            style={[styles.flex1]}
-                        />
-                    </View>
-                );
-            }
-            const {html, text} = props.fragment;
+            const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
 
-            if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
+            if ((!props.network.isOffline && props.isThreadParentMessage && isPendingDelete) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
-            // If the only difference between fragment.text and fragment.html is <br /> tags
-            // we render it as text, not as html.
-            // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
-
-            // Only render HTML if we have html in the fragment
-            if (!differByLineBreaksOnly) {
-                const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
-                const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
-                const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
-
-                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
+            if (ReportUtils.isReportMessageAttachment(fragment)) {
+                return (
+                    <AttachmentCommentFragment
+                        source={props.source}
+                        html={fragment.html}
+                        addExtraMargin={!props.displayAsGroup}
+                    />
+                );
             }
-            const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
             return (
-                <Text
-                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
-                >
-                    {convertToLTR(props.iouMessage || text)}
-                    {Boolean(props.fragment.isEdited) && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                            style={[editedLabelStyles, ...props.style]}
-                        >
-                            <Text
-                                selectable={false}
-                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
-                            >
-                                {' '}
-                            </Text>
-                            {props.translate('reportActionCompose.edited')}
-                        </Text>
-                    )}
-                </Text>
+                <TextCommentFragment
+                    source={props.source}
+                    fragment={fragment}
+                    styleAsDeleted={isPendingDelete && props.network.isOffline}
+                    iouMessage={props.iouMessage}
+                    displayAsGroup={props.displayAsGroup}
+                    style={props.style}
+                />
             );
         }
-        case 'TEXT':
-            return (
+        case 'TEXT': {
+            return props.isApprovedOrSubmittedReportAction ? (
+                <Text
+                    numberOfLines={props.isSingleLine ? 1 : undefined}
+                    style={[styles.chatItemMessage, styles.colorMuted]}
+                >
+                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                </Text>
+            ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
@@ -167,10 +148,11 @@ function ReportActionItemFragment(props) {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
-                        {props.fragment.text}
+                        {fragment.text}
                     </Text>
                 </UserDetailsTooltip>
             );
+        }
         case 'LINK':
             return <Text>LINK</Text>;
         case 'INTEGRATION_COMMENT':

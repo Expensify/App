@@ -9,23 +9,38 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUp
  */
 function fetchTag(tag) {
     const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                execSync('git repack -d');
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            let command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Exclude commits reachable from the previous patch version (i.e: previous checklist),
+            // so that we don't have to fetch the full history
+            // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
+            if (previousPatchVersion !== tag) {
+                command += ` --shallow-exclude=${previousPatchVersion}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
-        console.log(`Running command: ${command}`);
-        execSync(command);
     }
 }
 
@@ -79,7 +94,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
@@ -94,7 +109,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        const pr = match[1];
+        const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
@@ -113,16 +128,17 @@ function getValidMergedPRs(commits) {
  *
  * @param {String} fromTag
  * @param {String} toTag
- * @returns {Promise<Array<String>>} – Pull request numbers
+ * @returns {Promise<Array<Number>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return pullRequestNumbers;
+        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
     });
 }
 

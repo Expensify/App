@@ -1,37 +1,41 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import MultipleAvatars from '../MultipleAvatars';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Report from '../../libs/actions/Report';
-import themeColors from '../../styles/themes/default';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
-import ControlSelection from '../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as IOUUtils from '../../libs/IOUUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import refPropTypes from '../refPropTypes';
-import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
-import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
+import refPropTypes from '@components/refPropTypes';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
-import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -108,6 +112,9 @@ const propTypes = {
      */
     shouldShowPendingConversionMessage: PropTypes.bool,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -126,12 +133,18 @@ const defaultProps = {
     },
     transaction: {},
     shouldShowPendingConversionMessage: false,
+    isWhisper: false,
 };
 
 function MoneyRequestPreview(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
+
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
@@ -147,26 +160,33 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    let description = requestComment;
+    const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
+    const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+    const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
-    if (isDistanceRequest) {
-        description = props.transaction.merchant;
-    }
+    // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
+    const shouldShowMerchant =
+        !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
+
+    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
 
     const getSettledMessage = () => {
+        if (isExpensifyCardTransaction) {
+            return props.translate('common.done');
+        }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
-            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-                return props.translate('iou.settledPaypalMe');
-            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                return props.translate('iou.settledElsewhere');
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
             default:
-                return '';
+                return props.translate('iou.settledElsewhere');
         }
     };
 
@@ -187,20 +207,26 @@ function MoneyRequestPreview(props) {
             return props.translate('iou.split');
         }
 
+        if (isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            }
+            return message;
+        }
+
         let message = props.translate('iou.cash');
         if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
     };
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.transaction), props.transaction.currency);
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -209,6 +235,18 @@ function MoneyRequestPreview(props) {
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
+
+    const getDisplayDeleteAmountText = () => {
+        const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
+
+        if (isDistanceRequest) {
+            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.action.originalMessage), currency);
+        }
+
+        return CurrencyUtils.convertToDisplayString(amount, currency);
+    };
+
+    const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
 
     const childContainer = (
         <View>
@@ -221,79 +259,96 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                <View
+                    style={[
+                        isScanning || props.isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
+                    ]}
+                >
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]}
-                            isHovered={isScanning}
+                            images={receiptImages}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
-                    <View style={styles.moneyRequestPreviewBoxText}>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
-                                {Boolean(getSettledMessage()) && (
-                                    <>
-                                        <Icon
-                                            src={Expensicons.DotIndicator}
-                                            width={4}
-                                            height={4}
-                                            additionalStyles={[styles.mr1, styles.ml1]}
-                                        />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
-                                    </>
+                    {_.isEmpty(props.transaction) &&
+                    !ReportActionsUtils.isMessageDeleted(props.action) &&
+                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                        <MoneyRequestSkeletonView />
+                    ) : (
+                        <View style={styles.moneyRequestPreviewBoxText}>
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
+                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                </Text>
+                                {hasFieldErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={theme.danger}
+                                    />
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
-                        </View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
-                                {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text
+                                        style={[
+                                            styles.textHeadline,
+                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
+                                            isDeleted && styles.lineThrough,
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {displayAmount}
+                                    </Text>
+                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={theme.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {props.isBillSplit && (
+                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                        <MultipleAvatars
+                                            icons={participantAvatars}
+                                            shouldStackHorizontally
+                                            size="small"
+                                            isHovered={props.isHovered}
+                                            shouldUseCardBackground
                                         />
                                     </View>
                                 )}
                             </View>
-                            {props.isBillSplit && (
-                                <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                    <MultipleAvatars
-                                        icons={participantAvatars}
-                                        shouldStackHorizontally
-                                        size="small"
-                                        isHovered={props.isHovered}
-                                        shouldUseCardBackground
-                                    />
+                            {shouldShowMerchant && (
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
+                                    </Text>
                                 </View>
                             )}
-                        </View>
-                        {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16, styles.breakWord]}>{requestMerchant}</Text>
-                            </View>
-                        )}
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1]}>
-                                {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            <View style={[styles.flexRow, styles.mt1]}>
+                                <View style={[styles.flex1]}>
+                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                    )}
+                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
+                                </View>
+                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                        {props.translate('iou.amountEach', {
+                                            amount: CurrencyUtils.convertToDisplayString(
+                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                                requestCurrency,
+                                            ),
+                                        })}
+                                    </Text>
                                 )}
-                                {!_.isEmpty(description) && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
                             </View>
-                            {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
-                                    {props.translate('iou.amountEach', {
-                                        amount: CurrencyUtils.convertToDisplayString(
-                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
-                                            requestCurrency,
-                                        ),
-                                    })}
-                                </Text>
-                            )}
                         </View>
-                    </View>
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>
@@ -311,6 +366,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
         >
             {childContainer}
         </PressableWithFeedback>

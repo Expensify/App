@@ -1,14 +1,14 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import _ from 'underscore';
-import HeaderWithBackButton from '../../HeaderWithBackButton';
-import CONST from '../../../CONST';
-import SelectionList from '../../SelectionList';
-import Modal from '../../Modal';
-import {radioListItemPropTypes} from '../../SelectionList/selectionListPropTypes';
-import useLocalize from '../../../hooks/useLocalize';
-import ScreenWrapper from '../../ScreenWrapper';
-import styles from '../../../styles/styles';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function YearPickerModal(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
@@ -64,6 +65,7 @@ function YearPickerModal(props) {
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
@@ -75,12 +77,13 @@ function YearPickerModal(props) {
                     textInputValue={searchText}
                     textInputMaxLength={4}
                     onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => props.onYearChange(option.value)}
                     initiallyFocusedOptionKey={props.currentYear.toString()}
                     showScrollIndicator
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {usePlaidLink} from 'react-plaid-link';
-import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
-import Log from '../../libs/Log';
+import Log from '@libs/Log';
+import {plaidLinkDefaultProps, plaidLinkPropTypes} from './plaidLinkPropTypes';
 
 function PlaidLink(props) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
@@ -23,6 +23,7 @@ function PlaidLink(props) {
         },
         onEvent: (event, metadata) => {
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
+            props.onEvent(event, metadata);
         },
         onLoad: () => setIsPlaidLoaded(true),
 
