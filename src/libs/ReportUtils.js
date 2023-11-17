@@ -1278,16 +1278,20 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
+    // when searching for a new user while offline
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return personalDetails.login || '';
+        return formattedLogin;
     }
-    const longName = personalDetails.displayName;
+
+    const longName = personalDetails.displayName || formattedLogin;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1648,9 +1652,10 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  *    - or the user is an admin on the policy the expense report is tied to
  *
  * @param {Object} reportAction
+ * @param {String} fieldToEdit
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction) {
+function canEditMoneyRequest(reportAction, fieldToEdit = '') {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1672,7 +1677,9 @@ function canEditMoneyRequest(reportAction) {
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1699,7 +1706,7 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
 
