@@ -54,7 +54,14 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
     const hasWaypointError = useRef(false);
+    const isTransactionLoading = useRef(false);
     const prevIsLoading = usePrevious(transaction.isLoading);
+
+    useEffect(() => {
+        isTransactionLoading.current = transaction.isLoading;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         hasWaypointError.current = Boolean(lodashGet(transaction, 'errorFields.route') || lodashGet(transaction, 'errorFields.waypoints'));
@@ -78,7 +85,8 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
         return () => {
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
-            if (transactionWasSaved.current) {
+            // We don't want to restore if the transaction is loading when we open this page
+            if (transactionWasSaved.current || isTransactionLoading.current) {
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);

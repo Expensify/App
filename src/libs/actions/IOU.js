@@ -182,7 +182,14 @@ function buildOnyxDataForMoneyRequest(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: {
+                ...transaction,
+                isLoading: true,
+                comment: {
+                    ...transaction.comment,
+                    isLoading: true,
+                },
+            },
         },
         {
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
@@ -254,7 +261,14 @@ function buildOnyxDataForMoneyRequest(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingAction: null,
+                isLoading: false,
+                comment: {
+                    ...transaction.comment,
+                    isLoading: false,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -328,6 +342,11 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                isLoading: false,
+                comment: {
+                    ...transaction.comment,
+                    isLoading: false,
+                },
             },
         },
         {
