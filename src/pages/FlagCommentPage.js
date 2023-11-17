@@ -14,7 +14,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -62,6 +62,7 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
+    const styles = useThemeStyles();
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,

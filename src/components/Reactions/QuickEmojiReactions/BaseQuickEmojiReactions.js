@@ -8,7 +8,7 @@ import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
 import Tooltip from '@components/Tooltip';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +60,7 @@ const defaultProps = {
 };
 
 function BaseQuickEmojiReactions(props) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.quickReactionsContainer}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (

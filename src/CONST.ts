@@ -260,7 +260,6 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
         PDF_META_STORE: 'pdfMetaStore',
         REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
@@ -962,6 +961,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
