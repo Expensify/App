@@ -97,7 +97,14 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
 
                                 const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                                let scaledImageWidth = dimensions?.scaledImageWidth;
+                                let scaledImageHeight = dimensions?.scaledImageHeight;
+                                if (!scaledImageHeight && !scaledImageWidth) {
+                                    const minImageScale = Math.min(imageScaleX, imageScaleY);
 
+                                    scaledImageWidth = imageWidth * minImageScale;
+                                    scaledImageHeight = imageHeight * minImageScale;
+                                }
                                 // Don't update the dimensions if they are already set
                                 if (
                                     dimensions?.imageWidth !== imageWidth ||
@@ -111,6 +118,8 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                         imageHeight,
                                         imageScaleX,
                                         imageScaleY,
+                                        scaledImageWidth,
+                                        scaledImageHeight,
                                     });
                                 }
 
