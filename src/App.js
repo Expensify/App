@@ -31,6 +31,7 @@ import ThemeStylesProvider from './styles/ThemeStylesProvider';
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
     window.setSupportToken = Session.setSupportAuthToken;
+    console.log("testing");
 }
 
 LogBox.ignoreLogs([
