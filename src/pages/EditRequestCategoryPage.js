@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Transaction default category value */
@@ -20,6 +20,7 @@ const propTypes = {
 };
 
 function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const selectCategory = (category) => {

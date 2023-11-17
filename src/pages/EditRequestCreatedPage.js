@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function EditRequestCreatedPage({defaultCreated, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (

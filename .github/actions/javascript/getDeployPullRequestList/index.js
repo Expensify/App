@@ -111,6 +111,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
     },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
 };
 
 CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
@@ -135,20 +136,38 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
  */
 function fetchTag(tag) {
     const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                execSync('git repack -d');
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            let command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Exclude commits reachable from the previous patch version (i.e: previous checklist),
+            // so that we don't have to fetch the full history
+            // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
+            if (previousPatchVersion !== tag) {
+                command += ` --shallow-exclude=${previousPatchVersion}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        console.error(e);
     }
 }
 
