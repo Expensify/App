@@ -36,22 +36,20 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
+    // We use two different loading components for the header and footer
+    // to reduce the jumping effect when the user is scrolling to the newer report actions
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
         if (isLoadingOlderReportActions) {
             return <ReportActionsSkeletonView />;
         }
 
-        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-        // skeleton view above the created action in a newly generated optimistic chat or one with not
+        // Make sure the report chat is not loaded till the beginning. This is so we do not show the
+        // skeleton view above the "created" action in a newly generated optimistic chat or one with not
         // that many comments.
-        if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return (
-                <ReportActionsSkeletonView
-                    shouldAnimate={!isOffline}
-                    possibleVisibleContentItems={3}
-                />
-            );
+        // Also, if we are offline and the report is not yet loaded till the beginning, we assume there are more actions to load,
+        // therefore show the skeleton view, even though the actions are not loading.
+        if (lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED && (isLoadingInitialReportActions || isOffline)) {
+            return <ReportActionsSkeletonView possibleVisibleContentItems={3} />;
         }
     }
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {
