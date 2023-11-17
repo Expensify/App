@@ -317,16 +317,15 @@ function getValidMergedPRs(commits) {
  * @param {String} toTag
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
-        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-        // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList).sort();
-        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
-    });
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 module.exports = {
