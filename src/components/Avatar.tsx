@@ -83,12 +83,14 @@ function Avatar({
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
 
+    const avatarSource = imageError ? fallbackAvatar : source;
+
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
-            {typeof source === 'function' || imageError && typeof fallbackAvatar === 'function' ? (
+            {typeof avatarSource === 'function' ? (
                 <View style={iconStyle}>
                     <Icon
-                        src={imageError ? fallbackAvatar : source}
+                        src={avatarSource}
                         height={iconSize}
                         width={iconSize}
                         fill={imageError ? theme.offline : iconFillColor}
@@ -103,7 +105,7 @@ function Avatar({
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <Image
-                        source={{uri: imageError ? fallbackAvatar : source}}
+                        source={{uri: avatarSource}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
                     />
