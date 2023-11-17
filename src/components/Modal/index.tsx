@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
 
-function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldEnableFocusTrap, ...rest}: BaseModalProps) {
+function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldEnableFocusTrap = false, ...rest}: BaseModalProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
