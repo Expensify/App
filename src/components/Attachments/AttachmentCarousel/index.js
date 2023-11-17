@@ -11,7 +11,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +42,7 @@ function AttachmentCarousel({
     reportMetadata,
     isSmallScreenWidth,
 }) {
+    const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();

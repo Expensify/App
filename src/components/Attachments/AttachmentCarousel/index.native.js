@@ -9,7 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ function AttachmentCarousel({
     isLoadingReportData,
     reportMetadata,
 }) {
+    const styles = useThemeStyles();
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
