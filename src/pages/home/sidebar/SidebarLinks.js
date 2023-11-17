@@ -162,7 +162,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                             height={variables.lhnLogoHeight}
                         />
                     }
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     shouldShowEnvironmentBadge
                 />
                 <Tooltip text={translate('common.search')}>
