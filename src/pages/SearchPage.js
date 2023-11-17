@@ -9,13 +9,13 @@ import {withNetwork} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -45,6 +45,7 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -189,7 +190,7 @@ class SearchPage extends Component {
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton title={this.props.translate('common.search')} />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <View style={[this.props.themeStyles.flex1, this.props.themeStyles.w100, this.props.themeStyles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
@@ -239,4 +240,5 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
+    withThemeStyles,
 )(SearchPage);
