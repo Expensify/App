@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -938,6 +938,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**

@@ -7,9 +7,9 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -32,6 +32,8 @@ const logoComponents = {
 };
 
 function ExpensifyWordmark(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
 
@@ -46,7 +48,7 @@ function ExpensifyWordmark(props) {
                     ...(_.isArray(props.style) ? props.style : [props.style]),
                 ]}
             >
-                <LogoComponent fill={themeColors.success} />
+                <LogoComponent fill={theme.success} />
             </View>
         </>
     );
