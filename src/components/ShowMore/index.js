@@ -45,10 +45,8 @@ function ShowMore({containerStyle, currentCount, totalCount, onPress}) {
                     <Text style={styles.textStrong}>{NumberFormatUtils.format(preferredLocale, totalCount)}</Text>
                 </Text>
             )}
-
             <View style={[styles.w100, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-
                 <Button
                     style={styles.mh0}
                     small
@@ -59,7 +57,6 @@ function ShowMore({containerStyle, currentCount, totalCount, onPress}) {
                     accessibilityLabel={translate('common.showMore')}
                     onPress={onPress}
                 />
-
                 <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
             </View>
         </View>
