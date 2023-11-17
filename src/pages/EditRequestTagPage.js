@@ -6,7 +6,7 @@ import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Transaction default tag value */
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const selectTag = (tag) => {
