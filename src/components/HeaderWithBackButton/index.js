@@ -142,7 +142,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -167,7 +167,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Close}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>

@@ -10,6 +10,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
@@ -74,6 +75,7 @@ const defaultProps = {
 };
 
 function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
@@ -117,7 +119,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                     >
                         <Icon
                             src={icon}
-                            fill={iconFill}
+                            fill={iconFill || theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>
