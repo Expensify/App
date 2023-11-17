@@ -213,6 +213,19 @@ class BaseOptionsSelector extends Component {
         });
     }
 
+    /**
+     * Calculates all exactly visible options of sections.
+     */
+    get allVisibleOptionsCount() {
+        let count = 0;
+
+        _.forEach(this.sections, (section) => {
+            count += lodashGet(section, 'data.length', 0);
+        });
+
+        return count;
+    }
+
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
@@ -520,7 +533,7 @@ class BaseOptionsSelector extends Component {
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.state.allOptions.length - 1}
+                maxIndex={this.allVisibleOptionsCount - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
