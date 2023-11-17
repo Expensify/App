@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
+import RESIZE_MODES from '@components/Image/resizeModes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import styles from '@styles/styles';
@@ -238,7 +239,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                     style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
                     // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                     // Both `center` and `contain` keeps the image centered on both x and y axis.
-                    resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
+                    resizeMode={zoomScale > 1 ? RESIZE_MODES.center : RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                     onError={onError}

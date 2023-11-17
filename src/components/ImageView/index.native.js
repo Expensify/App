@@ -5,6 +5,7 @@ import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
+import RESIZE_MODES from '@components/Image/resizeModes';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
@@ -218,7 +219,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                         ]}
                         source={{uri: url}}
                         isAuthTokenRequired={isAuthTokenRequired}
-                        resizeMode={Image.resizeMode.contain}
+                        resizeMode={RESIZE_MODES.contain}
                         onLoadStart={imageLoadingStart}
                         onLoad={configureImageZoom}
                     />
