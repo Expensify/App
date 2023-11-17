@@ -13,13 +13,16 @@ function fetchTag(tag) {
     let needsRepack = false;
     while (shouldRetry) {
         try {
+            let command = '';
             if (needsRepack) {
                 // We have seen some scenarios where this fixes the git fetch.
                 // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                execSync('git repack -d');
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                execSync(command);
             }
 
-            let command = `git fetch origin tag ${tag} --no-tags`;
+            command = `git fetch origin tag ${tag} --no-tags`;
 
             // Exclude commits reachable from the previous patch version (i.e: previous checklist),
             // so that we don't have to fetch the full history
