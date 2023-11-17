@@ -47,9 +47,6 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** Contains draft values for each input in the form */
-    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
-
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
@@ -73,8 +70,6 @@ const propTypes = {
     shouldValidateOnBlur: PropTypes.bool,
 
     shouldValidateOnChange: PropTypes.bool,
-
-    customErrorMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -82,7 +77,6 @@ const defaultProps = {
     formState: {
         isLoading: false,
     },
-    draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
@@ -91,7 +85,6 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
-    customErrorMessage: '',
 };
 
 function getInitialValueByType(valueType) {
@@ -107,7 +100,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}) {
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -215,8 +208,6 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            } else if(propsToParse.shouldSaveDraft && draftValues[inputID] !== undefined && inputValues[inputID] === undefined) {
-                inputValues[inputID] = draftValues[inputID];
             } else if (propsToParse.shouldUseDefaultValue) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
@@ -311,7 +302,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 },
             };
         },
-        [draftValues, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -326,7 +317,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {_.isFunction(children) ? children({inputValues}) : children}
+                {children}
             </FormWrapper>
         </FormContext.Provider>
     );
@@ -341,9 +332,6 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
-        },
-        draftValues: {
-            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(FormProvider);
