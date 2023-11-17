@@ -21,7 +21,7 @@ import PersonalBankAccount from './PersonalBankAccount';
 import PersonalDetails from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
-import PolicyCategory from './PolicyCategory';
+import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -78,6 +78,7 @@ export type {
     PlaidData,
     Policy,
     PolicyCategory,
+    PolicyCategories,
     PolicyMember,
     PolicyMembers,
     PolicyTag,
