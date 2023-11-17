@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -132,7 +133,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                 onBackButtonPress={onBackButtonPress}
                 shouldShowGetAssistanceButton
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
@@ -162,7 +163,8 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                     inputKeys={INPUT_KEYS}
                     shouldSaveDraft
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
@@ -193,7 +195,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                         {translate('common.termsOfService')}
                     </TextLink>
                 </Text>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 });

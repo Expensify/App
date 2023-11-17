@@ -6,7 +6,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Overlay from './Overlay';
 
 const Stack = createStackNavigator();
@@ -19,6 +19,7 @@ const propTypes = {
 };
 
 function RightModalNavigator(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -113,6 +114,10 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
                     />
                     <Stack.Screen
                         name="Private_Notes"
