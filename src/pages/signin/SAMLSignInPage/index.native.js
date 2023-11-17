@@ -47,9 +47,9 @@ function SAMLSignInPage({credentials}) {
                 Session.signInWithShortLivedAuthToken(credentials.login, shortLivedAuthToken);
             }
 
-            if (searchParams.has('error')) {
-                // Run the Onyx action to set an error state on the sign in page
-                // Currently this is what's going to trigger because the backend isn't redirecting SAML correctly
+            // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
+            if (searchParams.has('error')) {;
+                Session.setAccountError(searchParams.get('error'));
                 Navigation.navigate(ROUTES.HOME);
             }
         },
