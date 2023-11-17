@@ -72,9 +72,9 @@ TagPicker.defaultProps = defaultProps;
 
 export default withOnyx({
     policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}72EBA7BA2835EE2C`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
     policyRecentlyUsedTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}72EBA7BA2835EE2C`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
     },
 })(TagPicker);
