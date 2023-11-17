@@ -8,8 +8,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import * as FormActions from '@userActions/FormActions';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
@@ -53,24 +53,8 @@ const datePickerDefaultProps = {
     formID: '',
 };
 
-function NewDatePicker({
-    containerStyles,
-    defaultValue,
-    disabled,
-    errorText,
-    inputID,
-    isSmallScreenWidth,
-    label,
-    maxDate,
-    minDate,
-    onInputChange,
-    onTouched,
-    placeholder,
-    translate,
-    value,
-    shouldSaveDraft,
-    formID,
-}) {
+function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value, shouldSaveDraft, formID}) {
+    const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {

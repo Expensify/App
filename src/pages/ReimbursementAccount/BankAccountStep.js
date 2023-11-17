@@ -17,8 +17,8 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -68,6 +68,8 @@ const defaultProps = {
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
 function BankAccountStep(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -183,8 +185,9 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={themeColors.danger}
+                                fill={theme.danger}
                             />
+
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
                         </View>
                     )}
@@ -201,7 +204,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={themeColors.link}
+                                    fill={theme.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>
