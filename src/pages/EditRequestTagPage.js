@@ -47,6 +47,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
                         selectedTag={defaultTag}
                         tag={tagName}
                         policyID={policyID}
+                        shouldShowDisabledAndSelectedOption
                         insets={insets}
                         onSubmit={selectTag}
                     />
