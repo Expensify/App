@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
@@ -12,7 +13,7 @@ import * as FileUtils from './FileUtils';
  */
 export default function fileDownload(url, fileName) {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !resolvedUrl.startsWith(CONST.ATTACHMENT_TEMPORARY_URL_START)) {
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !_.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => resolvedUrl.startsWith(prefix))) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);
