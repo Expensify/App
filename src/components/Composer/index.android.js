@@ -1,12 +1,10 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
+import {getComposerMaxHeightStyle} from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
-
-const COMPOSER_LINE_HEIGHT = styles.textInputCompose.lineHeight || 0;
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -94,12 +92,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const maxHeightStyle = useMemo(
-        () => ({
-            maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
-        }),
-        [maxLines],
-    );
+    const maxHeightStyle = useMemo(() => getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
 
     return (
         <RNTextInput
@@ -111,7 +104,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             textAlignVertical="center"
-            style={[...props.style, isComposerFullSize ? undefined : maxHeightStyle]}
+            style={[...props.style, maxHeightStyle]}
             readOnly={isDisabled}
         />
     );

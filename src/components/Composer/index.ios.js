@@ -3,10 +3,8 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
+import {getComposerMaxHeightStyle} from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
-
-const COMPOSER_LINE_HEIGHT = styles.textInputCompose.lineHeight || 0;
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -94,12 +92,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const maxHeightStyle = useMemo(
-        () => ({
-            maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
-        }),
-        [maxLines],
-    );
+    const maxHeightStyle = useMemo(() => getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
 
     // On native layers we like to have the Text Input not focused so the
     // user can read new chats without the keyboard in the way of the view.
@@ -115,7 +108,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
-            style={[...props.style, isComposerFullSize ? undefined : maxHeightStyle]}
+            style={[...props.style, maxHeightStyle]}
             readOnly={isDisabled}
         />
     );

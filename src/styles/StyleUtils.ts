@@ -1389,6 +1389,19 @@ function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
+/**
+ * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+ */
+function getComposerMaxHeightStyle(maxLines: number, isComposerFullSize: boolean): ViewStyle | undefined {
+    const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+
+    return isComposerFullSize
+        ? undefined
+        : {
+              maxHeight: maxLines * composerLineHeight,
+          };
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1473,4 +1486,5 @@ export {
     getContainerStyles,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getComposerMaxHeightStyle,
 };
