@@ -2771,6 +2771,9 @@ const CONST = {
     },
     /**
      * Acceptable values for the `accessibilityRole` prop on react native components.
+     *
+     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
+     *
      * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
      */
     ACCESSIBILITY_ROLE: {
