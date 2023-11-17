@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function WorkspaceResetBankAccountModal({reimbursementAccount, session}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const achData = lodashGet(reimbursementAccount, 'achData') || {};
     const isInOpenState = achData.state === BankAccount.STATE.OPEN;
