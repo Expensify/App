@@ -1,88 +1,84 @@
-// TODO: String literal for Violation Type
-import {PolicyTags, Transaction} from '@src/types/onyx';
-import {PolicyCategories} from '@src/types/onyx/PolicyCategory';
-
-type ViolationType =string;
-
-// TODO: String literal for Violation Name
-type ViolationName = string;
-
-type ViolationField = 'merchant' | 'amount' | 'category' | 'date' | 'tag' | 'comment' | 'billable' | 'receipt' | 'tax';
-
-type TransactionViolation = {
-    type: ViolationType;
-    name: ViolationName;
-    userMessage: string;
-    data?: Record<string, string>
-};
-
-const formFields = {
-    merchant: 'merchant',
-    amount: 'amount',
-    category: 'category',
-    date: 'date',
-    tag: 'tag',
-    comment: 'comment',
-    billable: 'billable',
-    receipt: 'receipt',
-    tax: 'tax',
-};
-
-const violationFields = {
-    perDayLimit: formFields.amount,
-    maxAge: formFields.date,
-    overLimit: formFields.amount,
-    overLimitAttendee: formFields.amount,
-    overCategoryLimit: formFields.amount,
-    receiptRequired: formFields.receipt,
-    missingCategory: formFields.category,
-    categoryOutOfPolicy: formFields.category,
-    missingTag: formFields.tag,
-    tagOutOfPolicy: formFields.tag,
-    missingComment: formFields.comment,
-    taxRequired: formFields.tax,
-    taxOutOfPolicy: formFields.tax,
-    billableExpense: formFields.billable,
-};
+import ONYXKEYS from '@src/ONYXKEYS';
+import {
+    Transaction,
+    TransactionViolation,
+    PolicyTags,
+    PolicyCategories,
+} from '@src/types/onyx';
+import Onyx from 'react-native-onyx';
+import reject from 'lodash/reject';
+import possibleViolationsByField, {ViolationField} from './possibleViolationsByField';
 
 
 
 const ViolationsUtils = {
-    getViolationForField(transactionViolation:TransactionViolation, field:ViolationField
-) :string {
-        console.log('getViolationsForField()', {transactionViolation, field});
-        throw new Error('Not implemented: getViolationsForField');
+    getViolationForField(
+        transactionViolations: TransactionViolation[],
+        field: ViolationField,
+        translate: (key:string)=>string
+    ): string[] {
+        return transactionViolations
+            .filter(violation => possibleViolationsByField[field]?.includes(violation.name))
+            .map(violation => translate(violation.name));
     },
+
     getViolationsOnyxData(
-        {
-            transaction,
-            transactionViolations,
-            policyRequiresCategories,
-            policyRequiresTags,
-            policyCategories,
-            policyTags
-        }:{
-            transaction: Transaction,
-            transactionViolations: TransactionViolation,
-            policyRequiresTags: boolean,
-            policyTags: PolicyTags,
-            policyRequiresCategories:boolean,
-            policyCategories: PolicyCategories
-        }){
+        /** The transaction to check for policy violations. */
+        transaction: Transaction,
+        /** An array of existing transaction violations. */
+        transactionViolations: TransactionViolation[],
+        /** Indicates if the policy requires tags. */
+        policyRequiresTags: boolean,
+        /** Collection of policy tags and their enabled states. */
+        policyTags: PolicyTags,
+        /** Indicates if the policy requires categories. */
+        policyRequiresCategories: boolean,
+        /** Collection of policy categories and their enabled states. */
+        policyCategories: PolicyCategories,
+    ): {
+        onyxMethod: string,
+        key: string,
+        value: TransactionViolation[]
+    } {
+        let newTransactionViolations = [...transactionViolations];
 
-        console.log('getViolationsOnyxData()', {
-            transaction,
-            transactionViolations,
-            policyRequiresCategories,
-            policyRequiresTags,
-            policyCategories,
-            policyTags
-        });
 
-        throw new Error('Not implemented: getViolationsOnyxData()');
+        if (policyRequiresCategories) {
+            const categoryViolationExists = transactionViolations.some(violation => violation.name === 'categoryOutOfPolicy');
+            const categoryIsInPolicy = policyCategories[transaction.category]?.enabled;
+
+            // Add 'categoryOutOfPolicy' violation if category is not in policy
+            if (!categoryViolationExists && transaction.category && !categoryIsInPolicy) {
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
+            }
+
+            // Remove 'missingCategory' violation if category is valid according to policy
+            if (categoryIsInPolicy) {
+                newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
+            }
+        }
+
+
+        if (policyRequiresTags) {
+            // Add 'tagOutOfPolicy' violation if tag is not in policy
+            const tagViolationExists = transactionViolations.some(violation => violation.name === 'tagOutOfPolicy');
+            const tagInPolicy = policyTags[transaction.tag]?.enabled;
+            if (!tagViolationExists && transaction.tag && !tagInPolicy) {
+                newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
+            }
+
+            // Remove 'missingTag' violation if tag is valid according to policy
+            if (tagInPolicy) {
+                newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
+            }
+        }
+
+        return {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: newTransactionViolations
+        };
     },
-
-
-}
+};
 
 export default ViolationsUtils;
