@@ -2,24 +2,18 @@ import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import compose from '@libs/compose';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -27,12 +21,19 @@ const defaultProps = {
 };
 
 function ReportTypingIndicator(props) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
     // If we are offline, the user typing statuses are not up-to-date so do not show them
-    if (props.network.isOffline) {
+    if (isOffline) {
         return null;
     }
+
+    const firstUserTyping = usersTyping[0];
+    const firstUserTypingID = Number.isNaN(firstUserTyping) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping;
+    const firstUserTypingDisplayName = ReportUtils.getDisplayNameForParticipant(firstUserTypingID, false, false);
 
     const numUsersTyping = _.size(usersTyping);
 
@@ -44,8 +45,8 @@ function ReportTypingIndicator(props) {
         case 1:
             return (
                 <TextWithEllipsis
-                    leadingText={PersonalDetails.getDisplayNameForTypingIndicator(usersTyping[0], props.translate('common.someone'))}
-                    trailingText={` ${props.translate('reportTypingIndicator.isTyping')}`}
+                    leadingText={firstUserTypingDisplayName || translate('common.someone')}
+                    trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
                     textStyle={[styles.chatItemComposeSecondaryRowSubText]}
                     wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
                     leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
@@ -58,8 +59,8 @@ function ReportTypingIndicator(props) {
                     style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
                     numberOfLines={1}
                 >
-                    {props.translate('reportTypingIndicator.multipleUsers')}
-                    {` ${props.translate('reportTypingIndicator.areTyping')}`}
+                    {translate('reportTypingIndicator.multipleUsers')}
+                    {` ${translate('reportTypingIndicator.areTyping')}`}
                 </Text>
             );
     }
@@ -69,13 +70,9 @@ ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-    withOnyx({
-        userTypingStatuses: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-            initialValue: {},
-        },
-    }),
-)(ReportTypingIndicator);
+export default withOnyx({
+    userTypingStatuses: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+        initialValue: {},
+    },
+})(ReportTypingIndicator);

@@ -60,31 +60,6 @@ function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'fi
 }
 
 /**
- * @param [defaultDisplayName] display name to use if user details don't exist in Onyx or if
- *                                      found details don't include the user's displayName or login
- */
-function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultDisplayName = ''): string {
-    // Try to convert to a number, which means we have an accountID
-    const accountID = Number(userAccountIDOrLogin);
-
-    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
-    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
-    if (Number.isNaN(accountID)) {
-        const detailsByLogin = Object.entries(allPersonalDetails ?? {}).find(([, value]) => value?.login === userAccountIDOrLogin)?.[1];
-
-        // It's possible for displayName to be empty string, so we must use "||" to fallback to userAccountIDOrLogin.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return detailsByLogin?.displayName || userAccountIDOrLogin;
-    }
-
-    const detailsByAccountID = allPersonalDetails?.[accountID];
-
-    // It's possible for displayName to be empty string, so we must use "||" to fallback to login or defaultDisplayName.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return detailsByAccountID?.displayName || detailsByAccountID?.login || defaultDisplayName;
-}
-
-/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -584,7 +559,6 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     getCountryISO,
     getDisplayName,
-    getDisplayNameForTypingIndicator,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,
