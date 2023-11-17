@@ -42,12 +42,12 @@ Due to the large, ever-growing history of this repo, do not do any full-fetches 
 
 ```yaml
 # Bad
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
   with:
     fetch-depth: 0
 
 # Good
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
 ```
 
 ```sh
