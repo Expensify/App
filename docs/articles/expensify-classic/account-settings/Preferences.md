@@ -1,6 +1,6 @@
 ---
 title: Account Preferences
-description: Preferences
+description: Expensify Account Preferences
 ---
 
 # Overview
