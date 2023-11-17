@@ -2820,7 +2820,7 @@ const CONST = {
         /**
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
-        ADJUSTABLE: 'slider',
+        ADJUSTABLE: 'adjustable',
 
         /**
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
