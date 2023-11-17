@@ -98,7 +98,7 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
-  
+
     if (displayName) {
         const firstSpaceIndex = displayName.indexOf(' ');
         const lastSpaceIndex = displayName.lastIndexOf(' ');
