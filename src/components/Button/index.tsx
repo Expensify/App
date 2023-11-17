@@ -8,8 +8,9 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -154,6 +155,8 @@ function Button(
     }: ButtonProps,
     ref: ForwardedRef<View>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
@@ -210,7 +213,7 @@ function Button(
                             <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.textLight}
                                     small={small}
                                 />
                             </View>
@@ -221,7 +224,7 @@ function Button(
                         <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill}
+                                fill={iconFill || theme.textLight}
                                 small={small}
                             />
                         </View>
@@ -292,7 +295,7 @@ function Button(
             {renderContent()}
             {isLoading && (
                 <ActivityIndicator
-                    color={success || danger ? themeColors.textLight : themeColors.text}
+                    color={success || danger ? theme.textLight : theme.text}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                 />
             )}
