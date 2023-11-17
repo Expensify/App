@@ -158,6 +158,8 @@ function cherry_pick_pr {
   git push origin staging
   info "Merged PR #$(($1 + 1)) into staging"
 
+  tag_staging
+
   success "Successfully cherry-picked PR #$1 to staging!"
 }
 
@@ -171,6 +173,29 @@ function tag_staging {
   git tag "$(print_version)"
   git push --tags
   success "Created new tag $(print_version)"
+}
+
+function deploy_staging {
+  info "Deploying staging..."
+  checkout_repo
+  bump_version "$SEMVER_LEVEL_BUILD"
+  update_staging_from_main
+  tag_staging
+  success "Deployed v$(print_version) to staging!"
+}
+
+function deploy_production {
+  info "Checklist closed, deploying production and staging..."
+
+  info "Deploying production..."
+  update_production_from_staging
+  success "Deployed v$(print_version) to production!"
+
+  info "Deploying staging..."
+  bump_version "$SEMVER_LEVEL_PATCH"
+  update_staging_from_main
+  tag_staging
+  success "Deployed v$(print_version) to staging!"
 }
 
 function assert_prs_merged_between {
@@ -206,12 +231,7 @@ title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
 create_basic_pr 1
 merge_pr 1
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-
-# Tag staging
-tag_staging
-git switch main
+deploy_staging
 
 # Verify output for checklist and deploy comment
 assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ 1 ]"
@@ -231,8 +251,6 @@ title "Scenario #3: Merge a pull request with the checklist locked and CP it to 
 create_basic_pr 3
 cherry_pick_pr 3
 
-tag_staging
-
 # Verify output for checklist
 assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
@@ -243,35 +261,23 @@ success "Scenario #3 completed successfully!"
 
 
 title "Scenario #4: Close the checklist"
-title "Scenario #4A: Run the production deploy"
 
-update_production_from_staging
+deploy_production
 
 # Verify output for release body and production deploy comments
 assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
-success "Scenario #4A completed successfully!"
-
-title "Scenario #4B: Run the staging deploy and create a new checklist"
-
-bump_version "$SEMVER_LEVEL_PATCH"
-update_staging_from_main
-tag_staging
-
 # Verify output for new checklist and staging deploy comments
 assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ 2 ]"
 
-success "Scenario #4B completed successfully!"
+success "Scenario #4 completed successfully!"
 
 
 title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
 create_basic_pr 5
 merge_pr 5
-
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
 assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ 2, 5 ]"
@@ -292,9 +298,7 @@ git add myFile.txt
 git commit -m "Add myFile.txt in PR #6"
 
 merge_pr 6
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
 assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ 2, 5, 6 ]"
@@ -314,9 +318,7 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 7
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
 assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ 2, 5, 6, 7 ]"
@@ -345,7 +347,6 @@ git add myFile.txt
 git commit -m "Revert append and prepend"
 
 cherry_pick_pr 9
-tag_staging
 
 info "Verifying that the revert is present on staging, but the unrelated change is not"
 if [[ "$(cat myFile.txt)" != "some content" ]]; then
@@ -373,10 +374,7 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 10
-update_production_from_staging
-bump_version "$SEMVER_LEVEL_PATCH"
-update_staging_from_main
-tag_staging
+deploy_production
 
 # Verify production release list
 assert_prs_merged_between '1.0.0-2' '1.0.1-4' '[ 2, 5, 6, 7, 9 ]'
