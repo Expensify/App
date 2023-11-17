@@ -287,7 +287,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyOrDistanceRequest(transaction, report.reportID, {billable: value})}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                         />
                     </View>
                 )}

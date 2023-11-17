@@ -687,7 +687,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Object} [transactionChanges.waypoints]
  *
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function editDistanceMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -1771,7 +1771,7 @@ function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
  */
-function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function editRegularMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -1990,11 +1990,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
  */
-function editMoneyOrDistanceRequest(transaction, transactionThreadReportID, transactionChanges) {
+function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
-        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        editDistanceMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     } else {
-        editMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     }
 }
 
@@ -3007,5 +3007,5 @@ export {
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
-    editMoneyOrDistanceRequest,
+    editMoneyRequest,
 };

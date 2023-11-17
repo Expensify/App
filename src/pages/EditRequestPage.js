@@ -119,7 +119,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyOrDistanceRequest(transaction, report.reportID, transactionChanges);
+        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
         Navigation.dismissModal(report.reportID);
     }
 
