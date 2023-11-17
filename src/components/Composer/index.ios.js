@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+
+const COMPOSER_LINE_HEIGHT = styles.textInputCompose.lineHeight || 0;
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -93,16 +95,17 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    /**
-     * Set maximum number of lines
-     * @return {Number}
-     */
-    const maxNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) {
-            return;
-        }
-        return maxLines;
-    }, [isComposerFullSize, maxLines]);
+    const [numberOfLines, setNumberOfLines] = useState(1);
+    const heightStyle = useMemo(
+        () =>
+            StyleSheet.create({
+                composerHeight: {
+                    height: numberOfLines * COMPOSER_LINE_HEIGHT,
+                    maxHeight: maxLines * COMPOSER_LINE_HEIGHT,
+                },
+            }).composerHeight,
+        [maxLines, numberOfLines],
+    );
 
     const composerStyles = useMemo(() => {
         StyleSheet.flatten(props.style);
@@ -117,11 +120,10 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => setNumberOfLines(ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e))}
             rejectResponderTermination={false}
             smartInsertDelete={false}
-            maxNumberOfLines={maxNumberOfLines}
-            style={[composerStyles, styles.verticalAlignMiddle]}
+            style={[composerStyles, styles.verticalAlignMiddle, heightStyle]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
             readOnly={isDisabled}

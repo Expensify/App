@@ -16,6 +16,8 @@ const updateNumberOfLines: UpdateNumberOfLines = (props, event) => {
     }
     const numberOfLines = getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
     updateIsFullComposerAvailable(props, numberOfLines);
+
+    return numberOfLines;
 };
 
 export default updateNumberOfLines;
