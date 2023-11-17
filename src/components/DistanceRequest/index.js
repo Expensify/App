@@ -19,7 +19,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
@@ -65,12 +65,13 @@ const defaultProps = {
 };
 
 function DistanceRequest({transactionID, report, transaction, route, isEditingRequest, onSubmit}) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const [hasError, setHasError] = useState(false);
-    const isEditing = lodashGet(route, 'path', '').includes('address');
+    const isEditing = Navigation.getActiveRoute().includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);

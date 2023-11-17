@@ -10,7 +10,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -75,7 +76,8 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                             updateMultilineInputRange(descriptionInputRef.current);
                         }}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        inputStyle={[styles.verticalAlignTop]}
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
