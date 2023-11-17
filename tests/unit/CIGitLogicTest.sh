@@ -111,6 +111,18 @@ function update_production_from_staging {
   success "Recreated production from staging!"
 }
 
+function create_basic_pr {
+  info "Creating PR #$1..."
+  checkout_repo
+  setup_git_as_human
+  git pull
+  git switch -c "pr-$1"
+  echo "Changes from PR #$1" >> "PR$1.txt"
+  git add "PR$1.txt"
+  git commit -m "Changes from PR #$1"
+  success "Created PR #$1 in branch pr-$1"
+}
+
 function merge_pr {
   info "Merging PR #$1 to main"
   git switch main
@@ -192,14 +204,7 @@ success "Setup complete!"
 
 title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
-info "Creating PR #1..."
-setup_git_as_human
-git switch -c pr-1
-echo "Changes from PR #1" >> PR1.txt
-git add PR1.txt
-git commit -m "Changes from PR #1"
-success "Created PR #1 in branch pr-1"
-
+create_basic_pr 1
 merge_pr 1
 bump_version "$SEMVER_LEVEL_BUILD"
 update_staging_from_main
@@ -216,23 +221,14 @@ success "Scenario #1 completed successfully!"
 
 title "Scenario #2: Merge a pull request with the checklist locked, but don't CP it"
 
-info "Creating PR #2..."
-setup_git_as_human
-git switch -c pr-2
-echo "Changes from PR #2" >> PR2.txt
-git add PR2.txt
-git commit -m "Changes from PR #2"
+create_basic_pr 2
 merge_pr 2
 
 success "Scenario #2 completed successfully!"
 
 title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
-info "Creating PR #3 and merging it into main..."
-git switch -c pr-3
-echo "Changes from PR #3" >> PR3.txt
-git add PR3.txt
-git commit -m "Changes from PR #3"
+create_basic_pr 3
 cherry_pick_pr 3
 
 tag_staging
@@ -270,13 +266,7 @@ success "Scenario #4B completed successfully!"
 
 title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
-info "Creating PR #5..."
-setup_git_as_human
-git switch main
-git switch -c pr-5
-echo "Changes from PR #5" >> PR5.txt
-git add PR5.txt
-git commit -m "Changes from PR #5"
+create_basic_pr 5
 merge_pr 5
 
 bump_version "$SEMVER_LEVEL_BUILD"
