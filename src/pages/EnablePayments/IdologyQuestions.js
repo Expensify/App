@@ -130,14 +130,11 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
             </View>
             <FormProvider
                 customErrorMessage={errorMessage}
-                submitButtonStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd]}
-                formID="idologyQuestionsForm"
+                formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                 onSubmit={submitAnswers}
                 scrollContextEnabled
-                style={[styles.mh0, styles.mv0, styles.mb0, styles.flex1]}
+                style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.saveAndContinue')}
-                isLoading={walletAdditionalDetails.isLoading}
-                footerContent={<OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />}
             >
                 <View
                     style={styles.m5}
