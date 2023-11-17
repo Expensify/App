@@ -389,10 +389,12 @@ update_staging_from_main
 tag_staging
 
 # Verify production release list
-assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ 9, 7, 6, 5, 2 ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-4' '[ 9, 7, 6, 5, 2 ]'
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ 10, 8 ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2-0' '[ 10, 8 ]'
+
+success "Scenario #6 completed successfully!"
 
 ### Cleanup
 title "Cleaning up..."
