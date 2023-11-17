@@ -2824,6 +2824,67 @@ const CONST = {
          */
         IMAGE: 'img',
     },
+    /**
+     * Acceptable values for the `role` attribute on react native components.
+     *
+     * **IMPORTANT:** Not for use with the `accessibilityRole` prop, as it accepts different values, and new components
+     * should use the `role` prop instead.
+     */
+    ROLE: {
+        /** Use for elements with important, time-sensitive information. */
+        ALERT: 'alert',
+        /** Use for elements that act as buttons. */
+        BUTTON: 'button',
+        /** Use for elements representing checkboxes. */
+        CHECKBOX: 'checkbox',
+        /** Use for elements that allow a choice from multiple options. */
+        COMBOBOX: 'combobox',
+        /** Use with scrollable lists to represent a grid layout. */
+        GRID: 'grid',
+        /** Use for section headers or titles. */
+        HEADING: 'heading',
+        /** Use for image elements. */
+        IMG: 'img',
+        /** Use for elements that navigate to other pages or content. */
+        LINK: 'link',
+        /** Use to identify a list of items. */
+        LIST: 'list',
+        /** Use for a list of choices or options. */
+        MENU: 'menu',
+        /** Use for a container of multiple menus. */
+        MENUBAR: 'menubar',
+        /** Use for items within a menu. */
+        MENUITEM: 'menuitem',
+        /** Use when no specific role is needed. */
+        NONE: 'none',
+        /** Use for elements that don't require a specific role. */
+        PRESENTATION: 'presentation',
+        /** Use for elements showing progress of a task. */
+        PROGRESSBAR: 'progressbar',
+        /** Use for radio buttons. */
+        RADIO: 'radio',
+        /** Use for groups of radio buttons. */
+        RADIOGROUP: 'radiogroup',
+        /** Use for scrollbar elements. */
+        SCROLLBAR: 'scrollbar',
+        /** Use for text fields that are used for searching. */
+        SEARCHBOX: 'searchbox',
+        /** Use for adjustable elements like sliders. */
+        SLIDER: 'slider',
+        /** Use for a button that opens a list of choices. */
+        SPINBUTTON: 'spinbutton',
+        /** Use for elements providing a summary of app conditions. */
+        SUMMARY: 'summary',
+        /** Use for on/off switch elements. */
+        SWITCH: 'switch',
+        /** Use for tab elements in a tab list. */
+        TAB: 'tab',
+        /** Use for a list of tabs. */
+        TABLIST: 'tablist',
+        /** Use for timer elements. */
+        TIMER: 'timer',
+        /** Use for toolbars containing action buttons or components. */
+        TOOLBAR: 'toolbar',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
