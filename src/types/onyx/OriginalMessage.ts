@@ -143,6 +143,7 @@ type OriginalMessageReportPreview = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
     originalMessage: {
         linkedReportID: string;
+        lastModified?: string;
     };
 };
 
