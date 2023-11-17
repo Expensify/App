@@ -16,7 +16,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string>;
+    messages: Record<string, Localize.MaybePhraseKey>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -37,12 +37,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
     }
 
     // Fetch the keys, sort them, and map through each key to get the corresponding message
-    const sortedMessages: string[] = Object.keys(messages)
+    const sortedMessages = Object.keys(messages)
         .sort()
         .map((key) => messages[key]);
 
     // Removing duplicates using Set and transforming the result into an array
-    const uniqueMessages: string[] = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
+    const uniqueMessages = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
 
     const isErrorMessage = type === 'error';
 
