@@ -18,8 +18,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +59,8 @@ const defaultProps = {
 };
 
 function ReceiptSelector({route, report, iou, transactionID}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -198,7 +200,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 </View>
             )}
@@ -243,7 +245,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
@@ -270,7 +272,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={flash ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>
