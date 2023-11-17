@@ -2805,7 +2805,7 @@ const CONST = {
         /**
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
-        IMAGEBUTTON: 'img button',
+        IMAGEBUTTON: 'imagebutton',
 
         /**
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
@@ -2825,7 +2825,7 @@ const CONST = {
         /**
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
-        IMAGE: 'img',
+        IMAGE: 'image',
     },
     /**
      * Acceptable values for the `role` attribute on react native components.

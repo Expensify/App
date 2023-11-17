@@ -160,7 +160,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon

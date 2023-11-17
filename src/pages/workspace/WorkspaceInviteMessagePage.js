@@ -188,7 +188,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                role={CONST.ACCESSIBILITY_ROLE.LINK}
+                                role={CONST.ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[this.props.themeStyles.mv2, this.props.themeStyles.alignSelfStart]}

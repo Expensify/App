@@ -31,7 +31,7 @@ function CollapsibleSection({title, children}: CollapsibleSectionProps) {
             <PressableWithFeedback
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}

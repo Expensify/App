@@ -99,7 +99,7 @@ function Banner(props) {
                             <Tooltip text={props.translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={props.onClose}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />
