@@ -507,6 +507,10 @@ function getReportAction(reportID: string, reportActionID: string): OnyxEntry<Re
     return allReportActions?.[reportID]?.[reportActionID] ?? null;
 }
 
+function getReportActionsByReportID(reportID: string): OnyxEntry<ReportActions> {
+    return allReportActions?.[reportID] ?? {};
+}
+
 function getMostRecentReportActionLastModified(): string {
     // Start with the oldest date possible
     let mostRecentReportActionLastModified = new Date(0).toISOString();
@@ -642,6 +646,7 @@ export {
     getNumberOfMoneyRequests,
     getParentReportAction,
     getReportAction,
+    getReportActionsByReportID,
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,

@@ -999,6 +999,10 @@ function setReportWithDraft(reportID, hasDraft) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
+function getReportDraftStatus(reportID) {
+    return allReports[reportID] && allReports[reportID].hasDraft;
+}
+
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
@@ -2505,6 +2509,7 @@ function searchInServer(searchInput) {
 }
 
 export {
+    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,

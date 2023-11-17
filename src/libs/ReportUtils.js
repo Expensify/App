@@ -4274,7 +4274,12 @@ function shouldDisableWelcomeMessage(report, policy) {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+function getReportByID(reportID) {
+    return allReports[reportID] || {};
+}
+
 export {
+    getReportByID,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
