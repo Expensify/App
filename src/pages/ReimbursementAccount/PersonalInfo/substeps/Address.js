@@ -10,7 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,10 +55,10 @@ function Address({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        street: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.STREET, defaultValue: ''}),
-        city: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.CITY, defaultValue: ''}),
-        state: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.STATE, defaultValue: ''}),
-        zipCode: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.ZIP_CODE, defaultValue: ''}),
+        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STREET, ''),
+        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.CITY, ''),
+        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STATE, ''),
+        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.ZIP_CODE, ''),
     };
 
     return (

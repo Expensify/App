@@ -15,7 +15,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -55,7 +55,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
-    const defaultCheckboxState = getDefaultStateForField({reimbursementAccount, fieldName: businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS, defaultValue: false});
+    const defaultCheckboxState = getDefaultValueForReimbursementAccountField(reimbursementAccount, businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS, false);
 
     return (
         <ScreenWrapper

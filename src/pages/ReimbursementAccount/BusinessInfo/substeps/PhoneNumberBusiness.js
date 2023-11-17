@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ const validate = (values) => {
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyPhoneNumber = getDefaultStateForField({reimbursementAccount, fieldName: companyPhoneNumberKey, defaultValue: ''});
+    const defaultCompanyPhoneNumber = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyPhoneNumberKey, '');
 
     return (
         <Form

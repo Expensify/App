@@ -7,7 +7,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,10 +52,10 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        street: getDefaultStateForField({reimbursementAccount, fieldName: companyBusinessInfoKey.STREET, defaultValue: ''}),
-        city: getDefaultStateForField({reimbursementAccount, fieldName: companyBusinessInfoKey.CITY, defaultValue: ''}),
-        state: getDefaultStateForField({reimbursementAccount, fieldName: companyBusinessInfoKey.STATE, defaultValue: ''}),
-        zipCode: getDefaultStateForField({reimbursementAccount, fieldName: companyBusinessInfoKey.ZIP_CODE, defaultValue: ''}),
+        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.STREET, ''),
+        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.CITY, ''),
+        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.STATE, ''),
+        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.ZIP_CODE, ''),
     };
 
     return (
