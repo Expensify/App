@@ -2,7 +2,7 @@ import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {
@@ -10,6 +10,7 @@ const propTypes = {
 };
 
 function SignInHeroImage(props) {
+    const styles = useThemeStyles();
     let imageSize;
     if (props.isSmallScreenWidth) {
         imageSize = {
