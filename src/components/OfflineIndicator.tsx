@@ -26,7 +26,7 @@ type OfflineIndicatorProps = LocaleContextProps &
     };
 
 const setStyles = (containerStyles: StyleProp<ViewStyle>, isSmallScreenWidth: boolean): StyleProp<ViewStyle> => {
-    if (!!containerStyles && ((Array.isArray(containerStyles) && containerStyles.length) || Object.keys(containerStyles).length)) {
+    if (containerStyles) {
         return containerStyles;
     }
 
