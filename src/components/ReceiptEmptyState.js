@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -21,6 +21,7 @@ const defaultProps = {
 
 // Returns an SVG icon indicating that the user should attach a receipt
 function ReceiptEmptyState({hasError, onPress}) {
+    const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
             accessibilityRole="imagebutton"
