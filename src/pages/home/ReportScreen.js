@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -276,8 +276,11 @@ function ReportScreen({
 
     useEffect(() => {
         fetchReportIfNeeded();
-        ComposerActions.setShouldShowComposeInput(true);
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            ComposerActions.setShouldShowComposeInput(true);
+        });
         return () => {
+            interactionTask.cancel();
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
@@ -345,10 +348,20 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+        let interactionTask;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportLeavingEvents(reportID);
-            didSubscribeToReportLeavingEvents.current = true;
+            interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportLeavingEvents(reportID);
+                didSubscribeToReportLeavingEvents.current = true;
+            });
         }
+
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const onListLayout = useCallback((e) => {

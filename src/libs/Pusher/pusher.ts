@@ -1,5 +1,6 @@
 import isObject from 'lodash/isObject';
 import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
+import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
@@ -209,48 +210,50 @@ function bindEventToChannel(channel: Channel | undefined, eventName: PusherEvent
  */
 function subscribe(channelName: string, eventName: PusherEventName, eventCallback: (data: PushJSON) => void = () => {}, onResubscribe = () => {}): Promise<void> {
     return new Promise((resolve, reject) => {
-        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
-        if (!socket) {
-            throw new Error(`[Pusher] instance not found. Pusher.subscribe()
+        InteractionManager.runAfterInteractions(() => {
+            // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+            if (!socket) {
+                throw new Error(`[Pusher] instance not found. Pusher.subscribe()
             most likely has been called before Pusher.init()`);
-        }
+            }
 
-        Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
-        let channel = getChannel(channelName);
+            Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+            let channel = getChannel(channelName);
 
-        if (!channel || !channel.subscribed) {
-            channel = socket.subscribe(channelName);
-            let isBound = false;
-            channel.bind('pusher:subscription_succeeded', () => {
-                // Check so that we do not bind another event with each reconnect attempt
-                if (!isBound) {
-                    bindEventToChannel(channel, eventName, eventCallback);
-                    resolve();
-                    isBound = true;
-                    return;
-                }
+            if (!channel || !channel.subscribed) {
+                channel = socket.subscribe(channelName);
+                let isBound = false;
+                channel.bind('pusher:subscription_succeeded', () => {
+                    // Check so that we do not bind another event with each reconnect attempt
+                    if (!isBound) {
+                        bindEventToChannel(channel, eventName, eventCallback);
+                        resolve();
+                        isBound = true;
+                        return;
+                    }
 
-                // When subscribing for the first time we register a success callback that can be
-                // called multiple times when the subscription succeeds again in the future
-                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                // not fire on the first subscription_succeeded event.
-                onResubscribe();
-            });
-
-            channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
-                const {type, error, status} = data;
-                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                    channelName,
-                    status,
-                    type,
-                    error,
+                    // When subscribing for the first time we register a success callback that can be
+                    // called multiple times when the subscription succeeds again in the future
+                    // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                    // not fire on the first subscription_succeeded event.
+                    onResubscribe();
                 });
-                reject(error);
-            });
-        } else {
-            bindEventToChannel(channel, eventName, eventCallback);
-            resolve();
-        }
+
+                channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
+                    const {type, error, status} = data;
+                    Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                        channelName,
+                        status,
+                        type,
+                        error,
+                    });
+                    reject(error);
+                });
+            } else {
+                bindEventToChannel(channel, eventName, eventCallback);
+                resolve();
+            }
+        });
     });
 }
 
