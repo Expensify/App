@@ -19,7 +19,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
@@ -65,12 +65,13 @@ const defaultProps = {
 };
 
 function DistanceRequest({transactionID, report, transaction, route, isEditingRequest, onSubmit}) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const [hasError, setHasError] = useState(false);
-    const isEditing = lodashGet(route, 'path', '').includes('address');
+    const isEditing = Navigation.getActiveRoute().includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
@@ -150,13 +151,8 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
-        // Initially, both waypoints will be null, and if we give fallback value as empty string that will result in true condition, that's why different default values.
-        if (_.keys(waypoints).length === 2 && lodashGet(waypoints, 'waypoint0.address', 'address1') === lodashGet(waypoints, 'waypoint1.address', 'address2')) {
-            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
-        }
-
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.emptyWaypointsErrorMessage')};
+            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
     };
 

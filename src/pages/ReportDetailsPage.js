@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +60,7 @@ const defaultProps = {
 };
 
 function ReportDetailsPage(props) {
+    const styles = useThemeStyles();
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
@@ -215,7 +216,7 @@ function ReportDetailsPage(props) {
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));

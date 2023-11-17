@@ -274,7 +274,7 @@ class PDFView extends Component {
         return (
             <View style={outerContainerStyle}>
                 <View
-                    focusable
+                    tabIndex={0}
                     style={pdfContainerStyle}
                     onLayout={({
                         nativeEvent: {
@@ -327,7 +327,7 @@ class PDFView extends Component {
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
                 style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
                 {this.renderPDFView()}

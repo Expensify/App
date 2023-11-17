@@ -13,7 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +66,7 @@ const defaultProps = {
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
@@ -122,7 +123,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     report={{
                         ...report,
                         ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
-                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
                     }}
                     policy={policy}
                     personalDetails={personalDetails}

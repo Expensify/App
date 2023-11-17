@@ -16,7 +16,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +29,7 @@ const personalDetailsPropTypes = PropTypes.shape({
     login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet, except for anon users) */
+  the person doesn't have their own avatar uploaded yet, except for anon users) */
     avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
@@ -85,49 +86,36 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        let emails = _.compact(
-            searchTerm
-                .trim()
-                .replace(/\s*,\s*/g, ',')
-                .split(','),
-        );
-
-        if (emails.length === 0) {
-            emails = [''];
-        }
-
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
-        _.each(emails, (email) => {
-            const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
-            // Update selectedOptions with the latest personalDetails and policyMembers information
-            const detailsMap = {};
-            _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
+        // Update selectedOptions with the latest personalDetails and policyMembers information
+        const detailsMap = {};
+        _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
 
-            const newSelectedOptions = [];
-            _.each(selectedOptions, (option) => {
-                newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
-            });
+        const newSelectedOptions = [];
+        _.each(selectedOptions, (option) => {
+            newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
+        });
 
-            const userToInvite = inviteOptions.userToInvite;
+        const userToInvite = inviteOptions.userToInvite;
 
-            // Only add the user to the invites list if it is valid
-            if (userToInvite) {
-                newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-            }
+        // Only add the user to the invites list if it is valid
+        if (userToInvite) {
+            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
+        }
 
-            // Add all personal details to the new dict
-            _.each(inviteOptions.personalDetails, (details) => {
-                newPersonalDetailsDict[details.accountID] = details;
-            });
+        // Add all personal details to the new dict
+        _.each(inviteOptions.personalDetails, (details) => {
+            newPersonalDetailsDict[details.accountID] = details;
+        });
 
-            // Add all selected options to the new dict
-            _.each(newSelectedOptions, (option) => {
-                newSelectedOptionsDict[option.accountID] = option;
-            });
+        // Add all selected options to the new dict
+        _.each(newSelectedOptions, (option) => {
+            newSelectedOptionsDict[option.accountID] = option;
         });
 
         // Strip out dictionary keys and update arrays

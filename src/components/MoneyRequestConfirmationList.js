@@ -16,14 +16,13 @@ import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,9 +109,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -188,7 +184,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -208,6 +203,8 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmationList(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
@@ -241,12 +238,11 @@ function MoneyRequestConfirmationList(props) {
     const policyTag = PolicyUtils.getTag(props.policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
-    const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
-    const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
+    const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
@@ -436,7 +432,7 @@ function MoneyRequestConfirmationList(props) {
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+            const activeRoute = Navigation.getActiveRouteWithoutParams();
 
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
@@ -530,7 +526,6 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                style={[styles.mt2]}
             />
         );
 
@@ -546,7 +541,20 @@ function MoneyRequestConfirmationList(props) {
                 {button}
             </>
         );
-    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
+    }, [
+        props.isReadOnly,
+        props.iouType,
+        props.bankAccountRoute,
+        props.iouCurrencyCode,
+        props.policyID,
+        selectedParticipants.length,
+        confirm,
+        splitOrRequestOptions,
+        formError,
+        styles.ph1,
+        styles.mb2,
+        translate,
+    ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
@@ -627,7 +635,7 @@ function MoneyRequestConfirmationList(props) {
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
@@ -635,9 +643,10 @@ function MoneyRequestConfirmationList(props) {
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
-                        iconFill={themeColors.icon}
+                        iconFill={theme.icon}
                         style={styles.mh0}
                     />
+
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
@@ -700,8 +709,10 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
                             description={translate('common.category')}
+                            numberOfLinesTitle={2}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                         />
@@ -711,15 +722,17 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
                             description={policyTagListName}
+                            numberOfLinesTitle={2}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                         />
                     )}
+
                     {shouldShowBillable && (
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text color={!props.iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
                                 isOn={props.iouIsBillable}
@@ -735,15 +748,13 @@ function MoneyRequestConfirmationList(props) {
 
 MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
+MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
