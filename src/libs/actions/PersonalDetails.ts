@@ -98,17 +98,21 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
+  
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
 
-    const firstSpaceIndex = displayName?.indexOf(' ') ?? -1;
-    const lastSpaceIndex = displayName?.lastIndexOf(' ') ?? -1;
-    if (firstSpaceIndex === -1) {
-        return {firstName: displayName, lastName: ''};
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
-    return {
-        firstName: displayName.substring(0, firstSpaceIndex).trim(),
-        lastName: displayName.substring(lastSpaceIndex).trim(),
-    };
+    return {firstName: '', lastName: ''};
 }
 
 /**
