@@ -159,12 +159,13 @@ function appendTimeToFileName(fileName) {
  *
  * @param {String} path - the blob url of the locally uplodaded file
  * @param {String} fileName
+ * @param {String} type
  * @param {Function} onSuccess
  * @param {Function} onFailure
  *
  * @returns {Promise}
  */
-const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
+const readFileAsync = (path, fileName, type = '', onSuccess, onFailure = () => {}) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -181,7 +182,7 @@ const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
                 return res.blob();
             })
             .then((blob) => {
-                const file = new File([blob], cleanFileName(fileName), {type: blob.type});
+                const file = new File([blob], cleanFileName(fileName), {type: blob.type || type});
                 file.source = path;
                 // For some reason, the File object on iOS does not have a uri property
                 // so images aren't uploaded correctly to the backend

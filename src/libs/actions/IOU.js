@@ -2876,9 +2876,10 @@ function setMoneyRequestParticipants(participants, isSplitRequest) {
 /**
  * @param {String} receiptPath
  * @param {String} receiptFilename
+ * @param {String} type
  */
-function setMoneyRequestReceipt(receiptPath, receiptFilename) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
+function setMoneyRequestReceipt(receiptPath, receiptFilename, type) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: '', receiptFileType: type});
 }
 
 function setUpDistanceTransaction() {

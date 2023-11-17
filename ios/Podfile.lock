@@ -569,7 +569,7 @@ PODS:
     - react-native-config/App (= 1.4.6)
   - react-native-config/App (1.4.6):
     - React-Core
-  - react-native-document-picker (8.1.1):
+  - react-native-document-picker (8.2.1):
     - React-Core
   - react-native-flipper (0.159.0):
     - React-Core
@@ -1233,7 +1233,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
-  react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
+  react-native-document-picker: 69ca2094d8780cfc1e7e613894d15290fdc54bba
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56

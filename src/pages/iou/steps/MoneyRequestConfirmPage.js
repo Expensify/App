@@ -112,8 +112,8 @@ function MoneyRequestConfirmPage(props) {
         const onFailure = () => {
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
         };
-        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess, onFailure);
-    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID]);
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, props.iou.receiptFileType, onSuccess, onFailure);
+    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID, props.iou.receiptFileType]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request

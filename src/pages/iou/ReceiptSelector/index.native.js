@@ -236,7 +236,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                                             return;
                                         }
                                         const filePath = file.uri;
-                                        IOU.setMoneyRequestReceipt(filePath, file.name);
+                                        IOU.setMoneyRequestReceipt(filePath, file.name, file.type);
 
                                         if (transactionID) {
                                             IOU.replaceReceipt(transactionID, file, filePath);
