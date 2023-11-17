@@ -5,9 +5,10 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import DatePicker from '@components/DatePicker';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -17,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -79,6 +80,7 @@ const fieldNameTranslationKeys = {
 };
 
 function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
+    const styles = useThemeStyles();
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
@@ -177,7 +179,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         {translate('additionalDetailsStep.helpLink')}
                     </TextLink>
                 </View>
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                     validate={validate}
                     onSubmit={activateWallet}
@@ -185,21 +187,23 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     submitButtonText={translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="legalFirstName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="legalLastName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
@@ -214,18 +218,19 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <DatePicker
+                    <NewDatePicker
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
@@ -234,16 +239,17 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         maxDate={maxDate}
                         shouldSaveDraft
                     />
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="ssn"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
-                </Form>
+                </FormProvider>
             </View>
         </>
     );

@@ -50,6 +50,9 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     AUTO_AUTH_STATE: {
@@ -257,8 +260,78 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        PDF_META_STORE: 'pdfMetaStore',
+        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
+        SUBMIT_POLICY: 'submitPolicy',
+        ATTENDEES: 'attendees',
+        AUTO_EXPORT: 'autoExport',
+        AUTO_EXPORT_INTACCT: 'autoExportIntacct',
+        AUTO_EXPORT_QBO: 'autoExportQbo',
+        AUTO_EXPORT_XERO: 'autoExportXero',
+        AUTO_JOIN_POLICY: 'autoJoinPolicy',
+        AUTOMATED_TAX_EXEMPTION: 'automatedTaxExemption',
+        BILL_PAY: 'billPay',
+        CATEGORY_DEFAULT_TAX: 'categoryDefaultTax',
+        COLLECTABLE_DEPOSIT_ACCOUNTS: 'collectableDepositAccounts',
+        CONCIERGE_TRAVEL: 'conciergeTravel',
+        CONNECTED_CARDS: 'connectedCards',
+        DISCREPANCY: 'discrepancy',
+        DOMAIN_CONTACT_BILLING: 'domainContactBilling',
+        DOMAIN_TWO_FACTOR_AUTH: 'domainTwoFactorAuth',
+        DUPLICATE_DETECTION: 'duplicateDetection',
+        EMAIL_SUPPRESSION_BETA: 'emailSuppressionBeta',
+        EXPENSES_V2: 'expensesV2',
+        EXPENSIFY_CARD: 'expensifyCard',
+        EXPENSIFY_CARD_INTACCT_RECONCILIATION: 'expensifyCardIntacctReconciliation',
+        EXPENSIFY_CARD_NETSUITE_RECONCILIATION: 'expensifyCardNetSuiteReconciliation',
+        EXPENSIFY_CARD_QBO_RECONCILIATION: 'expensifyCardQBOReconciliation',
+        EXPENSIFY_CARD_RAPID_INCREASE_FRAUD: 'expensifyCardRapidIncreaseFraud',
+        EXPENSIFY_CARD_XERO_RECONCILIATION: 'expensifyCardXeroReconciliation',
+        EXPENSIFY_ORG: 'expensifyOrg',
+        FIX_VIOLATION_PUSH_NOTIFICATION: 'fixViolationPushNotification',
+        FREE_PLAN_FULL_LAUNCH: 'freePlanFullLaunch',
+        FREE_PLAN_SOFT_LAUNCH: 'freePlanSoftLaunch',
+        GUSTO: 'gusto',
+        INBOX_CACHE: 'inboxCache',
+        INBOX_HIDDEN_TASKS: 'inboxHiddenTasks',
+        INDIRECT_INTEGRATION_SETUP: 'indirectIntegrationSetup',
+        IOU: 'IOU',
+        JOIN_POLICY: 'joinPolicy',
+        LOAD_POLICY_ASYNC: 'loadPolicyAsync',
+        MAP_RECEIPT: 'mapReceipt',
+        MERGE_API: 'mergeAPI',
+        MOBILE_REALTIME_REPORT_COMMENTS: 'mobileRealtimeReportComments',
+        MOBILE_SECURE_RECEIPTS: 'mobileSecureReceipts',
+        MONTHLY_SETTLEMENT: 'monthlySettlement',
+        NAMES_AND_AVATARS: 'namesAndAvatars',
+        NATIVE_CHAT: 'nativeChat',
+        NEW_PRICING: 'newPricing',
+        NEWSLETTER_THREE: 'newsletterThree',
+        NEXT_STEPS: 'nextSteps',
+        OPEN_FACE_HAMBURGER: 'openFaceHamburger',
+        PER_DIEM: 'perDiem',
+        PER_DIEM_INTERNATIONAL: 'perDiemInternational',
+        PRICING_COPY_CHANGES: 'pricingCopyChanges',
+        QBO_INVOICES: 'qboInvoices',
+        QUICKBOOKS_DESKTOP_V2: 'quickbooksDesktopV2',
+        REALTIME_REPORT_COMMENTS: 'realtimeReportComments',
+        S2W_ANNOUNCEMENT: 's2wAnnouncement',
+        SCHEDULED_AUTO_REPORTING: 'scheduledAutoReporting',
+        SECURE_RECEIPTS: 'secureReceipts',
+        SECURE_RECEIPTS_REPORTS: 'secureReceiptsReports',
+        SELF_SERVICE_HARD_LAUNCH: 'selfServiceHardLaunch',
+        SEND_MONEY: 'sendMoney',
+        SMART_SCAN_USER_DISPUTES: 'smartScanUserDisputes',
+        SMS_SIGN_UP: 'smsSignUp',
+        STRIPE_CONNECT: 'stripeConnect',
+        SUMMARY_EMAIL: 'summaryEmail',
+        SWIPE_TO_WIN: 'swipeToWin',
+        TAX_FOR_MILEAGE: 'taxForMileage',
+        TWO_FACTOR_AUTH: 'twoFactorAuth',
+        VENMO_INTEGRATION: 'venmoIntegration',
+        ZENEFITS_INTEGRATION: 'zenefitsIntegration',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -865,14 +938,19 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+    },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
         URL: 'url',
-        DEFAULT: 'default',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -883,6 +961,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1311,6 +1390,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
@@ -1326,6 +1406,8 @@ const CONST = {
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
+        FIRST_SPACE: /.+?(?=\s)/,
+
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
@@ -1338,11 +1420,6 @@ const CONST = {
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
-        },
-
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        get MENTION_REPLACER() {
-            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
@@ -1359,6 +1436,10 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -2693,13 +2774,13 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'text',
+        TEXT: 'presentation',
         RADIO: 'radio',
-        IMAGEBUTTON: 'imagebutton',
+        IMAGEBUTTON: 'img button',
         CHECKBOX: 'checkbox',
         SWITCH: 'switch',
-        ADJUSTABLE: 'adjustable',
-        IMAGE: 'image',
+        ADJUSTABLE: 'slider',
+        IMAGE: 'img',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -2770,12 +2851,10 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
-
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
-
     EVENTS: {
         SCROLLING: 'scrolling',
     },
@@ -2792,13 +2871,6 @@ const CONST = {
     LIST_COMPONENTS: {
         HEADER: 'header',
         FOOTER: 'footer',
-    },
-
-    GLOBAL_NAVIGATION_OPTION: {
-        HOME: 'home',
-        CHATS: 'chats',
-        SPEND: 'spend',
-        WORKSPACES: 'workspaces',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',

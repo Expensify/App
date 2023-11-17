@@ -17,14 +17,16 @@ import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function CodesStep({account = defaultAccount}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const [error, setError] = useState('');
@@ -62,7 +64,7 @@ function CodesStep({account = defaultAccount}) {
                     <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
-                                <ActivityIndicator color={themeColors.spinner} />
+                                <ActivityIndicator color={theme.spinner} />
                             </View>
                         ) : (
                             <>
@@ -134,6 +136,7 @@ function CodesStep({account = defaultAccount}) {
 }
 
 CodesStep.propTypes = TwoFactorAuthPropTypes;
+CodesStep.displayName = 'CodesStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({

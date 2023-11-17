@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 const propTypes = {
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function ThumbnailImage(props) {
+    const styles = useThemeStyles();
     const [imageWidth, setImageWidth] = useState(props.imageWidth);
     const [imageHeight, setImageHeight] = useState(props.imageHeight);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageWidth, imageHeight);
