@@ -349,7 +349,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
             }
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData?.code,
