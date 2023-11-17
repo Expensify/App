@@ -1478,7 +1478,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyOrDistanceRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1613,7 +1613,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     fetch.fail();
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyOrDistanceRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(

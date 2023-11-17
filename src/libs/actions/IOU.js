@@ -1986,6 +1986,19 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
 }
 
 /**
+ * @param {object} transaction
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ */
+function editMoneyOrDistanceRequest(transaction, transactionThreadReportID, transactionChanges) {
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+    } else {
+        editMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+    }
+}
+
+/**
  * @param {String} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
@@ -2962,7 +2975,6 @@ function getIOUReportID(iou, route) {
 
 export {
     createDistanceRequest,
-    editMoneyRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
@@ -2992,8 +3004,8 @@ export {
     setMoneyRequestReceipt,
     setUpDistanceTransaction,
     navigateToNextPage,
-    updateDistanceRequest,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
+    editMoneyOrDistanceRequest,
 };
