@@ -2,9 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
+import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -92,10 +93,12 @@ const defaultProps = {
 };
 
 function AddressForm(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <View>
-                <AddressSearch
+                <InputWrapper
+                    InputComponent={AddressSearch}
                     inputID={props.inputKeys.street}
                     shouldSaveDraft={props.shouldSaveDraft}
                     label={props.translate(props.streetTranslationKey)}
@@ -109,7 +112,8 @@ function AddressForm(props) {
                     isLimitedToUSA
                 />
             </View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.city}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
@@ -123,7 +127,8 @@ function AddressForm(props) {
             />
 
             <View style={[styles.mt4, styles.mhn5]}>
-                <StatePicker
+                <InputWrapper
+                    InputComponent={StatePicker}
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
@@ -132,7 +137,8 @@ function AddressForm(props) {
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
             </View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.zipCode}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}

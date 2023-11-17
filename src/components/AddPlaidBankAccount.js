@@ -9,8 +9,8 @@ import useNetwork from '@hooks/useNetwork';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -89,6 +89,8 @@ function AddPlaidBankAccount({
     isPlaidDisabled,
     isDisplayedInNewVBBA,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
     const defaultSelectedPlaidAccount = _.find(plaidBankAccounts, (account) => account.plaidAccountID === selectedPlaidAccountID);
     const defaultSelectedPlaidAccountID = lodashGet(defaultSelectedPlaidAccount, 'plaidAccountID', '');
@@ -211,7 +213,7 @@ function AddPlaidBankAccount({
                 {lodashGet(plaidData, 'isLoading') && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             size="large"
                         />
                     </View>
@@ -256,6 +258,7 @@ function AddPlaidBankAccount({
         return (
             <FullPageOfflineBlockingView>
                 <Text style={[styles.mb5, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                {!_.isEmpty(text) && <Text style={[styles.mb5]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
                         src={icon}

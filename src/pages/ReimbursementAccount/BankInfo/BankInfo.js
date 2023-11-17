@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,7 +14,6 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import getInitialSubstepForBankInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBankInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
@@ -52,6 +51,7 @@ const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken}) {
     const {translate} = useLocalize();
 
+    const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
     const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     let setupType = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'subStep');
@@ -60,8 +60,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     if (shouldReinitializePlaidLink) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
-
-    const startFrom = useMemo(() => getInitialSubstepForBankInfo(values, setupType), [setupType, values]);
 
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
@@ -86,7 +84,21 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     }, [reimbursementAccount, setupType, values]);
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+
+    // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
+    // In this case we need to redirect user to manual flow to enter real account number and routing number
+    // and we need to do it only once so redirectedFromPlaidToManual flag is used
+    useEffect(() => {
+        if (redirectedFromPlaidToManual) {
+            return;
+        }
+
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values[bankInfoStepKeys.BANK_NAME] !== '' && !redirectedFromPlaidToManual) {
+            setRedirectedFromPlaidToManual(true);
+            moveTo(0);
+        }
+    }, [moveTo, redirectedFromPlaidToManual, setupType, values]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
