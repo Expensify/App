@@ -183,7 +183,7 @@ function HeaderView(props) {
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && !isLoading && styles.pl5]}>
                 {isLoading ? (
                     <ReportHeaderSkeletonView />
                 ) : (
