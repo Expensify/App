@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const mockFS = require('mock-fs');
+const {vol} = require('memfs');
 const {updateAndroidVersion, generateAndroidVersionCode} = require('../../.github/libs/nativeVersionUpdater');
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
@@ -14,20 +14,17 @@ const mockBuildGradle = `
     }
 `;
 
-beforeAll(() => {
-    // Override global console to fix bug with mock-fs: https://github.com/tschaub/mock-fs/issues/234
-    global.console = require('../../__mocks__/console');
+jest.mock('fs');
+jest.mock('fs/promises');
+
+beforeEach(() => {
+    // Clear the mocked filesystem
+    vol.reset();
 
     // Set up mocked filesystem
-    mockFS({
+    vol.fromJSON({
         [BUILD_GRADLE_PATH]: mockBuildGradle,
     });
-});
-
-// Restore modules to normal
-afterAll(() => {
-    mockFS.restore();
-    global.console = require('console');
 });
 
 describe('generateAndroidVersionCode', () => {

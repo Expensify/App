@@ -42,12 +42,12 @@ Due to the large, ever-growing history of this repo, do not do any full-fetches 
 
 ```yaml
 # Bad
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
   with:
     fetch-depth: 0
 
 # Good
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
 ```
 
 ```sh
@@ -63,7 +63,7 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
-1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
+1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v4`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
 1. If an untrusted (i.e: not maintained by GitHub) external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
