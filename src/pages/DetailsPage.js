@@ -142,7 +142,7 @@ function DetailsPage(props) {
                                             style={[styles.noOutline]}
                                             onPress={show}
                                             accessibilityLabel={props.translate('common.details')}
-                                            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                 <Avatar
