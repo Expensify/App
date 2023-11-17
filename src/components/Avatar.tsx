@@ -14,7 +14,7 @@ import Image from './Image';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
-    source: AvatarSource;
+    source?: AvatarSource;
 
     /** Extra styles to pass to Image */
     // eslint-disable-next-line react/forbid-prop-types
