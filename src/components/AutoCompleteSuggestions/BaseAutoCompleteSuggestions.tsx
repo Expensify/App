@@ -4,8 +4,8 @@ import {FlatListProps} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import type AutoCompleteSuggestionsProps from './types';
 
@@ -45,6 +45,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<Animated.View | HTMLDivElement>,
 ) {
+    const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlatList>(null);
     /**
