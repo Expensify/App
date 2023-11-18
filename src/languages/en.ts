@@ -216,7 +216,7 @@ export default {
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         join: 'Join',
-        joinThread: 'Join thread',
+        leave: 'Leave',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",

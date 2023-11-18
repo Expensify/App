@@ -206,7 +206,7 @@ export default {
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
-        joinThread: 'Unirse al hilo',
+        leave: 'Salir',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
