@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -21,6 +21,21 @@ const propTypes = {
     /* Onyx Props */
     /** List of available assigned cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+        phoneNumber: PropTypes.string,
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
 
     /** Draft values used by the get physical card form */
     draftValues: PropTypes.shape({
@@ -93,6 +108,7 @@ const defaultProps = {
     children: null,
     domain: '',
     draftValues: null,
+    privatePersonalDetails: null,
     session: {},
     loginList: {},
     isConfirmation: false,
@@ -117,6 +133,7 @@ function BaseGetPhysicalCard({
     currentRoute,
     domain,
     draftValues,
+    privatePersonalDetails,
     headline,
     isConfirmation,
     loginList,
@@ -127,17 +144,28 @@ function BaseGetPhysicalCard({
     onValidate,
 }) {
     const isRouteSet = useRef(false);
-    const updatedPrivatePersonalDetails = draftValues && GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
+
     useEffect(() => {
-        if (!draftValues || isRouteSet.current) {
+        if (isRouteSet.current || !privatePersonalDetails || !cardList) {
             return;
         }
+
+        if (!draftValues) {
+            const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues({}, privatePersonalDetails, loginList);
+            // Form draft data needs to be initialized with the private personal details
+            // If no draft data exists
+            FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
+            return;
+        }
+
         // Redirect user to previous steps of the flow if he hasn't finished them yet
+        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
         GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, updatedPrivatePersonalDetails, loginList);
         isRouteSet.current = true;
-    }, [currentRoute, domain, draftValues, loginList, updatedPrivatePersonalDetails]);
+    }, [cardList, currentRoute, domain, draftValues, loginList, privatePersonalDetails]);
 
-    const onSubmit = () => {
+    const onSubmit = useCallback(() => {
+        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
@@ -151,7 +179,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails, loginList);
-    };
+    }, [authToken, cardList, domain, draftValues, isConfirmation, loginList]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -181,6 +209,9 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
     draftValues: {
         key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),

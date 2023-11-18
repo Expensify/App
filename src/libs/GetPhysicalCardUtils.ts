@@ -100,15 +100,15 @@ function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails:
     } = privatePersonalDetails;
 
     return {
-        ...(draftValues.legalFirstName ? {} : {legalFirstName}),
-        ...(draftValues.legalLastName ? {} : {legalLastName}),
-        ...(draftValues.addressLine1 ? {} : {addressLine1: street.split('\n')[0]}),
-        ...(draftValues.addressLine2 ? {} : {addressLine2: street.split('\n')[1]}),
-        ...(draftValues.city ? {} : {city}),
-        ...(draftValues.country ? {} : {country}),
-        ...(draftValues.phoneNumber ? {} : {phoneNumber: phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? ''}),
-        ...(draftValues.state ? {} : {state}),
-        ...(draftValues.zipPostCode ? {} : {zipPostCode: zip}),
+        legalFirstName: draftValues.legalFirstName || legalFirstName,
+        legalLastName: draftValues.legalLastName || legalLastName,
+        addressLine1: draftValues.addressLine1 || street.split('\n')[0],
+        addressLine2: draftValues.addressLine2 || street.split('\n')[1] || '',
+        city: draftValues.city || city,
+        country: draftValues.country || country,
+        phoneNumber: draftValues.phoneNumber || (phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? ''),
+        state: draftValues.state || state,
+        zipPostCode: draftValues.zipPostCode || zip,
     };
 }
 
