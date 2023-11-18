@@ -3,11 +3,16 @@
  */
 const core = require('@actions/core');
 const fns = require('date-fns');
+const {vol} = require('memfs');
+const path = require('path');
 const CONST = require('../../.github/libs/CONST');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
 
+const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
+
+jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 const mockGetPullRequestsMergedBetween = jest.fn();
@@ -50,6 +55,11 @@ beforeAll(() => {
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+
+    vol.reset();
+    vol.fromJSON({
+        [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+    });
 });
 
 afterEach(() => {
@@ -139,13 +149,13 @@ describe('createOrUpdateStagingDeployCash', () => {
     const baseNewPullRequests = [6, 7, 8];
 
     test('creates new issue when there is none open', async () => {
+        vol.reset();
+        vol.fromJSON({
+            [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+        });
         mockGetInput.mockImplementation((arg) => {
             if (arg === 'GITHUB_TOKEN') {
                 return 'fake_token';
-            }
-
-            if (arg === 'NPM_VERSION') {
-                return '1.0.2-1';
             }
         });
 
@@ -231,13 +241,13 @@ describe('createOrUpdateStagingDeployCash', () => {
         ];
 
         test('with NPM_VERSION input, pull requests, and deploy blockers', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-2'}),
+            });
             mockGetInput.mockImplementation((arg) => {
                 if (arg === 'GITHUB_TOKEN') {
                     return 'fake_token';
-                }
-
-                if (arg === 'NPM_VERSION') {
-                    return '1.0.2-2';
                 }
             });
 
@@ -309,6 +319,10 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         test('without NPM_VERSION input, just a new deploy blocker', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
             mockGetInput.mockImplementation((arg) => {
                 if (arg !== 'GITHUB_TOKEN') {
                     return;
