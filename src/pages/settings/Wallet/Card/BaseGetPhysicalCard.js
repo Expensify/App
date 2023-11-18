@@ -14,6 +14,7 @@ import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
 import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -151,10 +152,18 @@ function BaseGetPhysicalCard({
         }
 
         const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
+        const physicalCard = _.find(domainCards, (card) => !card.isVirtual);
 
         // When there are no cards for the specified domain, user is redirected to the wallet page
         if (domainCards.length === 0) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
+        // When there's no physical card or it exists but it doesn't have the required state for this flow,
+        // redirect user to the espensify card page
+        if (!physicalCard || physicalCard.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
             return;
         }
 
