@@ -26,7 +26,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - run: gh issue edit --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
+      - run: gh issue edit ${{ github.event.issue.number }} --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
