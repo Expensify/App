@@ -137,7 +137,7 @@ function ExpensifyCardPage({
     const [cardDetailsError, setCardDetailsError] = useState('');
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
-        return <NotFoundPage />;
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
