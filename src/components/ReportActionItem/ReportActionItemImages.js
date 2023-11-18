@@ -5,9 +5,9 @@ import {Polygon, Svg} from 'react-native-svg';
 import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import theme from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -15,7 +15,7 @@ const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
         PropTypes.shape({
-            thumbnail: PropTypes.string,
+            thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             transaction: transactionPropTypes,
         }),
@@ -51,6 +51,8 @@ const defaultProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size || images.length, images.length);
@@ -74,7 +76,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {_.map(shownImages, ({thumbnail, image, transaction}, index) => {
+            {_.map(shownImages, ({thumbnail, image, transaction, isLocalFile}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -88,6 +90,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         <ReportActionItemImage
                             thumbnail={thumbnail}
                             image={image}
+                            isLocalFile={isLocalFile}
                             transaction={transaction}
                         />
                         {isLastImage && remaining > 0 && (

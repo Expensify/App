@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -20,6 +20,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -937,6 +938,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -2003,7 +2005,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSignIn().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat(true);
                 return;
