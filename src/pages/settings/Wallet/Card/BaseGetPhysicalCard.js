@@ -150,6 +150,14 @@ function BaseGetPhysicalCard({
             return;
         }
 
+        const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
+
+        // When there are no cards for the specified domain, user is redirected to the wallet page
+        if (domainCards.length === 0) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
         if (!draftValues) {
             const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues({}, privatePersonalDetails, loginList);
             // Form draft data needs to be initialized with the private personal details
