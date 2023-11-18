@@ -154,12 +154,13 @@ function ReportDetailsPage(props) {
     const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <Text
-            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+        <DisplayNames
+            fullTitle={chatRoomSubtitle}
+            tooltipEnabled
             numberOfLines={1}
-        >
-            {chatRoomSubtitle}
-        </Text>
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+            shouldUseFullTitle
+        />
     ) : null;
 
     return (
@@ -202,6 +203,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
