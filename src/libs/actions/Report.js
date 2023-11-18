@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -20,6 +20,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -467,6 +468,9 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    if (!reportID) {
+        return;
+    }
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -559,11 +563,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        let emailCreatingAction = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+            emailCreatingAction = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
         }
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -934,6 +938,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -1999,7 +2004,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSignIn().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat(true);
                 return;
