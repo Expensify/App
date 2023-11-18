@@ -69,8 +69,8 @@ function GetPhysicalCardPhone({
                 inputID="phoneNumber"
                 name="phoneNumber"
                 label={translate('getPhysicalCard.phoneNumber')}
-                accessibilityLabel={translate('getPhysicalCard.phoneNumber')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('getPhysicalCard.phoneNumber')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={phoneNumber}
                 containerStyles={[styles.mt5, styles.mh5]}
                 shouldSaveDraft

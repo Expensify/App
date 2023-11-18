@@ -75,8 +75,8 @@ function GetPhysicalCardName({
                 inputID="legalFirstName"
                 name="legalFirstName"
                 label={translate('getPhysicalCard.legalFirstName')}
-                accessibilityLabel={translate('getPhysicalCard.legalFirstName')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('getPhysicalCard.legalFirstName')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
                 containerStyles={[styles.mt5, styles.mh5]}
@@ -86,8 +86,8 @@ function GetPhysicalCardName({
                 inputID="legalLastName"
                 name="legalLastName"
                 label={translate('getPhysicalCard.legalLastName')}
-                accessibilityLabel={translate('getPhysicalCard.legalLastName')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={translate('getPhysicalCard.legalLastName')}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalLastName}
                 containerStyles={[styles.mt5, styles.mh5]}
