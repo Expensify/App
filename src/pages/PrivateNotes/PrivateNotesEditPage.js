@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
+import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -18,6 +19,7 @@ import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -105,9 +107,11 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
 
         Keyboard.dismiss();
 
-        // Take user back to the PrivateNotesView page
-
-        Navigation.goBack();
+        if (isEmpty(privateNote.trim())) {
+            ReportUtils.navigateToDetailsPage(report, true);
+        } else {
+            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+        }
     };
 
     return (

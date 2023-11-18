@@ -1,5 +1,6 @@
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
+import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
@@ -255,7 +256,15 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                onPress={() => {
+                                    const currentUserPrivateNote = lodashGet(props.report, ['privateNotes', props.session.accountID, 'note'], '');
+                                    if (isEmpty(currentUserPrivateNote)) {
+                                        Report.getReportPrivateNote(props.report.reportID);
+                                        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(props.report.reportID, props.session.accountID));
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID));
+                                }}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}

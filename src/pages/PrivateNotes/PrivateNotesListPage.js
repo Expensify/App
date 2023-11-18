@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
@@ -106,13 +107,13 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
-
+    const isFocused = useIsFocused();
     useEffect(() => {
-        if (_.some(privateNotes, (item) => item.note)) {
+        if (_.some(privateNotes, (item) => item.note) || !isFocused) {
             return;
         }
         Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
-    }, [privateNotes, report.reportID, session.accountID]);
+    }, [privateNotes, report.reportID, session.accountID, isFocused]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
