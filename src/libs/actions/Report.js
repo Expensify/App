@@ -20,6 +20,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -2003,7 +2004,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSignIn().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat(true);
                 return;

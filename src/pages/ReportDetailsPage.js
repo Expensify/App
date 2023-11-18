@@ -75,7 +75,6 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
@@ -148,19 +147,8 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom) {
-            const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                isAnonymousAction: false,
-                action: () => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom),
-            });
-        }
-
         return items;
-    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat, isPolicyMember, props.session.accountID]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
