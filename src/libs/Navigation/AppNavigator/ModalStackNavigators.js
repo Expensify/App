@@ -222,6 +222,9 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator({
 const SignInModalStackNavigator = createModalStackNavigator({
     SignIn_Root: () => require('../../../pages/signin/SignInModal').default,
 });
+const ReferralModalStackNavigator = createModalStackNavigator({
+    Referral_Details: () => require('../../../pages/ReferralDetailsPage').default,
+});
 
 export {
     MoneyRequestModalStackNavigator,
@@ -248,4 +251,5 @@ export {
     SignInModalStackNavigator,
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
+    ReferralModalStackNavigator,
 };

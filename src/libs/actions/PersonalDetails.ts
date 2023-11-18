@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
-import {Timezone} from '@src/types/onyx/PersonalDetails';
+import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
     firstName: string;
@@ -99,16 +99,20 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
         return {firstName: '', lastName: ''};
     }
 
-    const firstSpaceIndex = displayName.indexOf(' ');
-    const lastSpaceIndex = displayName.lastIndexOf(' ');
-    if (firstSpaceIndex === -1) {
-        return {firstName: displayName, lastName: ''};
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
-    return {
-        firstName: displayName.substring(0, firstSpaceIndex).trim(),
-        lastName: displayName.substring(lastSpaceIndex).trim(),
-    };
+    return {firstName: '', lastName: ''};
 }
 
 /**
@@ -313,7 +317,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
  * Updates user's 'selected' timezone, then navigates to the
  * initial Timezone page.
  */
-function updateSelectedTimezone(selectedTimezone: string) {
+function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
     const timezone: Timezone = {
         selected: selectedTimezone,
     };
