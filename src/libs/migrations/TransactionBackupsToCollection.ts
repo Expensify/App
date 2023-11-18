@@ -27,14 +27,16 @@ export default function (): Promise<void> {
                     Log.info('[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transactions');
                     return resolve();
                 }
+                
                 const onyxData: OnyxCollection<Transaction> = {};
 
                 // Find all the transaction backups available
                 Object.keys(transactions).forEach((transactionOnyxKey: string) => {
                     const transaction: Transaction | null = transactions[transactionOnyxKey];
 
-                    // Determine whether or not the transaction is a backup
-                    if (!transactionOnyxKey.endsWith('-backup') || !transaction) {
+                    // Determine whether the  transaction is a backup
+                    if (transactionOnyxKey.endsWith('-backup') && transaction) {
+
                         // Create the transaction backup in the draft transaction collection
                         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`] = transaction;
 
@@ -43,7 +45,7 @@ export default function (): Promise<void> {
                     }
                 });
 
-                // Determine whether or not any transaction backups were found
+                // Determine whether any transaction backups were found
                 if (isEmpty(onyxData)) {
                     Log.info('[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transaction backups');
                     return resolve();
