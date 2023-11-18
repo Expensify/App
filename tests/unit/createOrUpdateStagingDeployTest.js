@@ -154,9 +154,10 @@ describe('createOrUpdateStagingDeployCash', () => {
             [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
         });
         mockGetInput.mockImplementation((arg) => {
-            if (arg === 'GITHUB_TOKEN') {
-                return 'fake_token';
+            if (arg !== 'GITHUB_TOKEN') {
+                return;
             }
+            return 'fake_token';
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
@@ -246,9 +247,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-2'}),
             });
             mockGetInput.mockImplementation((arg) => {
-                if (arg === 'GITHUB_TOKEN') {
-                    return 'fake_token';
+                if (arg !== 'GITHUB_TOKEN') {
+                    return;
                 }
+                return 'fake_token';
             });
 
             // New pull requests to add to open StagingDeployCash
