@@ -96,9 +96,9 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
 
     const savePrivateNote = () => {
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
-
+        let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
+            editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
             Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         }
 
@@ -106,9 +106,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-
-        if (isEmpty(privateNote.trim())) {
-            ReportUtils.navigateToDetailsPage(report, true);
+        if (!_.some({...report.privateNotes, [route.params.accountID]: {note: editedNote}}, (item) => item.note)) {
+            ReportUtils.navigateToDetailsPage(report);
         } else {
             Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
         }

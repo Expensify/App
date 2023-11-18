@@ -109,11 +109,11 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
     }, [report, personalDetailsList, session, translate]);
     const isFocused = useIsFocused();
     useEffect(() => {
-        if (_.some(privateNotes, (item) => item.note) || !isFocused) {
+        if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
             return;
         }
         Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
-    }, [privateNotes, report.reportID, session.accountID, isFocused]);
+    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

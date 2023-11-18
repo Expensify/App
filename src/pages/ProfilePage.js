@@ -257,13 +257,7 @@ function ProfilePage(props) {
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
                                 onPress={() => {
-                                    const currentUserPrivateNote = lodashGet(props.report, ['privateNotes', props.session.accountID, 'note'], '');
-                                    if (isEmpty(currentUserPrivateNote)) {
-                                        Report.getReportPrivateNote(props.report.reportID);
-                                        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(props.report.reportID, props.session.accountID));
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID));
+                                    ReportUtils.navigateToPrivateNotes(props.report, props.session);
                                 }}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon

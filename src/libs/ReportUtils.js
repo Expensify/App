@@ -2,6 +2,7 @@
 import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
+import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
@@ -4274,6 +4275,19 @@ function shouldDisableWelcomeMessage(report, policy) {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+/**
+ * @param {Object} report
+ * @param {Object} session
+ */
+function navigateToPrivateNotes(report, session) {
+    const currentUserPrivateNote = lodashGet(report, ['privateNotes', session.accountID, 'note'], '');
+    if (isEmpty(currentUserPrivateNote)) {
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        return;
+    }
+    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4437,4 +4451,5 @@ export {
     getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
+    navigateToPrivateNotes,
 };
