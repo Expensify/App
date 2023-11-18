@@ -27,7 +27,7 @@ export default function (): Promise<void> {
                     Log.info('[Migrate Onyx] Skipped TransactionBackupsToCollection migration because there are no transactions');
                     return resolve();
                 }
-                
+
                 const onyxData: OnyxCollection<Transaction> = {};
 
                 // Find all the transaction backups available
@@ -36,7 +36,6 @@ export default function (): Promise<void> {
 
                     // Determine whether the  transaction is a backup
                     if (transactionOnyxKey.endsWith('-backup') && transaction) {
-
                         // Create the transaction backup in the draft transaction collection
                         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`] = transaction;
 
