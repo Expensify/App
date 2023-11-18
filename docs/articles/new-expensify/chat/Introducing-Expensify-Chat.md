@@ -1,5 +1,5 @@
 ---
-title: Get to know Expensify Chat
+title: Introducing Expensify Chat
 description: Everything you need to know about Expensify Chat!
 redirect_from: articles/other/Everything-About-Chat/
 ---
