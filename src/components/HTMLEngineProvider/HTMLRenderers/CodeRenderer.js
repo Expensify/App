@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as StyleUtils from '@styles/StyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import InlineCodeBlock from '@components/InlineCodeBlock';
+import Text from '@components/Text';
+import { StyleSheet } from 'react-native';
+import { color } from '@storybook/theming';
 
 function CodeRenderer(props) {
     // We split wrapper and inner styles
@@ -34,18 +37,32 @@ function CodeRenderer(props) {
     };
 
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
+    const TDefaultRenderer = props.TDefaultRenderer;
+    const message = defaultRendererProps.tnode.data
 
+    // const message = 'fsjdhfauilfnqe;kjnfqqfssjdhfauilfnqe;kjnfqqsjdhfauilfnqe;kjnfqqfsjdhfauilfnqe;kjnfqqffjdhfauilfnqe;kjnfqqf'
+    const elements = _.map(message.split(''), (value, idx) => <Text style={inlineStyle.textStyle} key={idx}>{value}</Text>)
+    console.error(props);
     return (
-        <InlineCodeBlock
-            defaultRendererProps={defaultRendererProps}
-            TDefaultRenderer={props.TDefaultRenderer}
-            boxModelStyle={boxModelStyle}
-            textStyle={{...textStyle, ...textStyleOverride}}
-            key={props.key}
-        />
+        <>
+        <Text style={inlineStyle.textContainer}>{elements}</Text>
+       </>
     );
 }
 
+const inlineStyle = StyleSheet.create({
+    textContainer: {
+        // flexDirection: 'row',
+        paddingTop: 10,
+        backgroundColor: 'yellow',
+        color: 'red',
+        justifyContent: 'center'
+    },
+    textStyle: {
+        color: 'red',
+        fontSize: 10,
+    }
+})
 CodeRenderer.propTypes = htmlRendererPropTypes;
 CodeRenderer.displayName = 'CodeRenderer';
 
