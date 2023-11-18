@@ -32,13 +32,12 @@ export default function (): Promise<void> {
                 // Find all the transaction backups available
                 Object.keys(transactions).forEach((transactionOnyxKey: string) => {
                     const transaction: Transaction | null = transactions[transactionOnyxKey];
-                    
+
                     // Determine whether or not the transaction is a backup
                     if (!transactionOnyxKey.endsWith('-backup') || !transaction) {
-
                         // Create the transaction backup in the draft transaction collection
                         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`] = transaction;
-    
+
                         // Delete the transaction backup stored in the transaction collection
                         onyxData[transactionOnyxKey] = null;
                     }
