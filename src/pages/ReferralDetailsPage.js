@@ -48,7 +48,9 @@ function ReferralDetailsPage({route, account}) {
 
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body1`);
-    const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
+    const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
+    const shouldShowBody2 = isShareCode;
+    const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
 
     function generateReferralURL(email) {
         return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
@@ -62,7 +64,7 @@ function ReferralDetailsPage({route, account}) {
         >
             <HeaderWithBackButton
                 title={translate('common.referral')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.flex1]}>
                 <Icon
@@ -81,7 +83,7 @@ function ReferralDetailsPage({route, account}) {
                         />
                     </View>
                 )}
-                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE && (
+                {shouldShowBody2 && (
                     <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>
                         {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.body2`)}
                     </Text>
@@ -93,7 +95,7 @@ function ReferralDetailsPage({route, account}) {
                     success
                     style={[styles.w100]}
                     text={translate('common.buttonConfirm')}
-                    onPress={() => Navigation.goBack()}
+                    onPress={Navigation.goBack}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
