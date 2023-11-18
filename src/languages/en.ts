@@ -899,8 +899,9 @@ export default {
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
         activatePhysicalCard: 'Activate physical card',
         error: {
-            thatDidntMatch: 'That didn\'t match the last 4 digits on your card. Please try again.',
-            throttled: 'You ran out of attempts to activate the card! Please check your card details and try again in an hour.',
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+            throttled:
+                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     transferAmountPage: {

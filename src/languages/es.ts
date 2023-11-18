@@ -896,7 +896,8 @@ export default {
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
             thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
-            throttled: 'Se han agotado los intentos para activar la tarjeta. Comprueba los datos de tu tarjeta e inténtalo de nuevo dentro de una hora.',
+            throttled:
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     transferAmountPage: {
