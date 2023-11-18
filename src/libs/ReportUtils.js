@@ -4107,16 +4107,16 @@ function getVisibleMembersIDs(report) {
         return [];
     }
 
-    const visibleChatMembers = report.visibleChatMemberList || [];
+    const visibleChatMembersIDs = report.visibleChatMemberList || [];
 
     // Build visibleChatMembers list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
-        return _.chain([report.managerID, report.ownerAccountID, ...visibleChatMembers])
+        return _.chain([report.managerID, report.ownerAccountID, ...visibleChatMembersIDs])
             .compact()
             .uniq()
             .value();
     }
-    return visibleChatMembers;
+    return visibleChatMembersIDs;
 }
 
 /**
