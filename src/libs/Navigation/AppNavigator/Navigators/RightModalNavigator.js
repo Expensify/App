@@ -1,14 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-
-import * as ModalStackNavigators from '../ModalStackNavigators';
-import RHPScreenOptions from '../RHPScreenOptions';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import styles from '../../../../styles/styles';
+import React from 'react';
+import {View} from 'react-native';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import useThemeStyles from '@styles/useThemeStyles';
 import Overlay from './Overlay';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +19,7 @@ const propTypes = {
 };
 
 function RightModalNavigator(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -38,10 +38,6 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Details"

@@ -1,16 +1,16 @@
-import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONFIG from '../../../CONFIG';
-import Icon from '../../../components/Icon';
-import Text from '../../../components/Text';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import useLocalize from '../../../hooks/useLocalize';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -25,6 +25,8 @@ const defaultProps = {
 };
 
 function SAMLSignInPage({credentials}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -50,7 +52,7 @@ function SAMLSignInPage({credentials}) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>
@@ -60,6 +62,7 @@ function SAMLSignInPage({credentials}) {
 
 SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
+SAMLSignInPage.displayName = 'SAMLSignInPage';
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},

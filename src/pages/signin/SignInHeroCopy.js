@@ -1,13 +1,13 @@
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
-import Text from '../../components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import * as StyleUtils from '../../styles/StyleUtils';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
+import {View} from 'react-native';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Override the green headline copy */
@@ -26,6 +26,7 @@ const defaultProps = {
 };
 
 function SignInHeroCopy(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
             <Text

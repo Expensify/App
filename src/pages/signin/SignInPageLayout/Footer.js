@@ -1,21 +1,21 @@
-import {View} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
-import variables from '../../../styles/variables';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import TextLink from '../../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Licenses from '../Licenses';
-import Socials from '../Socials';
-import Hoverable from '../../../components/Hoverable';
-import CONST from '../../../CONST';
-import * as Session from '../../../libs/actions/Session';
-import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
+import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
+import Hoverable from '@components/Hoverable';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import Licenses from '@pages/signin/Licenses';
+import Socials from '@pages/signin/Socials';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -65,10 +65,6 @@ const columns = ({scrollPageToTop}) => [
             {
                 link: CONST.FOOTER.INVOICES_URL,
                 translationPath: 'footer.invoicing',
-            },
-            {
-                link: CONST.FOOTER.CPA_CARD_URL,
-                translationPath: 'footer.CPACard',
             },
             {
                 link: CONST.FOOTER.PAYROLL_URL,
@@ -150,6 +146,8 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const isVertical = props.shouldShowSmallScreen;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -157,7 +155,7 @@ function Footer(props) {
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
-    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
+    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>

@@ -52,28 +52,28 @@ This document explains how to manage employee expense reports and approval workf
   - *Final Approver (Finance/Accountant):* This is the person listed as the 'Approves to' in the Settings of the Second Approver.
 - This is what this setup looks like in the Workspace Members table.
   - Bryan submits his reports to Jim for 1st level approval.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot showing the People section of the workspace]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_1.png){:width="100%"}
 
   - All of the reports Jim approves are submitted to Kevin. Kevin is the 'approves to' in Jim's Settings.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot of Policy Member Editor]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_2.png){:width="100%"}
 
   - All of the reports Kevin approves are submitted to Lucy. Lucy is the 'approves to' in Kevin's Settings.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot of Policy Member Editor Approves to]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_3.png){:width="100%"}
 
 
   - Lucy is the final approver, so she doesn't submit her reports to anyone for review.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot of Policy Member Editor Final Approver]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_4.png){:width="100%"}
 
 
 - The final outcome: The member in the Submits To line is different than the person noted as the Approves To.
 ### Adding additional approver levels
 - You can also set a specific approver for Reports Totals in Settings.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot of Policy Member Editor Approves to]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_5.png){:width="100%"}
 
 - An example: The submitter's manager can approve any report up to a certain limit, let's say $500, and forward it to accounting. However, if a report is over that $500 limit, it has to be also approved by the department head before being forwarded to accounting.
 - To configure, click on Edit Settings next to the approving manager's email address and set the "If Report Total is Over" and "Then Approves to" fields.
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/image-name.png){:width="100%"}
+![Screenshot of Workspace Member Settings]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_6.png){:width="100%"}
+![Screenshot of Policy Member Editor Configure]({{site.url}}/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_7.png){:width="100%"}
 
 
 ### Setting category approvals
@@ -89,7 +89,7 @@ This document explains how to manage employee expense reports and approval workf
   - To add a category approver in your Workspace:
     - Navigate to *Settings > Policies > Group > [Workspace Name] > Categories*
     - Click *"Edit Settings"*  next to the category that requires the additional approver
-    - Select an approver and click *“Save”*
+    - Select an approver and click *"Save"*
 
 
 #### Tag approver
@@ -106,4 +106,4 @@ Category and Tag approvers are inserted at the beginning of the approval workflo
 
 
 ### Workflow enforcement
-- If you want to ensure your employees cannot override the workflow you set - enable workflow enforcement by following the steps below. As a Workspace Admin, you can choose to enforce your approval workflow by going.
+- If you want to ensure your employees cannot override the workflow you set - enable workflow enforcement. As a Workspace Admin, you can choose to enforce your approval workflow by going to Settings > Workspaces > Group > [Workspace Name] > People > Approval Mode. When enabled (which is the default setting for a new workspace), submitters and approvers must adhere to the set approval workflow (recommended). This setting does not apply to Workspace Admins, who are free to submit outside of this workflow

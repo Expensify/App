@@ -1,31 +1,32 @@
-import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import styles from '../styles/styles';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import CONST from '../CONST';
-import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import reportPropTypes from './reportPropTypes';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import ROUTES from '../ROUTES';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import useLocalize from '../hooks/useLocalize';
-import SelectionList from '../components/SelectionList';
-import * as Report from '../libs/actions/Report';
-import * as ReportUtils from '../libs/ReportUtils';
-import Permissions from '../libs/Permissions';
 import personalDetailsPropType from './personalDetailsPropType';
-import * as Browser from '../libs/Browser';
+import reportPropTypes from './reportPropTypes';
+import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 
 const propTypes = {
     /** Beta features list */
@@ -62,6 +63,7 @@ const defaultProps = {
 };
 
 function RoomInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
@@ -69,7 +71,7 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], [props.report]);
+    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], [props.report]);
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
@@ -250,7 +252,7 @@ RoomInvitePage.defaultProps = defaultProps;
 RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

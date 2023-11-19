@@ -1,23 +1,24 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
-import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as FormActions from '../libs/actions/FormActions';
-import * as ErrorUtils from '../libs/ErrorUtils';
-import styles from '../styles/styles';
-import CONST from '../CONST';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
-import stylePropTypes from '../styles/stylePropTypes';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
-import Visibility from '../libs/Visibility';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -107,8 +108,9 @@ const defaultProps = {
 };
 
 function Form(props) {
+    const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
-    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
@@ -126,14 +128,8 @@ function Form(props) {
      */
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            // Trim all string values
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(props.formID, null);
@@ -191,7 +187,7 @@ function Form(props) {
 
             return touchedInputErrors;
         },
-        [errors, touchedInputs, props.formID, validate],
+        [props.formID, validate, errors],
     );
 
     useEffect(() => {
@@ -228,11 +224,14 @@ function Form(props) {
             return;
         }
 
+        // Trim all string values
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -242,8 +241,8 @@ function Form(props) {
         }
 
         // Call submit handler
-        onSubmit(inputValues);
-    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
+        onSubmit(trimmedStringValues);
+    }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, inputValues, onValidate, onSubmit]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -460,24 +459,26 @@ function Form(props) {
                 )}
             </FormSubmit>
         ),
+
         [
-            childrenWrapperWithProps,
-            errors,
-            formContentRef,
-            formRef,
-            errorMessage,
-            inputRefs,
-            inputValues,
-            submit,
             props.style,
-            children,
-            props.formState,
-            props.footerContent,
-            props.enabledWhenOffline,
-            props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.formState.errorFields,
+            props.formState.isLoading,
+            props.footerContent,
             props.submitButtonStyles,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            submit,
+            childrenWrapperWithProps,
+            children,
+            inputValues,
+            errors,
+            errorMessage,
+            styles.mh0,
+            styles.mt5,
+            styles.flex1,
         ],
     );
 

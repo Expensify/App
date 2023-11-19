@@ -1,24 +1,24 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import Image from '../Image';
-import ThumbnailImage from '../ThumbnailImage';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
-import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
-import useLocalize from '../../hooks/useLocalize';
-import EReceiptThumbnail from '../EReceiptThumbnail';
-import transactionPropTypes from '../transactionPropTypes';
-import * as TransactionUtils from '../../libs/TransactionUtils';
+import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import Image from '@components/Image';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import ThumbnailImage from '@components/ThumbnailImage';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** thumbnail URI for the image */
-    thumbnail: PropTypes.string,
+    thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** URI for the image or local numeric reference for the image  */
     image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -28,12 +28,16 @@ const propTypes = {
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
     transaction: transactionPropTypes,
+
+    /** whether thumbnail is refer the local file or not */
+    isLocalFile: PropTypes.bool,
 };
 
 const defaultProps = {
     thumbnail: null,
     transaction: {},
     enablePreviewModal: false,
+    isLocalFile: false,
 };
 
 /**
@@ -42,7 +46,8 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -56,7 +61,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                 <EReceiptThumbnail transactionID={transaction.transactionID} />
             </View>
         );
-    } else if (thumbnail) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -68,7 +73,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
     } else {
         receiptImageComponent = (
             <Image
-                source={{uri: image}}
+                source={{uri: thumbnail || image}}
                 style={[styles.w100, styles.h100]}
             />
         );
@@ -84,7 +89,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                             const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
                             Navigation.navigate(route);
                         }}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     >
                         {receiptImageComponent}

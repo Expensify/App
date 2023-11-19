@@ -1,10 +1,11 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
-import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '@libs/Browser';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import styles from './styles';
@@ -13,10 +14,15 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
-import {Transaction} from '../types/onyx';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
-type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
+type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+type AvatarStyle = {
+    width: number;
+    height: number;
+    borderRadius: number;
+    backgroundColor: string;
+};
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -56,10 +62,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
+    modalContainerStyleMarginTop: DimensionValue | undefined;
+    modalContainerStyleMarginBottom: DimensionValue | undefined;
+    modalContainerStylePaddingTop: DimensionValue | undefined;
+    modalContainerStylePaddingBottom: DimensionValue | undefined;
     insets: EdgeInsets;
 };
 
@@ -210,7 +216,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): ViewStyle {
+function getAvatarStyle(size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -241,7 +247,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -273,7 +279,8 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
-    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -287,12 +294,19 @@ function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyl
     return eReceiptColorStyles[colorCode];
 }
 
+type SafeAreaPadding = {
+    paddingTop: number;
+    paddingBottom: number;
+    paddingLeft: number;
+    paddingRight: number;
+};
+
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
     return {
-        paddingTop: insets?.top,
+        paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
@@ -568,6 +582,22 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     };
 }
 
+/**
+ * Combine margin/padding with safe area inset
+ *
+ * @param modalContainerValue - margin or padding value
+ * @param safeAreaValue - safe area inset
+ * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
+ */
+function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+    // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
+    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
+        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    return modalContainerValue;
+}
+
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
     shouldAddTopSafeAreaMargin,
@@ -585,12 +615,12 @@ function getModalPaddingStyles({
 }: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: (modalContainerStyleMarginTop ?? 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom ?? 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop ?? 0) + safeAreaPaddingTop : modalContainerStylePaddingTop ?? 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom ?? 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom ?? 0,
+        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -605,6 +635,12 @@ function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
     const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
 
     return italicBold || bold || italic || fontFamily.MONOSPACE;
+}
+/**
+ * Returns the font size for the HTML code tag renderer.
+ */
+function getCodeFontSize(isInsideH1: boolean) {
+    return isInsideH1 ? 15 : 13;
 }
 
 /**
@@ -651,7 +687,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -748,9 +784,8 @@ function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
-    const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
-    return parseStyleAsArray(functionAppliedStyle);
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): StyleProp<ViewStyle> {
+    return typeof style === 'function' ? style(state) : style;
 }
 
 /**
@@ -882,17 +917,19 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
             position: 'absolute',
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
         position: 'absolute',
     };
@@ -901,15 +938,16 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -934,17 +972,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
             justifyContent: 'space-between',
         };
     }
 
     return {
-        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
         display: 'flex',
         justifyContent: 'space-between',
     };
@@ -1008,7 +1047,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
+function getColoredBackgroundStyle(isColored: boolean): StyleProp<TextStyle> {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
@@ -1067,7 +1106,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};
@@ -1093,7 +1132,7 @@ function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 
@@ -1253,22 +1292,53 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
+    const baseFontSize = variables.fontSizeXLarge;
+    const baseLineHeight = variables.lineHeightXXLarge;
 
-    if (isSmallScreenWidth) {
-        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const differentWithMaxLength = 17 - displayAmountLength;
+
+    // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
+    if (isSmallScreenWidth && windowWidth < 420) {
+        // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
+        // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
+        const widthDifference = 420 - windowWidth;
         switch (true) {
-            case widthDifference > 450:
+            // It is very rare for native devices to have a width smaller than 350px so add a constant subtract here
+            case widthDifference > 70:
                 toSubtract = 11;
                 break;
-            case widthDifference > 400:
-                toSubtract = 8;
+            case widthDifference > 60:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = numberOfAvatar * 2 - differentWithMaxLength;
+                }
                 break;
-            case widthDifference > 350:
-                toSubtract = 4;
+            case widthDifference > 50:
+                if (19 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 40:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 30:
+                if (21 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 20:
+                if (22 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2 - differentWithMaxLength;
+                }
                 break;
             default:
+                if (displayAmountLength + numberOfAvatar === 21) {
+                    toSubtract = 3;
+                }
                 break;
         }
     }
@@ -1282,8 +1352,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
-    let containerStyles: Array<ViewStyle | CSSProperties>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
@@ -1310,6 +1380,13 @@ function getContainerStyles(size: string, isInReportAction = false): Array<ViewS
  */
 function getTransparentColor(color: string) {
     return `${color}00`;
+}
+
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
 export {
@@ -1357,6 +1434,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,
@@ -1365,6 +1443,7 @@ export {
     getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
+    getCodeFontSize,
     getFontSizeStyle,
     getGoogleListViewStyle,
     getHeightOfMagicCodeInput,

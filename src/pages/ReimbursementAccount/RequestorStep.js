@@ -1,29 +1,28 @@
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import styles from '../../styles/styles';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CONST from '../../CONST';
-import TextLink from '../../components/TextLink';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import RequestorOnfidoStep from './RequestorOnfidoStep';
-import Form from '../../components/Form';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import useLocalize from '../../hooks/useLocalize';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
-import ReimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import RequestorOnfidoStep from './RequestorOnfidoStep';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
     getDefaultStateForField: PropTypes.func.isRequired,
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    reimbursementAccountDraft: ReimbursementAccountDraftPropTypes.isRequired,
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
@@ -72,7 +71,11 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+/**
+ * Workaround for forwardRef + propTypes issue.
+ * See https://stackoverflow.com/questions/59716140/using-forwardref-with-proptypes-and-eslint
+ */
+const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -110,16 +113,16 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
+                ref={ref}
                 reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={onBackButtonPress}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }
 
     return (
         <ScreenWrapper
+            ref={ref}
             includeSafeAreaPaddingBottom={false}
             testID={RequestorStep.displayName}
         >
@@ -130,7 +133,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
                 onBackButtonPress={onBackButtonPress}
                 shouldShowGetAssistanceButton
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
@@ -160,7 +163,8 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
                     inputKeys={INPUT_KEYS}
                     shouldSaveDraft
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
@@ -191,12 +195,12 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
                         {translate('common.termsOfService')}
                     </TextLink>
                 </Text>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
-}
+});
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default React.forwardRef(RequestorStep);
+export default RequestorStep;

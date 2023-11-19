@@ -1,31 +1,31 @@
-import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import Avatar from './Avatar';
-import Icon from './Icon';
-import PopoverMenu from './PopoverMenu';
-import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import AttachmentPicker from './AttachmentPicker';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import variables from '../styles/variables';
-import CONST from '../CONST';
-import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
-import Tooltip from './Tooltip';
-import stylePropTypes from '../styles/stylePropTypes';
-import * as FileUtils from '../libs/fileDownload/FileUtils';
-import getImageResolution from '../libs/fileDownload/getImageResolution';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import _ from 'underscore';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getImageResolution from '@libs/fileDownload/getImageResolution';
+import SpinningIndicatorAnimation from '@styles/animation/SpinningIndicatorAnimation';
+import stylePropTypes from '@styles/stylePropTypes';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
+import AttachmentPicker from './AttachmentPicker';
+import Avatar from './Avatar';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import * as Browser from '../libs/Browser';
-import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
-import compose from '../libs/compose';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import PopoverMenu from './PopoverMenu';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withNavigationFocus from './withNavigationFocus';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const propTypes = {
     /** Avatar source to display */
@@ -91,8 +91,12 @@ const propTypes = {
     /** File name of the avatar */
     originalFileName: PropTypes.string,
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
@@ -251,8 +255,8 @@ class AvatarWithImagePicker extends React.Component {
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         return (
-            <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <View style={[styles.pRelative, styles.avatarLarge]}>
+            <View style={[this.props.themeStyles.alignItemsCenter, ...additionalStyles]}>
+                <View style={[this.props.themeStyles.pRelative, this.props.themeStyles.avatarLarge]}>
                     <OfflineWithFeedback
                         pendingAction={this.props.pendingAction}
                         errors={this.props.errors}
@@ -262,7 +266,7 @@ class AvatarWithImagePicker extends React.Component {
                         <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
                             <PressableWithoutFeedback
                                 onPress={() => this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}))}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
                                 disabled={this.state.isAvatarCropModalOpen}
                                 ref={this.anchorRef}
@@ -270,8 +274,8 @@ class AvatarWithImagePicker extends React.Component {
                                 <View>
                                     {this.props.source ? (
                                         <Avatar
-                                            containerStyles={styles.avatarLarge}
-                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            containerStyles={this.props.themeStyles.avatarLarge}
+                                            imageStyles={[this.props.themeStyles.avatarLarge, this.props.themeStyles.alignSelfCenter]}
                                             source={this.props.source}
                                             fallbackIcon={this.props.fallbackIcon}
                                             size={this.props.size}
@@ -281,12 +285,12 @@ class AvatarWithImagePicker extends React.Component {
                                         <DefaultAvatar />
                                     )}
                                 </View>
-                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                <View style={[this.props.themeStyles.smallEditIcon, this.props.themeStyles.smallAvatarEditIcon]}>
                                     <Icon
                                         src={Expensicons.Camera}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
-                                        fill={themeColors.textLight}
+                                        fill={this.props.theme.textLight}
                                     />
                                 </View>
                             </PressableWithoutFeedback>
@@ -362,7 +366,7 @@ class AvatarWithImagePicker extends React.Component {
                 </View>
                 {this.state.validationError && (
                     <DotIndicatorMessage
-                        style={[styles.mt6]}
+                        style={[this.props.themeStyles.mt6]}
                         messages={{0: this.props.translate(this.state.validationError, this.state.phraseParam)}}
                         type="error"
                     />
@@ -384,4 +388,4 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default compose(withLocalize, withNavigationFocus)(AvatarWithImagePicker);
+export default compose(withLocalize, withNavigationFocus, withThemeStyles, withTheme)(AvatarWithImagePicker);

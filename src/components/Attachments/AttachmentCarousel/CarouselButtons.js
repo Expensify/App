@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
-import * as Expensicons from '../../Icon/Expensicons';
-import Tooltip from '../../Tooltip';
-import Button from '../../Button';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import * as AttachmentCarouselViewPropTypes from '../propTypes';
-import useLocalize from '../../../hooks/useLocalize';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import _ from 'underscore';
+import * as AttachmentCarouselViewPropTypes from '@components/Attachments/propTypes';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Where the arrows should be visible */
@@ -36,6 +36,8 @@ const defaultProps = {
 };
 
 function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const isBackDisabled = page === 0;
     const isForwardDisabled = page === _.size(attachments) - 1;
 
@@ -51,7 +53,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.BackArrow}
-                            iconFill={themeColors.text}
+                            iconFill={theme.text}
                             iconStyles={[styles.mr0]}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
@@ -67,7 +69,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.ArrowRight}
-                            iconFill={themeColors.text}
+                            iconFill={theme.text}
                             iconStyles={[styles.mr0]}
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
@@ -82,5 +84,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
 
 CarouselButtons.propTypes = propTypes;
 CarouselButtons.defaultProps = defaultProps;
+CarouselButtons.displayName = 'CarouselButtons';
 
 export default CarouselButtons;

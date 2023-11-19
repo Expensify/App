@@ -1,9 +1,10 @@
 import React from 'react';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
-import styles from '../../styles/styles';
 
 function AnchorForAttachmentsOnly(props) {
+    const styles = useThemeStyles();
     return (
         <BaseAnchorForAttachmentsOnly
             // eslint-disable-next-line react/jsx-props-no-spreading

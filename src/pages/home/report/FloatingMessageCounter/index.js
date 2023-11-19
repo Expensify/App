@@ -1,16 +1,16 @@
-import React, {useEffect, useMemo, useCallback} from 'react';
-import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
-import Button from '../../../../components/Button';
-import Text from '../../../../components/Text';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import themeColors from '../../../../styles/themes/default';
-import useLocalize from '../../../../hooks/useLocalize';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {Animated, View} from 'react-native';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useNativeDriver from '@libs/useNativeDriver';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
-import useNativeDriver from '../../../../libs/useNativeDriver';
 
 const propTypes = {
     /** Whether the New Messages indicator is active */
@@ -29,6 +29,8 @@ const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 function FloatingMessageCounter(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const translateY = useMemo(() => new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y), []);
 
@@ -72,11 +74,11 @@ function FloatingMessageCounter(props) {
                             <Icon
                                 small
                                 src={Expensicons.DownArrow}
-                                fill={themeColors.textLight}
+                                fill={theme.textLight}
                             />
+
                             <Text
-                                selectable={false}
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}
+                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {translate('newMessages')}

@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Lottie from './Lottie';
-import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import React from 'react';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import HeaderPageLayout from './HeaderPageLayout';
+import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
+import Lottie from './Lottie';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -26,21 +26,24 @@ const propTypes = {
 };
 
 const defaultProps = {
-    backgroundColor: themeColors.appBG,
+    backgroundColor: undefined,
     footer: null,
     overlayContent: null,
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <HeaderPageLayout
-            backgroundColor={backgroundColor}
+            backgroundColor={backgroundColor || theme.appBG}
             title={propsToPassToHeader.title}
             headerContent={
                 <>
                     <Lottie
                         source={illustration}
                         style={styles.w100}
+                        webStyle={styles.w100}
                         autoPlay
                         loop
                     />

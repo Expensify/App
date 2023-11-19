@@ -1,22 +1,22 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import theme from '../../styles/themes/default';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import Button from '../Button';
-import DistanceMapView from '../DistanceMapView';
-import * as Expensicons from '../Icon/Expensicons';
-import PendingMapView from '../MapView/PendingMapView';
-import transactionPropTypes from '../transactionPropTypes';
+import Button from '@components/Button';
+import DistanceMapView from '@components/DistanceMapView';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PendingMapView from '@components/MapView/PendingMapView';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const MAX_WAYPOINTS = 25;
 
@@ -27,6 +27,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 
@@ -54,10 +55,13 @@ const defaultProps = {
     transaction: {},
 };
 function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const numberOfWaypoints = _.size(waypoints);
+    const numberOfFilledWaypoints = _.size(_.filter(waypoints, (waypoint) => !_.isEmpty(waypoint)));
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
@@ -92,21 +96,23 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                 }),
                 (waypoint) => waypoint,
             ),
-        [waypoints, lastWaypointIndex],
+        [waypoints, lastWaypointIndex, theme.icon],
     );
 
     return (
         <>
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
-                />
-            </View>
+            {numberOfFilledWaypoints >= 2 && (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
+                    <Button
+                        small
+                        icon={Expensicons.Plus}
+                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        text={translate('distance.addStop')}
+                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        innerStyles={[styles.ph10]}
+                    />
+                </View>
+            )}
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <DistanceMapView

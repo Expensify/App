@@ -1,31 +1,31 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, ScrollView, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {Component} from 'react';
+import {Keyboard, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import compose from '../../../../libs/compose';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import MenuItem from '../../../../components/MenuItem';
-import styles from '../../../../styles/styles';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import Text from '../../../../components/Text';
-import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
-import ConfirmModal from '../../../../components/ConfirmModal';
-import * as User from '../../../../libs/actions/User';
-import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import themeColors from '../../../../styles/themes/default';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ValidateCodeForm from './ValidateCodeForm';
-import ROUTES from '../../../../ROUTES';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -73,6 +73,8 @@ const propTypes = {
     isLoadingReportData: PropTypes.bool,
 
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
@@ -123,7 +125,7 @@ class ContactMethodDetailsPage extends Component {
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
         }
     }
 
@@ -236,8 +238,8 @@ class ContactMethodDetailsPage extends Component {
                     <FullPageNotFoundView
                         shouldShow
                         linkKey="contacts.goBackContactMethods"
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
-                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
                     />
                 </ScreenWrapper>
             );
@@ -255,7 +257,7 @@ class ContactMethodDetailsPage extends Component {
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal
@@ -268,20 +270,23 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen && !isDefaultContactMethod}
                         danger
                     />
+
                     {isFailedAddContactMethod && (
                         <DotIndicatorMessage
-                            style={[styles.mh5, styles.mv3]}
+                            style={[this.props.themeStyles.mh5, this.props.themeStyles.mv3]}
                             messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                             type="error"
                         />
                     )}
+
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
-                        <View style={[styles.ph5, styles.mt3, styles.mb7]}>
+                        <View style={[this.props.themeStyles.ph5, this.props.themeStyles.mt3, this.props.themeStyles.mb7]}>
                             <DotIndicatorMessage
                                 type="success"
-                                style={[styles.mb3]}
+                                style={[this.props.themeStyles.mb3]}
                                 messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
                             />
+
                             <ValidateCodeForm
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
@@ -293,7 +298,7 @@ class ContactMethodDetailsPage extends Component {
                     {this.canChangeDefaultContactMethod() ? (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
-                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            errorRowStyles={[this.props.themeStyles.ml8, this.props.themeStyles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
                         >
                             <MenuItem
@@ -307,22 +312,22 @@ class ContactMethodDetailsPage extends Component {
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
-                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            errorRowStyles={[this.props.themeStyles.ml8, this.props.themeStyles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         >
-                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                            <Text style={[this.props.themeStyles.ph5, this.props.themeStyles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[styles.mt6, styles.ph5]}
+                            errorRowStyles={[this.props.themeStyles.mt6, this.props.themeStyles.ph5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                         >
                             <MenuItem
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
-                                iconFill={themeColors.danger}
+                                iconFill={this.props.theme.danger}
                                 onPress={() => this.toggleDeleteModal(true)}
                             />
                         </OfflineWithFeedback>
@@ -335,6 +340,7 @@ class ContactMethodDetailsPage extends Component {
 
 ContactMethodDetailsPage.propTypes = propTypes;
 ContactMethodDetailsPage.defaultProps = defaultProps;
+ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default compose(
     withLocalize,
@@ -355,4 +361,6 @@ export default compose(
             key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
         },
     }),
+    withThemeStyles,
+    withTheme,
 )(ContactMethodDetailsPage);

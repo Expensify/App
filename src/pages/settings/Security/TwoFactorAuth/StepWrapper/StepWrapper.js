@@ -1,12 +1,12 @@
 import React from 'react';
-import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../../components/ScreenWrapper';
-import FullPageOfflineBlockingView from '../../../../../components/BlockingViews/FullPageOfflineBlockingView';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
+import AnimatedStep from '@components/AnimatedStep';
+import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
-import AnimatedStep from '../../../../../components/AnimatedStep';
-import styles from '../../../../../styles/styles';
-import useAnimatedStepContext from '../../../../../components/AnimatedStep/useAnimatedStepContext';
 
 function StepWrapper({
     title = '',
@@ -16,6 +16,7 @@ function StepWrapper({
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,
 }) {
+    const styles = useThemeStyles();
     const shouldShowStepCounter = Boolean(stepCounter);
 
     const {animationDirection} = useAnimatedStepContext();

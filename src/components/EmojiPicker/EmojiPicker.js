@@ -1,15 +1,15 @@
-import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
-import compose from '../../libs/compose';
-import * as StyleUtils from '../../styles/StyleUtils';
-import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -17,11 +17,11 @@ const DEFAULT_ANCHOR_ORIGIN = {
 };
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
-    ...viewportOffsetTopPropTypes,
+    viewportOffsetTop: PropTypes.number.isRequired,
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -33,6 +33,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     /**
      * Show the emoji picker menu.
@@ -124,7 +125,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             if (!emojiPopoverAnchor.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
-                if (isEmojiPickerVisible && !props.isSmallScreenWidth) {
+                if (isEmojiPickerVisible && !isSmallScreenWidth) {
                     hideEmojiPicker();
                 }
                 return;
@@ -134,9 +135,12 @@ const EmojiPicker = forwardRef((props, ref) => {
             });
         });
         return () => {
+            if (!emojiPopoverDimensionListener) {
+                return;
+            }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, props.isSmallScreenWidth, emojiPopoverAnchorOrigin]);
+    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
@@ -161,7 +165,7 @@ const EmojiPicker = forwardRef((props, ref) => {
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
             anchorAlignment={emojiPopoverAnchorOrigin}
-            outerStyle={StyleUtils.getOuterModalStyle(props.windowHeight, props.viewportOffsetTop)}
+            outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
         >
@@ -175,4 +179,4 @@ const EmojiPicker = forwardRef((props, ref) => {
 
 EmojiPicker.propTypes = propTypes;
 EmojiPicker.displayName = 'EmojiPicker';
-export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);
+export default withViewportOffsetTop(EmojiPicker);

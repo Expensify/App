@@ -1,16 +1,16 @@
-import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import Button from './Button';
-import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
+import PopoverMenu from './PopoverMenu';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -72,6 +72,8 @@ const defaultProps = {
 };
 
 function ButtonWithDropdownMenu(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
@@ -134,7 +136,7 @@ function ButtonWithDropdownMenu(props) {
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
-                                    fill={themeColors.textLight}
+                                    fill={theme.textLight}
                                 />
                             </View>
                         </View>

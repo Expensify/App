@@ -1,4 +1,4 @@
-import {ReportAction} from '../types/onyx';
+import {ReportAction} from '@src/types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -243,6 +243,7 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,

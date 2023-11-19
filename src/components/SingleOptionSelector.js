@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React from 'react';
 import {View} from 'react-native';
-import SelectCircle from './SelectCircle';
-import styles from '../styles/styles';
-import CONST from '../CONST';
-import Text from './Text';
+import _ from 'underscore';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import SelectCircle from './SelectCircle';
+import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function SingleOptionSelector({options, selectedOptionKey, onSelectOption, translate}) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.pt4}>
             {_.map(options, (option) => (
@@ -43,7 +44,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     <PressableWithoutFeedback
                         style={styles.singleOptionSelectorRow}
                         onPress={() => onSelectOption(option)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityState={{checked: selectedOptionKey === option.key}}
                         aria-checked={selectedOptionKey === option.key}
                         accessibilityLabel={option.label}

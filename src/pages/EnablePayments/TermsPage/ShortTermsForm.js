@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import * as Localize from '../../../libs/Localize';
-import CONST from '../../../CONST';
-import TextLink from '../../../components/TextLink';
-import userWalletPropTypes from '../userWalletPropTypes';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import * as Localize from '@libs/Localize';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The user's wallet */
@@ -17,6 +17,7 @@ const defaultProps = {
 };
 
 function ShortTermsForm(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Text style={styles.mb5}>

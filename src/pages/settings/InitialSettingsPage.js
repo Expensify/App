@@ -1,49 +1,49 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import CurrentUserPersonalDetailsSkeletonView from '../../components/CurrentUserPersonalDetailsSkeletonView';
-import {withNetwork} from '../../components/OnyxProvider';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import * as Session from '../../libs/actions/Session';
-import ONYXKEYS from '../../ONYXKEYS';
-import Tooltip from '../../components/Tooltip';
-import Avatar from '../../components/Avatar';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import MenuItem from '../../components/MenuItem';
-import themeColors from '../../styles/themes/default';
-import SCREENS from '../../SCREENS';
-import ROUTES from '../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import CONST from '../../CONST';
-import Permissions from '../../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import cardPropTypes from '../../components/cardPropTypes';
-import * as Wallet from '../../libs/actions/Wallet';
-import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Link from '../../libs/actions/Link';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as UserUtils from '../../libs/UserUtils';
-import policyMemberPropType from '../policyMemberPropType';
-import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import useLocalize from '../../hooks/useLocalize';
-import useSingleExecution from '../../hooks/useSingleExecution';
-import useWaitForNavigation from '../../hooks/useWaitForNavigation';
-import HeaderPageLayout from '../../components/HeaderPageLayout';
+import _ from 'underscore';
+import Avatar from '@components/Avatar';
+import bankAccountPropTypes from '@components/bankAccountPropTypes';
+import cardPropTypes from '@components/cardPropTypes';
+import ConfirmModal from '@components/ConfirmModal';
+import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
+import HeaderPageLayout from '@components/HeaderPageLayout';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Session from '@userActions/Session';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /* Onyx Props */
@@ -130,6 +130,8 @@ const defaultProps = {
 };
 
 function InitialSettingsPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
@@ -171,6 +173,7 @@ function InitialSettingsPage(props) {
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, props.network.isOffline))
             .sortBy((policy) => policy.name.toLowerCase())
             .map((policy) => ({
+                id: policy.id,
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
                 type: CONST.ICON_TYPE_WORKSPACE,
@@ -323,17 +326,11 @@ function InitialSettingsPage(props) {
         );
     }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
-    // On the very first sign in or after clearing storage these
-    // details will not be present on the first render so we'll just
-    // return nothing for now.
-    if (_.isEmpty(props.currentUserPersonalDetails)) {
-        return null;
-    }
     const headerContent = (
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView
-                    backgroundColor={themeColors.appBG}
+                    backgroundColor={theme.appBG}
                     avatarSize={CONST.AVATAR_SIZE.XLARGE}
                 />
             ) : (
@@ -341,9 +338,10 @@ function InitialSettingsPage(props) {
                     <Tooltip text={translate('common.profile')}>
                         <PressableWithoutFeedback
                             style={styles.mb3}
-                            onPress={openProfileSettings}
+                            disabled={isExecuting}
+                            onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <Avatar
@@ -356,14 +354,15 @@ function InitialSettingsPage(props) {
                         </PressableWithoutFeedback>
                     </Tooltip>
                     <PressableWithoutFeedback
-                        style={[styles.mt1, styles.mw100]}
-                        onPress={openProfileSettings}
+                        style={[styles.mt1, styles.w100, styles.mw100]}
+                        disabled={isExecuting}
+                        onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ACCESSIBILITY_ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
-                                style={[styles.textHeadline, styles.pre]}
+                                style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
@@ -372,7 +371,7 @@ function InitialSettingsPage(props) {
                     </PressableWithoutFeedback>
                     {Boolean(props.currentUserPersonalDetails.displayName) && (
                         <Text
-                            style={[styles.textLabelSupporting, styles.mt1]}
+                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
                             {props.formatPhoneNumber(props.session.email)}
@@ -388,7 +387,7 @@ function InitialSettingsPage(props) {
             title={translate('common.settings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
         >
             <View style={styles.w100}>
                 {getMenuItems}
@@ -409,6 +408,7 @@ function InitialSettingsPage(props) {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
+InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,

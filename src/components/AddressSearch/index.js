@@ -1,26 +1,26 @@
-import _ from 'underscore';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
-import {Keyboard, LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import TextInput from '../TextInput';
-import * as ApiUtils from '../../libs/ApiUtils';
-import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
-import getCurrentPosition from '../../libs/getCurrentPosition';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import variables from '../../styles/variables';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import LocationErrorMessage from '../LocationErrorMessage';
-import {withNetwork} from '../OnyxProvider';
-import networkPropTypes from '../networkPropTypes';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LocationErrorMessage from '@components/LocationErrorMessage';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as ApiUtils from '@libs/ApiUtils';
+import compose from '@libs/compose';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
+import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -73,6 +73,9 @@ const propTypes = {
         PropTypes.shape({
             /** A description of the location (usually the address) */
             description: PropTypes.string,
+
+            /** The name of the location */
+            name: PropTypes.string,
 
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
             geometry: PropTypes.shape({
@@ -141,6 +144,8 @@ const defaultProps = {
 // Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -167,9 +172,10 @@ function AddressSearch(props) {
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 props.onPress({
-                    address: lodashGet(details, 'description', ''),
+                    address: lodashGet(details, 'description'),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
+                    name: lodashGet(details, 'name'),
                 });
             }
             return;
@@ -220,11 +226,12 @@ function AddressSearch(props) {
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-
+            name: lodashGet(details, 'name', ''),
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
             country: '',
+            state: state || stateAutoCompleteFallback,
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
@@ -232,7 +239,6 @@ function AddressSearch(props) {
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
-            state: state || stateAutoCompleteFallback,
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
             address: lodashGet(details, 'formatted_address', ''),
@@ -248,6 +254,17 @@ function AddressSearch(props) {
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
+        }
+
+        // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
+        // We are setting up a fallback to ensure "values.street" is populated with a relevant value
+        if (!values.street && details.adr_address) {
+            const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
+            const adr_address = details.adr_address.match(streetAddressRegex);
+            const streetAddressFallback = lodashGet(adr_address, [1], null);
+            if (streetAddressFallback) {
+                values.street = streetAddressFallback;
+            }
         }
 
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
@@ -377,11 +394,21 @@ function AddressSearch(props) {
                         listLoaderComponent={
                             <View style={[styles.pv4]}>
                                 <ActivityIndicator
-                                    color={themeColors.spinner}
+                                    color={theme.spinner}
                                     size="small"
                                 />
                             </View>
                         }
+                        renderRow={(data) => {
+                            const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
+                            const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            return (
+                                <View>
+                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                </View>
+                            );
+                        }}
                         renderHeaderComponent={renderHeaderComponent}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);
@@ -453,6 +480,7 @@ function AddressSearch(props) {
                             },
                             maxLength: props.maxInputLength,
                             spellCheck: false,
+                            selectTextOnFocus: true,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
@@ -463,8 +491,8 @@ function AddressSearch(props) {
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}
-                        listHoverColor={themeColors.border}
-                        listUnderlayColor={themeColors.buttonPressedBG}
+                        listHoverColor={theme.border}
+                        listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event) => {
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
@@ -499,15 +527,14 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default compose(
-    withNetwork(),
-    withLocalize,
-)(
-    React.forwardRef((props, ref) => (
-        <AddressSearch
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const AddressSearchWithRef = React.forwardRef((props, ref) => (
+    <AddressSearch
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+AddressSearchWithRef.displayName = 'AddressSearchWithRef';
+
+export default compose(withNetwork(), withLocalize)(AddressSearchWithRef);

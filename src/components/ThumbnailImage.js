@@ -1,12 +1,12 @@
 import lodashClamp from 'lodash/clamp';
-import React, {useCallback, useState} from 'react';
-import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -70,6 +70,7 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 }
 
 function ThumbnailImage(props) {
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const initialDimensions = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, windowHeight);
     const [imageWidth, setImageWidth] = useState(initialDimensions.thumbnailWidth);
