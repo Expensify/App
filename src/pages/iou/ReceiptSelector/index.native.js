@@ -205,14 +205,16 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                 </View>
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
-                    ref={camera}
-                    device={device}
-                    style={[styles.cameraView]}
-                    zoom={device.neutralZoom}
-                    photo
-                    cameraTabIndex={pageIndex}
-                />
+                <View style={[styles.cameraView]}>
+                    <NavigationAwareCamera
+                        ref={camera}
+                        device={device}
+                        style={[styles.videoContainer]}
+                        zoom={device.neutralZoom}
+                        photo
+                        cameraTabIndex={pageIndex}
+                    />
+                </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
