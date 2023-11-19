@@ -212,7 +212,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                             device={device}
                             style={[styles.flex1]}
                             zoom={device.neutralZoom}
-                            photoc
+                            photo
                             cameraTabIndex={pageIndex}
                         />
                     </View>
