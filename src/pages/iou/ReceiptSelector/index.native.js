@@ -62,7 +62,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.front;
+    const device = devices.back;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
