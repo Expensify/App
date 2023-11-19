@@ -92,7 +92,10 @@ function ReportFooter(props) {
             )}
             {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <SwipeableView
+                        onSwipeDown={Keyboard.dismiss}
+                        style={styles.flex1}
+                    >
                         <ReportActionCompose
                             onSubmit={props.onSubmitComment}
                             reportID={props.report.reportID.toString()}
