@@ -1,68 +1,75 @@
-import React, { Fragment } from 'react';
-import {splitBoxModelStyle} from 'react-native-render-html';
+import {color} from '@storybook/theming';
+import React, {Fragment} from 'react';
+import {StyleSheet} from 'react-native';
+import {View} from 'react-native';
+import {getNativePropsForTNode, splitBoxModelStyle, TNodeChildrenRenderer, useTNodeChildrenProps} from 'react-native-render-html';
 import _ from 'underscore';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import Text from '@components/Text';
-import { StyleSheet } from 'react-native';
-import { color } from '@storybook/theming';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import htmlRendererPropTypes from './htmlRendererPropTypes';
 
-function CodeRenderer(props) {
-    // We split wrapper and inner styles
-    // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
-
-    // Get the correct fontFamily variant based in the fontStyle and fontWeight
-    const font = StyleUtils.getFontFamilyMonospace({
-        fontStyle: textStyle.fontStyle,
-        fontWeight: textStyle.fontWeight,
-    });
-
-    // Determine the font size for the code based on whether it's inside an H1 element.
-    const isInsideH1 = HTMLEngineUtils.isChildOfH1(props.tnode);
-
-    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
-
-    const textStyleOverride = {
-        fontSize,
-        fontFamily: font,
-
-        // We need to override this properties bellow that was defined in `textStyle`
-        // Because by default the `react-native-render-html` add a style in the elements,
-        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
-        fontWeight: undefined,
-        fontStyle: undefined,
-    };
-
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
-    const TDefaultRenderer = props.TDefaultRenderer;
-    const message = defaultRendererProps.tnode.data
-
-    // const message = 'fsjdhfauilfnqe;kjnfqqfssjdhfauilfnqe;kjnfqqsjdhfauilfnqe;kjnfqqfsjdhfauilfnqe;kjnfqqffjdhfauilfnqe;kjnfqqf'
-    const elements = _.map(message.split(''), (value, idx) => <Text style={inlineStyle.textStyle} key={idx}>{value}</Text>)
-    console.error(props);
-    return (
-        <>
-        <Text style={inlineStyle.textContainer}>{elements}</Text>
-       </>
-    );
+function Code(props) {
+    console.log('In Code: ', props);
+    return <Text>hello</Text>;
 }
 
-const inlineStyle = StyleSheet.create({
-    textContainer: {
-        // flexDirection: 'row',
-        paddingTop: 10,
-        backgroundColor: 'yellow',
-        color: 'red',
-        justifyContent: 'center'
-    },
-    textStyle: {
-        color: 'red',
-        fontSize: 10,
-    }
-})
+const getStyleAtIndex = (idx, length) => {
+    if (idx != 0 && idx != length - 1) return {borderLeftWidth: 0, borderRightWidth: 0};
+};
+function CodeRenderer(props) {
+    const styles = useThemeStyles();
+    const {TDefaultRenderer, ...defaultRendererProps} = props;
+
+    const nativeProps = getNativePropsForTNode(props);
+
+    const propStyles = splitBoxModelStyle(defaultRendererProps.style);
+    const {boxModelStyle, otherStyle: textStyles} = propStyles;
+    const textParts = nativeProps.children.split('');
+
+    const borderKeys = {
+        top: ['borderTopColor', 'borderTopWidth'],
+        bottom: ['borderBottomColor', 'borderBottomWidth'],
+        left: ['borderLeftColor', 'borderLeftWidth'],
+        right: ['borderRightColor', 'borderRightWidth'],
+    };
+    const elementStlyes = {
+        first: _.pick(boxModelStyle, [...borderKeys.left, ...borderKeys.top, ...borderKeys.bottom, 'borderTopLeftRadius', 'borderBottomLeftRadius', 'paddingLeft']),
+        inner: _.pick(boxModelStyle, [...borderKeys.top, ...borderKeys.bottom]),
+        last: _.pick(boxModelStyle, [...borderKeys.right, ...borderKeys.top, ...borderKeys.bottom, 'borderTopRightRadius', 'borderBottomRightRadius', 'paddingRight']),
+    };
+
+    const backgroundStyle = _.pick(boxModelStyle, ['backgroundColor']);
+
+    const getElementStyle = (idx) => {
+        let style = {}
+        if (idx === 0) {
+            style = elementStlyes.first;
+        } else if (idx === textParts.length - 1) {
+            style = elementStlyes.last;
+        } else {
+            style = elementStlyes.inner;
+        }
+        console.log({...style, ...backgroundStyle})
+        return {...style, ...backgroundStyle};
+        
+    };
+    const elements = _.map(textParts, (value, idx) => (
+        <View style={[getElementStyle(idx)]}>
+            <Text
+                style={textStyles}
+                key={idx}
+            >
+                {value}
+            </Text>
+        </View>
+    ));
+
+    return elements;
+}
+
 CodeRenderer.propTypes = htmlRendererPropTypes;
 CodeRenderer.displayName = 'CodeRenderer';
 
