@@ -80,7 +80,7 @@ function setLocale(localeString: Locale) {
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
+function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
         return utcToZonedTime(new Date(), currentSelectedTimezone);
@@ -201,7 +201,7 @@ function datetimeToRelative(locale: Locale, datetime: string): string {
  * @param selectedTimezone
  * @returns
  */
-function getZoneAbbreviation(datetime: string, selectedTimezone: SelectedTimezone): string {
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
     return formatInTimeZone(datetime, selectedTimezone, 'zzz');
 }
 
@@ -228,7 +228,7 @@ function formatToDayOfWeek(datetime: string): string {
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(datetime: string): string {
+function formatToLocalTime(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
 }
 

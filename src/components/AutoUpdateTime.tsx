@@ -2,33 +2,26 @@
  * Displays the user's local time and updates it every minute.
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DateUtils from '@libs/DateUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import {Timezone} from "@src/types/onyx/PersonalDetails";
 import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withLocalize, {WithLocalizeProps} from './withLocalize';
 
-const propTypes = {
+type AutoUpdateTimeProps = {
     /** Timezone of the user from their personal details */
-    timezone: PropTypes.shape({
-        /** Value of selected timezone */
-        selected: PropTypes.string,
+    timezone: Required<Timezone>
+} & WithLocalizeProps;
 
-        /** Whether timezone is automatically set */
-        automatic: PropTypes.bool,
-    }).isRequired,
-    ...withLocalizePropTypes,
-};
-
-function AutoUpdateTime(props) {
+function AutoUpdateTime(props: AutoUpdateTimeProps) {
     const styles = useThemeStyles();
     /**
      * @returns {Date} Returns the locale Date object
      */
     const getCurrentUserLocalTime = useCallback(
-        () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, null, props.timezone.selected),
+        () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, undefined, props.timezone.selected),
         [props.preferredLocale, props.timezone.selected],
     );
 
@@ -67,6 +60,5 @@ function AutoUpdateTime(props) {
     );
 }
 
-AutoUpdateTime.propTypes = propTypes;
 AutoUpdateTime.displayName = 'AutoUpdateTime';
 export default withLocalize(AutoUpdateTime);
