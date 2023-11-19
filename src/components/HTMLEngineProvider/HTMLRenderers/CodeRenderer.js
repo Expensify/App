@@ -1,73 +1,49 @@
-import {color} from '@storybook/theming';
-import React, {Fragment} from 'react';
-import {StyleSheet} from 'react-native';
-import {View} from 'react-native';
-import {getNativePropsForTNode, splitBoxModelStyle, TNodeChildrenRenderer, useTNodeChildrenProps} from 'react-native-render-html';
+import React from 'react';
+import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
-import Text from '@components/Text';
 import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
-function Code(props) {
-    console.log('In Code: ', props);
-    return <Text>hello</Text>;
-}
-
-const getStyleAtIndex = (idx, length) => {
-    if (idx != 0 && idx != length - 1) return {borderLeftWidth: 0, borderRightWidth: 0};
-};
 function CodeRenderer(props) {
-    const styles = useThemeStyles();
-    const {TDefaultRenderer, ...defaultRendererProps} = props;
 
-    const nativeProps = getNativePropsForTNode(props);
+    // We split wrapper and inner styles
+    // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
-    const propStyles = splitBoxModelStyle(defaultRendererProps.style);
-    const {boxModelStyle, otherStyle: textStyles} = propStyles;
-    const textParts = nativeProps.children.split('');
+    // Get the correct fontFamily variant based in the fontStyle and fontWeight
+    const font = StyleUtils.getFontFamilyMonospace({
+        fontStyle: textStyle.fontStyle,
+        fontWeight: textStyle.fontWeight,
+    });
 
-    const borderKeys = {
-        top: ['borderTopColor', 'borderTopWidth'],
-        bottom: ['borderBottomColor', 'borderBottomWidth'],
-        left: ['borderLeftColor', 'borderLeftWidth'],
-        right: ['borderRightColor', 'borderRightWidth'],
-    };
-    const elementStlyes = {
-        first: _.pick(boxModelStyle, [...borderKeys.left, ...borderKeys.top, ...borderKeys.bottom, 'borderTopLeftRadius', 'borderBottomLeftRadius', 'paddingLeft']),
-        inner: _.pick(boxModelStyle, [...borderKeys.top, ...borderKeys.bottom]),
-        last: _.pick(boxModelStyle, [...borderKeys.right, ...borderKeys.top, ...borderKeys.bottom, 'borderTopRightRadius', 'borderBottomRightRadius', 'paddingRight']),
-    };
+    // Determine the font size for the code based on whether it's inside an H1 element.
+    const isInsideH1 = HTMLEngineUtils.isChildOfH1(props.tnode);
 
-    const backgroundStyle = _.pick(boxModelStyle, ['backgroundColor']);
+    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
-    const getElementStyle = (idx) => {
-        let style = {}
-        if (idx === 0) {
-            style = elementStlyes.first;
-        } else if (idx === textParts.length - 1) {
-            style = elementStlyes.last;
-        } else {
-            style = elementStlyes.inner;
-        }
-        console.log({...style, ...backgroundStyle})
-        return {...style, ...backgroundStyle};
-        
-    };
-    const elements = _.map(textParts, (value, idx) => (
-        <View style={[getElementStyle(idx)]}>
-            <Text
-                style={textStyles}
-                key={idx}
-            >
-                {value}
-            </Text>
-        </View>
-    ));
+    const textStyleOverride = {
+        fontSize,
+        fontFamily: font,
 
-    return elements;
+        // We need to override this properties bellow that was defined in `textStyle`
+        // Because by default the `react-native-render-html` add a style in the elements,
+        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
+        fontWeight: undefined,
+        fontStyle: undefined,
+    }
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
+    console.error('CODE RENDEERER', props)
+    return (
+        <InlineCodeBlock
+        defaultRendererProps={defaultRendererProps}
+        TDefaultRenderer={props.TDefaultRenderer}
+        boxModelStyle={boxModelStyle}
+        textStyle={{...textStyle, ...textStyleOverride}}
+        key={props.key}
+        />
+    );
 }
 
 CodeRenderer.propTypes = htmlRendererPropTypes;

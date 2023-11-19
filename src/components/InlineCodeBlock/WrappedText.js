@@ -1,15 +1,10 @@
 import PropTypes from 'prop-types';
-<<<<<<< Updated upstream
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
-=======
-import React, {Fragment, useEffect} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
->>>>>>> Stashed changes
 import _ from 'underscore';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import { StyleSheet } from 'react-native';
 
 const propTypes = {
     /** Required text */
@@ -18,59 +13,60 @@ const propTypes = {
     /** Style to be applied to Text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to be applied to View */
+    // eslint-disable-next-line react/forbid-prop-types
+    viewStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     textStyles: [],
 };
 
-const EmptyText = () => <Text style={{}}> </Text>;
-
 function WrappedText(props) {
-    const styles = useThemeStyles();
     if (!_.isString(props.children)) {
         return null;
     }
+    const regex =
+        /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3|./gu;
+    const textParts = props.children.match(regex);
 
-    const textStyles = {
-        ...StyleSheet.flatten(props.textStyles),
-        borderWidth: 19,
-        borderRadius: 3,
-        borderColor: 'red',
+    const textStyles = StyleSheet.flatten(props.textStyles);
+    const viewStyles = StyleSheet.flatten(props.viewStyles);
 
-        flexDirection: 'row',
-        backgroundColor: 'yellow',
-        fontSize: 12,
-        lineHeight: 60,
-        padding: 5,
+    const sharedStyleKeys = ['borderTopColor', 'borderTopWidth', 'borderBottomColor', 'borderBottomWidth', 'backgroundColor'];
+    const sharedViewStyle = _.pick(viewStyles, sharedStyleKeys);
+    const elementStyles = {
+        first: _.pick(viewStyles, ['borderLeftColor', 'borderLeftWidth', 'borderTopLeftRadius', 'borderBottomLeftRadius', 'paddingLeft']),
+        last: _.pick(viewStyles, ['borderRightColor', 'borderRightWidth', 'borderTopRightRadius', 'borderBottomRightRadius', 'paddingRight']),
     };
-    const inlineText = _.map(props.children.split(''), (row, idx) => <Text style={stY.textPart} key={idx}>{row}</Text>)
+
+    const getViewStyleAtIndex = (idx) => {
+        let positionalStyle = sharedViewStyle;
+        if (idx === 0) {
+            positionalStyle = {...positionalStyle, ...elementStyles.first};
+        }
+        if (idx === textParts.length - 1) {
+            positionalStyle = {...positionalStyle, ...elementStyles.last};
+        }
+        console.error('positional style', positionalStyle)
+        return positionalStyle;
+    };
+    console.error(viewStyles)
     return (
-        <View style={stY.textContainer}>
-           {inlineText}
-        </View>
+        <>
+            {_.map(textParts, (value, idx) => (
+                <View
+                    key={idx}
+                    style={[getViewStyleAtIndex(idx)]}
+                >
+                    <Text style={textStyles}>{value}</Text>
+                </View>
+            ))}
+        </>
     );
 }
 
-const stY = StyleSheet.create({
-    textContainer: {
-        flexDirection: 'column',
-        flexWrap: 'wrap',
-        backgroundColor: 'green',
-        borderWidth: 1,
-        borderColor: 'red',
-        paddingBottom: 5,
-        paddingStart: 5,
-        paddingEnd: 5,
-        alignSelf: 'flex-start',
-        flexGrow: 1,
-        flexBasis: 0,
-    },
-    textPart: {
-        color: 'blue',
-        backgroundColor: 'yellow'
-    }
-});
 WrappedText.propTypes = propTypes;
 WrappedText.defaultProps = defaultProps;
 WrappedText.displayName = 'WrappedText';
