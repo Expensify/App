@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import {Camera} from 'react-native-vision-camera';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useThemeStyles from '@styles/useThemeStyles';
