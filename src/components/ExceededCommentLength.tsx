@@ -6,7 +6,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {OnyxEntry} from "react-native-onyx/lib/types";
 import Text from './Text';
+
+type ExceededCommentLengthOnyxProps = {
+    comment: OnyxEntry<string>
+};
 
 type ExceededCommentLengthProps = {
     /** Report ID to get the comment from (used in withOnyx) */
@@ -20,7 +25,7 @@ type ExceededCommentLengthProps = {
     onExceededMaxCommentLength: () => void;
 };
 
-function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: ExceededCommentLengthProps) {
+function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: ExceededCommentLengthProps & ExceededCommentLengthOnyxProps) {
     const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
@@ -53,7 +58,7 @@ function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: Excee
 
 ExceededCommentLength.displayName = 'ExceededCommentLength';
 
-export default withOnyx({
+export default withOnyx<ExceededCommentLengthProps, ExceededCommentLengthOnyxProps>({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         initialValue: '',
