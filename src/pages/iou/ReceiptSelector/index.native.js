@@ -62,7 +62,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = devices.front;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
@@ -206,14 +206,16 @@ function ReceiptSelector({route, report, iou, transactionID}) {
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                 <View style={[styles.cameraView]}>
-                    <NavigationAwareCamera
-                        ref={camera}
-                        device={device}
-                        style={[styles.videoContainer]}
-                        zoom={device.neutralZoom}
-                        photo
-                        cameraTabIndex={pageIndex}
-                    />
+                    <View style={styles.flex1}>
+                        <NavigationAwareCamera
+                            ref={camera}
+                            device={device}
+                            style={[styles.flex1]}
+                            zoom={device.neutralZoom}
+                            photoc
+                            cameraTabIndex={pageIndex}
+                        />
+                    </View>
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
