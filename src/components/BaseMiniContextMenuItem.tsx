@@ -46,7 +46,10 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                 onPress={onPress}
                 onMouseDown={(event) => {
                     if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
-                        DomUtils?.getActiveElement()?.blur();
+                        const activeElement = DomUtils.getActiveElement();
+                        if (activeElement instanceof HTMLElement) {
+                            activeElement?.blur();
+                        }
                         return;
                     }
 

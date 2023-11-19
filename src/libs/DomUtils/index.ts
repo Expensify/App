@@ -1,6 +1,6 @@
 import GetActiveElement from './types';
 
-const getActiveElement: GetActiveElement = () => document.activeElement as HTMLElement;
+const getActiveElement: GetActiveElement = () => document.activeElement;
 
 export default {
     getActiveElement,
