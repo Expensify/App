@@ -7,8 +7,8 @@ import {Transaction} from '@src/types/onyx';
 /**
  * This migration moves all the transaction backups stored in the transaction collection, ONYXKEYS.COLLECTION.TRANSACTION,
  * to a reserved collection that only stores draft transactions, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT.
- * The purpose of the migration is that there is a possibility that transaction backups are not filtered from
- * by most functions when all transactions are fetched. Eg: getAllReportTransactions (src/libs/TransactionUtils.ts)
+ * The purpose of the migration is that there is a possibility that transaction backups are not filtered
+ * by most functions when all transactions are fetched, e.g, getAllReportTransactions (src/libs/TransactionUtils.ts)
  * One problem that arose from storing transaction backups with the other transactions is that for every distance request
  * which have their waypoints updated offline, we expect the ReportPreview component to display the default image of a pending map.
  * However, due to the presence of the transaction backup, the previous map image will be displayed alongside the current pending map.
