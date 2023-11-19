@@ -7,7 +7,8 @@ import React, {Fragment, useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 >>>>>>> Stashed changes
 import _ from 'underscore';
-import styles from '@styles/styles';
+import Text from '@components/Text';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -26,6 +27,7 @@ const defaultProps = {
 const EmptyText = () => <Text style={{}}> </Text>;
 
 function WrappedText(props) {
+    const styles = useThemeStyles();
     if (!_.isString(props.children)) {
         return null;
     }
