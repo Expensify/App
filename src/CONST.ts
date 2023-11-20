@@ -218,9 +218,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -260,8 +259,77 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        PDF_META_STORE: 'pdfMetaStore',
+        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
+        SUBMIT_POLICY: 'submitPolicy',
+        ATTENDEES: 'attendees',
+        AUTO_EXPORT: 'autoExport',
+        AUTO_EXPORT_INTACCT: 'autoExportIntacct',
+        AUTO_EXPORT_QBO: 'autoExportQbo',
+        AUTO_EXPORT_XERO: 'autoExportXero',
+        AUTO_JOIN_POLICY: 'autoJoinPolicy',
+        AUTOMATED_TAX_EXEMPTION: 'automatedTaxExemption',
+        BILL_PAY: 'billPay',
+        CATEGORY_DEFAULT_TAX: 'categoryDefaultTax',
+        COLLECTABLE_DEPOSIT_ACCOUNTS: 'collectableDepositAccounts',
+        CONCIERGE_TRAVEL: 'conciergeTravel',
+        CONNECTED_CARDS: 'connectedCards',
+        DISCREPANCY: 'discrepancy',
+        DOMAIN_CONTACT_BILLING: 'domainContactBilling',
+        DOMAIN_TWO_FACTOR_AUTH: 'domainTwoFactorAuth',
+        DUPLICATE_DETECTION: 'duplicateDetection',
+        EMAIL_SUPPRESSION_BETA: 'emailSuppressionBeta',
+        EXPENSES_V2: 'expensesV2',
+        EXPENSIFY_CARD: 'expensifyCard',
+        EXPENSIFY_CARD_INTACCT_RECONCILIATION: 'expensifyCardIntacctReconciliation',
+        EXPENSIFY_CARD_NETSUITE_RECONCILIATION: 'expensifyCardNetSuiteReconciliation',
+        EXPENSIFY_CARD_QBO_RECONCILIATION: 'expensifyCardQBOReconciliation',
+        EXPENSIFY_CARD_RAPID_INCREASE_FRAUD: 'expensifyCardRapidIncreaseFraud',
+        EXPENSIFY_CARD_XERO_RECONCILIATION: 'expensifyCardXeroReconciliation',
+        EXPENSIFY_ORG: 'expensifyOrg',
+        FIX_VIOLATION_PUSH_NOTIFICATION: 'fixViolationPushNotification',
+        FREE_PLAN_FULL_LAUNCH: 'freePlanFullLaunch',
+        FREE_PLAN_SOFT_LAUNCH: 'freePlanSoftLaunch',
+        GUSTO: 'gusto',
+        INBOX_CACHE: 'inboxCache',
+        INBOX_HIDDEN_TASKS: 'inboxHiddenTasks',
+        INDIRECT_INTEGRATION_SETUP: 'indirectIntegrationSetup',
+        IOU: 'IOU',
+        JOIN_POLICY: 'joinPolicy',
+        LOAD_POLICY_ASYNC: 'loadPolicyAsync',
+        MAP_RECEIPT: 'mapReceipt',
+        MERGE_API: 'mergeAPI',
+        MOBILE_REALTIME_REPORT_COMMENTS: 'mobileRealtimeReportComments',
+        MOBILE_SECURE_RECEIPTS: 'mobileSecureReceipts',
+        MONTHLY_SETTLEMENT: 'monthlySettlement',
+        NAMES_AND_AVATARS: 'namesAndAvatars',
+        NATIVE_CHAT: 'nativeChat',
+        NEW_PRICING: 'newPricing',
+        NEWSLETTER_THREE: 'newsletterThree',
+        NEXT_STEPS: 'nextSteps',
+        OPEN_FACE_HAMBURGER: 'openFaceHamburger',
+        PER_DIEM: 'perDiem',
+        PER_DIEM_INTERNATIONAL: 'perDiemInternational',
+        PRICING_COPY_CHANGES: 'pricingCopyChanges',
+        QBO_INVOICES: 'qboInvoices',
+        QUICKBOOKS_DESKTOP_V2: 'quickbooksDesktopV2',
+        REALTIME_REPORT_COMMENTS: 'realtimeReportComments',
+        S2W_ANNOUNCEMENT: 's2wAnnouncement',
+        SCHEDULED_AUTO_REPORTING: 'scheduledAutoReporting',
+        SECURE_RECEIPTS: 'secureReceipts',
+        SECURE_RECEIPTS_REPORTS: 'secureReceiptsReports',
+        SELF_SERVICE_HARD_LAUNCH: 'selfServiceHardLaunch',
+        SEND_MONEY: 'sendMoney',
+        SMART_SCAN_USER_DISPUTES: 'smartScanUserDisputes',
+        SMS_SIGN_UP: 'smsSignUp',
+        STRIPE_CONNECT: 'stripeConnect',
+        SUMMARY_EMAIL: 'summaryEmail',
+        SWIPE_TO_WIN: 'swipeToWin',
+        TAX_FOR_MILEAGE: 'taxForMileage',
+        TWO_FACTOR_AUTH: 'twoFactorAuth',
+        VENMO_INTEGRATION: 'venmoIntegration',
+        ZENEFITS_INTEGRATION: 'zenefitsIntegration',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
@@ -469,7 +537,6 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
@@ -892,6 +959,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1366,6 +1434,10 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -2806,6 +2878,21 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    /** <input /> types that will show a virtual keyboard in a mobile browser */
+    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
 } as const;
 
 export default CONST;
