@@ -238,7 +238,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={Boolean(getViolationForField('amount'))}
+                        brickRoadIndicator={getViolationForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         numberOfLinesTitle={0}
                     />
                     {getViolationForField('comment') && (
@@ -303,7 +303,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                            brickRoadIndicator={Boolean(getViolationForField('category'))}
+                            brickRoadIndicator={getViolationForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
                         {getViolationForField('category') && (
                             <View>
@@ -321,7 +321,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                            brickRoadIndicator={Boolean(getViolationForField('tag'))}
+                            brickRoadIndicator={getViolationForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
                         {getViolationForField('tag') && (
                             <View>
