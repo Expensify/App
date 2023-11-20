@@ -4174,15 +4174,19 @@ function getIOUReportActionDisplayMessage(reportAction) {
  * Return room channel log display message
  *
  * @param {Object} reportAction
+ * @param {Boolean} isHtml
  * @returns {String}
  */
-function getChannelLogMemberMessage(reportAction) {
+function getChannelLogMemberMessage(reportAction, isHtml) {
     const verb =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
             ? Localize.translateLocal('workspace.invite.invited')
             : Localize.translateLocal('workspace.invite.removed');
 
     const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        if (isHtml) {
+            return `<mention-user accountID=${accountID}></mention-user>`;
+        }
         const personalDetail = lodashGet(allPersonalDetails, accountID);
         const displayNameOrLogin =
             LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
@@ -4190,7 +4194,7 @@ function getChannelLogMemberMessage(reportAction) {
     });
 
     const lastMention = mentions.pop();
-    let message = '';
+    let message = isHtml ? '<muted-text>' : '';
 
     if (mentions.length === 0) {
         message = `${verb} ${lastMention}`;
@@ -4206,8 +4210,15 @@ function getChannelLogMemberMessage(reportAction) {
             reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                 ? ` ${Localize.translateLocal('workspace.invite.to')}`
                 : ` ${Localize.translateLocal('workspace.invite.from')}`;
-        message += `${preposition} ${roomName}`;
+
+        const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
+        const match = messageHtml && messageHtml.match(/<a[^>]*>(.*?)<\/a>/);
+        const extractedATag = match ? match[0] : '';
+
+        message += `${preposition} ${isHtml ? extractedATag : roomName}`;
     }
+
+    message += isHtml ? '</muted-text>' : '';
 
     return message;
 }
