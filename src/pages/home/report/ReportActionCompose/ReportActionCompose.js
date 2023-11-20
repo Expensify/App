@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -22,7 +22,6 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
-import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
@@ -332,13 +331,11 @@ function ReportActionCompose({
             return;
         }
 
-        const viewTag = animatedRef();
-        const viewName = 'RCTMultilineTextInputView';
-        const updates = {text: ''};
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        setNativeProps(animatedRef, {text: ''});
+        // updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
