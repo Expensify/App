@@ -328,10 +328,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
-        },
-
         verticalAlignMiddle: {
             verticalAlign: 'middle',
         },
@@ -392,10 +388,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -415,11 +407,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        textItalic: {
-            fontFamily: fontFamily.EXP_NEUE_ITALIC,
-            fontStyle: 'italic',
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -436,20 +423,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeh1,
         },
 
-        textDecorationNoLine: {
-            textDecorationLine: 'none',
-        },
-
         textWhite: {
             color: theme.textLight,
         },
 
         textBlue: {
             color: theme.link,
-        },
-
-        textUppercase: {
-            textTransform: 'uppercase',
         },
 
         textNoWrap: {
@@ -1400,8 +1379,8 @@ const styles = (theme: ThemeColors) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -1426,7 +1405,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
-            scrollbarWidth: 'none',
             paddingBottom: 4,
         },
 
@@ -2753,7 +2731,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
             marginBottom: 0,
         },
 
@@ -3905,6 +3884,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
         },
 
         mapViewContainer: {
