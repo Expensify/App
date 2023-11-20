@@ -6,7 +6,7 @@ import useTheme from '@styles/themes/useTheme';
 import variables from '@styles/variables';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TextProps = RNTextProps & {
+type TextProps = RNTextProps & ChildrenProps & {
     /** The color of the text */
     color?: string;
 
@@ -15,9 +15,6 @@ type TextProps = RNTextProps & {
 
     /** The alignment of the text */
     textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
-
-    /** Any children to display */
-    children: ChildrenProps;
 
     /** The family of the font to use */
     family?: keyof typeof fontFamily;
