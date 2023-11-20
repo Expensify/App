@@ -8,6 +8,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
 import {TooltipProps} from './types';
@@ -53,21 +54,22 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
+
+// TODO: Move to utils
 function callOrReturn<T>(value: T | (() => T)): T {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return typeof value === 'function' ? value() : value;
+    return typeof value === 'function' ? (value as () => T)() : value;
 }
 
 function Tooltip({
-    numberOfLines,
+    numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth,
     text = '',
-    renderTooltipContent,
+    renderTooltipContent = undefined,
     renderTooltipContentKey = [],
-    shouldHandleScroll,
+    shouldHandleScroll = false,
     shiftHorizontal = 0,
     shiftVertical = 0,
-    tooltipRef,
+    tooltipRef = () => {},
     children,
 }: TooltipProps) {
     const {preferredLocale} = useLocalize();
@@ -95,7 +97,7 @@ function Tooltip({
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
-        target.current = e.currentTarget;
+        target.current = e.currentTarget as HTMLElement;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 

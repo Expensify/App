@@ -46,6 +46,7 @@ type TooltipRenderedOnPageBodyProps = {
     renderTooltipContent?: () => React.ReactNode;
 };
 
+// TODO: Move to utils
 const viewRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<View>;
 
 // Props will change frequently.
@@ -129,6 +130,10 @@ function TooltipRenderedOnPageBody({
     }
 
     const body = document.querySelector('body');
+
+    if (!body) {
+        return null;
+    }
 
     return ReactDOM.createPortal(
         <Animated.View
