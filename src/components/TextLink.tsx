@@ -3,7 +3,7 @@ import {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import Text, { TextProps } from './Text';
+import Text, {TextProps} from './Text';
 
 type LinkProps = {
     /** Link to open in new tab */
@@ -19,13 +19,14 @@ type PressProps = {
     onPress: () => void;
 };
 
-type TextLinkProps = (LinkProps | PressProps) & TextProps & {
-    /** Additional style props */
-    style?: StyleProp<TextStyle>;
+type TextLinkProps = (LinkProps | PressProps) &
+    TextProps & {
+        /** Additional style props */
+        style?: StyleProp<TextStyle>;
 
-    /** Callback that is called when mousedown is triggered */
-    onMouseDown?: MouseEventHandler;
-};
+        /** Callback that is called when mousedown is triggered */
+        onMouseDown?: MouseEventHandler;
+    };
 
 function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
     const styles = useThemeStyles();
