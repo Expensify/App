@@ -52,11 +52,11 @@ const validate = (values) => {
         }
     }
 
-    if (values.firstName && !ValidationUtils.isValidName(values.firstName)) {
+    if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
         errors.firstName = 'bankAccount.error.firstName';
     }
 
-    if (values.lastName && !ValidationUtils.isValidName(values.lastName)) {
+    if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
         errors.lastName = 'bankAccount.error.lastName';
     }
 
