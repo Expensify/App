@@ -1,20 +1,19 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from '@components/withCurrentUserPersonalDetails';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
-import * as Illustrations from '@components/Icon/Illustrations';
-import ONYXKEYS from '@src/ONYXKEYS';
-import userPropTypes from '@pages/settings/userPropTypes';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import useLocalize from '@hooks/useLocalize';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '@components/LottieAnimations';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import { styles } from '@styles/styles';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import userPropTypes from '@pages/settings/userPropTypes';
+import {styles} from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */
@@ -28,7 +27,6 @@ const defaultProps = {
     isLoadingReportData: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
-
 
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
