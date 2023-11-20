@@ -4205,7 +4205,7 @@ function getChannelLogMemberMessage(reportAction) {
         const preposition =
             reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                 ? ` ${Localize.translateLocal('workspace.invite.to')}`
-                : ` ${Localize.translateLocal('workspace.invite.from')}`
+                : ` ${Localize.translateLocal('workspace.invite.from')}`;
         message += `${preposition} ${roomName}`;
     }
 
