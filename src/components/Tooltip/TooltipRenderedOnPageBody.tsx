@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
+import viewRef from '@src/types/utils/viewRef';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */
@@ -44,9 +45,6 @@ type TooltipRenderedOnPageBodyProps = {
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent?: () => React.ReactNode;
 };
-
-// TODO: Move to utils
-const viewRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<View>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
