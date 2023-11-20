@@ -29,6 +29,11 @@ import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
+type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+type WeekStartsAndEndsOn = {
+    weekStartsOn: WeekDay;
+    weekEndsOn: WeekDay;
+};
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -59,6 +64,16 @@ Onyx.connect({
         };
     },
 });
+
+/**
+ * Get the day of the week that the week starts and ends on
+ */
+function getWeekStartsAndEndsOn(): WeekStartsAndEndsOn {
+    return {
+        weekStartsOn: 1, // Assuming Monday is the start of the week
+        weekEndsOn: 0, // Assuming Sunday is the end of the week
+    };
+}
 
 /**
  * Gets the locale string and setting default locale for date-fns
@@ -145,9 +160,10 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
     let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+    const {weekStartsOn} = getWeekStartsAndEndsOn();
 
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
 
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
@@ -284,8 +300,9 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const {weekStartsOn} = getWeekStartsAndEndsOn();
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
     // eslint-disable-next-line rulesdir/prefer-underscore-method
@@ -413,6 +430,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    weekStartsAndEndsOn: getWeekStartsAndEndsOn,
 };
 
 export default DateUtils;
