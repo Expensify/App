@@ -132,6 +132,9 @@ type Report = {
 
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
+
+    /** Whether the user should take some sort of action in order to unblock the report */
+    requiresUserAction?: boolean;
 };
 
 export default Report;
