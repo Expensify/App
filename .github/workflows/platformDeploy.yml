@@ -36,24 +36,9 @@ jobs:
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
     name: Create or update deploy checklist
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/createDeployChecklist.yml
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
-
-      - name: Set version
-        id: getVersion
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_OUTPUT"
-
-      - name: Create or update staging deploy
-        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ steps.getVersion.outputs.VERSION }}
 
   android:
     name: Build and deploy Android
@@ -62,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -146,7 +131,7 @@ jobs:
     runs-on: macos-12-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -185,7 +170,7 @@ jobs:
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -297,7 +282,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -367,7 +352,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -428,7 +413,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
