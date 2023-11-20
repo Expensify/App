@@ -76,12 +76,16 @@ class BaseOptionsSelector extends Component {
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
         this.incrementPage = this.incrementPage.bind(this);
+        this.sliceSections = this.sliceSections.bind(this);
+        this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+        const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
+            sections,
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
@@ -103,7 +107,7 @@ class BaseOptionsSelector extends Component {
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
                 this.subscribeToKeyboardShortcut();
@@ -121,14 +125,26 @@ class BaseOptionsSelector extends Component {
             }, CONST.ANIMATED_TRANSITION);
         }
 
+        if (prevState.paginationPage !== this.state.paginationPage) {
+            const newSections = this.sliceSections();
+
+            this.setState({
+                sections: newSections,
+            });
+
+            return;
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
+        const newSections = this.sliceSections();
         const newOptions = this.flattenSections();
 
         if (prevProps.preferredLocale !== this.props.preferredLocale) {
             this.setState({
+                sections: newSections,
                 allOptions: newOptions,
             });
             return;
@@ -139,6 +155,7 @@ class BaseOptionsSelector extends Component {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
+                sections: newSections,
                 allOptions: newOptions,
                 focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
             },
@@ -195,8 +212,10 @@ class BaseOptionsSelector extends Component {
     /**
      * When pagination is enabled,
      * maps sections to render only allowed count of them.
+     *
+     * @returns {Objects[]}
      */
-    get sections() {
+    sliceSections() {
         if (!_.isNumber(this.props.itemsPerPage)) {
             return this.props.sections;
         }
@@ -208,18 +227,20 @@ class BaseOptionsSelector extends Component {
 
             return {
                 ...section,
-                data: section.data.slice(0, this.props.itemsPerPage * this.state.paginationPage),
+                data: section.data.slice(0, this.props.itemsPerPage * lodashGet(this.state, 'paginationPage', 1)),
             };
         });
     }
 
     /**
      * Calculates all exactly visible options of sections.
+     *
+     * @returns {Number}
      */
-    get allVisibleOptionsCount() {
+    calculateAllVisibleOptionsCount() {
         let count = 0;
 
-        _.forEach(this.sections, (section) => {
+        _.forEach(this.state.sections, (section) => {
             count += lodashGet(section, 'data.length', 0);
         });
 
@@ -366,12 +387,16 @@ class BaseOptionsSelector extends Component {
         const itemIndex = option.index;
         const sectionIndex = option.sectionIndex;
 
+        if (!lodashGet(this.state.sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
+            return;
+        }
+
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(this.state.sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
@@ -472,7 +497,7 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.sections}
+                sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
@@ -533,7 +558,7 @@ class BaseOptionsSelector extends Component {
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.allVisibleOptionsCount - 1}
+                maxIndex={this.calculateAllVisibleOptionsCount() - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
