@@ -1,7 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '@src/types/onyx';
@@ -10,23 +8,20 @@ type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
 
-let allPolicyTags = {};
-
+let allPolicyTags: OnyxCollection<PolicyTags> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
-            allPolicyTags = {};
             return;
         }
-
-        allPolicyTags = value;
+        allPolicyTags = Object.fromEntries(Object.entries(value).filter(([, policyTags]) => !!policyTags));
     },
 });
 
 function getPolicyTags(policyID: string) {
-    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
 /**

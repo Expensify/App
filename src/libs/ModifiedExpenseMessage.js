@@ -17,16 +17,7 @@ import * as ReportUtils from './ReportUtils';
  * @param shouldConvertToLowercase
  */
 
-function buildMessageFragmentForValue(
-    newValue: string,
-    oldValue: string,
-    valueName: string,
-    valueInQuotes: boolean,
-    setFragments: string[],
-    removalFragments: string[],
-    changeFragments: string[],
-    shouldConvertToLowercase = true,
-) {
+function buildMessageFragmentForValue(newValue, oldValue, valueName, valueInQuotes, setFragments, removalFragments, changeFragments, shouldConvertToLowercase = true) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
@@ -52,25 +43,29 @@ function buildMessageFragmentForValue(
  * @param valueInQuotes
  */
 
-function getMessageLine(prefix: string, messageFragments: string[]) {
+function getMessageLine(prefix, messageFragments) {
     if (messageFragments.length === 0) {
         return '';
     }
-    return messageFragments.reduce((acc, value, index) => {
-        if (index === messageFragments.length - 1) {
-            if (messageFragments.length === 1) {
-                return `${acc} ${value}.`;
+    return _.reduce(
+        messageFragments,
+        (acc, value, index) => {
+            if (index === messageFragments.length - 1) {
+                if (messageFragments.length === 1) {
+                    return `${acc} ${value}.`;
+                }
+                if (messageFragments.length === 2) {
+                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                }
+                return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
             }
-            if (messageFragments.length === 2) {
-                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+            if (index === 0) {
+                return `${acc} ${value}`;
             }
-            return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
-        }
-        if (index === 0) {
-            return `${acc} ${value}`;
-        }
-        return `${acc}, ${value}`;
-    }, prefix);
+            return `${acc}, ${value}`;
+        },
+        prefix,
+    );
 }
 
 /**
@@ -80,9 +75,10 @@ function getMessageLine(prefix: string, messageFragments: string[]) {
  * @param oldDistance
  * @param newAmount
  * @param oldAmount
+ * @returns {String}
  */
 
-function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
+function getForDistanceRequest(newDistance, oldDistance, newAmount, oldAmount) {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
@@ -100,22 +96,22 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  *
- * @param reportAction
+ * @param {Object} reportAction
+ * @returns {String}
  */
-function getForReportAction(reportAction: Object): string {
-    const reportActionOriginalMessage: any = lodashGet(reportAction, 'originalMessage', {});
+function getForReportAction(reportAction) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
     if (_.isEmpty(reportActionOriginalMessage)) {
         return Localize.translateLocal('iou.changedTheRequest');
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(ReportUtils.getReport(reportID), 'policyID', '');
     const policyTags = PolicyUtils.getPolicyTags(policyID);
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
+    const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 
-    const removalFragments: string[] = [];
-    const setFragments: string[] = [];
-    const changeFragments: string[] = [];
+    const removalFragments = [];
+    const setFragments = [];
+    const changeFragments = [];
 
     const hasModifiedAmount =
         _.has(reportActionOriginalMessage, 'oldAmount') &&
@@ -156,7 +152,7 @@ function getForReportAction(reportAction: Object): string {
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
+        const formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
         buildMessageFragmentForValue(
             reportActionOriginalMessage.created,
             formattedOldCreated,
