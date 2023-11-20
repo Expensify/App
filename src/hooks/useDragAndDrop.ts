@@ -16,7 +16,6 @@ type DragAndDropParams = {
     shouldAllowDrop?: boolean;
     isDisabled?: boolean;
     shouldAcceptDrop?: (event?: DragEvent) => boolean;
-    shouldClosePopover?: boolean;
 };
 
 type DragAndDropOptions = {
