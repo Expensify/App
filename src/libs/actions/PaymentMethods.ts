@@ -1,14 +1,14 @@
 import {createRef} from 'react';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import * as API from '@libs/API';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
-import * as API from '@libs/API';
-import * as CardUtils from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 
 type KYCWallRef = {
     continueAction?: () => void;
