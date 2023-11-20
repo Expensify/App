@@ -2,7 +2,6 @@ const path = require('path');
 const portfinder = require('portfinder');
 const {DefinePlugin} = require('webpack');
 const {merge} = require('webpack-merge');
-const CopyPlugin = require('copy-webpack-plugin');
 const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
@@ -46,7 +45,6 @@ module.exports = (env = {}) =>
                 historyApiFallback: true,
                 port,
                 host: 'dev.new.expensify.com',
-                allowedHosts: 'all',
                 server: {
                     type: 'https',
                     options: {
@@ -58,27 +56,6 @@ module.exports = (env = {}) =>
             plugins: [
                 new DefinePlugin({
                     'process.env.PORT': port,
-                }),
-                new CopyPlugin({
-                    patterns: [
-                        {from: 'web/favicon.png'},
-                        {from: 'web/favicon-unread.png'},
-                        {from: 'web/og-preview-image.png'},
-                        {from: 'web/apple-touch-icon.png'},
-                        {from: 'assets/images/expensify-app-icon.svg'},
-                        {from: 'web/manifest.json'},
-                        {from: 'assets/css', to: 'css'},
-                        {from: 'assets/fonts/web', to: 'fonts'},
-                        {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                        {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
-                        {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
-                        {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
-                        {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
-
-                        // These files are copied over as per instructions here
-                        // https://github.com/wojtekmaj/react-pdf#copying-cmaps
-                        {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
-                    ],
                 }),
             ],
             cache: {
