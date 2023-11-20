@@ -2,7 +2,7 @@ import React, {ForwardedRef} from 'react';
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
 import fontFamily from '@styles/fontFamily';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 import variables from '@styles/variables';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -23,12 +23,11 @@ type TextProps = RNTextProps & {
     family?: keyof typeof fontFamily;
 };
 
-function Text(
-    {color = themeColors.text, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
-    ref: ForwardedRef<RNText>,
-) {
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+    const theme = useTheme();
+
     const componentStyle: TextStyle = {
-        color,
+        color: color ?? theme.text,
         fontSize,
         textAlign,
         fontFamily: fontFamily[family],
@@ -38,6 +37,7 @@ function Text(
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
+
     return (
         <RNText
             allowFontScaling={false}
