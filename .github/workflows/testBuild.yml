@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v4
 
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -70,9 +70,8 @@ jobs:
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
-      # This action checks-out the repository, so the workflow can access it.
       - name: Checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -135,9 +134,8 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-13-xlarge
     steps:
-      # This action checks-out the repository, so the workflow can access it.
       - name: Checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -221,7 +219,7 @@ jobs:
     runs-on: macos-12-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -264,7 +262,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -302,7 +300,7 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v4
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}

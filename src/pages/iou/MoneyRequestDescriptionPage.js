@@ -16,7 +16,7 @@ import * as Browser from '@libs/Browser';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -140,7 +141,8 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
-                            containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            inputStyle={[styles.verticalAlignTop]}
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>

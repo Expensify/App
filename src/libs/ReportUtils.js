@@ -14,11 +14,13 @@ import ROUTES from '@src/ROUTES';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
@@ -78,6 +80,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -303,7 +324,7 @@ function isCurrentUserSubmitter(reportID) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    return report && report.ownerEmail === currentUserEmail;
+    return report && report.ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -482,7 +503,7 @@ function isChatThread(report) {
  * @returns {Boolean}
  */
 function isDM(report) {
-    return !getChatType(report);
+    return isChatReport(report) && !getChatType(report);
 }
 
 /**
@@ -1257,16 +1278,20 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
+    // when searching for a new user while offline
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return personalDetails.login || '';
+        return formattedLogin;
     }
-    const longName = personalDetails.displayName;
+
+    const longName = personalDetails.displayName || formattedLogin;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1627,9 +1652,10 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  *    - or the user is an admin on the policy the expense report is tied to
  *
  * @param {Object} reportAction
+ * @param {String} fieldToEdit
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction) {
+function canEditMoneyRequest(reportAction, fieldToEdit = '') {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1651,7 +1677,9 @@ function canEditMoneyRequest(reportAction) {
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1678,7 +1706,7 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
 
@@ -1863,13 +1891,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
  * @param {String} oldValue
  * @param {String} valueName
  * @param {Boolean} valueInQuotes
+ * @param {Boolean} shouldConvertToLowercase
  * @returns {String}
  */
 
-function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
+function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes, shouldConvertToLowercase = true) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
-    const displayValueName = valueName.toLowerCase();
+    const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
 
     if (!oldValue) {
         return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
@@ -1947,6 +1976,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (_.isEmpty(reportActionOriginalMessage)) {
         return Localize.translateLocal('iou.changedTheRequest');
     }
+    const reportID = lodashGet(reportAction, 'reportID', '');
+    const policyID = lodashGet(getReport(reportID), 'policyID', '');
+    const policyTags = getPolicyTags(policyID);
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
     const removalFragments = [];
     const setFragments = [];
@@ -2049,7 +2083,13 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+        const fragment = getProperSchemaForModifiedExpenseMessage(
+            reportActionOriginalMessage.tag,
+            reportActionOriginalMessage.oldTag,
+            policyTagListName,
+            true,
+            policyTagListName === Localize.translateLocal('common.tag'),
+        );
         if (!reportActionOriginalMessage.oldTag) {
             setFragments.push(fragment);
         } else if (!reportActionOriginalMessage.tag) {
@@ -3731,16 +3771,21 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
  * - in an open or submitted expense report tied to a policy expense chat the user owns
  *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
- * - in DM chat
+ * - in a 1:1 DM chat
  *
  * @param {Object} report
- * @param {Array<Number>} participants
+ * @param {Array<Number>} otherParticipants
  * @returns {Boolean}
  */
-function canRequestMoney(report, participants) {
-    // User cannot request money in chat thread or in task report
-    if (isChatThread(report) || isTaskReport(report)) {
+function canRequestMoney(report, otherParticipants) {
+    // User cannot request money in chat thread or in task report or in chat room
+    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
+    }
+
+    // Users can only request money in DMs if they are a 1:1 DM
+    if (isDM(report)) {
+        return otherParticipants.length === 1;
     }
 
     // Prevent requesting money if pending IOU report waiting for their bank account already exists
@@ -3755,7 +3800,7 @@ function canRequestMoney(report, participants) {
     }
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't request money from such report
-    if (participants.length === 0 && !isOwnPolicyExpenseChat) {
+    if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
@@ -3797,8 +3842,6 @@ function getMoneyRequestOptions(report, reportParticipants) {
         return [];
     }
 
-    const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
-
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const isPolicyOwnedByExpensifyAccounts = report.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report.policyID).ownerAccountID || 0) : false;
@@ -3806,30 +3849,29 @@ function getMoneyRequestOptions(report, reportParticipants) {
         return [];
     }
 
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
+    const otherParticipants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+    const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
+    const hasMultipleOtherParticipants = otherParticipants.length > 1;
+    let options = [];
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    // There is no Split Bill option for IOU or Expense reports which are threads
-    if (
-        (isChatRoom(report) && participants.length > 0) ||
-        (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
-        (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
-    ) {
-        return [CONST.IOU.TYPE.SPLIT];
+    // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
+    // Your own workspace chats will have the split bill option.
+    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)) {
+        options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    // DM chats that only have 2 people will see the Send / Request money options.
-    // IOU and open or processing expense reports should show the Request option.
-    // Workspace chats should only see the Request money option or Split option in case of Control policies
-    return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
+    if (canRequestMoney(report, otherParticipants)) {
+        options = [...options, CONST.IOU.TYPE.REQUEST];
+    }
 
-        // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
-    ];
+    // Send money option should be visible only in 1:1 DMs
+    if (isDM(report) && hasSingleOtherParticipantInReport) {
+        options = [...options, CONST.IOU.TYPE.SEND];
+    }
+
+    return options;
 }
 
 /**
@@ -4202,6 +4244,10 @@ function getIOUReportActionDisplayMessage(reportAction) {
     let translationKey;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
+
+        // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
+        // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
+        // property. If it does, it indicates that this is a 'Send money' action.
         const {amount, currency} = originalMessage.IOUDetails || originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
@@ -4236,6 +4282,48 @@ function getIOUReportActionDisplayMessage(reportAction) {
         formattedAmount,
         comment,
     });
+}
+
+/**
+ * Return room channel log display message
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getChannelLogMemberMessage(reportAction) {
+    const verb =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
+
+    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+
+    const lastMention = mentions.pop();
+    let message = '';
+
+    if (mentions.length === 0) {
+        message = `${verb} ${lastMention}`;
+    } else if (mentions.length === 1) {
+        message = `${verb} ${mentions[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
+    }
+
+    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
+    if (roomName) {
+        const preposition =
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
+    }
+
+    return message;
 }
 
 /**
@@ -4289,6 +4377,15 @@ function shouldUseFullTitleToDisplay(report) {
 function getRoom(type, policyID) {
     const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
+}
+/**
+ *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
+ * @param {Object} report
+ * @param {Object} policy
+ * @return {Boolean}
+ */
+function shouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
 export {
@@ -4451,5 +4548,7 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getChannelLogMemberMessage,
     getRoom,
+    shouldDisableWelcomeMessage,
 };
