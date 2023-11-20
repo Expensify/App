@@ -9,7 +9,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
@@ -108,6 +108,7 @@ const defaultProps = {
 };
 
 function Form(props) {
+    const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
@@ -350,7 +351,17 @@ function Form(props) {
                             // We delay the validation in order to prevent Checkbox loss of focus when
                             // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                             // web and mobile web platforms.
+
+                            // Prevents React from resetting its properties
+                            event.persist();
                             setTimeout(() => {
+                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                                if (
+                                    relatedTargetId &&
+                                    _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)
+                                ) {
+                                    return;
+                                }
                                 setTouchedInput(inputID);
                                 if (props.shouldValidateOnBlur) {
                                     onValidate(inputValues, !hasServerError);
@@ -458,24 +469,26 @@ function Form(props) {
                 )}
             </FormSubmit>
         ),
+
         [
-            childrenWrapperWithProps,
-            errors,
-            formContentRef,
-            formRef,
-            errorMessage,
-            inputRefs,
-            inputValues,
-            submit,
             props.style,
-            children,
-            props.formState,
-            props.footerContent,
-            props.enabledWhenOffline,
-            props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.formState.errorFields,
+            props.formState.isLoading,
+            props.footerContent,
             props.submitButtonStyles,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            submit,
+            childrenWrapperWithProps,
+            children,
+            inputValues,
+            errors,
+            errorMessage,
+            styles.mh0,
+            styles.mt5,
+            styles.flex1,
         ],
     );
 

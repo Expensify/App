@@ -22,5 +22,5 @@ outputs:
   FORKED_REPO_URL:
     description: 'Output forked repo URL if PR includes changes from a fork'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: './index.js'

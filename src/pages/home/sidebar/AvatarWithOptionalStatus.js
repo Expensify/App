@@ -6,7 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
@@ -25,6 +25,7 @@ const defaultProps = {
 };
 
 function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const showStatusPage = useCallback(() => {
