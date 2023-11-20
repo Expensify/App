@@ -9,7 +9,7 @@ import _ from 'underscore';
 
 
 /**
- * Get the partial message for a modified field on the expense.
+ * Builds the partial message fragment for a modified field on the expense.
  *
  * @param newValue
  * @param oldValue
@@ -18,18 +18,30 @@ import _ from 'underscore';
  * @param shouldConvertToLowercase
  */
 
-function getPartialMessageForValue(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true) {
+function buildMessageFragmentForValue(
+    newValue: string, 
+    oldValue: string, 
+    valueName: string, 
+    valueInQuotes: boolean, 
+    setFragments: Array<string>,
+    removalFragments: Array<string>,
+    changeFragments: Array<string>,
+    shouldConvertToLowercase = true
+) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
 
     if (!oldValue) {
-        return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+        const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+        setFragments.push(fragment);
+    } else if (!newValue) {
+        const fragment = Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
+        removalFragments.push(fragment);
+    } else {
+        const fragment = Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+        changeFragments.push(fragment);
     }
-    if (!newValue) {
-        return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
-    }
-    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
 }
 
 /**
@@ -102,9 +114,9 @@ function getForReportAction(reportAction: Object): string {
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
-    const removalFragments = [];
-    const setFragments = [];
-    const changeFragments = [];
+    const removalFragments: Array<string> = [];
+    const setFragments: Array<string> = [];
+    const changeFragments: Array<string> = [];
 
     const hasModifiedAmount =
         _.has(reportActionOriginalMessage, 'oldAmount') &&
@@ -126,113 +138,66 @@ function getForReportAction(reportAction: Object): string {
             return getForDistanceRequest(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
         }
 
-        const fragment = getPartialMessageForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
-        if (!oldAmount) {
-            setFragments.push(fragment);
-        } else if (!amount) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
+        buildMessageFragmentForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        const fragment = getPartialMessageForValue(
+        buildMessageFragmentForValue(
             reportActionOriginalMessage.newComment,
             reportActionOriginalMessage.oldComment,
             Localize.translateLocal('common.description'),
-            true,
+            true, setFragments, removalFragments, changeFragments
         );
-        if (!reportActionOriginalMessage.oldComment) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.newComment) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
     }
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
-        const fragment = getPartialMessageForValue(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
-        if (!formattedOldCreated) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.created) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
+        buildMessageFragmentForValue(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
     }
 
     if (hasModifiedMerchant) {
-        const fragment = getPartialMessageForValue(
+        buildMessageFragmentForValue(
             reportActionOriginalMessage.merchant,
             reportActionOriginalMessage.oldMerchant,
             Localize.translateLocal('common.merchant'),
             true,
+            setFragments, removalFragments, changeFragments
         );
-        if (!reportActionOriginalMessage.oldMerchant) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.merchant) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
     }
 
     const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
     if (hasModifiedCategory) {
-        const fragment = getPartialMessageForValue(
+        buildMessageFragmentForValue(
             reportActionOriginalMessage.category,
             reportActionOriginalMessage.oldCategory,
             Localize.translateLocal('common.category'),
-            true,
+            true, setFragments, removalFragments, changeFragments
         );
-        if (!reportActionOriginalMessage.oldCategory) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.category) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
     }
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        const fragment = getPartialMessageForValue(
+        buildMessageFragmentForValue(
             reportActionOriginalMessage.tag,
             reportActionOriginalMessage.oldTag,
             policyTagListName,
             true,
+            setFragments, removalFragments, changeFragments,
             policyTagListName === Localize.translateLocal('common.tag'),
         );
-        if (!reportActionOriginalMessage.oldTag) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.tag) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
     }
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
     if (hasModifiedBillable) {
-        const fragment = getPartialMessageForValue(
+        buildMessageFragmentForValue(
             reportActionOriginalMessage.billable,
             reportActionOriginalMessage.oldBillable,
             Localize.translateLocal('iou.request'),
-            true,
+            true, setFragments, removalFragments, changeFragments
         );
-        if (!reportActionOriginalMessage.oldBillable) {
-            setFragments.push(fragment);
-        } else if (!reportActionOriginalMessage.billable) {
-            removalFragments.push(fragment);
-        } else {
-            changeFragments.push(fragment);
-        }
     }
 
     let message =
