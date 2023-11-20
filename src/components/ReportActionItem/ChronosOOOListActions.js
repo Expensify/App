@@ -9,7 +9,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Chronos from '@userActions/Chronos';
 
 const propTypes = {
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function ChronosOOOListActions(props) {
+    const styles = useThemeStyles();
     const events = lodashGet(props.action, 'originalMessage.events', []);
 
     if (!events.length) {
