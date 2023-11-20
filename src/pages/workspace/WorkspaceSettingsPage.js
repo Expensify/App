@@ -20,7 +20,8 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +57,7 @@ const defaultProps = {
 };
 
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
@@ -77,7 +79,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         const errors = {};
         const name = values.name.trim();
 
-        if (!name || !name.length) {
+        if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
         } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
@@ -142,7 +144,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}

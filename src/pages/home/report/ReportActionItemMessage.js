@@ -6,8 +6,8 @@ import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as ReportActions from '@userActions/ReportActions';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -38,14 +38,14 @@ const defaultProps = {
 };
 
 function ReportActionItemMessage(props) {
-    let messages = _.compact(props.action.previousMessage || props.action.message);
-    const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+    const styles = useThemeStyles();
+    let fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
 
     const isMemberChangeLog = ReportActionsUtils.isMemberRoomChangeLog(props.action);
     if (isMemberChangeLog) {
         const targetAccountIDs = props.action.originalMessage.targetAccountIDs;
-        messages = [ReportActions.getReportActionMessageRoomChange(messages[0], targetAccountIDs)];
+        fragments = [ReportActions.getReportActionMessageRoomChange(fragments[0], targetAccountIDs)];
     }
 
     let iouMessage;
@@ -64,7 +64,7 @@ function ReportActionItemMessage(props) {
      * @returns {Object} report action item fragments
      */
     const renderReportActionItemFragments = (shouldWrapInText) => {
-        const reportActionItemFragments = _.map(messages, (fragment, index) => (
+        const reportActionItemFragments = _.map(fragments, (fragment, index) => (
             <ReportActionItemFragment
                 key={`actionFragment-${props.action.reportActionID}-${index}`}
                 fragment={fragment}
@@ -92,7 +92,7 @@ function ReportActionItemMessage(props) {
     };
 
     return (
-        <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
+        <View style={[styles.chatItemMessage, ...props.style]}>
             {!props.isHidden ? (
                 renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
             ) : (
