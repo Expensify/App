@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import IconButton from '../IconButton';
-import CONFIG from '../../../CONFIG';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
+import IconButton from '@components/SignInButtons/IconButton';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {...withLocalizePropTypes};
 
@@ -16,6 +16,7 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
  * @returns {React.Component}
  */
 function GoogleSignIn() {
+    const styles = useThemeStyles();
     return (
         <View style={styles.desktopSignInButtonContainer}>
             <IconButton

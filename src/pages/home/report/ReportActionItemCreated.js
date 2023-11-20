@@ -1,23 +1,24 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ReportWelcomeText from '../../../components/ReportWelcomeText';
-import participantPropTypes from '../../../components/participantPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import styles from '../../../styles/styles';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as Report from '../../../libs/actions/Report';
-import reportPropTypes from '../../reportPropTypes';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import withLocalize from '../../../components/withLocalize';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import CONST from '../../../CONST';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportWelcomeText from '@components/ReportWelcomeText';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
@@ -48,6 +49,7 @@ const defaultProps = {
 };
 
 function ReportActionItemCreated(props) {
+    const styles = useThemeStyles();
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -73,7 +75,7 @@ function ReportActionItemCreated(props) {
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         disabled={shouldDisableDetailPage}
                     >
                         <MultipleAvatars
@@ -106,6 +108,7 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            selector: reportWithoutHasDraftSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

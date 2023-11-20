@@ -1,31 +1,31 @@
-import React, {useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import styles from '../../../../styles/styles';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import SCREENS from '../../../../SCREENS';
-import Permissions from '../../../../libs/Permissions';
-import * as Policy from '../../../../libs/actions/Policy';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import FloatingActionButton from '../../../../components/FloatingActionButton';
-import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import withNavigation from '../../../../components/withNavigation';
-import * as Welcome from '../../../../libs/actions/Welcome';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as Task from '../../../../libs/actions/Task';
-import * as Session from '../../../../libs/actions/Session';
-import * as IOU from '../../../../libs/actions/IOU';
-import usePrevious from '../../../../hooks/usePrevious';
-import * as App from '../../../../libs/actions/App';
+import {withOnyx} from 'react-native-onyx';
+import FloatingActionButton from '@components/FloatingActionButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigation from '@components/withNavigation';
+import withNavigationFocus from '@components/withNavigationFocus';
+import withWindowDimensions from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as App from '@userActions/App';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} [policy]
@@ -87,6 +87,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function FloatingActionButtonAndPopover(props) {
+    const styles = useThemeStyles();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const anchorRef = useRef(null);
@@ -228,7 +229,7 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
                         : []),
@@ -238,7 +239,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
@@ -257,6 +258,16 @@ FloatingActionButtonAndPopover.propTypes = propTypes;
 FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
+const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
+    <FloatingActionButtonAndPopover
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
+
 export default compose(
     withLocalize,
     withNavigation,
@@ -271,18 +282,10 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isLoading: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         demoInfo: {
             key: ONYXKEYS.DEMO_INFO,
         },
     }),
-)(
-    forwardRef((props, ref) => (
-        <FloatingActionButtonAndPopover
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(FloatingActionButtonAndPopoverWithRef);

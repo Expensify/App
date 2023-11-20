@@ -1,14 +1,14 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import MenuItem from './MenuItem';
-import Icon from './Icon';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import useThrottledButtonState from '../hooks/useThrottledButtonState';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getButtonState from '@libs/getButtonState';
+import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import Icon from './Icon';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
@@ -53,6 +53,7 @@ const defaultProps = {
 };
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -109,10 +110,14 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef((props, ref) => (
+const ContextMenuItemWithRef = forwardRef((props, ref) => (
     <ContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
+
+export default ContextMenuItemWithRef;

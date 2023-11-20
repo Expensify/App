@@ -1,13 +1,13 @@
-import React, {useState, useEffect} from 'react';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import participantPropTypes from '../../../components/participantPropTypes';
-import Text from '../../../components/Text';
-import Timers from '../../../libs/Timers';
-import CONST from '../../../CONST';
-import DateUtils from '../../../libs/DateUtils';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import participantPropTypes from '@components/participantPropTypes';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import Timers from '@libs/Timers';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -29,6 +29,7 @@ function getParticipantLocalTime(participant, preferredLocale) {
 }
 
 function ParticipantLocalTime(props) {
+    const styles = useThemeStyles();
     const {participant, preferredLocale, translate} = props;
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));
@@ -44,6 +45,10 @@ function ParticipantLocalTime(props) {
     }, [participant, preferredLocale]);
 
     const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
+
+    if (!reportRecipientDisplayName) {
+        return null;
+    }
 
     return (
         <View style={[styles.chatItemComposeSecondaryRow]}>

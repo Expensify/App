@@ -5,10 +5,11 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.sh', 'package.json', 'package-lock.json']
 
 jobs:
   jest:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -19,7 +20,7 @@ jobs:
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -39,11 +40,11 @@ jobs:
         run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
   storybookTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     name: Storybook tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -51,12 +52,12 @@ jobs:
         run: npm run storybook -- --smoke-test --ci
 
   shellTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     name: Shell tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main

@@ -1,38 +1,39 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import * as Session from '../../../libs/actions/Session';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextInput from '../../../components/TextInput';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as LoginUtils from '../../../libs/LoginUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
-import * as CloseAccount from '../../../libs/actions/CloseAccount';
-import CONST from '../../../CONST';
-import CONFIG from '../../../CONFIG';
-import AppleSignIn from '../../../components/SignInButtons/AppleSignIn';
-import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
-import isInputAutoFilled from '../../../libs/isInputAutoFilled';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import Log from '../../../libs/Log';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
-import usePrevious from '../../../hooks/usePrevious';
-import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import AppleSignIn from '@components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import Visibility from '@libs/Visibility';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as CloseAccount from '@userActions/CloseAccount';
+import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -60,23 +61,33 @@ const propTypes = {
         success: PropTypes.string,
     }),
 
+    /** The credentials of the logged in person */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    isVisible: PropTypes.bool.isRequired,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
-
-    ...toggleVisibilityViewPropTypes,
-
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     account: {},
+    credentials: {
+        login: '',
+    },
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
@@ -84,22 +95,57 @@ const defaultProps = {
 };
 
 function LoginForm(props) {
+    const styles = useThemeStyles();
     const input = useRef();
-    const [login, setLogin] = useState('');
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
+    const firstBlurred = useRef(false);
 
     const {translate} = props;
 
     /**
-     * Handle text input and clear formError upon text change
+     * Validate the input value and set the error for formError
+     *
+     * @param {String} value
+     */
+    const validate = useCallback(
+        (value) => {
+            const loginTrim = value.trim();
+            if (!loginTrim) {
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
+                return false;
+            }
+
+            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+                if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                    setFormError('common.error.phoneNumber');
+                } else {
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
+                }
+                return false;
+            }
+
+            setFormError(null);
+            return true;
+        },
+        [setFormError],
+    );
+
+    /**
+     * Handle text input and validate the text input if it is blurred
      *
      * @param {String} text
      */
     const onTextInput = useCallback(
         (text) => {
             setLogin(text);
-            setFormError(null);
+            if (firstBlurred.current) {
+                validate(text);
+            }
 
             if (props.account.errors || props.account.message) {
                 Session.clearAccountMessages();
@@ -110,7 +156,7 @@ function LoginForm(props) {
                 CloseAccount.setDefaultData();
             }
         },
-        [props.account, props.closeAccount, input, setFormError, setLogin],
+        [props.account, props.closeAccount, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
@@ -130,23 +176,17 @@ function LoginForm(props) {
             CloseAccount.setDefaultData();
         }
 
+        // For native, the single input doesn't lost focus when we click outside.
+        // So we need to change firstBlurred here to make the validate function is called whenever the text input is changed after the first validation.
+        if (!firstBlurred.current) {
+            firstBlurred.current = true;
+        }
+
+        if (!validate(login)) {
+            return;
+        }
+
         const loginTrim = login.trim();
-        if (!loginTrim) {
-            setFormError('common.pleaseEnterEmailOrPhoneNumber');
-            return;
-        }
-
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                setFormError('common.error.phoneNumber');
-            } else {
-                setFormError('loginForm.error.invalidFormatEmailLogin');
-            }
-            return;
-        }
 
         // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
         if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
@@ -154,11 +194,12 @@ function LoginForm(props) {
             MemoryOnlyKeys.enable();
         }
 
-        setFormError(null);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.account, props.closeAccount, props.network, setFormError]);
+    }, [login, props.account, props.closeAccount, props.network, validate]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
@@ -211,18 +252,24 @@ function LoginForm(props) {
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
-                    nativeID="username"
+                    id="username"
                     name="username"
+                    onBlur={() => {
+                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                            return;
+                        }
+                        firstBlurred.current = true;
+                        validate(login);
+                    }}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formErrorText}
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
@@ -267,8 +314,12 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <AppleSignIn />
-                                        <GoogleSignIn />
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <AppleSignIn />
+                                        </View>
+                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                            <GoogleSignIn />
+                                        </View>
                                     </View>
                                 </View>
                             )
@@ -284,22 +335,25 @@ LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
+const LoginFormWithRef = forwardRef((props, ref) => (
+    <LoginForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+LoginFormWithRef.displayName = 'LoginFormWithRef';
+
 export default compose(
     withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(
-    forwardRef((props, ref) => (
-        <LoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(LoginFormWithRef);

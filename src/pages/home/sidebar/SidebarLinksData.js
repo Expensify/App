@@ -1,21 +1,21 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import _ from 'underscore';
 import {deepEqual} from 'fast-equals';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import SidebarUtils from '../../../libs/SidebarUtils';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import withCurrentReportID from '@components/withCurrentReportID';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as SessionUtils from '@libs/SessionUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
-import withCurrentReportID from '../../../components/withCurrentReportID';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../reportPropTypes';
-import CONST from '../../../CONST';
-import useLocalize from '../../../hooks/useLocalize';
-import styles from '../../../styles/styles';
-import withNavigationFocus from '../../../components/withNavigationFocus';
-import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -105,13 +106,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
+                onLinkClick={onLinkClick}
                 insets={insets}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
-                onLinkClick={onLinkClick}
             />
         </View>
     );
@@ -143,6 +144,7 @@ const chatReportSelector = (report) =>
         total: report.total,
         nonReimbursableTotal: report.nonReimbursableTotal,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,

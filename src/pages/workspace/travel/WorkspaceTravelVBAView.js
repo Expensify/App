@@ -1,20 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import Section from '../../../components/Section';
-import * as Link from '../../../libs/actions/Link';
-import * as Report from '../../../libs/actions/Report';
-import CONST from '../../../CONST';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 function WorkspaceTravelVBAView(props) {
+    const styles = useThemeStyles();
     return (
         <Section
             title={props.translate('workspace.travel.packYourBags')}

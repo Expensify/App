@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 import BankAccountJSON, {AdditionalData} from '../../types/onyx/BankAccount';
 

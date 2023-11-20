@@ -1,23 +1,30 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 import {ScrollView, View} from 'react-native';
-import Button from '../Button';
-import FixedFooter from '../FixedFooter';
-import OptionsList from '../OptionsList';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
-import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
-import setSelection from '../../libs/setSelection';
-import compose from '../../libs/compose';
-import getPlatform from '../../libs/getPlatform';
-import FormHelpMessage from '../FormHelpMessage';
+import _ from 'underscore';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
+import OptionsList from '@components/OptionsList';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
+import setSelection from '@libs/setSelection';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -32,13 +39,23 @@ const propTypes = {
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
+    /** Whether referral CTA should be displayed */
+    shouldShowReferralCTA: PropTypes.bool,
+
+    /** Referral content type */
+    referralContentType: PropTypes.string,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    shouldShowReferralCTA: false,
+    referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -53,6 +70,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -65,6 +83,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            shouldShowReferralModal: false,
             errorMessage: '',
         };
     }
@@ -176,6 +195,10 @@ class BaseOptionsSelector extends Component {
         });
 
         this.props.onChangeText(value);
+    }
+
+    handleReferralModal() {
+        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     subscribeToKeyboardShortcut() {
@@ -376,7 +399,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.updateSearchValue}
                 errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
@@ -425,6 +448,7 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
@@ -492,6 +516,34 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
+                {this.props.shouldShowReferralCTA && (
+                    <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
+                            }}
+                            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                            accessibilityLabel="referral"
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        >
+                            <Text>
+                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
+                                <Text
+                                    color={colors.green400}
+                                    style={styles.textStrong}
+                                >
+                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
+                                </Text>
+                            </Text>
+                            <Icon
+                                src={Info}
+                                height={20}
+                                width={20}
+                            />
+                        </PressableWithoutFeedback>
+                    </View>
+                )}
+
                 {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowDefaultConfirmButton && (

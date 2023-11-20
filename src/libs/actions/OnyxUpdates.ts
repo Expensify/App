@@ -1,11 +1,11 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
-import PusherUtils from '../PusherUtils';
-import ONYXKEYS from '../../ONYXKEYS';
+import PusherUtils from '@libs/PusherUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import Response from '@src/types/onyx/Response';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
-import CONST from '../../CONST';
-import {OnyxUpdatesFromServer, OnyxUpdateEvent, Request} from '../../types/onyx';
-import Response from '../../types/onyx/Response';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -14,6 +14,10 @@ Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
+
+// This promise is used to ensure pusher events are always processed in the order they are received,
+// even when such events are received over multiple separate pusher updates.
+let pusherEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
@@ -44,11 +48,17 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    console.debug('[OnyxUpdateManager] Applying pusher update');
-    const pusherEventPromises = updates.map((update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
-    return Promise.all(pusherEventPromises).then(() => {
-        console.debug('[OnyxUpdateManager] Done applying Pusher update');
+    pusherEventsPromise = pusherEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying pusher update');
     });
+
+    pusherEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying Pusher update');
+        });
+
+    return pusherEventsPromise;
 }
 
 /**

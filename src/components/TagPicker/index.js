@@ -1,17 +1,18 @@
-import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import OptionsSelector from '../OptionsSelector';
-import {propTypes, defaultProps} from './tagPickerPropTypes';
+import _ from 'underscore';
+import OptionsSelector from '@components/OptionsSelector';
+import useLocalize from '@hooks/useLocalize';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './tagPickerPropTypes';
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit, shouldShowDisabledAndSelectedOption}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -47,17 +48,26 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         return 0;
     }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
 
+    const enabledTags = useMemo(() => {
+        if (!shouldShowDisabledAndSelectedOption) {
+            return policyTagList;
+        }
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return tags;
+    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+
     const sections = useMemo(
-        () =>
-            OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, policyTagList, policyRecentlyUsedTagsList, false).tagOptions,
-        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList],
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, '');
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
 
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             headerMessage={headerMessage}

@@ -1,27 +1,26 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import reportPropTypes from '../../reportPropTypes';
-import * as IOU from '../../../libs/actions/IOU';
-import useLocalize from '../../../hooks/useLocalize';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
-import * as IOUUtils from '../../../libs/IOUUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../styles/styles';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** React Navigation route */
@@ -56,6 +55,7 @@ const defaultProps = {
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -63,7 +63,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isEditing = lodashGet(route, 'path', '').includes('amount');
+    const isEditing = Navigation.getActiveRoute().includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
@@ -82,14 +82,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             };
         }, []),
     );
-
-    // Check and dismiss modal
-    useEffect(() => {
-        if (!ReportUtils.shouldDisableWriteActions(report)) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [report, reportID]);
 
     // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
     // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
@@ -132,7 +124,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         }
 
         // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
@@ -157,6 +149,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
+            selectedTab={selectedTab}
         />
     );
 

@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import UnorderedList from '../../../components/UnorderedList';
-import * as Link from '../../../libs/actions/Link';
-import Section from '../../../components/Section';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import UnorderedList from '@components/UnorderedList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -20,6 +20,7 @@ const MENU_LINKS = {
 };
 
 function WorkspaceCardVBAWithECardView(props) {
+    const styles = useThemeStyles();
     const menuItems = [
         {
             title: props.translate('workspace.common.issueAndManageCards'),

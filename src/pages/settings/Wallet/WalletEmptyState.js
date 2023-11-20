@@ -1,14 +1,15 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import useLocalize from '../../../hooks/useLocalize';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import Button from '../../../components/Button';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import FeatureList from '../../../components/FeatureList';
-import themeColors from '../../../styles/themes/default';
+import React from 'react';
+import Button from '@components/Button';
+import FeatureList from '@components/FeatureList';
+import * as Illustrations from '@components/Icon/Illustrations';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The function that is called when a menu item is pressed */
@@ -31,10 +32,11 @@ const WALLET_FEATURES = [
 ];
 
 function WalletEmptyState({onAddPaymentMethod}) {
+    const theme = useTheme();
     const {translate} = useLocalize();
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={themeColors.walletPageBG}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WALLET]}
             illustration={LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}

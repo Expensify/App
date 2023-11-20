@@ -1,15 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import Icon from '../Icon';
-import Text from '../Text';
-import themeColors from '../../styles/themes/default';
-import TextLink from '../TextLink';
-import Navigation from '../../libs/Navigation/Navigation';
-import AutoEmailLink from '../AutoEmailLink';
-import useLocalize from '../../hooks/useLocalize';
+import AutoEmailLink from '@components/AutoEmailLink';
+import Icon from '@components/Icon';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconColor: themeColors.offline,
+    iconColor: undefined,
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',
@@ -55,6 +55,8 @@ const defaultProps = {
 };
 
 function BlockingView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
         return (
@@ -79,7 +81,7 @@ function BlockingView(props) {
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
                 src={props.icon}
-                fill={props.iconColor}
+                fill={props.iconColor || theme.offline}
                 width={props.iconWidth}
                 height={props.iconHeight}
             />

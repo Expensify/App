@@ -1,27 +1,27 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import TextInput from '../../../../components/TextInput';
-import styles from '../../../../styles/styles';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import AddressSearch from '../../../../components/AddressSearch';
-import StatePicker from '../../../../components/StatePicker';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import useLocalize from '../../../../hooks/useLocalize';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import CountrySelector from '../../../../components/CountrySelector';
+import _ from 'underscore';
+import AddressSearch from '@components/AddressSearch';
+import CountrySelector from '@components/CountrySelector';
+import Form from '@components/Form';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,6 +69,7 @@ function updateAddress(values) {
 }
 
 function AddressPage({privatePersonalDetails, route}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
@@ -81,6 +82,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [city, setCity] = useState(address.city);
+    const [zipcode, setZipcode] = useState(address.zip);
 
     useEffect(() => {
         if (!address) {
@@ -89,6 +91,7 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);
+        setZipcode(address.zip);
     }, [address]);
 
     /**
@@ -137,20 +140,28 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state' && key !== 'city') {
+        if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
             setCity('');
+            setZipcode('');
             return;
         }
         if (key === 'state') {
             setState(value);
+            setCity('');
+            setZipcode('');
             return;
         }
-        setCity(value);
+        if (key === 'city') {
+            setCity(value);
+            setZipcode('');
+            return;
+        }
+        setZipcode(value);
     }, []);
 
     useEffect(() => {
@@ -202,8 +213,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="addressLine2"
                         label={translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={translate('common.addressLine')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.addressLine', {lineNumber: 2})}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -228,8 +239,8 @@ function AddressPage({privatePersonalDetails, route}) {
                         <TextInput
                             inputID="state"
                             label={translate('common.stateOrProvince')}
-                            accessibilityLabel={translate('common.stateOrProvince')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={translate('common.stateOrProvince')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             value={state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             spellCheck={false}
@@ -240,8 +251,8 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="city"
                         label={translate('common.city')}
-                        accessibilityLabel={translate('common.city')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.city')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
@@ -251,12 +262,13 @@ function AddressPage({privatePersonalDetails, route}) {
                     <TextInput
                         inputID="zipPostCode"
                         label={translate('common.zipPostCode')}
-                        accessibilityLabel={translate('common.zipPostCode')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('common.zipPostCode')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
-                        defaultValue={address.zip || ''}
+                        value={zipcode || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={zipFormat}
+                        onValueChange={handleAddressChange}
                     />
                 </Form>
             )}

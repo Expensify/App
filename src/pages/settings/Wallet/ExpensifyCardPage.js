@@ -3,24 +3,30 @@ import React, {useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ROUTES from '../../../ROUTES';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import CardPreview from '../../../components/CardPreview';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import useLocalize from '../../../hooks/useLocalize';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as CardUtils from '../../../libs/CardUtils';
-import Button from '../../../components/Button';
-import CardDetails from './WalletPage/CardDetails';
-import MenuItem from '../../../components/MenuItem';
-import CONST from '../../../CONST';
+import Button from '@components/Button';
+import CardPreview from '@components/CardPreview';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as CardUtils from '@libs/CardUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Card from '@userActions/Card';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
+import DangerCardSection from './DangerCardSection';
+import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,12 +52,17 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [details, setDetails] = useState({});
+    const [cardDetailsError, setCardDetailsError] = useState('');
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -60,8 +71,23 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     const handleRevealDetails = () => {
-        setShouldShowCardDetails(true);
+        setIsLoading(true);
+        // We can't store the response in Onyx for security reasons.
+        // That is why this action is handled manually and the response is stored in a local state
+        // Hence eslint disable here.
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        Card.revealVirtualCardDetails(virtualCard.cardID)
+            .then((value) => {
+                setDetails(value);
+                setCardDetailsError('');
+            })
+            .catch(setCardDetailsError)
+            .finally(() => setIsLoading(false));
     };
+
+    const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+    const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
 
     return (
         <ScreenWrapper
@@ -75,67 +101,107 @@ function ExpensifyCardPage({
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                        <View style={[styles.flex1, styles.mb4, styles.mt4]}>
+                        <View style={[styles.flex1, styles.mb9, styles.mt9]}>
                             <CardPreview />
                         </View>
 
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.newKansasLarge}
-                        />
-                        {!_.isEmpty(virtualCard) && (
+                        {hasDetectedDomainFraud ? (
+                            <DotIndicatorMessage
+                                style={[styles.pageWrapper]}
+                                textStyle={[styles.walletLockedMessage]}
+                                messages={{0: translate('cardPage.cardLocked')}}
+                                type="error"
+                            />
+                        ) : null}
+
+                        {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                {shouldShowCardDetails ? (
-                                    <CardDetails
-                                        // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
-                                        pan="1234123412341234"
-                                        expiration="11/02/2024"
-                                        cvv="321"
-                                        domain={domain}
-                                    />
-                                ) : (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.virtualCardNumber')}
-                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent
-                                        rightComponent={
-                                            <Button
-                                                medium
-                                                text={translate('cardPage.cardDetails.revealDetails')}
-                                                onPress={handleRevealDetails}
-                                            />
-                                        }
-                                    />
-                                )}
+                                <DangerCardSection
+                                    title={translate('cardPage.suspiciousBannerTitle')}
+                                    description={translate('cardPage.suspiciousBannerDescription')}
+                                />
                                 <MenuItemWithTopDescription
-                                    title={translate('cardPage.reportFraud')}
+                                    title={translate('cardPage.reviewTransaction')}
                                     titleStyle={styles.walletCardMenuItem}
-                                    icon={Expensicons.Flag}
+                                    icon={Expensicons.MagnifyingGlass}
+                                    iconFill={theme.icon}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                    brickRoadIndicator="error"
+                                    onPress={() => Link.openOldDotLink('inbox')}
                                 />
                             </>
-                        )}
-                        {!_.isEmpty(physicalCard) && (
+                        ) : null}
+
+                        {!hasDetectedDomainFraud ? (
                             <>
                                 <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardNumber')}
-                                    title={CardUtils.maskCard(physicalCard.lastFourPAN)}
+                                    description={translate('cardPage.availableSpend')}
+                                    title={formattedAvailableSpendAmount}
                                     interactive={false}
-                                    titleStyle={styles.walletCardMenuItem}
+                                    titleStyle={styles.newKansasLarge}
                                 />
-                                <MenuItem
-                                    title={translate('reportCardLostOrDamaged.report')}
-                                    icon={Expensicons.Flag}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
-                                />
+                                {!_.isEmpty(virtualCard) && (
+                                    <>
+                                        {details.pan ? (
+                                            <CardDetails
+                                                pan={details.pan}
+                                                expiration={details.expiration}
+                                                cvv={details.cvv}
+                                                privatePersonalDetails={{address: details.address}}
+                                                domain={domain}
+                                            />
+                                        ) : (
+                                            <>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('cardPage.virtualCardNumber')}
+                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    interactive={false}
+                                                    titleStyle={styles.walletCardNumber}
+                                                    shouldShowRightComponent
+                                                    rightComponent={
+                                                        <Button
+                                                            medium
+                                                            text={translate('cardPage.cardDetails.revealDetails')}
+                                                            onPress={handleRevealDetails}
+                                                            isDisabled={isLoading || isOffline}
+                                                            isLoading={isLoading}
+                                                        />
+                                                    }
+                                                />
+                                                <DotIndicatorMessage
+                                                    messages={cardDetailsErrorObject}
+                                                    type="error"
+                                                    style={[styles.ph5]}
+                                                />
+                                            </>
+                                        )}
+                                        <MenuItemWithTopDescription
+                                            title={translate('cardPage.reportFraud')}
+                                            titleStyle={styles.walletCardMenuItem}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                        />
+                                    </>
+                                )}
+                                {!_.isEmpty(physicalCard) && (
+                                    <>
+                                        <MenuItemWithTopDescription
+                                            description={translate('cardPage.physicalCardNumber')}
+                                            title={CardUtils.maskCard(physicalCard.lastFourPAN)}
+                                            interactive={false}
+                                            titleStyle={styles.walletCardMenuItem}
+                                        />
+                                        <MenuItem
+                                            title={translate('reportCardLostOrDamaged.report')}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
+                                        />
+                                    </>
+                                )}
                             </>
-                        )}
+                        ) : null}
                     </ScrollView>
                     {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                         <Button

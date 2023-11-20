@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
-import {DragDropContext, Droppable, Draggable, type OnDragEndResponder} from 'react-beautiful-dnd';
+import {DragDropContext, Draggable, Droppable, type OnDragEndResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
-import useDraggableInPortal from './useDraggableInPortal';
+import useThemeStyles from '@styles/useThemeStyles';
 import type {DraggableListProps} from './types';
-import styles from '../../styles/styles';
+import useDraggableInPortal from './useDraggableInPortal';
 
 type ReorderParams<T> = {
     list: T[];
@@ -38,6 +38,7 @@ function DraggableList<T>(
     }: DraggableListProps<T>,
     ref: React.ForwardedRef<ScrollView>,
 ) {
+    const styles = useThemeStyles();
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
