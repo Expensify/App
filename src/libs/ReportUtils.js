@@ -4197,7 +4197,7 @@ function getChannelLogMemberMessage(reportAction) {
     } else if (mentions.length === 1) {
         message = `${verb} ${mentions[0]} ${Localize.translateLocal('common.and')} ${lastMention}`;
     } else {
-        message = `${verb} ${mentions.join(', ')},  ${Localize.translateLocal('common.and')} ${lastMention}`;
+        message = `${verb} ${mentions.join(', ')}, ${Localize.translateLocal('common.and')} ${lastMention}`;
     }
 
     const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
