@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import useThemePreference from '@styles/themes/useThemePreference';
-import * as DarkIllustrations from './dark';
-import * as LightIllustrations from './light';
+import DarkIllustrations from './dark';
+import LightIllustrations from './light';
 import ThemeIllustrationsContext from './ThemeIllustrationsContext';
 
 type ThemeIllustrationsProviderProps = {

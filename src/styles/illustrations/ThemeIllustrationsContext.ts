@@ -1,6 +1,7 @@
 import React from 'react';
-import * as DarkIllustrations from './dark';
+import DarkIllustrations from './dark';
+import {Illustrations} from './types';
 
-const ThemeIllustrationsContext = React.createContext(DarkIllustrations);
+const ThemeIllustrationsContext = React.createContext<Illustrations>(DarkIllustrations);
 
 export default ThemeIllustrationsContext;
