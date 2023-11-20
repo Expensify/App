@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
@@ -91,7 +92,10 @@ function ReportFooter(props) {
             )}
             {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <SwipeableView
+                        onSwipeDown={Keyboard.dismiss}
+                        style={styles.flex1}
+                    >
                         <ReportActionCompose
                             onSubmit={props.onSubmitComment}
                             reportID={props.report.reportID.toString()}

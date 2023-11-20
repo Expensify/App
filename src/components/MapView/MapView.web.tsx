@@ -46,6 +46,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+        const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
         useFocusEffect(
@@ -92,7 +93,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [currentPosition, userInteractedWithMap, mapRef, shouldPanMapToCurrentPosition]);
 
-        useEffect(() => {
+        const resetBoundaries = useCallback(() => {
             if (!waypoints || waypoints.length === 0) {
                 return;
             }
@@ -118,6 +119,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             map.fitBounds([northEast, southWest], {padding: mapPadding});
         }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
+        useEffect(resetBoundaries, [resetBoundaries]);
+
+        useEffect(() => {
+            if (!shouldResetBoundaries) {
+                return;
+            }
+
+            resetBoundaries();
+            setShouldResetBoundaries(false);
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
+        }, [shouldResetBoundaries]);
+
         useEffect(() => {
             if (!mapRef) {
                 return;
@@ -125,6 +138,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
             const resizeObserver = new ResizeObserver(() => {
                 mapRef.resize();
+                setShouldResetBoundaries(true);
             });
             resizeObserver.observe(mapRef.getContainer());
 
