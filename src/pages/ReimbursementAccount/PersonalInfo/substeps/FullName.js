@@ -10,7 +10,7 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +36,8 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        firstName: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.FIRST_NAME, defaultValue: ''}),
-        lastName: getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.LAST_NAME, defaultValue: ''}),
+        firstName: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.FIRST_NAME, ''),
+        lastName: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.LAST_NAME, ''),
     };
 
     return (

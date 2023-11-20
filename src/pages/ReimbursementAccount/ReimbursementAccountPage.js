@@ -347,7 +347,7 @@ class ReimbursementAccountPage extends React.Component {
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
                 break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {

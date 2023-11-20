@@ -1155,8 +1155,16 @@ export default {
         return result;
     },
     bankAccount: {
+        bankInfo: 'Información bancaria',
+        confirmBankInfo: 'Confirmar información bancaria',
+        manuallyAdd: 'Agregar manualmente tu cuenta bancaria',
+        letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
+        accountEnding: 'Cuenta terminada en',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
+        connectDifferentAccount: 'Conectar una cuenta diferente',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
+        chooseAnAccountBelow: 'Elige una cuenta a continuación',
         addBankAccount: 'Añadir cuenta bancaria',
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',

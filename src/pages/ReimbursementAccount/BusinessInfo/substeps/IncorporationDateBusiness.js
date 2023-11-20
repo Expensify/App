@@ -10,7 +10,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +48,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
     const {translate} = useLocalize();
 
     const defaultCompanyIncorporationDate =
-        getDefaultStateForField({reimbursementAccount, fieldName: companyIncorporationDateKey, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, companyIncorporationDateKey, '');
+        getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationDateKey, '') || lodashGet(reimbursementAccountDraft, companyIncorporationDateKey, '');
 
     return (
         <FormProvider

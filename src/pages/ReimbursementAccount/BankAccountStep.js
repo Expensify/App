@@ -21,12 +21,14 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
+import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -63,6 +65,8 @@ const defaultProps = {
     policyID: '',
 };
 
+const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -77,6 +81,23 @@ function BankAccountStep(props) {
         props.policyID,
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
+
+    const removeExistingBankAccountDetails = () => {
+        const bankAccountData = {
+            [bankInfoStepKeys.ROUTING_NUMBER]: '',
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
+            [bankInfoStepKeys.PLAID_MASK]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.BANK_NAME]: '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+        };
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+    };
+
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        return <BankInfo />;
+    }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
@@ -100,6 +121,7 @@ function BankAccountStep(props) {
         );
     }
 
+    // TODO Move initial screen where you select setup type to new ReimbursementAccount page as the begining of whole flow; also cleanup once this is done
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -134,6 +156,7 @@ function BankAccountStep(props) {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
                                 }
+                                removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
@@ -149,7 +172,10 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => {
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
