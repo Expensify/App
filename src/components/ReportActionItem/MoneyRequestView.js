@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -60,7 +60,7 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /** Violations detected in this transaction */
-    transactionViolation: transactionViolationsPropTypes,
+    transactionViolations: transactionViolationsPropTypes,
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
@@ -76,11 +76,11 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
-    transactionViolation: undefined,
+    transactionViolations: [],
     policyTags: {},
 };
 
-function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolation}) {
+function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolations}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -128,6 +128,11 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
+
+    /**
+     * Returns the translated violation message for a given field, if one exists, `undefined` if not.
+     */
+    const getViolationForField = useCallback((field) => ViolationUtils.getViolationForField(transactionViolations, field, translate), [transactionViolations, translate]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -181,9 +186,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                                 enablePreviewModal
                             />
                         </View>
-                        {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'receipt', translate)) && (
+                        {Boolean(getViolationForField('receipt')) && (
                             <View>
-                                <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'receipt', translate)}</Text>
+                                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('receipt')}</Text>
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -207,9 +212,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     />
-                    {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'amount', translate)) && (
+                    {Boolean(getViolationForField('amount')) && (
                         <View>
-                            <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'amount', translate)}</Text>
+                            <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('amount')}</Text>
                         </View>
                     )}
                 </OfflineWithFeedback>
@@ -225,9 +230,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         numberOfLinesTitle={0}
                     />
-                    {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'comment', translate)) && (
+                    {Boolean(getViolationForField('comment', translate)) && (
                         <View>
-                            <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'comment', translate)}</Text>
+                            <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('comment')}</Text>
                         </View>
                     )}
                 </OfflineWithFeedback>
@@ -254,9 +259,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
-                        {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'merchant', translate)) && (
+                        {Boolean(getViolationForField('merchant')) && (
                             <View>
-                                <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'merchant', translate)}</Text>
+                                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('merchant')}</Text>
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -272,9 +277,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     />
-                    {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'date')) && (
+                    {Boolean(getViolationForField('date')) && (
                         <View>
-                            <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'date', translate)}</Text>
+                            <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('date')}</Text>
                         </View>
                     )}
                 </OfflineWithFeedback>
@@ -288,9 +293,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
                         />
-                        {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'category', translate)) && (
+                        {Boolean(getViolationForField('category')) && (
                             <View>
-                                <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'category', translate)}</Text>
+                                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('category')}</Text>
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -305,9 +310,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                         />
-                        {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'tag')) && (
+                        {Boolean(getViolationForField('tag')) && (
                             <View>
-                                <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'tag', translate)}</Text>
+                                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('tag')}</Text>
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -333,9 +338,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                                 onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
                             />
                         </View>
-                        {Boolean(ViolationUtils.getViolationForField(transactionViolation, 'billable', translate)) && (
+                        {Boolean(getViolationForField('billable', translate)) && (
                             <View>
-                                <Text style={[styles.ph5, styles.textLabelError]}>{ViolationUtils.getViolationForField(transactionViolation, 'billable', translate)}</Text>
+                                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField('billable')}</Text>
                             </View>
                         )}
                     </>
