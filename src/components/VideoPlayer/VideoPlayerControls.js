@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import VolumeButton from '@components/VolumeButton';
+import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
 import spacing from '@styles/utilities/spacing';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ const propTypes = {
 const defaultProps = {};
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
+    const {translate} = useLocalize();
     const {togglePlay, isPlaying, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
@@ -74,7 +76,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
-                        accessibilityLabel="play/pause"
+                        accessibilityLabel={translate('videoPlayer.tooglePlay')}
                         onPress={togglePlayCurrentVideo}
                         style={spacing.mr2}
                     />
@@ -90,13 +92,13 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
                     <VolumeButton style={spacing.mr3} />
                     <IconButton
                         src={Expensicons.Fullscreen}
-                        accessibilityLabel="fullsreen"
+                        accessibilityLabel={translate('videoPlayer.enterFullScreen')}
                         onPress={enterFullScreenMode}
                         style={spacing.mr3}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}
-                        accessibilityLabel="More options"
+                        accessibilityLabel={translate('videoPlayer.moreOptions')}
                         onPress={(e) => showPopover(e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX)}
                     />
                 </View>

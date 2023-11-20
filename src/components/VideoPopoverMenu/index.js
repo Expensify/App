@@ -4,13 +4,14 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {};
-
 const defaultProps = {};
 
 function VideoPopoverMenu() {
+    const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {playbackSpeeds, currentPlaybackSpeed, updatePlaybackSpeed} = usePlaybackContext();
     const {isPopoverVisible, hidePopover, anchorPosition} = useVideoPopoverMenuContext();
@@ -28,14 +29,14 @@ function VideoPopoverMenu() {
     const menuItems = [
         {
             icon: Expensicons.Download,
-            text: 'Download',
+            text: translate('videoPlayer.download'),
             onSelected: () => {
                 console.log('Download');
             },
         },
         {
             icon: Expensicons.Meter,
-            text: 'Playback speed',
+            text: translate('videoPlayer.playbackSpeed'),
             onSelected: () => {
                 console.log('Playback speed');
             },

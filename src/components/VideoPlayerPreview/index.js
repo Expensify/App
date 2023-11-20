@@ -5,6 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useLocalize from '@hooks/useLocalize';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import styles from '@styles/styles';
@@ -29,6 +30,7 @@ const defaultProps = {
 };
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, showModal}) {
+    const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isThumbnail, setIsThumbnail] = useState(true);
@@ -74,7 +76,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         src={Expensicons.Expand}
                         fill="white"
                         style={styles.videoExpandButton}
-                        accessibilityLabel="open in modal"
+                        accessibilityLabel={translate('videoPlayer.openInAttachmentModal')}
                         onPress={showModal}
                     />
                 </>
