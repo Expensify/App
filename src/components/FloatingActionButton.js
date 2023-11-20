@@ -38,7 +38,7 @@ const defaultProps = {
 };
 
 function FloatingActionButton(props) {
-    const animatedValue = useRef(() => new Animated.Value(props.isActive ? 1 : 0));
+    const animatedValue = useRef(new Animated.Value(props.isActive ? 1 : 0));
     const previousIsActive = usePrevious(props.isActive);
     const fabPressable = useRef(null);
 
