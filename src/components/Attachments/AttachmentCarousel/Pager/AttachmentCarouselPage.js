@@ -31,7 +31,10 @@ const defaultProps = {
     isAuthTokenRequired: false,
 };
 
-const DEFAULT_IMAGE_SIZE = 200;
+const DEFAULT_IMAGE_STYLE = {
+    width: '100%',
+    aspectRatio: 1.5,
+};
 
 function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialIsActive}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
@@ -82,7 +85,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                     >
                         <Image
                             source={{uri: source}}
-                            style={{width: dimensions?.imageWidth || DEFAULT_IMAGE_SIZE, height: dimensions?.imageHeight || DEFAULT_IMAGE_SIZE}}
+                            style={dimensions?.imageWidth && dimensions?.imageHeight ? {width: dimensions?.imageWidth, height: dimensions?.imageHeight} : DEFAULT_IMAGE_STYLE}
                             isAuthTokenRequired={isAuthTokenRequired}
                             onLoadStart={() => {
                                 setIsImageLoading(true);
@@ -177,7 +180,9 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 scaledImageHeight,
                             });
                         }}
-                        style={{width: dimensions?.scaledImageWidth || DEFAULT_IMAGE_SIZE, height: dimensions?.scaledImageHeight || DEFAULT_IMAGE_SIZE}}
+                        style={
+                            dimensions?.scaledImageWidth && dimensions?.scaledImageHeight ? {width: dimensions?.scaledImageWidth, height: dimensions?.scaledImageHeight} : DEFAULT_IMAGE_STYLE
+                        }
                     />
                 </ImageWrapper>
             )}
