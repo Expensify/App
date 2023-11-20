@@ -39,6 +39,7 @@ jobs:
     uses: ./.github/workflows/createDeployChecklist.yml
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
+    secrets: inherit
 
   android:
     name: Build and deploy Android

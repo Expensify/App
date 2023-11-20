@@ -449,6 +449,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             shouldShowAddPaymentMethodButton={false}
                                             shouldShowAssignedCards
                                             shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
                                             style={styles.mt5}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
