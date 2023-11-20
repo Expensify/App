@@ -1,29 +1,21 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
-import type {Network} from '@src/types/onyx';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {LocaleContextProps} from './LocaleContextProvider';
-import {withNetwork} from './OnyxProvider';
 import Text from './Text';
-import withLocalize from './withLocalize';
-import withWindowDimensions from './withWindowDimensions';
-import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-type OfflineIndicatorProps = LocaleContextProps &
-    WindowDimensionsProps & {
-        /** Information about the network */
-        network: OnyxEntry<Network>;
+type OfflineIndicatorProps = {
+    /** Optional styles for container element that will override the default styling for the offline indicator */
+    containerStyles?: StyleProp<ViewStyle>;
 
-        /** Optional styles for container element that will override the default styling for the offline indicator */
-        containerStyles?: StyleProp<ViewStyle>;
-
-        /** Optional styles for the container */
-        style?: StyleProp<ViewStyle>;
-    };
+    /** Optional styles for the container */
+    style?: StyleProp<ViewStyle>;
+};
 
 const setStyles = (containerStyles: StyleProp<ViewStyle>, isSmallScreenWidth: boolean): StyleProp<ViewStyle> => {
     if (containerStyles) {
@@ -33,8 +25,12 @@ const setStyles = (containerStyles: StyleProp<ViewStyle>, isSmallScreenWidth: bo
     return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
 };
 
-function OfflineIndicator({network, isSmallScreenWidth, translate, style, containerStyles}: OfflineIndicatorProps) {
-    if (!network?.isOffline) {
+function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    if (!isOffline) {
         return null;
     }
 
@@ -52,5 +48,4 @@ function OfflineIndicator({network, isSmallScreenWidth, translate, style, contai
 
 OfflineIndicator.displayName = 'OfflineIndicator';
 
-// TODO: use `compose` function for HOCs composing once TypeScript issues are resolved.
-export default withNetwork()(withLocalize(withWindowDimensions(OfflineIndicator)));
+export default OfflineIndicator;
