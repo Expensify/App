@@ -136,20 +136,41 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
  */
 function fetchTag(tag) {
     const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                execSync(command);
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Exclude commits reachable from the previous patch version (i.e: previous checklist),
+            // so that we don't have to fetch the full history
+            // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
+            if (previousPatchVersion !== tag) {
+                command += ` --shallow-exclude=${previousPatchVersion}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        console.error(e);
     }
 }
 
@@ -239,16 +260,15 @@ function getValidMergedPRs(commits) {
  * @param {String} toTag
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
-        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-        // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList);
-        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
-    });
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 module.exports = {
