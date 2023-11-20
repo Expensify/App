@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp b/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp
+index 833d66e..7a72f64 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp
+@@ -82,7 +82,7 @@ ReanimatedHermesRuntime::ReanimatedHermesRuntime(
+   auto adapter =
+       std::make_unique<HermesExecutorRuntimeAdapter>(*runtime_, jsQueue);
+ #if REACT_NATIVE_MINOR_VERSION >= 71
+-  debugToken_ = chrome::enableDebugging(std::move(adapter), name);
++//  debugToken_ = chrome::enableDebugging(std::move(adapter), name);
+ #else
+   chrome::enableDebugging(std::move(adapter), name);
+ #endif // REACT_NATIVE_MINOR_VERSION
+@@ -126,7 +126,7 @@ ReanimatedHermesRuntime::~ReanimatedHermesRuntime() {
+ #if HERMES_ENABLE_DEBUGGER
+   // We have to disable debugging before the runtime is destroyed.
+ #if REACT_NATIVE_MINOR_VERSION >= 71
+-  chrome::disableDebugging(debugToken_);
++//  chrome::disableDebugging(debugToken_);
+ #else
+   chrome::disableDebugging(*runtime_);
+ #endif // REACT_NATIVE_MINOR_VERSION
+diff --git a/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h b/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
+index f6dfbf5..a6ebcd3 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
++++ b/node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
+@@ -135,7 +135,7 @@ class ReanimatedHermesRuntime
+   ReanimatedReentrancyCheck reentrancyCheck_;
+ #if HERMES_ENABLE_DEBUGGER
+ #if REACT_NATIVE_MINOR_VERSION >= 71
+-  chrome::DebugSessionToken debugToken_;
++//  chrome::DebugSessionToken debugToken_;
+ #endif // REACT_NATIVE_MINOR_VERSION >= 71
+ #endif // HERMES_ENABLE_DEBUGGER
+ };

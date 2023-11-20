@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-svg-transformer/index.js b/node_modules/react-native-svg-transformer/index.js
+index aac1ce1..22cf73a 100644
+--- a/node_modules/react-native-svg-transformer/index.js
++++ b/node_modules/react-native-svg-transformer/index.js
+@@ -1,6 +1,6 @@
+ const { resolveConfig, transform } = require("@svgr/core");
+ const resolveConfigDir = require("path-dirname");
+-const upstreamTransformer = require("metro-react-native-babel-transformer");
++const upstreamTransformer = require("@react-native/metro-babel-transformer");
+ 
+ const defaultSVGRConfig = {
+   native: true,

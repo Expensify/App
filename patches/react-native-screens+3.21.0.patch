@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+index 34aed79..0587140 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+@@ -297,7 +297,7 @@ class ScreenStack(context: Context?) : ScreenContainer<ScreenStackFragment>(cont
+     }
+ 
+     private fun performDraw(op: DrawingOp) {
+-        super.drawChild(op.canvas, op.child, op.drawingTime)
++        super.drawChild(op.canvas!!, op.child, op.drawingTime)
+     }
+ 
+     private fun obtainDrawingOp(): DrawingOp =
