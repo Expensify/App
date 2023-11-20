@@ -3,10 +3,11 @@ import {StyleSheet, ViewStyle} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Logo from '@assets/images/new-expensify-dark.svg';
 import BootSplash from '@libs/BootSplash';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import type SplashScreenHiderProps from './types';
 
 function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
+    const styles = useThemeStyles();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
 
