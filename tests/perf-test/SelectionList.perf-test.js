@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
+import CONST from '../../src/CONST';
 import variables from '../../src/styles/variables';
 
 jest.mock('../../src/components/Icon/Expensicons');
@@ -92,7 +93,7 @@ function SelectionListWrapper(args) {
     );
 }
 
-const runs = 20;
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 test('should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);

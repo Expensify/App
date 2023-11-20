@@ -49,7 +49,7 @@ const getMockedReportsMap = (length = 100) => {
 
 const mockedResponseMap = getMockedReportsMap(500);
 
-const runs = 20;
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 test('should render Sidebar with 500 reports stored', () => {
     const scenario = async () => {

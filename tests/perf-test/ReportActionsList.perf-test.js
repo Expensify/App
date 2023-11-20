@@ -5,6 +5,7 @@ import ComposeProviders from '../../src/components/ComposeProviders';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
@@ -96,7 +97,8 @@ function ReportActionsListWrapper() {
     );
 }
 
-const runs = 20;
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');

@@ -123,7 +123,7 @@ function ReportScreenWrapper(args) {
     );
 }
 
-const runs = 20;
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 test.skip('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
