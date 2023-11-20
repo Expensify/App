@@ -4,6 +4,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 
 const DEFAULT_DELAY = 4000;
 
@@ -131,7 +132,7 @@ export default {
     pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
         push({
             title: _.map(reportAction.person, (f) => f.text).join(', '),
-            body: ReportUtils.getModifiedExpenseMessage(reportAction),
+            body: ModifiedExpenseMessage.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',

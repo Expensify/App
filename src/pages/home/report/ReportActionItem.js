@@ -74,6 +74,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -414,7 +415,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getModifiedExpenseMessage(props.action)} />;
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (

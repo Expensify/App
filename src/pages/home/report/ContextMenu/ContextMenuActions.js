@@ -22,6 +22,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -276,7 +277,7 @@ export default [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
