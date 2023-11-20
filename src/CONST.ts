@@ -1006,6 +1006,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -2924,6 +2925,29 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    /** <input /> types that will show a virtual keyboard in a mobile browser */
+    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
 } as const;
 
 export default CONST;
