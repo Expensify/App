@@ -3,8 +3,10 @@ import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -61,6 +63,9 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
+
+    /** Indicates whether the app is loading initial data */
+    isLoadingReportData: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -70,11 +75,18 @@ const defaultProps = {
     policyTags: {},
     parentReportActions: {},
     transaction: {},
+    isLoadingReportData: true,
 };
 
-function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
+
+    const isTransactionLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
+    const isTransactionLoading = lodashGet(transaction, 'isLoading', false);
+
+    const isDataLoading = isLoadingReportData || isTransactionLoading || isTransactionLoadingRoute || _.isEmpty(transaction);
+
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -107,7 +119,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
+        if (isDataLoading || ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
             return;
         }
 
@@ -115,7 +127,11 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit, isDataLoading]);
+
+    if (isDataLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -275,6 +291,9 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
