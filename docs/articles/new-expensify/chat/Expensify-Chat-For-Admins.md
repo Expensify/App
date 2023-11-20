@@ -1,7 +1,6 @@
 ---
 title: Expensify Chat for Admins
 description: Best Practices for Admins settings up Expensify Chat
-redirect_from: articles/other/Expensify-Chat-For-Admins/
 ---
 
 # Overview
