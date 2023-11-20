@@ -277,7 +277,7 @@ export default [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getModifiedExpenseMessage(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);

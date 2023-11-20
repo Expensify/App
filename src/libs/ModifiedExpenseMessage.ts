@@ -9,7 +9,7 @@ import _ from 'underscore';
 
 
 /**
- * Get the proper message schema for a modified field on the expense.
+ * Get the partial message for a modified field on the expense.
  *
  * @param newValue
  * @param oldValue
@@ -18,7 +18,7 @@ import _ from 'underscore';
  * @param shouldConvertToLowercase
  */
 
-function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true) {
+function getPartialMessageForValue(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
@@ -33,16 +33,15 @@ function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: st
 }
 
 /**
- * Get the proper message line for a modified expense.
+ * Get the message line for a modified expense.
  *
- * @param {String} newValue
- * @param {String} oldValue
- * @param {String} valueName
- * @param {Boolean} valueInQuotes
- * @returns {String}
+ * @param newValue
+ * @param oldValue
+ * @param valueName
+ * @param valueInQuotes
  */
 
-function getProperLineForModifiedExpenseMessage(prefix: string, messageFragments: Array<string>) {
+function getMessageLine(prefix: string, messageFragments: Array<string>) {
     if (messageFragments.length === 0) {
         return '';
     }
@@ -64,16 +63,15 @@ function getProperLineForModifiedExpenseMessage(prefix: string, messageFragments
 }
 
 /**
- * Get the proper message schema for modified distance message.
+ * Get the message for a modified distance request.
  *
- * @param {String} newDistance
- * @param {String} oldDistance
- * @param {String} newAmount
- * @param {String} oldAmount
- * @returns {String}
+ * @param newDistance
+ * @param oldDistance
+ * @param newAmount
+ * @param oldAmount
  */
 
-function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
+function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
@@ -91,10 +89,9 @@ function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDista
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  *
- * @param {Object} reportAction
- * @returns {String}
+ * @param reportAction
  */
-function getModifiedExpenseMessage(reportAction: Object): string {
+function getForReportAction(reportAction: Object): string {
     const reportActionOriginalMessage: any = lodashGet(reportAction, 'originalMessage', {});
     if (_.isEmpty(reportActionOriginalMessage)) {
         return Localize.translateLocal('iou.changedTheRequest');
@@ -126,10 +123,10 @@ function getModifiedExpenseMessage(reportAction: Object): string {
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
         if (hasModifiedMerchant && reportActionOriginalMessage.merchant.includes('@')) {
-            return getProperSchemaForModifiedDistanceMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
+            return getForDistanceRequest(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
         }
 
-        const fragment = getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
+        const fragment = getPartialMessageForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
         if (!oldAmount) {
             setFragments.push(fragment);
         } else if (!amount) {
@@ -141,7 +138,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(
+        const fragment = getPartialMessageForValue(
             reportActionOriginalMessage.newComment,
             reportActionOriginalMessage.oldComment,
             Localize.translateLocal('common.description'),
@@ -160,7 +157,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
-        const fragment = getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
+        const fragment = getPartialMessageForValue(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
         if (!formattedOldCreated) {
             setFragments.push(fragment);
         } else if (!reportActionOriginalMessage.created) {
@@ -171,7 +168,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
     }
 
     if (hasModifiedMerchant) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(
+        const fragment = getPartialMessageForValue(
             reportActionOriginalMessage.merchant,
             reportActionOriginalMessage.oldMerchant,
             Localize.translateLocal('common.merchant'),
@@ -188,7 +185,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
 
     const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
     if (hasModifiedCategory) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(
+        const fragment = getPartialMessageForValue(
             reportActionOriginalMessage.category,
             reportActionOriginalMessage.oldCategory,
             Localize.translateLocal('common.category'),
@@ -205,7 +202,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(
+        const fragment = getPartialMessageForValue(
             reportActionOriginalMessage.tag,
             reportActionOriginalMessage.oldTag,
             policyTagListName,
@@ -223,7 +220,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
     if (hasModifiedBillable) {
-        const fragment = getProperSchemaForModifiedExpenseMessage(
+        const fragment = getPartialMessageForValue(
             reportActionOriginalMessage.billable,
             reportActionOriginalMessage.oldBillable,
             Localize.translateLocal('iou.request'),
@@ -239,9 +236,9 @@ function getModifiedExpenseMessage(reportAction: Object): string {
     }
 
     let message =
-        getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
-        getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
-        getProperLineForModifiedExpenseMessage(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
+        getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
+        getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
+        getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
         return message;
     }
@@ -250,5 +247,5 @@ function getModifiedExpenseMessage(reportAction: Object): string {
 }
 
 export default {
-    getModifiedExpenseMessage,
+    getForReportAction,
 };
