@@ -742,6 +742,21 @@ function sortCategories(categories) {
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} tags
+ * @returns {Array<Object>}
+ */
+function sortTags(tags) {
+    const sortedTags = _.chain(tags)
+        .values()
+        .sortBy((tag) => tag.name)
+        .value();
+
+    return sortedTags;
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -931,7 +946,8 @@ function getTagsOptions(tags) {
  */
 function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const sortedTags = sortTags(tags);
+    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 

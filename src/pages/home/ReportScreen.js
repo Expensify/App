@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBlockViewportScroll from '@hooks/useBlockViewportScroll';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -26,7 +27,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -152,8 +153,10 @@ function ReportScreen({
     currentReportID,
     parentReportActions,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    useBlockViewportScroll();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -443,8 +446,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                    If we prevent rendering the report while they are loading then
-                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                     If we prevent rendering the report while they are loading then
+                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (

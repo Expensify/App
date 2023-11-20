@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -25,6 +25,8 @@ const defaultProps = {
 };
 
 function ReportHeaderSkeletonView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={[styles.appContentHeader]}>
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -42,8 +44,8 @@ function ReportHeaderSkeletonView(props) {
                     animate={props.shouldAnimate}
                     width={styles.w100.width}
                     height={variables.contentHeaderHeight}
-                    backgroundColor={themeColors.highlightBG}
-                    foregroundColor={themeColors.border}
+                    backgroundColor={theme.highlightBG}
+                    foregroundColor={theme.border}
                 >
                     <Circle
                         cx="20"

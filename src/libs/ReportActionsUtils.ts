@@ -100,6 +100,15 @@ function shouldExcludeModifiedAction(parentReportAction: OnyxEntry<ReportAction>
     return isDeletedAction(parentReportAction) && isModifiedExpenseAction(reportAction);
 }
 
+function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+    );
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -376,7 +385,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
     return updatedReportAction;
 }
 
@@ -468,6 +477,9 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  *    action is always the created action
  */
 function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    if (!Array.isArray(sortedReportActions)) {
+        return '';
+    }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
     return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
@@ -665,4 +677,5 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
     shouldExcludeModifiedAction,
+    isChannelLogMemberAction,
 };
