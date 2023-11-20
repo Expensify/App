@@ -172,7 +172,7 @@ function MoneyRequestPreview(props) {
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
