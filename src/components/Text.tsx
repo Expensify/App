@@ -6,19 +6,20 @@ import useTheme from '@styles/themes/useTheme';
 import variables from '@styles/variables';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TextProps = RNTextProps & ChildrenProps & {
-    /** The color of the text */
-    color?: string;
+type TextProps = RNTextProps &
+    ChildrenProps & {
+        /** The color of the text */
+        color?: string;
 
-    /** The size of the text */
-    fontSize?: number;
+        /** The size of the text */
+        fontSize?: number;
 
-    /** The alignment of the text */
-    textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
+        /** The alignment of the text */
+        textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
 
-    /** The family of the font to use */
-    family?: keyof typeof fontFamily;
-};
+        /** The family of the font to use */
+        family?: keyof typeof fontFamily;
+    };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
     const theme = useTheme();
