@@ -51,4 +51,6 @@ function RadioButton({isChecked, onPress, accessibilityLabel, disabled = false, 
     );
 }
 
+RadioButton.displayName = 'RadioButton';
+
 export default RadioButton;
