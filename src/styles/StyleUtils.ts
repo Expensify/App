@@ -17,6 +17,12 @@ import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+type AvatarStyle = {
+    width: number;
+    height: number;
+    borderRadius: number;
+    backgroundColor: string;
+};
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -56,10 +62,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
+    modalContainerStyleMarginTop: DimensionValue | undefined;
+    modalContainerStyleMarginBottom: DimensionValue | undefined;
+    modalContainerStylePaddingTop: DimensionValue | undefined;
+    modalContainerStylePaddingBottom: DimensionValue | undefined;
     insets: EdgeInsets;
 };
 
@@ -210,7 +216,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): ViewStyle {
+function getAvatarStyle(size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -241,7 +247,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -288,12 +294,19 @@ function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyl
     return eReceiptColorStyles[colorCode];
 }
 
+type SafeAreaPadding = {
+    paddingTop: number;
+    paddingBottom: number;
+    paddingLeft: number;
+    paddingRight: number;
+};
+
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
     return {
-        paddingTop: insets?.top,
+        paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
@@ -449,7 +462,7 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: boolean): ViewStyle {
+function getSignInWordmarkWidthStyle(isSmallScreenWidth: boolean, environment?: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
@@ -569,6 +582,22 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     };
 }
 
+/**
+ * Combine margin/padding with safe area inset
+ *
+ * @param modalContainerValue - margin or padding value
+ * @param safeAreaValue - safe area inset
+ * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
+ */
+function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+    // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
+    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
+        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    return modalContainerValue;
+}
+
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
     shouldAddTopSafeAreaMargin,
@@ -586,12 +615,12 @@ function getModalPaddingStyles({
 }: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: (modalContainerStyleMarginTop ?? 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom ?? 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop ?? 0) + safeAreaPaddingTop : modalContainerStylePaddingTop ?? 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom ?? 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom ?? 0,
+        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -1018,7 +1047,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
+function getColoredBackgroundStyle(isColored: boolean): StyleProp<TextStyle> {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
@@ -1263,22 +1292,53 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
+    const baseFontSize = variables.fontSizeXLarge;
+    const baseLineHeight = variables.lineHeightXXLarge;
 
-    if (isSmallScreenWidth) {
-        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const differentWithMaxLength = 17 - displayAmountLength;
+
+    // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
+    if (isSmallScreenWidth && windowWidth < 420) {
+        // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
+        // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
+        const widthDifference = 420 - windowWidth;
         switch (true) {
-            case widthDifference > 450:
+            // It is very rare for native devices to have a width smaller than 350px so add a constant subtract here
+            case widthDifference > 70:
                 toSubtract = 11;
                 break;
-            case widthDifference > 400:
-                toSubtract = 8;
+            case widthDifference > 60:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = numberOfAvatar * 2 - differentWithMaxLength;
+                }
                 break;
-            case widthDifference > 350:
-                toSubtract = 4;
+            case widthDifference > 50:
+                if (19 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 40:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 30:
+                if (21 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 20:
+                if (22 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2 - differentWithMaxLength;
+                }
                 break;
             default:
+                if (displayAmountLength + numberOfAvatar === 21) {
+                    toSubtract = 3;
+                }
                 break;
         }
     }
@@ -1292,8 +1352,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
-    let containerStyles: Array<ViewStyle | CSSProperties>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
