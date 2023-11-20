@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {RefObject, useCallback, useRef, useState} from 'react';
+import {StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import _ from 'underscore';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
@@ -30,54 +32,26 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {Beta} from '@src/types/onyx';
 
-const propTypes = {
-    /** Style for hovered state */
-    // eslint-disable-next-line react/forbid-prop-types
-    hoverStyle: PropTypes.object,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** The ID of the report that the option is for */
-    reportID: PropTypes.string.isRequired,
-
-    /** Whether this option is currently in focus so we can modify its style */
-    isFocused: PropTypes.bool,
-
-    /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow: PropTypes.func,
-
-    /** Toggle between compact and default view */
-    viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
-
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** The item that should be rendered */
-    // eslint-disable-next-line react/forbid-prop-types
-    optionItem: PropTypes.object,
+type OptionRowLHNProps = {
+    hoverStyle?: StyleProp<ViewStyle>;
+    betas?: Beta[];
+    reportID: string;
+    isFocused?: boolean;
+    onSelectRow?: (optionItem: unknown, popoverAnchor: RefObject<Element>) => void;
+    viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
+    style?: StyleProp<ViewStyle>;
+    optionItem?: unknown;
 };
-
-const defaultProps = {
-    hoverStyle: undefined,
-    viewMode: 'default',
-    onSelectRow: () => {},
-    style: null,
-    optionItem: null,
-    isFocused: false,
-    betas: [],
-};
-
-function OptionRowLHN(props) {
+function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef(null);
+    const popoverAnchor = useRef<Element>(null);
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
-
-    const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useFocusEffect(
@@ -94,30 +68,28 @@ function OptionRowLHN(props) {
     }
 
     const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    if (isHidden && !props.isFocused && !optionItem.isPinned) {
+    if (isHidden && !isFocused && !optionItem.isPinned) {
         return null;
     }
 
-    const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], style);
     const alternateTextStyle = StyleUtils.combineStyles(
-        props.viewMode === CONST.OPTION_MODE.COMPACT
+        viewMode === CONST.OPTION_MODE.COMPACT
             ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
             : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
-        props.style,
+        style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+        viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
-        props.viewMode === CONST.OPTION_MODE.COMPACT
+        viewMode === CONST.OPTION_MODE.COMPACT
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor =
-        (props.hoverStyle || styles.sidebarLinkHover) && (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
-            ? (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
-            : theme.sidebar;
+        (!!hoverStyle || styles.sidebarLinkHover) && (hoverStyle || styles.sidebarLinkHover).backgroundColor ? (hoverStyle || styles.sidebarLinkHover).backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -139,9 +111,9 @@ function OptionRowLHN(props) {
             event,
             '',
             popoverAnchor,
-            props.reportID,
+            reportID,
             '0',
-            props.reportID,
+            reportID,
             '',
             () => {},
             () => setIsContextMenuActive(false),
@@ -152,15 +124,14 @@ function OptionRowLHN(props) {
         );
     };
 
-    const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
-    const statusText = lodashGet(optionItem, 'status.text', '');
-    const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
+    const emojiCode = optionItem.status.emojiCode ?? '';
+    const statusText = optionItem.status.text ?? '';
+    const statusClearAfterDate = optionItem.status.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
+    const isStatusVisible = Permissions.canUseCustomStatus(betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
 
-    const isGroupChat =
-        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips.length ?? 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
 
     return (
@@ -180,7 +151,7 @@ function OptionRowLHN(props) {
                             }
                             // Enable Composer to focus on clicking the same chat after opening the context menu.
                             ReportActionComposeFocusManager.focus();
-                            props.onSelectRow(optionItem, popoverAnchor);
+                            onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
                             // Allow composer blur on right click
@@ -196,7 +167,7 @@ function OptionRowLHN(props) {
                             showPopover(e);
                             // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
                             if (DomUtils.getActiveElement()) {
-                                DomUtils.getActiveElement().blur();
+                                DomUtils.getActiveElement()?.blur();
                             }
                         }}
                         withoutFocusOnSecondaryInteraction
@@ -208,32 +179,32 @@ function OptionRowLHN(props) {
                             styles.sidebarLink,
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
-                            props.isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle || styles.sidebarLinkHover : null,
+                            isFocused ? styles.sidebarLinkActive : null,
+                            (hovered || isContextMenuActive) && !isFocused ? hoverStyle ?? styles.sidebarLinkHover : null,
                         ]}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
-                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
+                        needsOffscreenAlphaCompositing={optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={props.isFocused ? theme.activeComponentBG : theme.sidebar}
+                                            backgroundColor={isFocused ? theme.activeComponentBG : theme.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
+                                            size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={optionItem.icons}
-                                            isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            isFocusMode={viewMode === CONST.OPTION_MODE.COMPACT}
+                                            size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
                                             shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
@@ -321,10 +292,6 @@ function OptionRowLHN(props) {
     );
 }
 
-OptionRowLHN.propTypes = propTypes;
-OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
 export default React.memo(OptionRowLHN);
-
-export {propTypes, defaultProps};

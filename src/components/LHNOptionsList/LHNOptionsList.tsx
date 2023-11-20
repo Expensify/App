@@ -2,8 +2,9 @@ import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -17,6 +18,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {
@@ -81,6 +83,20 @@ const defaultProps = {
 };
 
 const keyExtractor = (item) => `report_${item}`;
+
+type LHNOptionsListProps = {
+    style?: StyleProp<ViewStyle>;
+    contentContainerStyles: StyleProp<ViewStyle>;
+    data: string[];
+    onSelectRow: (reportID: string) => void;
+    optionMode: ValueOf<typeof CONST.OPTION_MODE>;
+    shouldDisableFocusOptions?: boolean;
+    policy: OnyxEntry<Policy>;
+    reports: OnyxEntry<Record<string, Report>>;
+    reportActions: OnyxEntry<ReportActions>;
+    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
+    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+};
 
 function LHNOptionsList({
     style,
