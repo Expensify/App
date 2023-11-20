@@ -127,7 +127,7 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId && !_.isEmpty(reportID);
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
