@@ -91,7 +91,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 setIsImageLoading(true);
                             }}
                             onLoadEnd={() => {
-                                setShowFallback(false);
+                                setTimeout(() => setShowFallback(false), 100);
                                 setIsImageLoading(false);
                                 isImageLoaded.current = true;
                             }}
