@@ -36,24 +36,10 @@ jobs:
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
     name: Create or update deploy checklist
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/createDeployChecklist.yml
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
-
-      - name: Set version
-        id: getVersion
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_OUTPUT"
-
-      - name: Create or update staging deploy
-        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ steps.getVersion.outputs.VERSION }}
+    secrets: inherit
 
   android:
     name: Build and deploy Android
