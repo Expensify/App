@@ -9,14 +9,14 @@ type UnreadActionIndicatorProps = {
     reportActionID: string;
 };
 
-function UnreadActionIndicator(props: UnreadActionIndicatorProps) {
+function UnreadActionIndicator({reportActionID}: UnreadActionIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <View
             accessibilityLabel={translate('accessibilityHints.newMessageLineIndicator')}
-            data-action-id={props.reportActionID}
+            data-action-id={reportActionID}
             style={[styles.unreadIndicatorContainer, styles.userSelectNone, styles.pointerEventsNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
@@ -27,4 +27,5 @@ function UnreadActionIndicator(props: UnreadActionIndicatorProps) {
 }
 
 UnreadActionIndicator.displayName = 'UnreadActionIndicator';
+
 export default UnreadActionIndicator;
