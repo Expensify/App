@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
@@ -42,6 +42,7 @@ const defaultProps = {
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
 function RadioButtonWithLabel(props) {
+    const styles = useThemeStyles();
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];

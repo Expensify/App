@@ -3,8 +3,8 @@ import React, {useCallback, useState} from 'react';
 import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
@@ -71,6 +71,7 @@ function calculateThumbnailImageSize(width: number, height: number, windowHeight
 }
 
 function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const initialDimensions = calculateThumbnailImageSize(imageWidth, imageHeight, windowHeight);
     const [currentImageWidth, setCurrentImageWidth] = useState(initialDimensions.thumbnailWidth);

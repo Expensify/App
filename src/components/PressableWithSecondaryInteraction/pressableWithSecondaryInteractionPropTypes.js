@@ -51,6 +51,9 @@ const propTypes = {
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing: PropTypes.bool,
+
+    /** Whether the text has a gray highlights on press down (for IOS only) */
+    suppressHighlighting: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,6 +66,7 @@ const defaultProps = {
     activeOpacity: 1,
     enableLongPressWithHover: false,
     needsOffscreenAlphaCompositing: false,
+    suppressHighlighting: false,
 };
 
 export {propTypes, defaultProps};
