@@ -10,7 +10,7 @@ import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +27,7 @@ const defaultProps = {
 };
 
 function WorkspaceCardVBANoECardView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Section

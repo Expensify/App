@@ -18,7 +18,7 @@ type HOCProps = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
-type ComponentProps = OnyxProps & HOCProps;
+type WithCurrentUserPersonalDetailsProps = OnyxProps & HOCProps;
 
 // TODO: remove when all components that use it will be migrated to TS
 const withCurrentUserPersonalDetailsPropTypes = {
@@ -29,7 +29,7 @@ const withCurrentUserPersonalDetailsDefaultProps: HOCProps = {
     currentUserPersonalDetails: {},
 };
 
-export default function <TProps extends ComponentProps, TRef>(
+export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
@@ -62,3 +62,4 @@ export default function <TProps extends ComponentProps, TRef>(
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
+export type {WithCurrentUserPersonalDetailsProps};

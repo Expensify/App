@@ -1,4 +1,4 @@
-import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
@@ -74,6 +74,31 @@ const getActiveRouteIndex = function (route, index) {
 };
 
 /**
+ * Gets distance from the path in root navigator. In other words how much screen you have to pop to get to the route with this path.
+ * The search is limited to 5 screens from the top for performance reasons.
+ * @param {String} path - Path that you are looking for.
+ * @return {Number} - Returns distance to path or -1 if the path is not found in root navigator.
+ */
+function getDistanceFromPathInRootNavigator(path) {
+    let currentState = navigationRef.getRootState();
+
+    for (let index = 0; index < 5; index++) {
+        if (!currentState.routes.length) {
+            break;
+        }
+
+        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        if (path === pathFromState.substring(1)) {
+            return index;
+        }
+
+        currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
+    }
+
+    return -1;
+}
+
+/**
  * Main navigation method for redirecting to a route.
  * @param {String} route
  * @param {String} [type] - Type of action to perform. Currently UP is supported.
@@ -114,7 +139,6 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
     }
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
@@ -127,6 +151,21 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+        return;
+    }
+
+    const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+
+    // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
+    }
+
+    // Add posibility to go back more than one screen in root navigator if that screen is on the stack.
+    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
+        navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
         return;
     }
 
@@ -266,6 +305,57 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * Checks if the navigation state contains routes that are protected (over the auth wall).
+ *
+ * @function
+ * @param {Object} state - react-navigation state object
+ *
+ * @returns {Boolean}
+ */
+function navContainsProtectedRoutes(state) {
+    if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
+        return false;
+    }
+
+    const protectedScreensName = _.values(PROTECTED_SCREENS);
+    const difference = _.difference(protectedScreensName, state.routeNames);
+
+    return !difference.length;
+}
+
+/**
+ * Waits for the navitgation state to contain protected routes specified in PROTECTED_SCREENS constant.
+ * If the navigation is in a state, where protected routes are avilable, the promise resolve immediately.
+ *
+ * @function
+ * @returns {Promise<void>} A promise that resolves when the one of the PROTECTED_SCREENS screen is available in the nav tree.
+ *
+ * @example
+ * waitForProtectedRoutes()
+ *     .then(()=> console.log('Protected routes are present!'))
+ */
+function waitForProtectedRoutes() {
+    return new Promise((resolve) => {
+        isNavigationReady().then(() => {
+            const currentState = navigationRef.current.getState();
+            if (navContainsProtectedRoutes(currentState)) {
+                resolve();
+                return;
+            }
+            let unsubscribe;
+            const handleStateChange = ({data}) => {
+                const state = lodashGet(data, 'state');
+                if (navContainsProtectedRoutes(state)) {
+                    unsubscribe();
+                    resolve();
+                }
+            };
+            unsubscribe = navigationRef.current.addListener('state', handleStateChange);
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -281,6 +371,8 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
+    waitForProtectedRoutes,
+    navContainsProtectedRoutes,
 };
 
 export {navigationRef};
