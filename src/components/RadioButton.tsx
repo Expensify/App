@@ -12,7 +12,7 @@ type RadioButtonProps = {
     isChecked: boolean;
 
     /** A function that is called when the box/label is pressed */
-    onPress?: () => void;
+    onPress: () => void;
 
     /** Specifies the accessibility label for the radio button */
     accessibilityLabel: string;
@@ -24,7 +24,7 @@ type RadioButtonProps = {
     disabled?: boolean;
 };
 
-function RadioButton({isChecked, onPress = () => undefined, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
+function RadioButton({isChecked, onPress, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
