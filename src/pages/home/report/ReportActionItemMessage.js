@@ -42,10 +42,8 @@ function ReportActionItemMessage(props) {
     let fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
 
-    const isMemberChangeLog = ReportActionsUtils.isMemberRoomChangeLog(props.action);
-    if (isMemberChangeLog) {
-        const targetAccountIDs = props.action.originalMessage.targetAccountIDs;
-        fragments = [ReportActions.getReportActionMessageRoomChange(fragments[0], targetAccountIDs)];
+    if (ReportActionsUtils.isChannelLogMemberAction(props.action)) {
+        fragments = [ReportActions.getReportActionMessageRoomChange(fragments[0], props.action.originalMessage)];
     }
 
     let iouMessage;

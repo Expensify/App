@@ -628,15 +628,6 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function isMemberRoomChangeLog(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM];
-    return actions.includes(reportAction.actionName);
-}
-
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -678,6 +669,5 @@ export {
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
-    isMemberRoomChangeLog,
     isChannelLogMemberAction,
 };

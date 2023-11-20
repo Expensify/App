@@ -4179,8 +4179,8 @@ function getIOUReportActionDisplayMessage(reportAction) {
 function getChannelLogMemberMessage(reportAction) {
     const verb =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? 'invited'
-            : 'removed';
+            ? Localize.translateLocal('workspace.invite.invited')
+            : Localize.translateLocal('workspace.invite.removed');
 
     const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
         const personalDetail = lodashGet(allPersonalDetails, accountID);
@@ -4195,17 +4195,17 @@ function getChannelLogMemberMessage(reportAction) {
     if (mentions.length === 0) {
         message = `${verb} ${lastMention}`;
     } else if (mentions.length === 1) {
-        message = `${verb} ${mentions[0]} and ${lastMention}`;
+        message = `${verb} ${mentions[0]} ${Localize.translateLocal('common.and')} ${lastMention}`;
     } else {
-        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
+        message = `${verb} ${mentions.join(', ')},  ${Localize.translateLocal('common.and')} ${lastMention}`;
     }
 
     const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
     if (roomName) {
         const preposition =
             reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ' to'
-                : ' from';
+                ? ` ${Localize.translateLocal('workspace.invite.to')}`
+                : ` ${Localize.translateLocal('workspace.invite.from')}`
         message += `${preposition} ${roomName}`;
     }
 
