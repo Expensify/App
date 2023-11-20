@@ -11,14 +11,17 @@ type CopyTextToClipboardProps = {
 
     /** Styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
+
+    urlToCopy?: string;
 };
 
 function CopyTextToClipboard(props: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {
-        Clipboard.setString(props.text);
-    }, [props.text]);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        Clipboard.setString(props.urlToCopy || props.text);
+    }, [props.text, props.urlToCopy]);
 
     return (
         <PressableWithDelayToggle

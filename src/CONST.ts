@@ -538,7 +538,6 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
@@ -2880,6 +2879,29 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    /** <input /> types that will show a virtual keyboard in a mobile browser */
+    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
 } as const;
 
 export default CONST;
