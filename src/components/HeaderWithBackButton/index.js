@@ -53,6 +53,7 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlay = false,
     singleExecution = (func) => func,
+    shouldAwareTopMostReport = false,
 }) {
     const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -74,7 +75,11 @@ function HeaderWithBackButton({
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                onBackButtonPress();
+                                if (shouldAwareTopMostReport && Navigation.getTopmostReportId()) {
+                                    Navigation.goBack(ROUTES.HOME);
+                                } else {
+                                    onBackButtonPress();
+                                }
                             }}
                             style={[styles.touchableButtonImage]}
                             role="button"
