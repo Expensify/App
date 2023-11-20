@@ -131,8 +131,8 @@ export default function getTooltipStyles(
     tooltipTargetWidth: number,
     tooltipTargetHeight: number,
     maxWidth: number,
-    tooltipContentWidth = 0,
-    tooltipWrapperHeight = 0,
+    tooltipContentWidth?: number,
+    tooltipWrapperHeight?: number,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 ): TooltipStyles {
