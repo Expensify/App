@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
@@ -83,6 +84,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 android {
     ndkVersion rootProject.ext.ndkVersion
 
+    buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.expensify.chat"
@@ -99,13 +101,13 @@ android {
     productFlavors {
         // we need to define a production flavor but since it has default config, we can leave it empty
         production
-        e2e {
-            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
-            // applies all non-production flavors
-            applicationIdSuffix ".e2e"
-            signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "com.expensify.chat"
-        }
+//        e2e {
+//            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
+//            // applies all non-production flavors
+//            applicationIdSuffix ".e2e"
+//            signingConfig signingConfigs.debug
+//            resValue "string", "build_config_package", "com.expensify.chat"
+//        }
         e2edelta {
             // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
             // applies all non-production flavors
@@ -157,8 +159,8 @@ android {
                 flavor.signingConfig signingConfigs.release
             }
             // ... except for the e2e flavor, which we maybe want to build locally:
-            productFlavors.e2e.signingConfig signingConfigs.debug
-            productFlavors.e2edelta.signingConfig signingConfigs.debug
+//            productFlavors.e2e.signingConfig signingConfigs.debug
+//            productFlavors.e2edelta.signingConfig signingConfigs.debug
         }
     }
 
@@ -173,17 +175,8 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
+    implementation("com.facebook.react:flipper-integration")
 
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
-      exclude group:'com.facebook.fbjni'
-    }
-
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.squareup.okhttp3', module:'okhttp'
-    }
-
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

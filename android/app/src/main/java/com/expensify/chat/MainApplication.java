@@ -11,6 +11,7 @@ import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.react.modules.i18nmanager.I18nUtil;
@@ -75,7 +76,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         // If you opted-in for the New Architecture, we load the native entry point for this app.
         DefaultNewArchitectureEntryPoint.load();
       }
-      ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
 
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
