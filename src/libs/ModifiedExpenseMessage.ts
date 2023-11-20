@@ -2,42 +2,20 @@ import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import _ from 'underscore';
-
-let allPolicyTags = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
-function getPolicyTags(policyID: string) {
-    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
-}
 
 
 /**
  * Get the proper message schema for a modified field on the expense.
  *
- * @param {String} newValue
- * @param {String} oldValue
- * @param {String} valueName
- * @param {Boolean} valueInQuotes
- * @param {Boolean} shouldConvertToLowercase
- * @returns {String}
+ * @param newValue
+ * @param oldValue
+ * @param valueName
+ * @param valueInQuotes
+ * @param shouldConvertToLowercase
  */
 
 function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true) {
@@ -123,7 +101,7 @@ function getModifiedExpenseMessage(reportAction: Object): string {
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(ReportUtils.getReport(reportID), 'policyID', '');
-    const policyTags = getPolicyTags(policyID);
+    const policyTags = PolicyUtils.getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 

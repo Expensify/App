@@ -3,10 +3,31 @@ import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '@src/types/onyx';
+import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID: string) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -199,6 +220,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 
 export {
     getActivePolicies,
+    getPolicyTags,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
