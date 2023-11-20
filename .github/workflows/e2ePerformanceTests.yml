@@ -22,7 +22,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -30,21 +30,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
-        with:
-          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+      # - name: Check if there's an existing artifact for this baseline
+      #   id: checkForExistingArtifact
+      #   uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+      #   with:
+      #     name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+      # - name: Skip build if there's already an existing artifact for the baseline
+      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: |
-          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      # - name: Checkout "Baseline" commit (last release)
+      #   if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: |
+      #     git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+      #     git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Checkout latest main commit (TODO temporary until new version is released)
+        run: git switch --detach main
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -75,7 +78,7 @@ jobs:
     outputs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -151,7 +154,7 @@ jobs:
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
