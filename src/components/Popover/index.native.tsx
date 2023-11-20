@@ -1,24 +1,19 @@
 import React from 'react';
-import _ from 'underscore';
 import Modal from '@components/Modal';
-import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes as popoverPropTypes} from './popoverPropTypes';
-
-const propTypes = {
-    ..._.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes)),
-};
+import {PopoverProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-function Popover(props) {
-    const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition', 'disableAnimation']);
+function Popover(props: PopoverProps) {
+    const {animationIn, animationOut, popoverAnchorPosition, disableAnimation, ...propsWithoutAnimation} = props;
+    const {anchorPosition = {}, fromSidebarMediumScreen} = propsWithoutAnimation;
     return (
         <Modal
-            type={props.fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            popoverAnchorPosition={props.fromSidebarMediumScreen ? props.anchorPosition : undefined}
+            type={fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            popoverAnchorPosition={fromSidebarMediumScreen ? anchorPosition : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
             // Mobile will always has fullscreen menu
@@ -28,8 +23,6 @@ function Popover(props) {
     );
 }
 
-Popover.propTypes = propTypes;
-Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
 export default Popover;

@@ -1,63 +1,33 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {ViewStyle} from 'react-native';
-import {ModalProps} from 'react-native-modal';
 import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './popoverPropTypes';
+import {PopoverPropsWithWindowDimensions} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 
-type PopoverProps = {
-    isVisible: boolean;
-    anchorPosition: {
-        top: number;
-        left: number;
-        bottom: number;
-        right: number;
-    };
-    anchorAlignment: {horizontal: string; vertical: string};
-    anchorRef: React.RefObject<HTMLElement>;
-    disableAnimation: boolean;
-    withoutOverlay: boolean;
-    fullscreen?: boolean;
-    shouldCloseOnOutsideClick?: boolean;
-    shouldSetModalVisibility?: boolean;
-    onClose: () => void;
-    children: React.ReactNode;
-    onSubmit?: () => void;
-    onModalHide?: () => void;
-    onModalShow?: () => void;
-    animationIn?: ModalProps['animationIn'];
-    animationInTiming?: number;
-    animationOut?: ModalProps['animationOut'];
-    animationOutTiming?: number;
-    innerContainerStyle?: ViewStyle;
-    statusBarTranslucent?: boolean;
-    avoidKeyboard?: boolean;
-    hideModalContentWhileAnimating?: boolean;
-    isExtraSmallScreenWidth?: boolean;
-    isSmallScreenWidth?: boolean;
-    isMediumScreenWidth?: boolean;
-    isLargeScreenWidth?: boolean;
-    popoverDimensions?: {
-        width: number;
-        height: number;
-    };
-    windowHeight?: number;
-    windowWidth?: number;
-    withoutOverlayRef?: React.RefObject<HTMLElement>;
-    outerStyle?: ViewStyle | Record<string, never>;
-    onLayout?: () => void;
-};
-function Popover(props: PopoverProps) {
-    const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition, anchorRef} = props;
+function Popover(props: PopoverPropsWithWindowDimensions) {
+    const {
+        isVisible,
+        onClose,
+        isSmallScreenWidth,
+        fullscreen,
+        animationInTiming = CONST.ANIMATED_TRANSITION,
+        onLayout,
+        animationOutTiming,
+        disableAnimation = true,
+        withoutOverlay,
+        anchorPosition = {},
+        anchorRef = () => {},
+        animationIn = 'fadeIn',
+        animationOut = 'fadeOut',
+    } = props;
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -78,7 +48,7 @@ function Popover(props: PopoverProps) {
     }, [onClose, isVisible]);
 
     const onCloseWithPopoverContext = () => {
-        if (popover) {
+        if (popover && 'current' in anchorRef) {
             close(anchorRef);
         }
         onClose();
@@ -92,10 +62,12 @@ function Popover(props: PopoverProps) {
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={anchorPosition}
-                animationInTiming={disableAnimation ? 1 : animationInTiming}
-                animationOutTiming={disableAnimation ? 1 : animationOutTiming}
+                animationInTiming={disableAnimation ? 1 : animationInTiming ?? 1}
+                animationOutTiming={disableAnimation ? 1 : animationOutTiming ?? 1}
                 shouldCloseOnOutsideClick
                 onLayout={onLayout}
+                animationIn={animationIn}
+                animationOut={animationOut}
             />,
             document.body,
         );
@@ -107,6 +79,8 @@ function Popover(props: PopoverProps) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 withoutOverlayRef={withoutOverlayRef}
+                animationIn={animationIn}
+                animationOut={animationOut}
             />,
             document.body,
         );
@@ -120,15 +94,15 @@ function Popover(props: PopoverProps) {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={isSmallScreenWidth ? true : fullscreen}
-            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
-            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
+            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming ?? 1}
+            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming ?? 1}
             onLayout={onLayout}
+            animationIn={animationIn}
+            animationOut={animationOut}
         />
     );
 }
 
-Popover.propTypes = propTypes;
-Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
 export default withWindowDimensions(Popover);
