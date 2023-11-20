@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -7,14 +8,12 @@ import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {LocaleContextProps} from './LocaleContextProvider';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import Tooltip from './Tooltip';
-import withLocalize from './withLocalize';
 
-type BannerProps = LocaleContextProps & {
+type BannerProps = {
     /** Text to display in the banner. */
     text: string;
 
@@ -40,8 +39,9 @@ type BannerProps = LocaleContextProps & {
     textStyles?: StyleProp<TextStyle>;
 };
 
-function Banner({text, translate, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <Hoverable>
@@ -101,5 +101,4 @@ function Banner({text, translate, onClose, onPress, containerStyles, textStyles,
 
 Banner.displayName = 'Banner';
 
-// TODO: use `compose` function for HOCs composing once TypeScript issues are resolved.
-export default memo(withLocalize(Banner));
+export default memo(Banner);
