@@ -54,7 +54,6 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-
 // TODO: Move to utils
 function callOrReturn<T>(value: T | (() => T)): T {
     return typeof value === 'function' ? (value as () => T)() : value;
@@ -69,7 +68,7 @@ function Tooltip({
     shouldHandleScroll = false,
     shiftHorizontal = 0,
     shiftVertical = 0,
-    tooltipRef = () => {},
+    tooltipRef,
     children,
 }: TooltipProps) {
     const {preferredLocale} = useLocalize();

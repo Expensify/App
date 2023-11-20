@@ -1,5 +1,5 @@
-import { BoundsObserver } from '@react-ng/bounds-observer';
-import {LegacyRef, ReactElement, ReactNode} from 'react';
+import {BoundsObserver} from '@react-ng/bounds-observer';
+import {ReactElement, ReactNode, RefObject} from 'react';
 
 type TooltipProps = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
@@ -32,7 +32,12 @@ type TooltipProps = {
     shouldHandleScroll?: boolean;
 
     /** Reference to the tooltip container */
-    tooltipRef?: LegacyRef<BoundsObserver>;
+    tooltipRef?: RefObject<BoundsObserver> | null;
 };
 
-export {TooltipProps};
+type TooltipExtendedProps = TooltipProps & {
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
+};
+
+export type {TooltipProps, TooltipExtendedProps};

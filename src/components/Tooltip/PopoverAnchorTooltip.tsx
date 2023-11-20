@@ -1,20 +1,16 @@
+import {BoundsObserver} from '@react-ng/bounds-observer';
 import React, {useContext, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
 import BaseTooltip from './BaseTooltip';
-import {TooltipProps} from './types';
+import {TooltipExtendedProps} from './types';
 
-type Props = TooltipProps & {
-    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
-    shouldRender: boolean;
-};
-function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Props) {
+function PopoverAnchorTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
     const {isOpen, popover} = useContext(PopoverContext);
-    const tooltipRef = useRef<View>(null);
+    const tooltipRef = useRef<BoundsObserver>(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
-        // eslint-disable-next-line
-        const tooltipNode = tooltipRef.current ? tooltipRef.current._childNode : null;
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        const tooltipNode = tooltipRef.current ? tooltipRef.current['_childNode'] : null;
         if (isOpen && popover?.anchorRef?.current && tooltipNode && (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)) {
             return true;
         }

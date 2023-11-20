@@ -1,12 +1,8 @@
 import React from 'react';
 import BaseTooltip from './BaseTooltip';
-import {TooltipProps} from './types';
+import {TooltipExtendedProps} from './types';
 
-type Props = TooltipProps & {
-    shouldRender?: boolean;
-};
-
-function Tooltip({shouldRender = true, children, ...props}: Props) {
+function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
     if (!shouldRender) {
         return children;
     }
