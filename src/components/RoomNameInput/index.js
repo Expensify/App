@@ -30,7 +30,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             valueParser={valueParser}
             displayParser={displayParser}
             autoCapitalize="none"
-            onBlur={(event) => isFocused && onBlur(event)}
+            onBlur={() => isFocused && onBlur()}
             shouldDelayFocus={shouldDelayFocus}
             autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
