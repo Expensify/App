@@ -383,7 +383,7 @@ function AddressSearch({
             network.isOffline || !isTyping ? null : (
                 <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>
             ),
-        [isTyping, translate, network.isOffline],
+        [network.isOffline, isTyping, styles, translate],
     );
 
     const listLoader = useCallback(
@@ -395,7 +395,7 @@ function AddressSearch({
                 />
             </View>
         ),
-        [],
+        [styles.pv4, theme.spinner],
     );
 
     return (
