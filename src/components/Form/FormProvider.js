@@ -215,7 +215,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            } else if(propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
+            } else if (propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
                 inputValues[inputID] = draftValues[inputID];
             } else if (propsToParse.shouldUseDefaultValue && _.isUndefined(inputValues[inputID])) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
