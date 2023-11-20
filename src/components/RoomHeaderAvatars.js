@@ -3,9 +3,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import Avatar from './Avatar';
@@ -32,6 +32,8 @@ function RoomHeaderAvatars(props) {
         Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
     };
 
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (!props.icons.length) {
         return null;
     }
@@ -47,7 +49,7 @@ function RoomHeaderAvatars(props) {
                 <Avatar
                     source={props.icons[0].source}
                     imageStyles={[styles.avatarLarge]}
-                    fill={themeColors.iconSuccessFill}
+                    fill={theme.iconSuccessFill}
                     size={CONST.AVATAR_SIZE.LARGE}
                     name={props.icons[0].name}
                     type={props.icons[0].type}
@@ -81,7 +83,7 @@ function RoomHeaderAvatars(props) {
                         >
                             <Avatar
                                 source={icon.source}
-                                fill={themeColors.iconSuccessFill}
+                                fill={theme.iconSuccessFill}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                 name={icon.name}

@@ -425,6 +425,11 @@ export default {
                             SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
+                    Referral: {
+                        screens: {
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        },
+                    },
                 },
             },
         },

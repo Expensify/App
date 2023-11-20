@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -44,6 +44,7 @@ const defaultProps = {
 };
 
 function GetAssistancePage(props) {
+    const styles = useThemeStyles();
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
