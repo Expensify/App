@@ -1507,6 +1507,12 @@ export default {
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'user',
+            users: 'users',
+            invited: 'invited',
+            removed: 'removed',
+            to: 'to',
+            from: 'from',
         },
         inviteMessage: {
             inviteMessageTitle: 'Add message',

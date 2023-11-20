@@ -7,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as ReportActions from '@userActions/ReportActions';
 import CONST from '@src/CONST';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -38,7 +39,10 @@ const defaultProps = {
 
 function ReportActionItemMessage(props) {
     const styles = useThemeStyles();
-    const fragments = _.compact(props.action.previousMessage || props.action.message);
+    let fragments = _.compact(props.action.previousMessage || props.action.message);
+    if (ReportActionsUtils.isChannelLogMemberAction(props.action)) {
+        fragments = [ReportActions.getReportActionMessageRoomChange(fragments[0], props.action.originalMessage)];
+    }
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     let iouMessage;
     if (isIOUReport) {
