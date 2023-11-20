@@ -6,7 +6,7 @@ import _ from 'underscore';
 import InputWrapper from '@components/Form/InputWrapper';
 import NewDatePicker from '@components/NewDatePicker';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
@@ -131,6 +131,7 @@ const defaultProps = {
 };
 
 function IdentityForm(props) {
+    const styles = useThemeStyles();
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
