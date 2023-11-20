@@ -383,7 +383,7 @@ function replaceBaseURLAndUpdateRoomName(reportAction: ReportAction): ReportActi
         return updatedReportAction;
     }
     const reportID = reportAction.originalMessage.reportID;
-    const roomName = allReports ? allReports[`${reportID}`]?.reportName : '';
+    const roomName = allReports ? allReports[`${reportID}`]?.reportName : reportAction.originalMessage.roomName;
     const verb = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
     const listMention = (reportAction.originalMessage.targetAccountIDs ?? []).map((accountID) => `<mention-user accountID=${accountID}></mention-user>`);
 
