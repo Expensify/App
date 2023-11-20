@@ -10,7 +10,9 @@ import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
+        /** Whether the account data is loading */
         isLoading: PropTypes.bool,
     }),
 
@@ -22,6 +24,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    account: {
+        isLoading: false,
+    },
     session: {
         email: null,
     },
@@ -49,7 +54,7 @@ function LogOutPreviousUserPage(props) {
             }
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            if (exitTo && !props.account.isLoading) {
+            if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
                 });
