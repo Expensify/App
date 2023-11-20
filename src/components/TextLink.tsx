@@ -1,6 +1,6 @@
 import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler} from 'react';
 import {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import Text, { TextProps } from './Text';
@@ -28,6 +28,8 @@ type TextLinkProps = (LinkProps | PressProps) & TextProps & {
 };
 
 function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
+    const styles = useThemeStyles();
+
     const openLink = () => {
         if (onPress) {
             onPress();
