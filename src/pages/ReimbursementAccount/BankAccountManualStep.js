@@ -90,7 +90,7 @@ function BankAccountManualStep(props) {
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 <Text style={[styles.mb5]}>{translate('bankAccount.checkHelpLine')}</Text>
                 <Image
