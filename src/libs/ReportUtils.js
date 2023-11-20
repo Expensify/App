@@ -11,10 +11,10 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -80,6 +80,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -1259,16 +1278,20 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
+    // when searching for a new user while offline
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return personalDetails.login || '';
+        return formattedLogin;
     }
-    const longName = personalDetails.displayName;
+
+    const longName = personalDetails.displayName || formattedLogin;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1629,9 +1652,10 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  *    - or the user is an admin on the policy the expense report is tied to
  *
  * @param {Object} reportAction
+ * @param {String} fieldToEdit
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction) {
+function canEditMoneyRequest(reportAction, fieldToEdit = '') {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1653,7 +1677,9 @@ function canEditMoneyRequest(reportAction) {
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1680,7 +1706,7 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
 
@@ -1921,7 +1947,7 @@ function getModifiedExpenseMessage(reportAction) {
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(getReport(reportID), 'policyID', '');
-    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTags = getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
@@ -4145,6 +4171,48 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
+ * Return room channel log display message
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getChannelLogMemberMessage(reportAction) {
+    const verb =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
+
+    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+
+    const lastMention = mentions.pop();
+    let message = '';
+
+    if (mentions.length === 0) {
+        message = `${verb} ${lastMention}`;
+    } else if (mentions.length === 1) {
+        message = `${verb} ${mentions[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
+    }
+
+    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
+    if (roomName) {
+        const preposition =
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
+    }
+
+    return message;
+}
+
+/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4195,6 +4263,15 @@ function shouldUseFullTitleToDisplay(report) {
 function getRoom(type, policyID) {
     const room = _.find(allReports, (report) => report && report.policyID === policyID && report.chatType === type && !isThread(report));
     return room;
+}
+/**
+ *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
+ * @param {Object} report
+ * @param {Object} policy
+ * @return {Boolean}
+ */
+function shouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
 export {
@@ -4357,5 +4434,7 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getChannelLogMemberMessage,
     getRoom,
+    shouldDisableWelcomeMessage,
 };

@@ -68,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
