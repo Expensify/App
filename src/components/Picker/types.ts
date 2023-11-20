@@ -49,7 +49,7 @@ type BasePickerProps = {
     isDisabled?: boolean;
 
     /** Input value */
-    value?: string | null | number;
+    value?: string | number | null;
 
     /** The items to display in the list of selections */
     items: PickerItem[];
