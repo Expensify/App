@@ -2729,6 +2729,13 @@ function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentRep
     };
 
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
+    const movedActionMessage = [
+        {
+            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+            text: `moved the report to the ${policyName} workspace`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
@@ -2737,13 +2744,7 @@ function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentRep
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message: [
-            {
-                html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
-                text: `moved the report to the ${policyName} workspace`,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-            },
-        ],
+        message: movedActionMessage,
         person: [
             {
                 style: 'strong',
