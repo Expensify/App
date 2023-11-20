@@ -1,6 +1,5 @@
-import {ViolationName} from '@src/types/onyx';
 import invertBy from 'lodash/invertBy';
-
+import {ViolationName} from '@src/types/onyx';
 
 /**
  * Map from Violation Names to the field where that violation can occur
@@ -25,16 +24,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
 /**
  * Names of Fields where violations can occur
  */
-type ViolationField =
-    | 'merchant'
-    | 'amount'
-    | 'category'
-    | 'date'
-    | 'tag'
-    | 'comment'
-    | 'billable'
-    | 'receipt'
-    | 'tax';
+type ViolationField = 'merchant' | 'amount' | 'category' | 'date' | 'tag' | 'comment' | 'billable' | 'receipt' | 'tax';
 
 /**
  * Map from field name to array of violation types that can occur on that field.
@@ -47,6 +37,5 @@ type ViolationField =
  */
 const possibleViolationsByField = invertBy(violationFields, (value) => value) as Record<ViolationField, ViolationName[]>;
 
-
-export default possibleViolationsByField
-export type {ViolationField}
+export default possibleViolationsByField;
+export type {ViolationField};
