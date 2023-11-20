@@ -65,7 +65,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                 <>
                     <VideoPlayer
                         url={videoUrl}
-                        videoPlayerStyles={{borderRadius: 10}}
                         shouldPlay={false}
                         onOpenInModalButtonPress={showModal}
                         onVideoLoaded={onVideoLoaded}
@@ -74,7 +73,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     <IconButton
                         src={Expensicons.Expand}
                         fill="white"
-                        style={[styles.videoExpandButton]}
+                        style={styles.videoExpandButton}
                         accessibilityLabel="open in modal"
                         onPress={showModal}
                     />

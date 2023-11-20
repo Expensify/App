@@ -8,6 +8,8 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import VolumeButton from '@components/VolumeButton';
 import styles from '@styles/styles';
+import spacing from '@styles/utilities/spacing';
+import CONST from '@src/CONST';
 import IconButton from './IconButton';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
@@ -72,35 +74,34 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
-                        fill="white"
                         accessibilityLabel="play/pause"
                         onPress={togglePlayCurrentVideo}
-                        style={{marginRight: 8}}
+                        style={spacing.mr2}
                     />
                     {shouldShowTime && (
                         <View style={[styles.videoPlayerControlsRow]}>
-                            <Text style={[styles.videoPlayerText, {width: 30}]}>{convertMillisecondsToTime(position)}</Text>
+                            <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertMillisecondsToTime(position)}</Text>
                             <Text style={[styles.videoPlayerText]}>/</Text>
-                            <Text style={[styles.videoPlayerText, {width: 30}]}>{durationFormatted}</Text>
+                            <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{durationFormatted}</Text>
                         </View>
                     )}
                 </View>
                 <View style={[styles.videoPlayerControlsRow]}>
-                    <VolumeButton style={{marginRight: 12}} />
+                    <VolumeButton style={spacing.mr3} />
                     <IconButton
                         src={Expensicons.Fullscreen}
                         accessibilityLabel="fullsreen"
                         onPress={enterFullScreenMode}
-                        style={{marginRight: 12}}
+                        style={spacing.mr3}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}
                         accessibilityLabel="More options"
-                        onPress={(e) => showPopover(e.nativeEvent.pageY - 30, e.nativeEvent.pageX)}
+                        onPress={(e) => showPopover(e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX)}
                     />
                 </View>
             </View>
-            <View style={[styles.videoPlayerControlsRow, {marginHorizontal: 4}]}>
+            <View style={[styles.videoPlayerControlsRow, spacing.mh1]}>
                 <ProgressBar
                     duration={duration}
                     position={position}

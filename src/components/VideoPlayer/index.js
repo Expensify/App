@@ -7,6 +7,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -21,11 +22,9 @@ const propTypes = {
 
     isLooping: PropTypes.bool,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: stylePropTypes,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    videoStyle: PropTypes.arrayOf(PropTypes.object),
+    videoStyle: stylePropTypes,
 
     shouldUseSharedVideoElement: PropTypes.bool,
 };
@@ -133,7 +132,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             style={style}
                             videoStyle={videoStyle}
                             source={{
-                                uri: sourceURLWithAuth || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}
                             shouldPlay={shouldPlay}
                             useNativeControls={false}

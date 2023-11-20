@@ -161,7 +161,7 @@ function PopoverMenu(props) {
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         shouldShowRightIcon={item.shouldShowRightIcon}
-                        putLeftPaddingWhenNoIcon={item.putLeftPaddingWhenNoIcon}
+                        shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                     />
                 ))}
             </View>

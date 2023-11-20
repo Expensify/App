@@ -82,7 +82,7 @@ const defaultProps = {
     shouldShowRightComponent: false,
     titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
-    putLeftPaddingWhenNoIcon: false,
+    shouldPutLeftPaddingWhenNoIcon: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -212,7 +212,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             ]}
                                         />
                                     )}
-                                    {!props.icon && props.putLeftPaddingWhenNoIcon && (
+                                    {!props.icon && props.shouldPutLeftPaddingWhenNoIcon && (
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]} />
                                     )}
                                     {Boolean(props.icon) && !_.isArray(props.icon) && (

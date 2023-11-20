@@ -22,7 +22,7 @@ function VideoPopoverMenu() {
             console.log(`${speed}x`);
             updatePlaybackSpeed(speed);
         },
-        putLeftPaddingWhenNoIcon: true,
+        shouldPutLeftPaddingWhenNoIcon: true,
     }));
 
     const menuItems = [

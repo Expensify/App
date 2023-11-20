@@ -4090,6 +4090,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: '#061B09CC',
             borderRadius: 5,
         },
+
+        videoPlayerTimeComponentWidth: {
+            width: 40,
+        },
     } satisfies Styles);
 
 const stylesGenerator = styles;

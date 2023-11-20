@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import CONST from '@src/CONST';
 
 const PlaybackContext = React.createContext(null);
 
@@ -10,7 +11,7 @@ function PlaybackContextProvider({children}) {
 
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const playbackSpeeds = useMemo(() => [0.25, 0.5, 1, 1.5, 2], []);
+    const playbackSpeeds = useMemo(() => CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, []);
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
     const currentVideoPlayerRef = useRef(null);

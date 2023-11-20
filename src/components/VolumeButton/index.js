@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -8,11 +7,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import colors from '@styles/colors';
+import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 
 const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.objectOf(PropTypes.any).isRequired,
+    style: stylePropTypes.isRequired,
 };
 
 const defaultProps = {};
