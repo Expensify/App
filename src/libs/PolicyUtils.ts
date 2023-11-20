@@ -1,10 +1,10 @@
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '@src/types/onyx';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;

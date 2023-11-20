@@ -1,12 +1,11 @@
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
+import CONST from '@src/CONST';
+import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import CONST from '@src/CONST';
 import * as ReportUtils from './ReportUtils';
-import * as CurrencyUtils from './CurrencyUtils';
-import _ from 'underscore';
-
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -19,14 +18,14 @@ import _ from 'underscore';
  */
 
 function buildMessageFragmentForValue(
-    newValue: string, 
-    oldValue: string, 
-    valueName: string, 
-    valueInQuotes: boolean, 
-    setFragments: Array<string>,
-    removalFragments: Array<string>,
-    changeFragments: Array<string>,
-    shouldConvertToLowercase = true
+    newValue: string,
+    oldValue: string,
+    valueName: string,
+    valueInQuotes: boolean,
+    setFragments: string[],
+    removalFragments: string[],
+    changeFragments: string[],
+    shouldConvertToLowercase = true,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
@@ -53,7 +52,7 @@ function buildMessageFragmentForValue(
  * @param valueInQuotes
  */
 
-function getMessageLine(prefix: string, messageFragments: Array<string>) {
+function getMessageLine(prefix: string, messageFragments: string[]) {
     if (messageFragments.length === 0) {
         return '';
     }
@@ -114,9 +113,9 @@ function getForReportAction(reportAction: Object): string {
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
-    const removalFragments: Array<string> = [];
-    const setFragments: Array<string> = [];
-    const changeFragments: Array<string> = [];
+    const removalFragments: string[] = [];
+    const setFragments: string[] = [];
+    const changeFragments: string[] = [];
 
     const hasModifiedAmount =
         _.has(reportActionOriginalMessage, 'oldAmount') &&
@@ -147,7 +146,10 @@ function getForReportAction(reportAction: Object): string {
             reportActionOriginalMessage.newComment,
             reportActionOriginalMessage.oldComment,
             Localize.translateLocal('common.description'),
-            true, setFragments, removalFragments, changeFragments
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
         );
     }
 
@@ -155,7 +157,15 @@ function getForReportAction(reportAction: Object): string {
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
-        buildMessageFragmentForValue(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage.created,
+            formattedOldCreated,
+            Localize.translateLocal('common.date'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     if (hasModifiedMerchant) {
@@ -164,7 +174,9 @@ function getForReportAction(reportAction: Object): string {
             reportActionOriginalMessage.oldMerchant,
             Localize.translateLocal('common.merchant'),
             true,
-            setFragments, removalFragments, changeFragments
+            setFragments,
+            removalFragments,
+            changeFragments,
         );
     }
 
@@ -174,7 +186,10 @@ function getForReportAction(reportAction: Object): string {
             reportActionOriginalMessage.category,
             reportActionOriginalMessage.oldCategory,
             Localize.translateLocal('common.category'),
-            true, setFragments, removalFragments, changeFragments
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
         );
     }
 
@@ -185,7 +200,9 @@ function getForReportAction(reportAction: Object): string {
             reportActionOriginalMessage.oldTag,
             policyTagListName,
             true,
-            setFragments, removalFragments, changeFragments,
+            setFragments,
+            removalFragments,
+            changeFragments,
             policyTagListName === Localize.translateLocal('common.tag'),
         );
     }
@@ -196,7 +213,10 @@ function getForReportAction(reportAction: Object): string {
             reportActionOriginalMessage.billable,
             reportActionOriginalMessage.oldBillable,
             Localize.translateLocal('iou.request'),
-            true, setFragments, removalFragments, changeFragments
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
         );
     }
 

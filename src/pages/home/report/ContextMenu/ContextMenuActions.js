@@ -10,6 +10,7 @@ import Clipboard from '@libs/Clipboard';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,7 +23,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 
 /**
  * Gets the HTML version of the message in an action.
