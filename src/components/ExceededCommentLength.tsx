@@ -1,16 +1,16 @@
 import debounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxEntry} from "react-native-onyx/lib/types";
 import Text from './Text';
 
 type ExceededCommentLengthOnyxProps = {
-    comment: OnyxEntry<string>
+    comment: OnyxEntry<string>;
 };
 
 type ExceededCommentLengthProps = {
