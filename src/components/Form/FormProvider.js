@@ -46,6 +46,9 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    /** Contains draft values for each input in the form */
+    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
+
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
@@ -76,6 +79,7 @@ const defaultProps = {
     formState: {
         isLoading: false,
     },
+    draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
@@ -99,7 +103,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -211,6 +215,8 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
+            } else if(propsToParse.shouldSaveDraft && draftValues[inputID] !== undefined && inputValues[inputID] === undefined) {
+                inputValues[inputID] = draftValues[inputID];
             } else if (propsToParse.shouldUseDefaultValue) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
@@ -305,7 +311,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 },
             };
         },
-        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [draftValues, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -335,6 +341,9 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
+        },
+        draftValues: {
+            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(FormProvider);
