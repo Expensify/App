@@ -212,9 +212,9 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            } else if (propsToParse.shouldSaveDraft && draftValues[inputID] !== undefined && inputValues[inputID] === undefined) {
+            } else if (propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
                 inputValues[inputID] = draftValues[inputID];
-            } else if (propsToParse.shouldUseDefaultValue) {
+            } else if (propsToParse.shouldUseDefaultValue && _.isUndefined(inputValues[inputID])) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
             } else if (_.isUndefined(inputValues[inputID])) {
@@ -306,7 +306,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: value});
+                        FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
