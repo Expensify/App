@@ -358,6 +358,11 @@ export default {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
+    // Referral program promotion
+    REFERRAL_DETAILS_MODAL: {
+        route: 'referral/:contentType',
+        getRoute: (contentType: string) => `referral/${contentType}`,
+    },
 
     // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
