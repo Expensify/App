@@ -1,7 +1,7 @@
-import { useIsFocused } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
-import { PopoverContext } from '@components/PopoverProvider';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {PopoverContext} from '@components/PopoverProvider';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -25,16 +25,10 @@ type DragAndDropOptions = {
 /**
  * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({
-    dropZone,
-    onDrop = () => { },
-    shouldAllowDrop = true,
-    isDisabled = false,
-    shouldAcceptDrop = () => true,
-}: DragAndDropParams): DragAndDropOptions {
+export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const { close: closePopover } = useContext(PopoverContext);
+    const {close: closePopover} = useContext(PopoverContext);
 
     // This solution is borrowed from this SO: https://stackoverflow.com/questions/7110353/html5-dragleave-fired-when-hovering-a-child-element
     // This is necessary because dragging over children will cause dragleave to execute on the parent.
@@ -136,5 +130,5 @@ export default function useDragAndDrop({
         };
     }, [dropZone, dropZoneDragHandler]);
 
-    return { isDraggingOver };
+    return {isDraggingOver};
 }
