@@ -6,13 +6,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DateUtils from '@libs/DateUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import {Timezone} from "@src/types/onyx/PersonalDetails";
+import {Timezone} from '@src/types/onyx/PersonalDetails';
 import Text from './Text';
 import withLocalize, {WithLocalizeProps} from './withLocalize';
 
 type AutoUpdateTimeProps = {
     /** Timezone of the user from their personal details */
-    timezone: Required<Timezone>
+    timezone: Required<Timezone>;
 } & WithLocalizeProps;
 
 function AutoUpdateTime(props: AutoUpdateTimeProps) {
