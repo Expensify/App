@@ -118,6 +118,7 @@ function getOrderedReportIDs(
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: Record<string, ReportAction[]>,
+    nextSteps: Record<string, Record<string, unknown>>,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -185,6 +186,8 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
     reportsToDisplay.forEach((report) => {
         const isPinned = report.isPinned ?? false;
+        // eslint-disable-next-line no-param-reassign
+        report.requiresUserAction = Boolean(nextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`]?.requiresUserAction ?? null);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
