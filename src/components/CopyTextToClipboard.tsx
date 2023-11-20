@@ -15,21 +15,21 @@ type CopyTextToClipboardProps = {
     urlToCopy?: string;
 };
 
-function CopyTextToClipboard(props: CopyTextToClipboardProps) {
+function CopyTextToClipboard({text, textStyles, urlToCopy}: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Clipboard.setString(props.urlToCopy || props.text);
-    }, [props.text, props.urlToCopy]);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+        Clipboard.setString(urlToCopy || text);
+    }, [text, urlToCopy]);
 
     return (
         <PressableWithDelayToggle
-            text={props.text}
+            text={text}
             tooltipText={translate('reportActionContextMenu.copyToClipboard')}
             tooltipTextChecked={translate('reportActionContextMenu.copied')}
             icon={Expensicons.Copy}
-            textStyles={props.textStyles}
+            textStyles={textStyles}
             onPress={copyToClipboard}
             accessible
             accessibilityLabel={translate('reportActionContextMenu.copyEmailToClipboard')}
