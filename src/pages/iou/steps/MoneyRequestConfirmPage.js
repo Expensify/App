@@ -85,11 +85,6 @@ function MoneyRequestConfirmPage(props) {
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
-        IOU.resetMoneyRequestCategory();
-        IOU.resetMoneyRequestTag();
-    }, []);
-
-    useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
