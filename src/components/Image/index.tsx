@@ -2,7 +2,6 @@ import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import RESIZE_MODES from './resizeModes';
 import {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
 function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImageProps) {
@@ -52,9 +51,6 @@ function imagePropsAreEqual(prevProps: ImageOwnProps, nextProps: ImageOwnProps) 
     return prevProps.source === nextProps.source;
 }
 
-Image.resizeMode = RESIZE_MODES;
-Image.displayName = 'Image';
-
 const ImageWithOnyx = React.memo(
     withOnyx<ImageProps, ImageOnyxProps>({
         session: {
@@ -63,5 +59,7 @@ const ImageWithOnyx = React.memo(
     })(Image),
     imagePropsAreEqual,
 );
+
+ImageWithOnyx.displayName = 'Image';
 
 export default ImageWithOnyx;

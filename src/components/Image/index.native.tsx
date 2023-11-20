@@ -3,7 +3,6 @@ import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import RESIZE_MODES from './resizeModes';
 import {FastImageSource, ImageOnyxProps, ImageProps} from './types';
 
 function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
@@ -35,13 +34,12 @@ function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
     );
 }
 
-Image.displayName = 'Image';
-Image.resizeMode = RESIZE_MODES;
-
 const ImageWithOnyx = withOnyx<ImageProps, ImageOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
 })(Image);
+
+ImageWithOnyx.displayName = 'Image';
 
 export default ImageWithOnyx;
