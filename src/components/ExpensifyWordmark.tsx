@@ -36,7 +36,7 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
         <>
             <View
                 style={[
-                    StyleUtils.getSignInWordmarkWidthStyle(environment, isSmallScreenWidth),
+                    StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
                     StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
                     isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
                     style,

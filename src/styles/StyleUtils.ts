@@ -462,7 +462,7 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(environment: ValueOf<typeof CONST.ENVIRONMENT> | undefined, isSmallScreenWidth: boolean): ViewStyle {
+function getSignInWordmarkWidthStyle(isSmallScreenWidth: boolean, environment?: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
