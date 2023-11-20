@@ -4,9 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
-import {WithLocalizeProps} from './withLocalize';
 
-type CopyTextToClipboardProps = WithLocalizeProps & {
+type CopyTextToClipboardProps = {
     /** The text to display and copy to the clipboard */
     text: string;
 
