@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {Component} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -9,15 +9,14 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsList from '@components/OptionsList';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withNavigationFocus from '@components/withNavigationFocus';
-import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
+import {useIsFocused} from "@react-navigation/native";
+import useLocalize from "@hooks/useLocalize";
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -32,11 +31,7 @@ const propTypes = {
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** Whether navigation is focused */
-    isFocused: PropTypes.bool.isRequired,
-
     ...optionsSelectorPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -48,213 +43,50 @@ const defaultProps = {
     ...optionsSelectorDefaultProps,
 };
 
-class BaseOptionsSelector extends Component {
-    constructor(props) {
-        super(props);
+const BaseOptionsSelector = ({
+                                 onSelectRow,
+                                 sections,
+    value,
+    onChangeText,
+    maxLength,
+    textInputLabel,
+    keyboardType,
+    placeholderText,
+    selectedOptions,
+    headerMessage,
+    canSelectMultipleOptions,
+    shouldShowMultipleOptionSelectorAsButton,
+    multipleOptionSelectorButtonText,
+    onAddToSelection,
+    highlightSelectedOptions,
+    hideSectionHeaders,
+    disableArrowKeysActions,
+    isDisabled,
+    boldStyle,
+    showTitleTooltip,
+    shouldPreventDefaultFocusOnSelectRow,
+    autoFocus,
+    shouldShowConfirmButton,
+    confirmButtonText,
+    onConfirmSelection,
+    shouldTextInputAppearBelowOptions,
+    shouldShowTextInput,
+    footerContent,
+    optionHoveredStyle,
+    sectionHeaderStyle,
+    shouldShowOptions,
+    shouldHaveOptionSeparator,
+    initiallyFocusedOptionKey,
+    shouldUseStyleForChildren,
+    isRowMultilineSupported,
+    initialFocusedIndex,
+    shouldTextInputInterceptSwipe,
+    shouldAllowScrollingChildren,
+    nestedScrollEnabled,
+}) => {
 
-        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
-        this.scrollToIndex = this.scrollToIndex.bind(this);
-        this.selectRow = this.selectRow.bind(this);
-        this.selectFocusedOption = this.selectFocusedOption.bind(this);
-        this.addToSelection = this.addToSelection.bind(this);
-        this.updateSearchValue = this.updateSearchValue.bind(this);
-        this.relatedTarget = null;
-
-        const allOptions = this.flattenSections();
-        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
-
-        this.state = {
-            allOptions,
-            focusedIndex,
-            shouldDisableRowSelection: false,
-            errorMessage: '',
-        };
-    }
-
-    componentDidMount() {
-        this.subscribeToKeyboardShortcut();
-
-        if (this.props.isFocused && this.props.autoFocus && this.textInput) {
-            this.focusTimeout = setTimeout(() => {
-                this.textInput.focus();
-            }, CONST.ANIMATED_TRANSITION);
-        }
-
-        this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.isFocused !== this.props.isFocused) {
-            if (this.props.isFocused) {
-                this.subscribeToKeyboardShortcut();
-            } else {
-                this.unSubscribeFromKeyboardShortcut();
-            }
-        }
-
-        // Screen coming back into focus, for example
-        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-        // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
-            setTimeout(() => {
-                this.textInput.focus();
-            }, CONST.ANIMATED_TRANSITION);
-        }
-
-        if (_.isEqual(this.props.sections, prevProps.sections)) {
-            return;
-        }
-
-        const newOptions = this.flattenSections();
-
-        if (prevProps.preferredLocale !== this.props.preferredLocale) {
-            this.setState({
-                allOptions: newOptions,
-            });
-            return;
-        }
-        const newFocusedIndex = this.props.selectedOptions.length;
-        const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState(
-            {
-                allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
-            },
-            () => {
-                // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.props.value)) {
-                    this.scrollToIndex(0);
-                    return;
-                }
-
-                // Otherwise, scroll to the focused index (as long as it's in range)
-                if (this.state.allOptions.length <= this.state.focusedIndex || !isNewFocusedIndex) {
-                    return;
-                }
-                this.scrollToIndex(this.state.focusedIndex);
-            },
-        );
-    }
-
-    componentWillUnmount() {
-        if (this.focusTimeout) {
-            clearTimeout(this.focusTimeout);
-        }
-
-        this.unSubscribeFromKeyboardShortcut();
-    }
-
-    /**
-     * @param {Array<Object>} allOptions
-     * @returns {Number}
-     */
-    getInitiallyFocusedIndex(allOptions) {
-        if (_.isNumber(this.props.initialFocusedIndex)) {
-            return this.props.initialFocusedIndex;
-        }
-
-        if (this.props.selectedOptions.length > 0) {
-            return this.props.selectedOptions.length;
-        }
-        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
-        if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
-            return defaultIndex;
-        }
-
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    }
-
-    updateSearchValue(value) {
-        this.setState({
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
-        });
-
-        this.props.onChangeText(value);
-    }
-
-    subscribeToKeyboardShortcut() {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            this.selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !this.state.allOptions[this.state.focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection();
-                    return;
-                }
-
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                this.selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-    }
-
-    unSubscribeFromKeyboardShortcut() {
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
-        }
-
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
-    }
-
-    selectFocusedOption() {
-        const focusedOption = this.state.allOptions[this.state.focusedIndex];
-
-        if (!focusedOption || !this.props.isFocused) {
-            return;
-        }
-
-        if (this.props.canSelectMultipleOptions) {
-            this.selectRow(focusedOption);
-        } else if (!this.state.shouldDisableRowSelection) {
-            this.setState({shouldDisableRowSelection: true});
-
-            let result = this.selectRow(focusedOption);
-            if (!(result instanceof Promise)) {
-                result = Promise.resolve();
-            }
-
-            setTimeout(() => {
-                result.finally(() => {
-                    this.setState({shouldDisableRowSelection: false});
-                });
-            }, 500);
-        }
-    }
-
-    focus() {
-        if (!this.textInput) {
-            return;
-        }
-
-        this.textInput.focus();
-    }
+    const isFocused = useIsFocused();
+    const {translate} = useLocalize();
 
     /**
      * Flattens the sections into a single array of options.
@@ -265,11 +97,11 @@ class BaseOptionsSelector extends Component {
      *
      * @returns {Array<Object>}
      */
-    flattenSections() {
+    const flattenSections = () => {
         const allOptions = [];
-        this.disabledOptionsIndexes = [];
+        const calcDisabledOptionsIndexes = [];
         let index = 0;
-        _.each(this.props.sections, (section, sectionIndex) => {
+        _.each(sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
                 allOptions.push({
                     ...option,
@@ -277,19 +109,222 @@ class BaseOptionsSelector extends Component {
                     index: optionIndex,
                 });
                 if (section.isDisabled || option.isDisabled) {
-                    this.disabledOptionsIndexes.push(index);
+                    calcDisabledOptionsIndexes.push(index);
                 }
                 index += 1;
             });
         });
+
+        setDisabledOptionsIndexes(calcDisabledOptionsIndexes)
         return allOptions;
     }
 
     /**
+     * @param {Array<Object>} allOptions
+     * @returns {Number}
+     */
+    const getInitiallyFocusedIndex = (allOptions) => {
+        if (_.isNumber(initialFocusedIndex)) {
+            return initialFocusedIndex;
+        }
+
+        if (selectedOptions.length > 0) {
+            return selectedOptions.length;
+        }
+        const defaultIndex = shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        if (_.isUndefined(initiallyFocusedOptionKey)) {
+            return defaultIndex;
+        }
+
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
+
+        if (indexOfInitiallyFocusedOption >= 0) {
+            return indexOfInitiallyFocusedOption;
+        }
+
+        return defaultIndex;
+    }
+
+    const relatedTarget = useRef(null);
+    const listRef = useRef();
+    const textInputRef = useRef();
+    const enterSubscription = useRef();
+    const CTRLEnterSubscription = useRef();
+
+    const prevLocale = useRef(preferredLocale);
+    const prevSelectedOptions = useRef(selectedOptions);
+
+    const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
+
+    const initialAllOptions = useMemo(() => {
+        return flattenSections();
+    },[])
+
+    const [allOptions, setAllOptions] = useState(initialAllOptions);
+    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
+    const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const focusTimeout = useRef();
+
+    useEffect(() => {
+        subscribeToKeyboardShortcut();
+
+        if (isFocused && autoFocus && textInputRef.current) {
+            focusTimeout.current = setTimeout(() => {
+                textInputRef.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
+
+        scrollToIndex(selectedOptions.length ? 0 : focusedIndex, false);
+
+        return () => {
+            if (focusTimeout.current) {
+                clearTimeout(focusTimeout.current);
+            }
+
+            unSubscribeFromKeyboardShortcut();
+        }
+    }, []);
+
+
+    useEffect(() => {
+        if (isFocused) {
+            subscribeToKeyboardShortcut();
+        } else {
+            unSubscribeFromKeyboardShortcut();
+        }
+
+        // Screen coming back into focus, for example
+        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
+        // Only applies to platforms that support keyboard shortcuts
+        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && isFocused && autoFocus && textInputRef.current) {
+            setTimeout(() => {
+                textInputRef.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
+    }, [isFocused])
+
+    useEffect(() => {
+        const newOptions = flattenSections();
+
+        if (prevLocale.current !== preferredLocale) {
+            prevLocale.current = preferredLocale;
+            setAllOptions(newOptions);
+
+            return;
+        }
+
+        const newFocusedIndex = selectedOptions.length;
+
+        setAllOptions(newOptions);
+        setFocusedIndex(_.isNumber(initialFocusedIndex) ? initialFocusedIndex : newFocusedIndex)
+    }, [sections]);
+
+    useEffect(() => {
+        const isNewFocusedIndex = selectedOptions.length !== focusedIndex;
+
+        // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+        if (selectedOptions.length !== prevSelectedOptions.current.length || !value) {
+            prevSelectedOptions.current = selectedOptions;
+            scrollToIndex(0);
+            return;
+        }
+
+        // Otherwise, scroll to the focused index (as long as it's in range)
+        if (allOptions.length <= focusedIndex || !isNewFocusedIndex) {
+            return;
+        }
+        scrollToIndex(focusedIndex);
+    }, [focusedIndex]);
+
+    const updateSearchValue = (value) => {
+        setErrorMessage(value.length > maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: maxLength}) : '');
+        onChangeText(value);
+    }
+
+    const subscribeToKeyboardShortcut = () => {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        enterSubscription.current = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            selectFocusedOption,
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !allOptions[focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (canSelectMultipleOptions) {
+                    onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = allOptions[focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+    }
+
+    const unSubscribeFromKeyboardShortcut = () => {
+        if (enterSubscription.current) {
+            enterSubscription.current();
+        }
+
+        if (CTRLEnterSubscription.current) {
+            CTRLEnterSubscription.current();
+        }
+    }
+
+    const selectFocusedOption = () => {
+        const focusedOption = allOptions[focusedIndex];
+
+        if (!focusedOption || !isFocused) {
+            return;
+        }
+
+        if (canSelectMultipleOptions) {
+            selectRow(focusedOption);
+        } else if (!shouldDisableRowSelection) {
+            setShouldDisableRowSelection(true);
+
+            let result = selectRow(focusedOption);
+            if (!(result instanceof Promise)) {
+                result = Promise.resolve();
+            }
+
+            setTimeout(() => {
+                result.finally(() => {
+                    setShouldDisableRowSelection(false);
+                });
+            }, 500);
+        }
+    }
+
+    const focus = () => {
+        if (!textInputRef.current) {
+            return;
+        }
+
+        textInputRef.current.focus();
+    }
+
+
+    /**
      * @param {Number} index
      */
-    updateFocusedIndex(index) {
-        this.setState({focusedIndex: index}, () => this.scrollToIndex(index));
+    const updateFocusedIndex = (index) => {
+        setFocusedIndex(index);
     }
 
     /**
@@ -298,9 +333,9 @@ class BaseOptionsSelector extends Component {
      * @param {Number} index
      * @param {Boolean} animated
      */
-    scrollToIndex(index, animated = true) {
-        const option = this.state.allOptions[index];
-        if (!this.list || !option) {
+    const scrollToIndex = (index, animated = true) => {
+        const option = allOptions[index];
+        if (!listRef.current || !option) {
             return;
         }
 
@@ -312,12 +347,12 @@ class BaseOptionsSelector extends Component {
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     }
 
     /**
@@ -327,28 +362,26 @@ class BaseOptionsSelector extends Component {
      * @param {Object} ref
      * @returns {Promise}
      */
-    selectRow(option, ref) {
+    const selectRow = (option, ref) => {
         return new Promise((resolve) => {
-            if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
-                if (this.relatedTarget && ref === this.relatedTarget) {
-                    this.textInput.focus();
-                    this.relatedTarget = null;
+            if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
+                if (relatedTarget.current && ref === relatedTarget.current) {
+                    textInputRef.current.focus();
+                    relatedTarget.current = null;
                 }
-                if (this.textInput.isFocused()) {
-                    setSelection(this.textInput, 0, this.props.value.length);
+                if (textInputRef.current.isFocused()) {
+                    setSelection(textInputRef.current, 0, value.length);
                 }
             }
-            const selectedOption = this.props.onSelectRow(option);
+            const selectedOption = onSelectRow(option);
             resolve(selectedOption);
 
-            if (!this.props.canSelectMultipleOptions) {
+            if (!canSelectMultipleOptions) {
                 return;
             }
 
             // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-            this.setState({
-                focusedIndex: this.props.selectedOptions.length,
-            });
+            setFocusedIndex(selectedOptions.length);
         });
     }
 
@@ -356,106 +389,105 @@ class BaseOptionsSelector extends Component {
      * Completes the follow-up action after clicking on multiple select button
      * @param {Object} option
      */
-    addToSelection(option) {
-        if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
-            this.textInput.focus();
-            if (this.textInput.isFocused()) {
-                setSelection(this.textInput, 0, this.props.value.length);
+    const addToSelection = (option) => {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
+            textInputRef.current.focus();
+            if (textInputRef.current.isFocused()) {
+                setSelection(textInputRef.current, 0, value.length);
             }
         }
-        this.props.onAddToSelection(option);
+        onAddToSelection(option);
     }
 
-    render() {
         const shouldShowFooter =
-            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
-        const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
-        const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
+            !isReadOnly && (shouldShowConfirmButton || footerContent) && !(canSelectMultipleOptions && _.isEmpty(selectedOptions));
+        const defaultConfirmButtonText = _.isUndefined(confirmButtonText) ? translate('common.confirm') : confirmButtonText;
+        const shouldShowDefaultConfirmButton = !footerContent && defaultConfirmButtonText;
+        const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : safeAreaPaddingBottomStyle;
         const textInput = (
             <TextInput
-                ref={(el) => (this.textInput = el)}
-                value={this.props.value}
-                label={this.props.textInputLabel}
-                accessibilityLabel={this.props.textInputLabel}
+                ref={textInputRef}
+                value={value}
+                label={textInputLabel}
+                accessibilityLabel={textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.updateSearchValue}
-                errorText={this.state.errorMessage}
-                onSubmitEditing={this.selectFocusedOption}
-                placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
-                keyboardType={this.props.keyboardType}
+                onChangeText={updateSearchValue}
+                errorText={errorMessage}
+                onSubmitEditing={selectFocusedOption}
+                placeholder={placeholderText}
+                maxLength={maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
+                keyboardType={keyboardType}
                 onBlur={(e) => {
-                    if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
+                    if (!shouldPreventDefaultFocusOnSelectRow) {
                         return;
                     }
-                    this.relatedTarget = e.relatedTarget;
+                    relatedTarget.current = e.relatedTarget;
                 }}
                 selectTextOnFocus
-                blurOnSubmit={Boolean(this.state.allOptions.length)}
+                blurOnSubmit={Boolean(allOptions.length)}
                 spellCheck={false}
-                shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
-                isLoading={this.props.isLoadingNewOptions}
+                shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                isLoading={isLoadingNewOptions}
             />
         );
         const optionsList = (
             <OptionsList
-                ref={(el) => (this.list = el)}
-                optionHoveredStyle={this.props.optionHoveredStyle}
-                onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.props.sections}
-                focusedIndex={this.state.focusedIndex}
-                selectedOptions={this.props.selectedOptions}
-                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
-                multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
-                onAddToSelection={this.addToSelection}
-                hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
-                boldStyle={this.props.boldStyle}
-                showTitleTooltip={this.props.showTitleTooltip}
-                isDisabled={this.props.isDisabled}
-                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
-                highlightSelectedOptions={this.props.highlightSelectedOptions}
+                ref={listRef}
+                optionHoveredStyle={optionHoveredStyle}
+                onSelectRow={onSelectRow ? selectRow : undefined}
+                sections={sections}
+                focusedIndex={focusedIndex}
+                selectedOptions={selectedOptions}
+                canSelectMultipleOptions={canSelectMultipleOptions}
+                shouldShowMultipleOptionSelectorAsButton={shouldShowMultipleOptionSelectorAsButton}
+                multipleOptionSelectorButtonText={multipleOptionSelectorButtonText}
+                onAddToSelection={addToSelection}
+                hideSectionHeaders={hideSectionHeaders}
+                headerMessage={errorMessage ? '' : headerMessage}
+                boldStyle={boldStyle}
+                showTitleTooltip={showTitleTooltip}
+                isDisabled={isDisabled}
+                shouldHaveOptionSeparator={shouldHaveOptionSeparator}
+                highlightSelectedOptions={highlightSelectedOptions}
                 onLayout={() => {
-                    if (this.props.selectedOptions.length === 0) {
-                        this.scrollToIndex(this.state.focusedIndex, false);
+                    if (selectedOptions.length === 0) {
+                        scrollToIndex(focusedIndex, false);
                     }
 
-                    if (this.props.onLayout) {
-                        this.props.onLayout();
+                    if (onLayout) {
+                        onLayout();
                     }
                 }}
-                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
-                sectionHeaderStyle={this.props.sectionHeaderStyle}
-                listContainerStyles={this.props.listContainerStyles}
-                listStyles={this.props.listStyles}
-                isLoading={!this.props.shouldShowOptions}
-                showScrollIndicator={this.props.showScrollIndicator}
-                isRowMultilineSupported={this.props.isRowMultilineSupported}
-                isLoadingNewOptions={this.props.isLoadingNewOptions}
-                shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
-                nestedScrollEnabled={this.props.nestedScrollEnabled}
-                bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...contentContainerStyles]}
+                sectionHeaderStyle={sectionHeaderStyle}
+                listContainerStyles={listContainerStyles}
+                listStyles={listStyles}
+                isLoading={!shouldShowOptions}
+                showScrollIndicator={showScrollIndicator}
+                isRowMultilineSupported={isRowMultilineSupported}
+                isLoadingNewOptions={isLoadingNewOptions}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                nestedScrollEnabled={nestedScrollEnabled}
+                bounces={!shouldTextInputAppearBelowOptions || !shouldAllowScrollingChildren}
             />
         );
 
         const optionsAndInputsBelowThem = (
             <>
                 <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                    {this.props.children}
-                    {this.props.shouldShowTextInput && textInput}
+                <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                    {children}
+                    {shouldShowTextInput && textInput}
                 </View>
             </>
         );
 
         return (
             <ArrowKeyFocusManager
-                disabledIndexes={this.disabledOptionsIndexes}
-                focusedIndex={this.state.focusedIndex}
-                maxIndex={this.state.allOptions.length - 1}
-                onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+                disabledIndexes={disabledOptionsIndexes}
+                focusedIndex={focusedIndex}
+                maxIndex={allOptions.length - 1}
+                onFocusedIndexChanged={disableArrowKeysActions ? () => {} : updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
@@ -464,7 +496,7 @@ class BaseOptionsSelector extends Component {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
                      */}
-                    {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
+                    {shouldTextInputAppearBelowOptions && shouldAllowScrollingChildren && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                             <ScrollView
                                 horizontal
@@ -476,16 +508,16 @@ class BaseOptionsSelector extends Component {
                         </ScrollView>
                     )}
 
-                    {this.props.shouldTextInputAppearBelowOptions && !this.props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+                    {shouldTextInputAppearBelowOptions && !shouldAllowScrollingChildren && optionsAndInputsBelowThem}
 
-                    {!this.props.shouldTextInputAppearBelowOptions && (
+                    {!shouldTextInputAppearBelowOptions && (
                         <>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
-                                {this.props.children}
-                                {this.props.shouldShowTextInput && textInput}
-                                {Boolean(this.props.textInputAlert) && (
+                            <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                                {children}
+                                {shouldShowTextInput && textInput}
+                                {Boolean(textInputAlert) && (
                                     <FormHelpMessage
-                                        message={this.props.textInputAlert}
+                                        message={textInputAlert}
                                         style={[styles.mb3]}
                                         isError={false}
                                     />
@@ -502,20 +534,19 @@ class BaseOptionsSelector extends Component {
                                 success
                                 style={[styles.w100]}
                                 text={defaultConfirmButtonText}
-                                onPress={this.props.onConfirmSelection}
+                                onPress={onConfirmSelection}
                                 pressOnEnter
                                 enterKeyEventListenerPriority={1}
                             />
                         )}
-                        {this.props.footerContent}
+                        {footerContent}
                     </FixedFooter>
                 )}
             </ArrowKeyFocusManager>
         );
-    }
 }
 
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);
+export default BaseOptionsSelector;
