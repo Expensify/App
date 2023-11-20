@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -25,6 +25,9 @@ type RadioButtonProps = {
 };
 
 function RadioButton({isChecked, onPress = () => undefined, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
     return (
         <PressableWithFeedback
             disabled={disabled}
@@ -38,7 +41,7 @@ function RadioButton({isChecked, onPress = () => undefined, accessibilityLabel, 
                 {isChecked && (
                     <Icon
                         src={Expensicons.Checkmark}
-                        fill={themeColors.checkBox}
+                        fill={theme.checkBox}
                         height={14}
                         width={14}
                     />

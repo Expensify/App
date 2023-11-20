@@ -29,11 +29,11 @@ runs:
       shell: bash
       run: |
         if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
-          echo "::set-output name=key_exists::true"
+          echo "key_exists=true" >> "$GITHUB_OUTPUT"
         fi
-  
+
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       if: steps.key_check.outputs.key_exists != 'true'
       with:
         sparse-checkout: |
