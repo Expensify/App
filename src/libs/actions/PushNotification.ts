@@ -6,11 +6,11 @@ import * as Device from './Device';
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => {
-        if (val === null) {
+    callback: (value) => {
+        if (value === null) {
             return;
         }
-        isUserOptedInToPushNotifications = val;
+        isUserOptedInToPushNotifications = value;
     },
 });
 
