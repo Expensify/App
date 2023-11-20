@@ -15,6 +15,12 @@ const propTypes = {
     /** Callback to submit the selected tag */
     onSubmit: PropTypes.func.isRequired,
 
+    /**
+     * Safe area insets required for reflecting the portion of the view,
+     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
+     */
+    insets: safeAreaInsetPropTypes.isRequired,
+
     /* Onyx Props */
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
@@ -24,9 +30,6 @@ const propTypes = {
 
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption: PropTypes.bool,
-
-    /** Safe area insets required for mobile devices margins */
-    insets: safeAreaInsetPropTypes.isRequired,
 };
 
 const defaultProps = {
