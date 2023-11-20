@@ -119,8 +119,8 @@ function MultipleAvatars({
         const rowSize = Math.min(Math.ceil(icons.length / 2), maxAvatarsInRow);
 
         // Slice the icons array into two rows
-        const firstRow = icons.slice(rowSize);
-        const secondRow = icons.slice(0, rowSize);
+        const firstRow = icons.slice(0, rowSize);
+        const secondRow = icons.slice(rowSize);
 
         // Update the state with the two rows as an array
         return [firstRow, secondRow];
