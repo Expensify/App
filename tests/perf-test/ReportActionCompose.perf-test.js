@@ -13,8 +13,6 @@ import ReportActionCompose from '../../src/pages/home/report/ReportActionCompose
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.setTimeout(60000);
-
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
 
@@ -69,6 +67,8 @@ beforeEach(() => {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
 
+const runs = 20;
+
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider, WindowDimensionsProvider]}>
@@ -87,8 +87,6 @@ test('should render Composer with text input interactions', async () => {
     const scenario = async () => {
         // Query for the composer
         const composer = await screen.findByTestId('composer');
-
-        expect(composer).toBeDefined();
         fireEvent.changeText(composer, '@test');
 
         // Query for the suggestions
@@ -101,7 +99,7 @@ test('should render Composer with text input interactions', async () => {
         fireEvent.press(composer);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
 test('should press add attachemnt button', async () => {
@@ -110,11 +108,10 @@ test('should press add attachemnt button', async () => {
         const hintAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAction');
         const attachmentButton = await screen.findByLabelText(hintAttachmentButtonText);
 
-        expect(attachmentButton).toBeDefined();
         fireEvent.press(attachmentButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
 test('should press add emoji button', async () => {
@@ -123,11 +120,10 @@ test('should press add emoji button', async () => {
         const hintEmojiButtonText = Localize.translateLocal('reportActionCompose.emoji');
         const emojiButton = await screen.findByLabelText(hintEmojiButtonText);
 
-        expect(emojiButton).toBeDefined();
         fireEvent.press(emojiButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
 test('should press send message button', async () => {
@@ -136,11 +132,10 @@ test('should press send message button', async () => {
         const hintSendButtonText = Localize.translateLocal('common.send');
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 
-        expect(sendButton).toBeDefined();
         fireEvent.press(sendButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
 test('render composer with attachement modal interactions', async () => {
@@ -160,5 +155,5 @@ test('render composer with attachement modal interactions', async () => {
         fireEvent.press(assignTaskButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });

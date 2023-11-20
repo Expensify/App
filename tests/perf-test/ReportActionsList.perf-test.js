@@ -17,8 +17,6 @@ import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.setTimeout(60000);
-
 const mockedNavigate = jest.fn();
 
 jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
@@ -98,6 +96,7 @@ function ReportActionsListWrapper() {
     );
 }
 
+const runs = 20;
 test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
@@ -112,7 +111,7 @@ test('should render ReportActionsList with 500 reportActions stored', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
 });
 
 test('should scroll and click some of the reports', () => {
@@ -136,8 +135,6 @@ test('should scroll and click some of the reports', () => {
 
     const scenario = async () => {
         const reportActionsList = await screen.findByTestId('report-actions-list');
-        expect(reportActionsList).toBeDefined();
-
         fireEvent.scroll(reportActionsList, eventData);
 
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
@@ -152,5 +149,5 @@ test('should scroll and click some of the reports', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
 });
