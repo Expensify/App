@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import viewRef from '@src/types/utils/viewRef';
+import {TooltipProps} from './types';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */
@@ -25,27 +26,7 @@ type TooltipRenderedOnPageBodyProps = {
 
     /** The height of the tooltip's target */
     targetHeight: number;
-
-    /** Any additional amount to manually adjust the horizontal position of the tooltip.
-    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal?: (() => number) | number;
-
-    /** Any additional amount to manually adjust the vertical position of the tooltip.
-    A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical?: (() => number) | number;
-
-    /** Text to be shown in the tooltip */
-    text: string;
-
-    /** Maximum number of lines to show in tooltip */
-    numberOfLines: number;
-
-    /** Number of pixels to set max-width on tooltip  */
-    maxWidth?: number;
-
-    /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
-    renderTooltipContent?: () => React.ReactNode;
-};
+} & Pick<TooltipProps, 'shiftHorizontal' | 'shiftVertical' | 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text'>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
