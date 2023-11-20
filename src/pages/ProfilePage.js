@@ -148,7 +148,10 @@ function ProfilePage(props) {
     }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper
+            testID={ProfilePage.displayName}
+            shouldEnableAutoFocus
+        >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
