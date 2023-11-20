@@ -19,10 +19,7 @@ function VideoPopoverMenu() {
     const playbackSpeedSubMenuItems = _.map(playbackSpeeds, (speed) => ({
         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
         text: speed,
-        onSelected: () => {
-            console.log(`${speed}x`);
-            updatePlaybackSpeed(speed);
-        },
+        onSelected: () => updatePlaybackSpeed(speed),
         shouldPutLeftPaddingWhenNoIcon: true,
     }));
 
@@ -31,15 +28,12 @@ function VideoPopoverMenu() {
             icon: Expensicons.Download,
             text: translate('common.download'),
             onSelected: () => {
-                console.log('Download');
+                // TODO: Implement download
             },
         },
         {
             icon: Expensicons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
-            onSelected: () => {
-                console.log('Playback speed');
-            },
             subMenuItems: playbackSpeedSubMenuItems,
         },
     ];

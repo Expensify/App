@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from './PlaybackContext';
 
@@ -22,7 +22,7 @@ function VolumeContextProvider({children}) {
 }
 
 function useVolumeContext() {
-    const context = React.useContext(VolumeContext);
+    const context = useContext(VolumeContext);
     if (context === undefined) {
         throw new Error('useVolumeContext must be used within a PlaybackContextProvider');
     }

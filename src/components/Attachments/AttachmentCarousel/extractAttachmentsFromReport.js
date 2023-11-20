@@ -21,12 +21,12 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
-            const isVideo = Boolean(Str.isVideo(attribs['data-expensify-source'] || ''));
+            const isVideo = Boolean(Str.isVideo(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || ''));
             if (isVideo) {
-                const splittedUrl = attribs['data-expensify-source'].split('/');
+                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     reportActionID: null,
-                    source: tryResolveUrlFromApiRoot(attribs['data-expensify-source']),
+                    source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     file: {name: splittedUrl[splittedUrl.length - 1]},
                     isReceipt: false,

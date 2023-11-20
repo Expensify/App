@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -16,15 +17,13 @@ import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
 
 const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
     duration: PropTypes.number.isRequired,
 
     position: PropTypes.number.isRequired,
 
     url: PropTypes.string.isRequired,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    videoPlayerRef: PropTypes.object.isRequired,
+    videoPlayerRef: refPropTypes.isRequired,
 };
 
 const defaultProps = {};
@@ -36,16 +35,16 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
     const [durationFormatted, setDurationFormatted] = useState('0:00');
     const [shouldShowTime, setShouldShowTime] = useState(false);
 
-    const isCurrentlySet = currentlyPlayingURL === url;
-    const isCurrentlyPlaying = isCurrentlySet && isPlaying;
+    const isCurrentlyURLSet = currentlyPlayingURL === url;
+    const isCurrentlyPlaying = isCurrentlyURLSet && isPlaying;
 
     const togglePlayCurrentVideo = useCallback(() => {
-        if (!isCurrentlySet) {
+        if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
         } else {
             togglePlay();
         }
-    }, [isCurrentlySet, togglePlay, updateCurrentlyPlayingURL, url]);
+    }, [isCurrentlyURLSet, togglePlay, updateCurrentlyPlayingURL, url]);
 
     const onLayout = (e) => {
         setShouldShowTime(e.nativeEvent.layout.width > 250);

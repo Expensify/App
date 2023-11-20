@@ -155,7 +155,7 @@ function PopoverMenu(props) {
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
-                        title={item.text}
+                        title={item.text.toString()}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}

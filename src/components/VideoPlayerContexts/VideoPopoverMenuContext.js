@@ -1,11 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
-    const [isPopoverVisible, setIsPopoverVisible] = React.useState(false);
-    const [anchorPosition, setAnchorPosition] = React.useState({vertical: 0, horizontal: 0});
+    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const [anchorPosition, setAnchorPosition] = useState({vertical: 0, horizontal: 0});
 
     const updateAnchorPosition = useCallback((y, x) => {
         setAnchorPosition({vertical: y, horizontal: x});
@@ -31,7 +31,7 @@ function VideoPopoverMenuContextProvider({children}) {
 }
 
 function useVideoPopoverMenuContext() {
-    const context = React.useContext(VideoPopoverMenuContext);
+    const context = useContext(VideoPopoverMenuContext);
     if (context === undefined) {
         throw new Error('useVideoPopoverMenuContext must be used within a PlaybackContextProvider');
     }

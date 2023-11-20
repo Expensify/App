@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import CONST from '@src/CONST';
 
 const PlaybackContext = React.createContext(null);
@@ -8,17 +8,12 @@ function PlaybackContextProvider({children}) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState(null);
     const [sharedElement, setSharedElement] = useState(null);
     const [originalParent, setOriginalParent] = useState(null);
+    const currentVideoPlayerRef = useRef(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const playbackSpeeds = useMemo(() => CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, []);
+    const playbackSpeeds = CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS;
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
-
-    const currentVideoPlayerRef = useRef(null);
-
-    const updateIsPlaying = useCallback((isVideoPlaying) => {
-        setIsPlaying(isVideoPlaying);
-    }, []);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
@@ -77,7 +72,7 @@ function PlaybackContextProvider({children}) {
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
-            updateIsPlaying,
+            updateIsPlaying: setIsPlaying,
         }),
         [
             updateCurrentlyPlayingURL,
@@ -93,14 +88,14 @@ function PlaybackContextProvider({children}) {
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
-            updateIsPlaying,
+            setIsPlaying,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }
 
 function usePlaybackContext() {
-    const context = React.useContext(PlaybackContext);
+    const context = useContext(PlaybackContext);
     if (context === undefined) {
         throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
     }
