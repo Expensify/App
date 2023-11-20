@@ -238,7 +238,7 @@ cherry_pick_pr 3
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 3, 1 ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
 # Verify output for deploy comment
 assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ 3 ]"
@@ -252,7 +252,7 @@ title "Scenario #4A: Run the production deploy"
 update_production_from_staging
 
 # Verify output for release body and production deploy comments
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 3, 1 ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -284,7 +284,7 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ 5, 2 ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ 2, 5 ]"
 
 # Verify output for deploy comment
 assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ 5 ]"
@@ -307,7 +307,7 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ 6, 5, 2 ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ 2, 5, 6 ]"
 
 # Verify output for deploy comment
 assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ 6 ]"
@@ -329,7 +329,7 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ 7, 6, 5, 2 ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ 2, 5, 6, 7 ]"
 
 # Verify output for deploy comment
 assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ 7 ]"
@@ -389,10 +389,10 @@ update_staging_from_main
 tag_staging
 
 # Verify production release list
-assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ 9, 7, 6, 5, 2 ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ 2, 5, 6, 7, 9 ]"
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ 10, 8 ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ 8, 10 ]"
 
 ### Cleanup
 title "Cleaning up..."

@@ -5,12 +5,13 @@ import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -69,6 +70,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}

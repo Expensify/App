@@ -5,7 +5,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +34,7 @@ const defaultProps = {
 };
 
 function IntroSchoolPrincipalPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     /**
@@ -89,7 +91,7 @@ function IntroSchoolPrincipalPage(props) {
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
-            <Form
+            <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM}
@@ -99,39 +101,42 @@ function IntroSchoolPrincipalPage(props) {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View style={styles.mv4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="partnerUserID"
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

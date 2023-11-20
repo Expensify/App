@@ -14,7 +14,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -83,6 +83,7 @@ const getAllParticipants = (report, personalDetails, translate) =>
         .value();
 
 function ReportParticipantsPage(props) {
+    const styles = useThemeStyles();
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
         ...participant,
         isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
@@ -106,10 +107,7 @@ function ReportParticipantsPage(props) {
                                 : 'common.details',
                         )}
                     />
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.containerWithSpaceBetween]}
-                    >
+                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         {Boolean(participants.length) && (
                             <OptionsList
                                 sections={[

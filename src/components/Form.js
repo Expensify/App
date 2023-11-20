@@ -6,9 +6,10 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
@@ -107,6 +108,7 @@ const defaultProps = {
 };
 
 function Form(props) {
+    const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
@@ -126,14 +128,8 @@ function Form(props) {
      */
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            // Trim all string values
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(props.formID, null);
@@ -191,7 +187,7 @@ function Form(props) {
 
             return touchedInputErrors;
         },
-        [errors, touchedInputs, props.formID, validate],
+        [props.formID, validate, errors],
     );
 
     useEffect(() => {
@@ -225,11 +221,14 @@ function Form(props) {
             return;
         }
 
+        // Trim all string values
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -239,8 +238,8 @@ function Form(props) {
         }
 
         // Call submit handler
-        onSubmit(inputValues);
-    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
+        onSubmit(trimmedStringValues);
+    }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, inputValues, onValidate, onSubmit]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -349,7 +348,17 @@ function Form(props) {
                             // We delay the validation in order to prevent Checkbox loss of focus when
                             // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                             // web and mobile web platforms.
+
+                            // Prevents React from resetting its properties
+                            event.persist();
                             setTimeout(() => {
+                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                                if (
+                                    relatedTargetId &&
+                                    _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)
+                                ) {
+                                    return;
+                                }
                                 setTouchedInput(inputID);
                                 if (props.shouldValidateOnBlur) {
                                     onValidate(inputValues, !hasServerError);
@@ -457,24 +466,26 @@ function Form(props) {
                 )}
             </FormSubmit>
         ),
+
         [
-            childrenWrapperWithProps,
-            errors,
-            formContentRef,
-            formRef,
-            errorMessage,
-            inputRefs,
-            inputValues,
-            submit,
             props.style,
-            children,
-            props.formState,
-            props.footerContent,
-            props.enabledWhenOffline,
-            props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.formState.errorFields,
+            props.formState.isLoading,
+            props.footerContent,
             props.submitButtonStyles,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            submit,
+            childrenWrapperWithProps,
+            children,
+            inputValues,
+            errors,
+            errorMessage,
+            styles.mh0,
+            styles.mt5,
+            styles.flex1,
         ],
     );
 

@@ -590,7 +590,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
         const filteredReports = {};
         _.keys(REPORTS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
                 return;
             }
             filteredReports[reportKey] = REPORTS[reportKey];
@@ -617,7 +617,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = {};
         _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
                 return;
             }
             filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
@@ -729,7 +729,7 @@ describe('OptionsListUtils', () => {
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -752,7 +752,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -818,7 +818,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -932,7 +932,7 @@ describe('OptionsListUtils', () => {
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -962,7 +962,7 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1077,14 +1077,8 @@ describe('OptionsListUtils', () => {
                 title: '',
                 shouldShow: false,
                 indexOffset: 0,
+                // data sorted alphabetically by name
                 data: [
-                    {
-                        text: 'Medical',
-                        keyForList: 'Medical',
-                        searchText: 'Medical',
-                        tooltipText: 'Medical',
-                        isDisabled: false,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1099,13 +1093,20 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                     },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
                 ],
             },
         ];
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1121,7 +1122,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1175,7 +1176,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1205,6 +1206,7 @@ describe('OptionsListUtils', () => {
                 title: 'All',
                 shouldShow: true,
                 indexOffset: 2,
+                // data sorted alphabetically by name
                 data: [
                     {
                         text: 'Accounting',
@@ -1214,10 +1216,17 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'HR',
-                        keyForList: 'HR',
-                        searchText: 'HR',
-                        tooltipText: 'HR',
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
                         isDisabled: false,
                     },
                     {
@@ -1228,10 +1237,10 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Cleaning',
-                        keyForList: 'Cleaning',
-                        searchText: 'Cleaning',
-                        tooltipText: 'Cleaning',
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
                         isDisabled: false,
                     },
                     {
@@ -1248,20 +1257,13 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Taxes',
                         isDisabled: false,
                     },
-                    {
-                        text: 'Benefits',
-                        keyForList: 'Benefits',
-                        searchText: 'Benefits',
-                        tooltipText: 'Benefits',
-                        isDisabled: false,
-                    },
                 ],
             },
         ];
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1284,7 +1286,7 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
 import TextInput from './TextInput';
@@ -39,6 +39,7 @@ const defaultProps = {
 };
 
 function AmountTextInput(props) {
+    const styles = useThemeStyles();
     return (
         <TextInput
             disableKeyboard
@@ -50,11 +51,11 @@ function AmountTextInput(props) {
             ref={props.forwardedRef}
             value={props.formattedAmount}
             placeholder={props.placeholder}
-            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             onKeyPress={props.onKeyPress}
         />
     );

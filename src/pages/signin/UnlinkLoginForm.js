@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
@@ -52,6 +52,7 @@ const defaultProps = {
 };
 
 function UnlinkLoginForm(props) {
+    const styles = useThemeStyles();
     const primaryLogin = Str.isSMSLogin(props.account.primaryLogin) ? Str.removeSMSDomain(props.account.primaryLogin) : props.account.primaryLogin;
     const secondaryLogin = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
 

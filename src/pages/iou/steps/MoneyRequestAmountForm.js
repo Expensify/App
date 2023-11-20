@@ -15,7 +15,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -36,6 +36,9 @@ const propTypes = {
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: PropTypes.func.isRequired,
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
@@ -43,6 +46,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 /**
@@ -64,7 +68,8 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+    const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
@@ -88,11 +93,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Event occurs when a user presses a mouse button over an DOM element.
      *
      * @param {Event} event
-     * @param {Array<string>} nativeIds
+     * @param {Array<string>} ids
      */
-    const onMouseDown = (event, nativeIds) => {
+    const onMouseDown = (event, ids) => {
         const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
-        if (!_.contains(nativeIds, relatedTargetId)) {
+        if (!_.contains(ids, relatedTargetId)) {
             return;
         }
         event.preventDefault();
@@ -104,16 +109,20 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
+    const initializeAmount = useCallback((newAmount) => {
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        setCurrentAmount(frontendAmount);
+        setSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+    }, []);
+
     useEffect(() => {
         if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-        setCurrentAmount(amountAsStringForState);
-        setSelection({
-            start: amountAsStringForState.length,
-            end: amountAsStringForState.length,
-        });
+        initializeAmount(amount);
         // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
@@ -214,8 +223,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
 
+        // Update display amount string post-edit to ensure consistency with backend amount
+        // Reference: https://github.com/Expensify/App/issues/30505
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+        initializeAmount(backendAmount);
+
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount]);
+    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -237,10 +251,14 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
+    useEffect(() => {
+        setFormError('');
+    }, [selectedTab]);
+
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
-                nativeID={AMOUNT_VIEW_ID}
+                id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
                 style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
@@ -279,11 +297,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
-                nativeID={NUM_PAD_CONTAINER_VIEW_ID}
+                id={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {canUseTouchScreen ? (
                     <BigNumberPad
-                        nativeID={NUM_PAD_VIEW_ID}
+                        id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />

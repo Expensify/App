@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import CONST from '@src/CONST';
-import {TranslationFlatObject} from '@src/languages/types';
+import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
@@ -117,7 +117,7 @@ function getErrorMessagesWithTranslationData(errors: TranslationData | ErrorsLis
  * @param errorList - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage(errors: ErrorsList, inputID?: string, message?: string) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
     if (!message || !inputID) {
         return;
     }

@@ -4,8 +4,9 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -38,6 +39,8 @@ const defaultProps = {
 };
 
 function DotIndicatorMessage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -57,19 +60,21 @@ function DotIndicatorMessage(props) {
         .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
+    const isErrorMessage = props.type === 'error';
+
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? themeColors.danger : themeColors.success}
+                    fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={[styles.offlineFeedback.text, ...props.textStyles]}
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
                     >
                         {message}
                     </Text>

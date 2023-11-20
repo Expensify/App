@@ -21,7 +21,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -67,6 +67,7 @@ const defaultProps = {
 };
 
 function TransferBalancePage(props) {
+    const styles = useThemeStyles();
     const paymentCardList = props.fundList || {};
 
     const paymentTypes = [

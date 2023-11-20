@@ -1,18 +1,20 @@
 import React from 'react';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import {Rect} from 'react-native-svg';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function MoneyRequestSkeletonView() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <SkeletonViewContentLoader
             animate
             width={styles.w100.width}
             height={variables.moneyRequestSkeletonHeight}
-            backgroundColor={themeColors.borderLighter}
-            foregroundColor={themeColors.border}
+            backgroundColor={theme.borderLighter}
+            foregroundColor={theme.border}
         >
             <Rect
                 x="16"

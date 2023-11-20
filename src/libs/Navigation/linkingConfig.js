@@ -4,7 +4,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 export default {
-    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -142,7 +142,7 @@ export default {
                                 exact: true,
                             },
                             Settings_ContactMethods: {
-                                path: ROUTES.SETTINGS_CONTACT_METHODS,
+                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                                 exact: true,
                             },
                             Settings_ContactMethodDetails: {
@@ -420,6 +420,11 @@ export default {
                     SignIn: {
                         screens: {
                             SignIn_Root: ROUTES.SIGN_IN_MODAL,
+                        },
+                    },
+                    Referral: {
+                        screens: {
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
                 },
