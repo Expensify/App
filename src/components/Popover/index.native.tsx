@@ -19,6 +19,9 @@ function Popover(props: PopoverProps) {
             // Mobile will always has fullscreen menu
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             fullscreen
+            // Added those props because TS is complaining about them and those values are default based on documentation https://github.com/react-native-modal/react-native-modal#available-props
+            animationIn="slideInUp"
+            animationOut="slideOutDown"
         />
     );
 }
