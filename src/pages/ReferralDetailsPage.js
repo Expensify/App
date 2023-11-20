@@ -72,7 +72,7 @@ function ReferralDetailsPage({route, account}) {
                     width={178}
                     height={232}
                 />
-                <Text style={[styles.textHeadline, styles.mb3, styles.mt8]}>{contentHeader}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8]}>{contentHeader}</Text>
                 <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
                 {shouldShowClipboard && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
