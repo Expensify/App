@@ -56,6 +56,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
 }
 
 function Tooltip({
+    children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth,
     text = '',
@@ -65,7 +66,6 @@ function Tooltip({
     shiftHorizontal = 0,
     shiftVertical = 0,
     tooltipRef,
-    children,
 }: TooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
