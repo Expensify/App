@@ -2890,7 +2890,7 @@ const CONST = {
             REFER_FRIEND: 'referralFriend',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 } as const;
