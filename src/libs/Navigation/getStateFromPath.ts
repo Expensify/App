@@ -2,10 +2,10 @@ import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import linkingConfig from './linkingConfig';
 
 /**
- * @param {String} path - The path to parse
- * @returns {Object | undefined} - It's possible that there is no navigation action for the given path
+ * @param path - The path to parse
+ * @returns - It's possible that there is no navigation action for the given path
  */
-function getStateFromPath(path) {
+function getStateFromPath(path: string) {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
 
     const state = linkingConfig.getStateFromPath ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config) : RNGetStateFromPath(normalizedPath, linkingConfig.config);
