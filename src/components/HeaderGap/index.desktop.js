@@ -1,5 +1,5 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
@@ -13,7 +13,6 @@ const propTypes = {
 
 const defaultProps = {
     styles: [],
-
 };
 
 function HeaderGap(props) {
@@ -22,5 +21,5 @@ function HeaderGap(props) {
 
 HeaderGap.displayName = 'HeaderGap';
 HeaderGap.propTypes = propTypes;
-HeaderGap.defaultProps = defaultProps
+HeaderGap.defaultProps = defaultProps;
 export default compose(memo, withThemeStyles)(HeaderGap);
