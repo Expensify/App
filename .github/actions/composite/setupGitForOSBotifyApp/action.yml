@@ -29,7 +29,7 @@ runs:
       shell: bash
       run: |
         if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
-          echo "::set-output name=key_exists::true"
+          echo "key_exists=true" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Checkout
