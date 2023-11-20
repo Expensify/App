@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Give the issue/PR the Hourly, Engineering labels
-        run: gh issue edit --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
+        run: gh issue edit ${{ github.event.issue.number }} --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
