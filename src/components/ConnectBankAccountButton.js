@@ -1,15 +1,16 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
-import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import Button from './Button';
-import {withNetwork} from './OnyxProvider';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as Expensicons from './Icon/Expensicons';
 import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -29,6 +30,8 @@ const defaultProps = {
 };
 
 function ConnectBankAccountButton(props) {
+    const styles = useThemeStyles();
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
     return props.network.isOffline ? (
         <View style={props.style}>
             <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -36,7 +39,7 @@ function ConnectBankAccountButton(props) {
     ) : (
         <Button
             text={props.translate('workspace.common.connectBankAccount')}
-            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID, activeRoute)}
             icon={Expensicons.Bank}
             style={props.style}
             iconStyles={[styles.buttonCTAIcon]}

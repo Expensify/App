@@ -1,13 +1,13 @@
-import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
-import Config from 'react-native-config';
 import get from 'lodash/get';
-import getUserLanguage from '../GetUserLanguage';
-import * as Session from '../../../libs/actions/Session';
-import Log from '../../../libs/Log';
-import * as Environment from '../../../libs/Environment/Environment';
-import CONST from '../../../CONST';
-import withNavigationFocus from '../../withNavigationFocus';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import Config from 'react-native-config';
+import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
+import withNavigationFocus from '@components/withNavigationFocus';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
@@ -36,10 +36,10 @@ const defaultProps = {
  * Apple Sign In Configuration for Web.
  */
 const config = {
-    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
+    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONFIG.APPLE_SIGN_IN.SERVICE_ID),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONST.APPLE_SIGN_IN_REDIRECT_URI),
+    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONFIG.APPLE_SIGN_IN.REDIRECT_URI),
     state: '',
     nonce: '',
     usePopup: true,
@@ -50,12 +50,14 @@ const config = {
  */
 
 const successListener = (event) => {
-    const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
+    const token = event.detail.authorization.id_token;
     Session.beginAppleSignIn(token);
 };
 
 const failureListener = (event) => {
-    if (!event.detail || event.detail.error === 'popup_closed_by_user') return null;
+    if (!event.detail || event.detail.error === 'popup_closed_by_user') {
+        return null;
+    }
     Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
 
@@ -63,7 +65,6 @@ const failureListener = (event) => {
  * Apple Sign In button for Web.
  * @returns {React.Component}
  */
-
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
@@ -127,7 +128,9 @@ const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSi
 function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
-        if (window.appleAuthScriptLoaded) return;
+        if (window.appleAuthScriptLoaded) {
+            return;
+        }
 
         const localeCode = getUserLanguage();
         const script = document.createElement('script');

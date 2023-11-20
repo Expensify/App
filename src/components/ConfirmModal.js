@@ -1,9 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Modal from './Modal';
-import CONST from '../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import React from 'react';
+import CONST from '@src/CONST';
 import ConfirmContent from './ConfirmContent';
+import Modal from './Modal';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** Title of the modal */
@@ -33,6 +33,9 @@ const propTypes = {
     /** Is the action destructive */
     danger: PropTypes.bool,
 
+    /** Whether we should disable the confirm button when offline */
+    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
@@ -41,6 +44,27 @@ const propTypes = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
+
+    /** Icon to display above the title */
+    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+    /** Styles for title */
+    // eslint-disable-next-line react/forbid-prop-types
+    titleStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Styles for prompt */
+    // eslint-disable-next-line react/forbid-prop-types
+    promptStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Styles for icon */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether to center the icon / text content */
+    shouldCenterContent: PropTypes.bool,
+
+    /** Whether to stack the buttons */
+    shouldStackButtons: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -52,10 +76,17 @@ const defaultProps = {
     success: true,
     danger: false,
     onCancel: () => {},
+    shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     shouldSetModalVisibility: true,
     title: '',
+    iconSource: null,
     onModalHide: () => {},
+    titleStyles: [],
+    iconAdditionalStyles: [],
+    promptStyles: [],
+    shouldCenterContent: false,
+    shouldStackButtons: true,
 };
 
 function ConfirmModal(props) {
@@ -79,7 +110,14 @@ function ConfirmModal(props) {
                 prompt={props.prompt}
                 success={props.success}
                 danger={props.danger}
+                shouldDisableConfirmButtonWhenOffline={props.shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={props.shouldShowCancelButton}
+                shouldCenterContent={props.shouldCenterContent}
+                iconSource={props.iconSource}
+                iconAdditionalStyles={props.iconAdditionalStyles}
+                titleStyles={props.titleStyles}
+                promptStyles={props.promptStyles}
+                shouldStackButtons={props.shouldStackButtons}
             />
         </Modal>
     );

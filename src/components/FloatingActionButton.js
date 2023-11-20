@@ -1,14 +1,15 @@
+import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {Animated, Easing, View} from 'react-native';
-import PropTypes from 'prop-types';
+import compose from '@libs/compose';
+import * as StyleUtils from '@styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import themeColors from '../styles/themes/default';
-import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -23,7 +24,16 @@ const propTypes = {
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
 
+    // Ref for the button
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
+};
+
+const defaultProps = {
+    buttonRef: () => {},
 };
 
 class FloatingActionButton extends PureComponent {
@@ -63,21 +73,26 @@ class FloatingActionButton extends PureComponent {
 
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.success, themeColors.buttonDefaultBG],
+            outputRange: [this.props.theme.success, this.props.theme.buttonDefaultBG],
         });
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.textLight, themeColors.textDark],
+            outputRange: [this.props.theme.textLight, this.props.theme.textDark],
         });
 
         return (
             <Tooltip text={this.props.translate('common.new')}>
-                <View style={styles.floatingActionButtonContainer}>
+                <View style={this.props.themeStyles.floatingActionButtonContainer}>
                     <AnimatedPressable
-                        ref={(el) => (this.fabPressable = el)}
+                        ref={(el) => {
+                            this.fabPressable = el;
+                            if (this.props.buttonRef) {
+                                this.props.buttonRef.current = el;
+                            }
+                        }}
                         accessibilityLabel={this.props.accessibilityLabel}
-                        accessibilityRole={this.props.accessibilityRole}
+                        role={this.props.role}
                         pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.
@@ -85,7 +100,7 @@ class FloatingActionButton extends PureComponent {
                             this.props.onPress(e);
                         }}
                         onLongPress={() => {}}
-                        style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
+                        style={[this.props.themeStyles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
                             src={Expensicons.Plus}
@@ -99,5 +114,18 @@ class FloatingActionButton extends PureComponent {
 }
 
 FloatingActionButton.propTypes = propTypes;
+FloatingActionButton.defaultProps = defaultProps;
 
-export default withLocalize(FloatingActionButton);
+const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
+
+const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) => (
+    <FloatingActionButtonWithLocalize
+        // eslint-disable-next-line
+        {...props}
+        buttonRef={ref}
+    />
+));
+
+FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
+
+export default compose(withThemeStyles, withTheme)(FloatingActionButtonWithLocalizeWithRef);

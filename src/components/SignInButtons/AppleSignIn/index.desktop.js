@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import IconButton from '../IconButton';
-import CONFIG from '../../../CONFIG';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
+import IconButton from '@components/SignInButtons/IconButton';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.APPLE_SIGN_IN}`;
 
@@ -12,10 +12,10 @@ const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}
  * Apple Sign In button for desktop flow
  * @returns {React.Component}
  */
-
 function AppleSignIn() {
+    const styles = useThemeStyles();
     return (
-        <View style={styles.appleButtonContainer}>
+        <View style={styles.desktopSignInButtonContainer}>
             <IconButton
                 onPress={() => {
                     window.open(appleSignInWebRouteForDesktopFlow);

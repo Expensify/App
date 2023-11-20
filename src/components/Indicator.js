@@ -1,21 +1,21 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import policyMemberPropType from '../pages/policyMemberPropType';
+import _ from 'underscore';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as UserUtils from '@libs/UserUtils';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import ONYXKEYS from '@src/ONYXKEYS';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
-import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
-import {policyPropTypes} from '../pages/workspace/withPolicy';
-import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as UserUtils from '../libs/UserUtils';
-import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /* Onyx Props */
@@ -29,8 +29,8 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    /** List of user cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
@@ -56,24 +56,28 @@ const defaultProps = {
     allPolicyMembers: {},
     policies: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: null,
     userWallet: {},
     walletTerms: {},
     loginList: {},
 };
 
 function Indicator(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
     const cleanAllPolicyMembers = _.pick(props.allPolicyMembers, (policyMembers) => policyMembers);
+
+    const paymentCardList = props.fundList || {};
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanAllPolicyMembers, PolicyUtils.hasPolicyMemberError),
@@ -87,7 +91,7 @@ function Indicator(props) {
     const shouldShowErrorIndicator = _.some(errorCheckingMethods, (errorCheckingMethod) => errorCheckingMethod());
     const shouldShowInfoIndicator = !shouldShowErrorIndicator && _.some(infoCheckingMethods, (infoCheckingMethod) => infoCheckingMethod());
 
-    const indicatorColor = shouldShowErrorIndicator ? themeColors.danger : themeColors.success;
+    const indicatorColor = shouldShowErrorIndicator ? theme.danger : theme.success;
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />;
@@ -110,8 +114,8 @@ export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

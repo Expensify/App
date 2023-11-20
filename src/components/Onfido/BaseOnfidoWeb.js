@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import './index.css';
 import lodashGet from 'lodash/get';
-import React, {useEffect, forwardRef} from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
+import React, {forwardRef, useEffect} from 'react';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
+import fontFamily from '@styles/fontFamily';
+import fontWeightBold from '@styles/fontWeight/bold';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import './index.css';
 import onfidoPropTypes from './onfidoPropTypes';
-import CONST from '../../CONST';
-import variables from '../../styles/variables';
-import themeColors from '../../styles/themes/default';
-import fontWeightBold from '../../styles/fontWeight/bold';
-import fontFamily from '../../styles/fontFamily';
-import Log from '../../libs/Log';
-import useLocalize from '../../hooks/useLocalize';
 
 function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}) {
     OnfidoSDK.init({
@@ -31,7 +31,8 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
             colorBackgroundSurfaceModal: themeColors.appBG,
             colorBorderDocTypeButton: themeColors.border,
-            colorBorderDocTypeButtonHover: themeColors.link,
+            colorBorderDocTypeButtonHover: themeColors.transparent,
+            colorBorderButtonPrimaryHover: themeColors.transparent,
             colorBackgroundButtonPrimary: themeColors.success,
             colorBackgroundButtonPrimaryHover: themeColors.successHover,
             colorBackgroundButtonPrimaryActive: themeColors.successHover,
@@ -62,7 +63,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                     forceCrossDevice: true,
                     hideCountrySelection: true,
                     country: 'USA',
-                    uploadFallback: false,
                     documentTypes: {
                         driving_licence: {
                             country: 'USA',
@@ -75,7 +75,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 type: CONST.ONFIDO.TYPE.FACE,
                 options: {
                     requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
-                    uploadFallback: false,
                 },
             },
         ],

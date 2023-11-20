@@ -1,11 +1,12 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import TextInput from '../../components/TextInput';
-import AddressSearch from '../../components/AddressSearch';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import StatePicker from '../../components/StatePicker';
+import AddressSearch from '@components/AddressSearch';
+import InputWrapper from '@components/Form/InputWrapper';
+import StatePicker from '@components/StatePicker';
+import TextInput from '@components/TextInput';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Translate key for Street name */
@@ -92,10 +93,12 @@ const defaultProps = {
 };
 
 function AddressForm(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <View>
-                <AddressSearch
+                <InputWrapper
+                    InputComponent={AddressSearch}
                     inputID={props.inputKeys.street}
                     shouldSaveDraft={props.shouldSaveDraft}
                     label={props.translate(props.streetTranslationKey)}
@@ -107,44 +110,49 @@ function AddressForm(props) {
                     hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    isLimitedToUSA
                 />
             </View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.city}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
                 accessibilityLabel={props.translate('common.city')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 containerStyles={[styles.mt4]}
             />
-            <View style={styles.mt4}>
-                <StatePicker
+
+            <View style={[styles.mt4, styles.mhn5]}>
+                <InputWrapper
+                    InputComponent={StatePicker}
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
-                    defaultValue={props.defaultValues.state}
+                    defaultValue={props.defaultValues.state || ''}
                     onInputChange={(value) => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
             </View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.zipCode}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}
                 errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                containerStyles={[styles.mt2]}
             />
         </>
     );

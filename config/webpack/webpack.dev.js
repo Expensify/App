@@ -5,7 +5,7 @@ const {merge} = require('webpack-merge');
 const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
-const BASE_PORT = 8080;
+const BASE_PORT = 8082;
 
 /**
  * Configuration for the local dev server
@@ -24,6 +24,7 @@ module.exports = (env = {}) =>
                           '/api': 'http://[::1]:9000',
                           '/staging': 'http://[::1]:9000',
                           '/chat-attachments': 'http://[::1]:9000',
+                          '/receipts': 'http://[::1]:9000',
                       },
                   };
 
@@ -43,6 +44,14 @@ module.exports = (env = {}) =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
+                host: 'dev.new.expensify.com',
+                server: {
+                    type: 'https',
+                    options: {
+                        key: path.join(__dirname, 'key.pem'),
+                        cert: path.join(__dirname, 'certificate.pem'),
+                    },
+                },
             },
             plugins: [
                 new DefinePlugin({

@@ -1,18 +1,20 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as OptionsListUtils from '../OptionsListUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as ReportUtils from '../ReportUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import Log from '../Log';
-import Permissions from '../Permissions';
+import filter from 'lodash/filter';
+import lodashGet from 'lodash/get';
+import lodashUnion from 'lodash/union';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const allPolicies = {};
 Onyx.connect({
@@ -32,6 +34,7 @@ Onyx.connect({
             _.each(policyReports, ({reportID}) => {
                 cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
@@ -41,6 +44,13 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
+});
+
+let allPolicyMembers;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyMembers = val),
 });
 
 let lastAccessedWorkspacePolicyID = null;
@@ -65,10 +75,24 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let loginList;
+let reimbursementAccount;
 Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = val),
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => (reimbursementAccount = val),
+});
+
+let allRecentlyUsedCategories = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCategories = val),
+});
+
+let networkStatus = {};
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    waitForCollectionCallback: true,
+    callback: (val) => (networkStatus = val),
 });
 
 /**
@@ -77,97 +101,6 @@ Onyx.connect({
  */
 function updateLastAccessedWorkspace(policyID) {
     Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
-}
-
-/**
- * Delete the workspace
- *
- * @param {String} policyID
- * @param {Array<Object>} reports
- * @param {String} policyName
- */
-function deleteWorkspace(policyID, reports, policyName) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: null,
-            },
-        },
-        ..._.map(reports, ({reportID}) => ({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                hasDraft: false,
-                oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
-            },
-        })),
-
-        // Add closed actions to all chat reports linked to this policy
-        ..._.map(reports, ({reportID, ownerAccountID}) => {
-            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
-            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
-            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
-                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
-            }
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
-            const optimisticReportActions = {};
-            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: optimisticReportActions,
-            };
-        }),
-    ];
-
-    // Restore the old report stateNum and statusNum
-    const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum,
-                statusNum,
-                hasDraft,
-                oldPolicyName,
-            },
-        })),
-    ];
-
-    // We don't need success data since the push notification will update
-    // the onyxData for all connected clients.
-    const successData = [];
-    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
-
-    // Reset the lastAccessedWorkspacePolicyID
-    if (policyID === lastAccessedWorkspacePolicyID) {
-        updateLastAccessedWorkspace(null);
-    }
-}
-
-/**
- * Is the user an admin of a free policy (aka workspace)?
- *
- * @param {Array} policies
- * @returns {Boolean}
- */
-function isAdminOfFreePolicy(policies) {
-    return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
-}
-
-/**
- * Is the user the owner of the given policy?
- *
- * @param {Object} policy
- * @returns {Boolean}
- */
-function isPolicyOwner(policy) {
-    return _.keys(loginList).includes(policy.owner);
 }
 
 /**
@@ -201,6 +134,176 @@ function hasActiveFreePolicy(policies) {
 }
 
 /**
+ * Delete the workspace
+ *
+ * @param {String} policyID
+ * @param {Array<Object>} reports
+ * @param {String} policyName
+ */
+function deleteWorkspace(policyID, reports, policyName) {
+    const filteredPolicies = filter(allPolicies, (policy) => policy.id !== policyID);
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
+        },
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
+                oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
+            },
+        })),
+
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
+        })),
+
+        // Add closed actions to all chat reports linked to this policy
+        ..._.map(reports, ({reportID, ownerAccountID}) => {
+            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+            let emailClosingReport = CONST.POLICY.OWNER_EMAIL_FAKE;
+            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+                emailClosingReport = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+            }
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+            const optimisticReportActions = {};
+            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: optimisticReportActions,
+            };
+        }),
+
+        ...(!hasActiveFreePolicy(filteredPolicies)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                      value: {
+                          errors: null,
+                      },
+                  },
+              ]
+            : []),
+    ];
+
+    // Restore the old report stateNum and statusNum
+    const failureData = [
+        ..._.map(reports, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+                hasDraft,
+                oldPolicyName,
+            },
+        })),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                errors: lodashGet(reimbursementAccount, 'errors', null),
+            },
+        },
+    ];
+
+    // We don't need success data since the push notification will update
+    // the onyxData for all connected clients.
+    const successData = [];
+    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // Reset the lastAccessedWorkspacePolicyID
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        updateLastAccessedWorkspace(null);
+    }
+}
+
+/**
+ * Is the user an admin of a free policy (aka workspace)?
+ *
+ * @param {Record<string, Policy>} [policies]
+ * @returns {Boolean}
+ */
+function isAdminOfFreePolicy(policies) {
+    return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
+ * Build optimistic data for adding members to the announce room
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Object}
+ */
+function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
+ * Build optimistic data for removing users from the announce room
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Object}
+ */
+function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...remainUsers],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} accountIDs
@@ -212,14 +315,61 @@ function removeMembers(accountIDs, policyID) {
     if (accountIDs.length === 0) {
         return;
     }
+
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const policy = ReportUtils.getPolicy(policyID);
+    const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
+    const optimisticClosedReportActions = _.map(workspaceChats, () =>
+        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
+    );
+
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
         },
+        ..._.map(workspaceChats, (report) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                oldPolicyName: policy.name,
+                hasDraft: false,
+            },
+        })),
+        ..._.map(optimisticClosedReportActions, (reportAction, index) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
+            value: {[reportAction.reportActionID]: reportAction},
+        })),
+        ...announceRoomMembers.onyxOptimisticData,
     ];
+
+    // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
+    // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
+    if (!_.isEmpty(policy.primaryLoginsInvited)) {
+        // Take the current policy members and remove them optimistically
+        const policyMemberAccountIDs = _.map(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`], (value, key) => Number(key));
+        const remainingMemberAccountIDs = _.difference(policyMemberAccountIDs, accountIDs);
+        const remainingLogins = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const invitedPrimaryToSecondaryLogins = _.invert(policy.primaryLoginsInvited);
+
+        // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
+        if (!_.some(remainingLogins, (remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    primaryLoginsInvited: null,
+                },
+            });
+        }
+    }
+
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -233,6 +383,22 @@ function removeMembers(accountIDs, policyID) {
             key: membersListKey,
             value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
+        ..._.map(workspaceChats, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+                hasDraft,
+                oldPolicyName,
+            },
+        })),
+        ..._.map(optimisticClosedReportActions, (reportAction, index) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
+            value: {[reportAction.reportActionID]: null},
+        })),
+        ...announceRoomMembers.onyxFailureData,
     ];
     API.write(
         'DeleteMembersFromWorkspace',
@@ -249,21 +415,15 @@ function removeMembers(accountIDs, policyID) {
  *
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
- * @param {Array} betas
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
         reportCreationData: {},
     };
-
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
@@ -332,9 +492,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
 
         workspaceMembersChats.onyxFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         });
     });
@@ -347,16 +507,17 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Object} invitedEmailsToAccountIDs
  * @param {String} welcomeNote
  * @param {String} policyID
- * @param {Array<String>} betas
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
+    const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
     const optimisticData = [
         {
@@ -368,6 +529,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
+        ...announceRoomMembers.onyxOptimisticData,
     ];
 
     const successData = [
@@ -375,9 +537,25 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // Convert to object with each key clearing pendingAction. We don’t
-            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
+            // Convert to object with each key clearing pendingAction, when it is an existing account.
+            // Remove the object, when it is a newly created account.
+            value: _.reduce(
+                accountIDs,
+                (accountIDsWithClearedPendingAction, accountID) => {
+                    let value = null;
+                    const accountAlreadyExists = !_.isEmpty(allPersonalDetails[accountID]);
+
+                    if (accountAlreadyExists) {
+                        value = {pendingAction: null, errors: null};
+                    }
+
+                    // eslint-disable-next-line no-param-reassign
+                    accountIDsWithClearedPendingAction[accountID] = value;
+
+                    return accountIDsWithClearedPendingAction;
+                },
+                {},
+            ),
         },
         ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
@@ -399,13 +577,15 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
+        ...announceRoomMembers.onyxFailureData,
     ];
 
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -427,6 +607,7 @@ function updateWorkspaceAvatar(policyID, file) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatar: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
@@ -535,6 +716,9 @@ function clearAvatarErrors(policyID) {
  * @param {String} currency
  */
 function updateGeneralSettings(policyID, name, currency) {
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceRate = _.find(_.values(distanceUnit ? distanceUnit.rates : {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const optimisticData = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -553,6 +737,21 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 name,
                 outputCurrency: currency,
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: {
+                                  ...distanceUnit,
+                                  rates: {
+                                      [distanceRate.customUnitRateID]: {
+                                          ...distanceRate,
+                                          currency,
+                                      },
+                                  },
+                              },
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -578,11 +777,26 @@ function updateGeneralSettings(policyID, name, currency) {
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: distanceUnit,
+                          },
+                      }
+                    : {}),
             },
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**
@@ -711,13 +925,15 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         },
     ];
 
+    const newCustomUnitParam = _.clone(newCustomUnit);
+    newCustomUnitParam.rates = _.omit(newCustomUnitParam.rates, ['pendingAction', 'errors']);
     API.write(
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-            customUnitRate: JSON.stringify(newCustomUnit.rates),
+            ...(!networkStatus.isOffline && {lastModified}),
+            customUnit: JSON.stringify(newCustomUnitParam),
+            customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
         {optimisticData, successData, failureData},
     );
@@ -746,6 +962,9 @@ function clearDeleteMemberError(policyID, accountID) {
  */
 function clearAddMemberError(policyID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
         [accountID]: null,
     });
 }
@@ -814,9 +1033,89 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ * @returns {String}
+ */
+function generateCustomUnitID() {
+    return NumberUtils.generateHexadecimalValue(13);
+}
+
+/**
+ * @returns {Object}
+ */
+function buildOptimisticCustomUnits() {
+    const customUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
+    const customUnits = {
+        [customUnitID]: {
+            customUnitID,
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            attributes: {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+            rates: {
+                [customUnitRateID]: {
+                    customUnitRateID,
+                    name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                    rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                },
+            },
+        },
+    };
+
+    return {
+        customUnits,
+        customUnitID,
+        customUnitRateID,
+    };
+}
+
+/**
+ * Optimistically creates a Policy Draft for a new workspace
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ */
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const {customUnits} = buildOptimisticCustomUnits();
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.FREE,
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                customUnits,
+                makeMeAdmin,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+            value: {
+                [sessionAccountID]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    errors: {},
+                },
+            },
+        },
+    ];
+
+    Onyx.update(optimisticData);
 }
 
 /**
@@ -830,6 +1129,8 @@ function generatePolicyID() {
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -860,6 +1161,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             announceCreatedReportActionID,
             adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
         },
         {
             optimisticData: [
@@ -872,8 +1175,10 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
+                        isPolicyExpenseChatEnabled: true,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        customUnits,
                     },
                 },
                 {
@@ -930,6 +1235,16 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: expenseReportActionData,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+                    value: null,
                 },
             ],
             successData: [
@@ -1035,6 +1350,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             ],
         },
     );
+
     return adminsChatReportID;
 }
 
@@ -1097,10 +1413,49 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 
 /**
  * @param {String} policyID
+ */
+function openDraftWorkspaceRequest(policyID) {
+    API.read('OpenDraftWorkspaceRequest', {policyID});
+}
+
+/**
+ * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
  */
 function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
+}
+
+/**
+ * @param {String} policyID
+ */
+function clearErrors(policyID) {
+    setWorkspaceErrors(policyID, {});
+    hideWorkspaceAlertMessage(policyID);
+}
+
+/**
+ * Dismiss the informative messages about which policy members were added with primary logins when invited with their secondary login.
+ *
+ * @param {String} policyID
+ */
+function dismissAddedWithPrimaryLoginMessages(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} category
+ * @returns {Object}
+ */
+function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
+    if (!policyID || !category) {
+        return [];
+    }
+
+    const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
+
+    return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
 export {
@@ -1130,5 +1485,9 @@ export {
     openWorkspaceInvitePage,
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
-    isPolicyOwner,
+    clearErrors,
+    dismissAddedWithPrimaryLoginMessages,
+    openDraftWorkspaceRequest,
+    buildOptimisticPolicyRecentlyUsedCategories,
+    createDraftInitialWorkspace,
 };

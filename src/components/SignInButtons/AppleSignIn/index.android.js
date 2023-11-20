@@ -1,17 +1,17 @@
-import React from 'react';
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
-import Log from '../../../libs/Log';
-import IconButton from '../IconButton';
-import * as Session from '../../../libs/actions/Session';
-import CONST from '../../../CONST';
+import React from 'react';
+import IconButton from '@components/SignInButtons/IconButton';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 /**
  * Apple Sign In Configuration for Android.
  */
-
 const config = {
-    clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
-    redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
+    clientId: CONFIG.APPLE_SIGN_IN.SERVICE_ID,
+    redirectUri: CONFIG.APPLE_SIGN_IN.REDIRECT_URI,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
 };
@@ -20,7 +20,6 @@ const config = {
  * Apple Sign In method for Android that returns authToken.
  * @returns {Promise<string>}
  */
-
 function appleSignInRequest() {
     appleAuthAndroid.configure(config);
     return appleAuthAndroid
@@ -35,14 +34,15 @@ function appleSignInRequest() {
  * Apple Sign In button for Android.
  * @returns {React.Component}
  */
-
 function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
-                if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) return null;
-                Log.error('Apple authentication failed', e);
+                if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
+                    return null;
+                }
+                Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
     return (

@@ -1,10 +1,26 @@
-import React from 'react';
+import React, {memo} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import styles from '../../styles/styles';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
 
-function HeaderGap() {
-    return <View style={styles.headerGap} />;
+const propTypes = {
+    /** Styles to apply to the HeaderGap */
+    // eslint-disable-next-line react/forbid-prop-types
+    styles: PropTypes.arrayOf(PropTypes.object),
+    ...withThemeStylesPropTypes,
+};
+
+const defaultProps = {
+    styles: [],
+
+};
+
+function HeaderGap(props) {
+    return <View style={[props.themeStyles.headerGap, ...props.styles]} />;
 }
 
 HeaderGap.displayName = 'HeaderGap';
-export default HeaderGap;
+HeaderGap.propTypes = propTypes;
+HeaderGap.defaultProps = defaultProps
+export default compose(memo, withThemeStyles)(HeaderGap);

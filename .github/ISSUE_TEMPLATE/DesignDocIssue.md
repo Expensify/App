@@ -8,9 +8,9 @@ Main issue: <Issue Link>
 Doc section: <Doc Link>
 Project: <Project Link>
 
-# <Feature Description>
+# Feature Description
 <!-- Describe the section of the doc that this issue is covering, along with any relevant screenshots -->
 
 # Manual Test Steps
 
-#Automated Tests
+# Automated Tests

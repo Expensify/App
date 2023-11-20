@@ -1,19 +1,21 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import _ from 'underscore';
-import HeaderWithBackButton from '../../HeaderWithBackButton';
-import CONST from '../../../CONST';
-import SelectionListRadio from '../../SelectionListRadio';
-import Modal from '../../Modal';
-import {radioListItemPropTypes} from '../../SelectionListRadio/selectionListRadioPropTypes';
-import useLocalize from '../../../hooks/useLocalize';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
 
     /** The list of years to render */
-    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)).isRequired,
+    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes.item)).isRequired,
 
     /** Currently selected year */
     currentYear: PropTypes.number,
@@ -32,6 +34,7 @@ const defaultProps = {
 };
 
 function YearPickerModal(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
@@ -58,22 +61,31 @@ function YearPickerModal(props) {
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={translate('yearPickerPage.year')}
-                onBackButtonPress={props.onClose}
-            />
-            <SelectionListRadio
-                shouldDelayFocus
-                textInputLabel={translate('yearPickerPage.selectYear')}
-                textInputValue={searchText}
-                textInputMaxLength={4}
-                onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                headerMessage={headerMessage}
-                sections={sections}
-                onSelectRow={(option) => props.onYearChange(option.value)}
-                initiallyFocusedOptionKey={props.currentYear.toString()}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+                testID={YearPickerModal.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('yearPickerPage.year')}
+                    onBackButtonPress={props.onClose}
+                />
+                <SelectionList
+                    shouldDelayFocus
+                    textInputLabel={translate('yearPickerPage.selectYear')}
+                    textInputValue={searchText}
+                    textInputMaxLength={4}
+                    onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
+                    headerMessage={headerMessage}
+                    sections={sections}
+                    onSelectRow={(option) => props.onYearChange(option.value)}
+                    initiallyFocusedOptionKey={props.currentYear.toString()}
+                    showScrollIndicator
+                    shouldStopPropagation
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }

@@ -1,10 +1,11 @@
-import React, {useEffect, useRef, useMemo, useCallback} from 'react';
-import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
-import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import RNTextInput from '@components/RNTextInput';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -96,12 +97,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
      * Set maximum number of lines
      * @return {Number}
      */
-    const maximumNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) return undefined;
+    const maxNumberOfLines = useMemo(() => {
+        if (isComposerFullSize) {
+            return;
+        }
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const styles = useMemo(() => {
+    const composerStyles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -116,13 +119,12 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
-            textAlignVertical="center"
             smartInsertDelete={false}
-            maximumNumberOfLines={maximumNumberOfLines}
-            style={styles}
+            maxNumberOfLines={maxNumberOfLines}
+            style={[composerStyles, styles.verticalAlignMiddle]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
-            editable={!isDisabled}
+            readOnly={isDisabled}
         />
     );
 }
@@ -130,10 +132,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;

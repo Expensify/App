@@ -1,38 +1,36 @@
-import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import MenuItem from '../../components/MenuItem';
-import * as Policy from '../../libs/actions/Policy';
-import policyMemberPropType from '../policyMemberPropType';
-import Permissions from '../../libs/Permissions';
-import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
-import BlockingView from '../../components/BlockingViews/BlockingView';
-import {withNetwork} from '../../components/OnyxProvider';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import Button from '@components/Button';
+import FeatureList from '@components/FeatureList';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as App from '@userActions/App';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import * as App from '../../libs/actions/App';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The list of this user's policies */
     policies: PropTypes.objectOf(
         PropTypes.shape({
@@ -64,11 +62,6 @@ const propTypes = {
         /** The user's current wallet balance */
         currentBalance: PropTypes.number,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -78,8 +71,22 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
-    betas: [],
 };
+
+const workspaceFeatures = [
+    {
+        icon: Illustrations.MoneyReceipts,
+        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
+    },
+    {
+        icon: Illustrations.CreditCardsNew,
+        translationKey: 'workspace.emptyWorkspace.features.companyCards',
+    },
+    {
+        icon: Illustrations.MoneyWings,
+        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
+    },
+];
 
 /**
  * Dismisses the errors on one item
@@ -100,13 +107,19 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {canUseWallet} = usePermissions();
+
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
     function getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(betas) ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
+        return isPaymentItem && canUseWallet ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -118,7 +131,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      */
     function getMenuItem(item, index) {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.payments';
+        const isPaymentItem = item.translationKey === 'common.wallet';
 
         return (
             <OfflineWithFeedback
@@ -152,13 +165,13 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconFill: themeColors.textLight,
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy.pendingAction,
@@ -168,42 +181,42 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, network.isOffline, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
-        <ScreenWrapper>
-            <HeaderWithBackButton
-                title={translate('common.workspaces')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            />
-            {_.isEmpty(workspaces) ? (
-                <BlockingView
-                    icon={Expensicons.Building}
-                    title={translate('workspace.emptyWorkspace.title')}
-                    subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                />
-            ) : (
-                <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</ScrollView>
-            )}
-            <FixedFooter style={[styles.flexGrow0]}>
+        <IllustratedHeaderPageLayout
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            illustration={LottieAnimations.WorkspacePlanet}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            title={translate('common.workspaces')}
+            footer={
                 <Button
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceAndNavigateToIt()}
+                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                 />
-            </FixedFooter>
-        </ScreenWrapper>
+            }
+        >
+            {_.isEmpty(workspaces) ? (
+                <FeatureList
+                    menuItems={workspaceFeatures}
+                    headline="workspace.emptyWorkspace.title"
+                    description="workspace.emptyWorkspace.subtitle"
+                />
+            ) : (
+                _.map(workspaces, (item, index) => getMenuItem(item, index))
+            )}
+        </IllustratedHeaderPageLayout>
     );
 }
 
 WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
+WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
-    withLocalize,
     withPolicyAndFullscreenLoading,
-    withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
@@ -216,9 +229,6 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspacesListPage);

@@ -1,12 +1,12 @@
-import CONST from '../../CONST';
-import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 /**
  * Extract the thumbnail URL, source URL and the original filename from the HTML.
  * @param {String} html
  * @returns {Object}
  */
-export default function getAttachmentName(html) {
+export default function getAttachmentDetails(html) {
     // Files can be rendered either as anchor tag or as an image so based on that we have to form regex.
     const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');

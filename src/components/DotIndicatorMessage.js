@@ -1,13 +1,15 @@
-import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
+import _ from 'underscore';
+import * as Localize from '@libs/Localize';
+import stylePropTypes from '@styles/stylePropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import Text from './Text';
-import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**
@@ -25,14 +27,20 @@ const propTypes = {
     // Additional styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
+
+    // Additional styles to apply to the text
+    textStyles: stylePropTypes,
 };
 
 const defaultProps = {
     messages: {},
     style: [],
+    textStyles: [],
 };
 
 function DotIndicatorMessage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -52,19 +60,21 @@ function DotIndicatorMessage(props) {
         .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
+    const isErrorMessage = props.type === 'error';
+
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? colors.red : colors.green}
+                    fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={styles.offlineFeedback.text}
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
                     >
                         {message}
                     </Text>

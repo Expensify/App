@@ -1,26 +1,45 @@
-import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, Dimensions} from 'react-native';
-import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import 'core-js/features/array/at';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import React, {Component} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import {VariableSizeList as List} from 'react-window';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as CanvasSize from '@userActions/CanvasSize';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-import withWindowDimensions from '../withWindowDimensions';
-import withLocalize from '../withLocalize';
-import Text from '../Text';
-import compose from '../../libs/compose';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+
+/**
+ * Each page has a default border. The app should take this size into account
+ * when calculates the page width and height.
+ */
+const PAGE_BORDER = 9;
+/**
+ * Pages should be more narrow than the container on large screens. The app should take this size into account
+ * when calculates the page width.
+ */
+const LARGE_SCREEN_SIDE_SPACING = 40;
 
 class PDFView extends Component {
     constructor(props) {
         super(props);
         this.state = {
             numPages: null,
-            windowWidth: Dimensions.get('window').width,
+            pageViewports: [],
+            containerWidth: props.windowWidth,
+            containerHeight: props.windowHeight,
             shouldRequestPassword: false,
             isPasswordInvalid: false,
             isKeyboardOpen: false,
@@ -29,9 +48,15 @@ class PDFView extends Component {
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+        this.calculatePageHeight = this.calculatePageHeight.bind(this);
+        this.calculatePageWidth = this.calculatePageWidth.bind(this);
+        this.renderPage = this.renderPage.bind(this);
+        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
+        this.setListAttributes = this.setListAttributes.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        this.retrieveCanvasLimits();
     }
 
     componentDidUpdate(prevProps) {
@@ -49,19 +74,101 @@ class PDFView extends Component {
     }
 
     /**
-     * Upon successful document load, set the number of pages on PDF,
+     * Upon successful document load, combine an array of page viewports,
+     * set the number of pages on PDF,
      * hide/reset PDF password form, and notify parent component that
      * user input is no longer required.
      *
-     * @param {*} {numPages} No of pages in the rendered PDF
+     * @param {Object} pdf - The PDF file instance
+     * @param {Number} pdf.numPages - Number of pages of the PDF file
+     * @param {Function} pdf.getPage - A method to get page by its number. It requires to have the context. It should be the pdf itself.
      * @memberof PDFView
      */
-    onDocumentLoadSuccess({numPages}) {
-        this.setState({
-            numPages,
-            shouldRequestPassword: false,
-            isPasswordInvalid: false,
+    onDocumentLoadSuccess(pdf) {
+        const {numPages} = pdf;
+
+        Promise.all(
+            _.times(numPages, (index) => {
+                const pageNumber = index + 1;
+
+                return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
+            }),
+        ).then((pageViewports) => {
+            this.setState({
+                pageViewports,
+                numPages,
+                shouldRequestPassword: false,
+                isPasswordInvalid: false,
+            });
         });
+    }
+
+    /**
+     * Sets attributes to list container.
+     * It unblocks a default scroll by keyboard of browsers.
+     * @param {Object|undefined} ref
+     */
+    setListAttributes(ref) {
+        if (!ref) {
+            return;
+        }
+
+        // Useful for elements that should not be navigated to directly using the "Tab" key,
+        // but need to have keyboard focus set to them.
+        // eslint-disable-next-line no-param-reassign
+        ref.tabIndex = -1;
+    }
+
+    /**
+     * Calculate the devicePixelRatio the page should be rendered with
+     * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+     * with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
+     * @param {Number} width of the page
+     * @param {Number} height of the page
+     * @returns {Number} devicePixelRatio for this page on this platform
+     */
+    getDevicePixelRatio(width, height) {
+        const nbPixels = width * height;
+        const ratioHeight = this.props.maxCanvasHeight / height;
+        const ratioWidth = this.props.maxCanvasWidth / width;
+        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
+        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+        return ratio > window.devicePixelRatio ? undefined : ratio;
+    }
+
+    /**
+     * Calculates a proper page height. The method should be called only when there are page viewports.
+     * It is based on a ratio between the specific page viewport width and provided page width.
+     * Also, the app should take into account the page borders.
+     * @param {Number} pageIndex
+     * @returns {Number}
+     */
+    calculatePageHeight(pageIndex) {
+        if (this.state.pageViewports.length === 0) {
+            Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
+
+            return 0;
+        }
+
+        const pageViewport = this.state.pageViewports[pageIndex];
+        const pageWidth = this.calculatePageWidth();
+        const scale = pageWidth / pageViewport.width;
+        const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
+
+        return actualHeight;
+    }
+
+    /**
+     * Calculates a proper page width.
+     * It depends on a screen size. Also, the app should take into account the page borders.
+     * @returns {Number}
+     */
+    calculatePageWidth() {
+        const pdfContainerWidth = this.state.containerWidth;
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
+
+        return pageWidth + PAGE_BORDER * 2;
     }
 
     /**
@@ -109,10 +216,53 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
+    /**
+     * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
+     */
+    retrieveCanvasLimits() {
+        if (!this.props.maxCanvasArea) {
+            CanvasSize.retrieveMaxCanvasArea();
+        }
+
+        if (!this.props.maxCanvasHeight) {
+            CanvasSize.retrieveMaxCanvasHeight();
+        }
+
+        if (!this.props.maxCanvasWidth) {
+            CanvasSize.retrieveMaxCanvasWidth();
+        }
+    }
+
+    /**
+     * Render a specific page based on its index.
+     * The method includes a wrapper to apply virtualized styles.
+     * @param {Object} page item object of the List
+     * @param {Number} page.index index of the page
+     * @param {Object} page.style virtualized styles
+     * @returns {JSX.Element}
+     */
+    renderPage({index, style}) {
+        const pageWidth = this.calculatePageWidth();
+        const pageHeight = this.calculatePageHeight(index);
+        const devicePixelRatio = this.getDevicePixelRatio(pageWidth, pageHeight);
+
+        return (
+            <View style={style}>
+                <Page
+                    key={`page_${index}`}
+                    width={pageWidth}
+                    pageIndex={index}
+                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                    // See https://github.com/Expensify/App/issues/14358 for more details
+                    loading=""
+                    devicePixelRatio={devicePixelRatio}
+                />
+            </View>
+        );
+    }
+
     renderPDFView() {
-        const pdfContainerWidth = this.state.windowWidth - 100;
-        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
+        const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
@@ -124,12 +274,16 @@ class PDFView extends Component {
         return (
             <View style={outerContainerStyle}>
                 <View
-                    focusable
+                    tabIndex={0}
                     style={pdfContainerStyle}
-                    onLayout={(event) => this.setState({windowWidth: event.nativeEvent.layout.width})}
+                    onLayout={({
+                        nativeEvent: {
+                            layout: {width, height},
+                        },
+                    }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
-                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
@@ -140,16 +294,19 @@ class PDFView extends Component {
                         onLoadSuccess={this.onDocumentLoadSuccess}
                         onPassword={this.initiatePasswordChallenge}
                     >
-                        {_.map(_.range(this.state.numPages), (v, index) => (
-                            <Page
-                                width={pageWidth}
-                                key={`page_${index + 1}`}
-                                pageNumber={index + 1}
-                                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                                // See https://github.com/Expensify/App/issues/14358 for more details
-                                loading=""
-                            />
-                        ))}
+                        {this.state.pageViewports.length > 0 && (
+                            <List
+                                outerRef={this.setListAttributes}
+                                style={styles.PDFViewList}
+                                width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
+                                height={this.state.containerHeight}
+                                estimatedItemSize={this.calculatePageHeight(0)}
+                                itemCount={this.state.numPages}
+                                itemSize={this.calculatePageHeight}
+                            >
+                                {this.renderPage}
+                            </List>
+                        )}
                     </Document>
                 </View>
                 {this.state.shouldRequestPassword && (
@@ -170,7 +327,7 @@ class PDFView extends Component {
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
                 style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
                 {this.renderPDFView()}
@@ -184,4 +341,18 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default compose(withLocalize, withWindowDimensions)(PDFView);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        maxCanvasArea: {
+            key: ONYXKEYS.MAX_CANVAS_AREA,
+        },
+        maxCanvasHeight: {
+            key: ONYXKEYS.MAX_CANVAS_HEIGHT,
+        },
+        maxCanvasWidth: {
+            key: ONYXKEYS.MAX_CANVAS_WIDTH,
+        },
+    }),
+)(PDFView);

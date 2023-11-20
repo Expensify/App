@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -27,6 +27,9 @@ const propTypes = {
     /** Should focus to the password input  */
     isFocused: PropTypes.bool,
 
+    /** Styles for the error label */
+    errorLabelStyles: stylePropTypes,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -34,11 +37,12 @@ const defaultProps = {
     sourceURL: '',
     fileName: '',
     style: {},
-    onPress: () => {},
+    onPress: undefined,
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
     isFocused: false,
+    errorLabelStyles: [],
 };
 
 export {propTypes, defaultProps};

@@ -1,48 +1,54 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import * as Expensicons from '../Icon/Expensicons';
-import Tooltip from '../Tooltip';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import React, {useEffect, useRef} from 'react';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
     /** Id to use for the emoji picker button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
-    /**
-     * ReportAction for EmojiPicker.
-     */
-    reportAction: PropTypes.shape({
-        reportActionID: PropTypes.string,
-    }),
+    /** Unique id for emoji picker */
+    emojiPickerID: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isDisabled: false,
-    nativeID: '',
-    reportAction: {},
+    id: '',
+    emojiPickerID: '',
 };
 
 function EmojiPickerButton(props) {
-    let emojiPopoverAnchor = null;
+    const styles = useThemeStyles();
+    const emojiPopoverAnchor = useRef(null);
+
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
-                ref={(el) => (emojiPopoverAnchor = el)}
+                ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.reportAction)}
-                nativeID={props.nativeID}
+                onPress={() => {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current, undefined, () => {}, props.emojiPickerID);
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                }}
+                id={props.id}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
             >
                 {({hovered, pressed}) => (

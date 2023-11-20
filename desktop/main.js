@@ -1,4 +1,4 @@
-const {app, dialog, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
+const {app, dialog, clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -11,7 +11,13 @@ const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8082;
+const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
+
+// Setup google api key in process environment, we are setting it this way intentionally. It is required by the
+// geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
+// Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
+process.env.GOOGLE_API_KEY = CONFIG.GOOGLE_GEOLOCATION_API_KEY;
 
 app.setName('New Expensify');
 
@@ -25,19 +31,50 @@ app.setName('New Expensify');
 // See: https://github.com/electron/electron/issues/22597
 app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
-// Initialize the right click menu
-// See https://github.com/sindresorhus/electron-context-menu
-// Add the Paste and Match Style command to the context menu
-contextMenu({
-    append: (defaultActions, parameters) => [
-        new MenuItem({
-            // Only enable the menu item for Editable context which supports paste
-            visible: parameters.isEditable && parameters.editFlags.canPaste,
-            role: 'pasteAndMatchStyle',
-            accelerator: 'CmdOrCtrl+Shift+V',
-        }),
-    ],
-});
+/**
+ * Inserts the plain text from the clipboard into the provided browser window's web contents.
+ *
+ * @param {BrowserWindow} browserWindow - The Electron BrowserWindow instance where the text should be inserted.
+ */
+function pasteAsPlainText(browserWindow) {
+    const text = clipboard.readText();
+    browserWindow.webContents.insertText(text);
+}
+
+/**
+ * Initialize the right-click menu
+ * See https://github.com/sindresorhus/electron-context-menu
+ *
+ * @param {String} preferredLocale - The current user language to be used for translating menu labels.
+ * @returns {Function} A dispose function to clean up the created context menu.
+ */
+
+function createContextMenu(preferredLocale = LOCALES.DEFAULT) {
+    return contextMenu({
+        labels: {
+            cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
+            paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
+            copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
+        },
+        append: (defaultActions, parameters, browserWindow) => [
+            new MenuItem({
+                // Only enable the menu item for Editable context which supports paste
+                visible: parameters.isEditable && parameters.editFlags.canPaste,
+                role: 'pasteAndMatchStyle',
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+            }),
+            new MenuItem({
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                click: () => pasteAsPlainText(browserWindow),
+            }),
+        ],
+    });
+}
+
+let disposeContextMenu = createContextMenu();
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -53,7 +90,7 @@ _.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
-const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
+const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
@@ -137,11 +174,11 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
  * Trigger event to show keyboard shortcuts
  * @param {BrowserWindow} browserWindow
  */
-const showKeyboardShortcutsModal = (browserWindow) => {
+const showKeyboardShortcutsPage = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
+    browserWindow.webContents.send(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE);
 };
 
 // Actual auto-update listeners
@@ -189,7 +226,7 @@ const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
 
-    const loadURL = __DEV__ ? (win) => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__ ? (win) => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
@@ -293,9 +330,9 @@ const mainWindow = () => {
                             {
                                 id: 'viewShortcuts',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
-                                accelerator: 'CmdOrCtrl+I',
+                                accelerator: 'CmdOrCtrl+J',
                                 click: () => {
-                                    showKeyboardShortcutsModal(browserWindow);
+                                    showKeyboardShortcutsPage(browserWindow);
                                 },
                             },
                             {type: 'separator'},
@@ -323,7 +360,16 @@ const mainWindow = () => {
                             {id: 'cut', role: 'cut'},
                             {id: 'copy', role: 'copy'},
                             {id: 'paste', role: 'paste'},
-                            {id: 'pasteAndMatchStyle', role: 'pasteAndMatchStyle'},
+                            {
+                                id: 'pasteAndMatchStyle',
+                                role: 'pasteAndMatchStyle',
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                            },
+                            {
+                                id: 'pasteAsPlainText',
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                                click: () => pasteAsPlainText(browserWindow),
+                            },
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
@@ -496,6 +542,8 @@ const mainWindow = () => {
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
+                    disposeContextMenu();
+                    disposeContextMenu = createContextMenu(updatedLocale);
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

@@ -1,10 +1,10 @@
-import React, {useLayoutEffect, useEffect, useState, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import getTooltipStyles from '../../styles/getTooltipStyles';
-import Text from '../Text';
-import Log from '../../libs/Log';
+import {Animated, View} from 'react-native';
+import Text from '@components/Text';
+import Log from '@libs/Log';
+import getTooltipStyles from '@styles/getTooltipStyles';
 
 const propTypes = {
     /** Window width */
@@ -59,7 +59,7 @@ const defaultProps = {
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
-const TooltipRenderedOnPageBody = (props) => {
+function TooltipRenderedOnPageBody(props) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
@@ -86,6 +86,7 @@ const TooltipRenderedOnPageBody = (props) => {
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
+                rootWrapper.current,
                 props.animation,
                 props.windowWidth,
                 props.xOffset,
@@ -97,7 +98,6 @@ const TooltipRenderedOnPageBody = (props) => {
                 wrapperMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
-                rootWrapper.current,
             ),
         [
             props.animation,
@@ -145,7 +145,7 @@ const TooltipRenderedOnPageBody = (props) => {
         </Animated.View>,
         document.querySelector('body'),
     );
-};
+}
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;

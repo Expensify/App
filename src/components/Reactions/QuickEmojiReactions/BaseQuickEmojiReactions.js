@@ -1,18 +1,21 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import EmojiReactionBubble from '../EmojiReactionBubble';
-import AddReactionBubble from '../AddReactionBubble';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Tooltip from '../../Tooltip';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as Session from '../../../libs/actions/Session';
+import _ from 'underscore';
+import AddReactionBubble from '@components/Reactions/AddReactionBubble';
+import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
+import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
+import Tooltip from '@components/Tooltip';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const baseQuickEmojiReactionsPropTypes = {
+    emojiReactions: EmojiReactionsPropTypes,
+
     /**
      * Callback to fire when an emoji is selected.
      */
@@ -39,6 +42,7 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
+    emojiReactions: {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
     reportAction: {},
@@ -56,6 +60,7 @@ const defaultProps = {
 };
 
 function BaseQuickEmojiReactions(props) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.quickReactionsContainer}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (
@@ -67,7 +72,7 @@ function BaseQuickEmojiReactions(props) {
                         <EmojiReactionBubble
                             emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                             isContextMenu
-                            onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                            onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                         />
                     </View>
                 </Tooltip>
@@ -76,7 +81,7 @@ function BaseQuickEmojiReactions(props) {
                 isContextMenu
                 onPressOpenPicker={props.onPressOpenPicker}
                 onWillShowPicker={props.onWillShowPicker}
-                onSelectEmoji={props.onEmojiSelected}
+                onSelectEmoji={(emoji) => props.onEmojiSelected(emoji, props.emojiReactions)}
                 reportAction={props.reportAction}
             />
         </View>
@@ -90,9 +95,12 @@ export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
+    emojiReactions: {
+        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+    },
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
 })(BaseQuickEmojiReactions);
 
-export {baseQuickEmojiReactionsPropTypes};
+export {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps};

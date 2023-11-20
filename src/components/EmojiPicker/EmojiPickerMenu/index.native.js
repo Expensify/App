@@ -1,24 +1,25 @@
-import React, {Component} from 'react';
-import {View, findNodeHandle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import Animated, {runOnUI, scrollTo, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
-import Animated, {runOnUI, _scrollTo} from 'react-native-reanimated';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import emojis from '../../../../assets/emojis';
-import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../Text';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import EmojiSkinToneList from '../EmojiSkinToneList';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as User from '../../../libs/actions/User';
-import TextInput from '../../TextInput';
-import CategoryShortcutBar from '../CategoryShortcutBar';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import emojis from '@assets/emojis';
+import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
+import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
+import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -27,8 +28,9 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** Props related to the dimensions of the window */
-    ...windowDimensionsPropTypes,
+    /** Stores user's frequently used emojis */
+    // eslint-disable-next-line react/forbid-prop-types
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
 
     /** Props related to translation */
     ...withLocalizePropTypes,
@@ -36,111 +38,75 @@ const propTypes = {
 
 const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
-class EmojiPickerMenu extends Component {
-    constructor(props) {
-        super(props);
+function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
+    const styles = useThemeStyles();
+    const emojiList = useAnimatedRef();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
+    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
+    const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW)), [headerEmojis]);
+    const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
+    const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
+    const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
 
-        // Ref for emoji FlatList
-        this.emojiList = undefined;
+    useEffect(() => {
+        setFilteredEmojis(allEmojis);
+    }, [allEmojis]);
 
-        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
+    useEffect(() => {
+        setHeaderIndices(headerRowIndices);
+    }, [headerRowIndices]);
 
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
-
-        this.renderItem = this.renderItem.bind(this);
-        this.isMobileLandscape = this.isMobileLandscape.bind(this);
-        this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
-        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
-        this.scrollToHeader = this.scrollToHeader.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-
-        this.state = {
-            filteredEmojis: this.emojis,
-            headerIndices: this.headerRowIndices,
-        };
-    }
-
-    getItemLayout(data, index) {
-        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
-    }
+    const getItemLayout = (data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index});
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      *
      * @param {String} searchTerm
      */
-    filterEmojis(searchTerm) {
+    const filterEmojis = _.debounce((searchTerm) => {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
 
-        if (this.emojiList) {
-            this.emojiList.scrollToOffset({offset: 0, animated: false});
+        if (emojiList.current) {
+            emojiList.current.scrollToOffset({offset: 0, animated: false});
         }
 
         if (normalizedSearchTerm === '') {
-            this.setState({
-                filteredEmojis: this.emojis,
-                headerIndices: this.headerRowIndices,
-            });
+            setFilteredEmojis(allEmojis);
+            setHeaderIndices(headerRowIndices);
 
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
-        this.setState({
-            filteredEmojis: newFilteredEmojiList,
-            headerIndices: undefined,
-        });
-    }
-
-    /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        this.props.onEmojiSelected(emoji, emojiObject);
-    }
-
-    /**
-     * Check if its a landscape mode of mobile device
-     *
-     * @returns {Boolean}
-     */
-    isMobileLandscape() {
-        return this.props.windowWidth >= this.props.windowHeight;
-    }
+        setFilteredEmojis(newFilteredEmojiList);
+        setHeaderIndices(undefined);
+    }, 300);
 
     /**
      * @param {Number} skinTone
      */
-    updatePreferredSkinTone(skinTone) {
-        if (this.props.preferredSkinTone === skinTone) {
+    const updatePreferredSkinTone = (skinTone) => {
+        if (preferredSkinTone === skinTone) {
             return;
         }
 
         User.updatePreferredSkinTone(skinTone);
-    }
+    };
 
-    scrollToHeader(headerIndex) {
+    const scrollToHeader = (headerIndex) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        this.emojiList.flashScrollIndicators();
-        const node = findNodeHandle(this.emojiList);
+        emojiList.current.flashScrollIndicators();
         runOnUI(() => {
             'worklet';
 
-            _scrollTo(node, 0, calculatedOffset, true);
+            scrollTo(emojiList, 0, calculatedOffset, true);
         })();
-    }
+    };
 
     /**
      * Return a unique key for each emoji item
@@ -149,9 +115,7 @@ class EmojiPickerMenu extends Component {
      * @param {Number} index
      * @returns {String}
      */
-    keyExtractor(item, index) {
-        return `${index}${item.code}`;
-    }
+    const keyExtractor = (item, index) => `${index}${item.code}`;
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -161,7 +125,7 @@ class EmojiPickerMenu extends Component {
      * @param {Object} item
      * @returns {*}
      */
-    renderItem({item}) {
+    const renderItem = ({item}) => {
         const {code, types} = item;
         if (item.spacer) {
             return null;
@@ -170,87 +134,92 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
+        const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                 emoji={emojiCode}
             />
         );
-    }
+    };
 
-    render() {
-        const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
-        return (
-            <View style={styles.emojiPickerContainer}>
-                <View style={[styles.ph4, styles.pb1, styles.pt2]}>
-                    <TextInput
-                        label={this.props.translate('common.search')}
-                        accessibilityLabel={this.props.translate('common.search')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        onChangeText={this.filterEmojis}
-                    />
-                </View>
-                {!isFiltered && (
-                    <CategoryShortcutBar
-                        headerEmojis={this.headerEmojis}
-                        onPress={this.scrollToHeader}
-                    />
-                )}
-                <Animated.FlatList
-                    ref={(el) => (this.emojiList = el)}
-                    keyboardShouldPersistTaps="handled"
-                    data={this.state.filteredEmojis}
-                    renderItem={this.renderItem}
-                    keyExtractor={this.keyExtractor}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={[
-                        StyleUtils.getEmojiPickerListHeight(isFiltered),
-                        {
-                            width: this.props.windowWidth,
-                        },
-                    ]}
-                    stickyHeaderIndices={this.state.headerIndices}
-                    getItemLayout={this.getItemLayout}
-                    showsVerticalScrollIndicator
-                    // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
-                    removeClippedSubviews={false}
-                    contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={<Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>}
-                    alwaysBounceVertical={this.state.filteredEmojis.length !== 0}
-                />
-                <EmojiSkinToneList
-                    updatePreferredSkinTone={this.updatePreferredSkinTone}
-                    preferredSkinTone={this.props.preferredSkinTone}
+    const isFiltered = allEmojis.length !== filteredEmojis.length;
+
+    return (
+        <View style={styles.emojiPickerContainer}>
+            <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                <TextInput
+                    label={translate('common.search')}
+                    accessibilityLabel={translate('common.search')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    onChangeText={filterEmojis}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
-        );
-    }
+            {!isFiltered && (
+                <CategoryShortcutBar
+                    headerEmojis={headerEmojis}
+                    onPress={scrollToHeader}
+                />
+            )}
+            <Animated.FlatList
+                ref={emojiList}
+                keyboardShouldPersistTaps="handled"
+                data={filteredEmojis}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                numColumns={CONST.EMOJI_NUM_PER_ROW}
+                style={[
+                    StyleUtils.getEmojiPickerListHeight(isFiltered),
+                    {
+                        width: windowWidth,
+                    },
+                ]}
+                stickyHeaderIndices={headerIndices}
+                getItemLayout={getItemLayout}
+                showsVerticalScrollIndicator
+                // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
+                removeClippedSubviews={false}
+                contentContainerStyle={styles.flexGrow1}
+                ListEmptyComponent={<Text style={[styles.disabledText]}>{translate('common.noResultsFound')}</Text>}
+                alwaysBounceVertical={filteredEmojis.length !== 0}
+            />
+            <EmojiSkinToneList
+                updatePreferredSkinTone={updatePreferredSkinTone}
+                preferredSkinTone={preferredSkinTone}
+            />
+        </View>
+    );
 }
 
+EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
+const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerMenu
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
+
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerMenu
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(EmojiPickerMenuWithRef);

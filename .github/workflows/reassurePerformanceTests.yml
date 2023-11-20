@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup NodeJS
         uses: Expensify/App/.github/actions/composite/setupNode@main

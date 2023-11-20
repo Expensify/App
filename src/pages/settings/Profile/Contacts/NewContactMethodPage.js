@@ -1,33 +1,29 @@
-import React, {useRef} from 'react';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import compose from '../../../../libs/compose';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Text from '../../../../components/Text';
-import TextInput from '../../../../components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import Permissions from '../../../../libs/Permissions';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import styles from '../../../../styles/styles';
-import * as User from '../../../../libs/actions/User';
-import * as LoginUtils from '../../../../libs/LoginUtils';
-import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import Form from '../../../../components/Form';
-import CONST from '../../../../CONST';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
@@ -50,43 +46,25 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    betas: [],
     loginList: {},
 };
 
-const getPhoneLogin = (phoneOrEmail) => {
-    if (_.isEmpty(phoneOrEmail)) {
-        return '';
-    }
-
-    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-};
-
-const validateNumber = (values) => {
-    const parsedPhoneNumber = parsePhoneNumber(values);
-
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
-    }
-
-    return '';
-};
-
 const addNewContactMethod = (values) => {
-    const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-    const validateIfnumber = validateNumber(phoneLogin);
+    const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+    const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-    User.addNewContactMethodAndNavigate(submitDetail, values.password);
+    User.addNewContactMethodAndNavigate(submitDetail);
 };
 
 function NewContactMethodPage(props) {
+    const styles = useThemeStyles();
     const loginInputRef = useRef(null);
 
     const validate = React.useCallback(
         (values) => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = validateNumber(phoneLogin);
+            const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
             const errors = {};
 
@@ -94,16 +72,12 @@ function NewContactMethodPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
             if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
-            }
-
-            if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
-                errors.password = 'contacts.genericFailureMessages.passwordRequired';
             }
 
             return errors;
@@ -125,12 +99,14 @@ function NewContactMethodPage(props) {
                 loginInputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={NewContactMethodPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                 validate={validate}
                 onSubmit={addNewContactMethod}
@@ -140,41 +116,31 @@ function NewContactMethodPage(props) {
             >
                 <Text style={[styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={[styles.mb6]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
+                        enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas) && (
-                    <View style={[styles.mb6]}>
-                        <TextInput
-                            label={props.translate('common.password')}
-                            accessibilityLabel={props.translate('common.password')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            inputID="password"
-                            returnKeyType="done"
-                        />
-                    </View>
-                )}
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
 
 NewContactMethodPage.propTypes = propTypes;
 NewContactMethodPage.defaultProps = defaultProps;
+NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {key: ONYXKEYS.BETAS},
         loginList: {key: ONYXKEYS.LOGIN_LIST},
     }),
 )(NewContactMethodPage);

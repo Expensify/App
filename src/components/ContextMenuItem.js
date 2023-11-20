@@ -1,14 +1,14 @@
-import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
-import MenuItem from './MenuItem';
-import Icon from './Icon';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getButtonState from '@libs/getButtonState';
+import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import Icon from './Icon';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
@@ -35,7 +35,11 @@ const propTypes = {
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
 
-    ...withDelayToggleButtonStatePropTypes,
+    /** Whether the menu item is focused or not */
+    isFocused: PropTypes.bool,
+
+    /** Forwarded ref to ContextMenuItem */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -44,13 +48,17 @@ const defaultProps = {
     successText: '',
     description: '',
     isAnonymousAction: false,
+    isFocused: false,
+    innerRef: null,
 };
 
-function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const triggerPressAndUpdateSuccess = useCallback(() => {
-        if (isDelayButtonStateComplete) {
+    const triggerPressAndUpdateSuccess = () => {
+        if (!isThrottledButtonActive) {
             return;
         }
         onPress();
@@ -58,24 +66,26 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
-            toggleDelayButtonState();
+            setThrottledButtonInactive();
         }
-    }, [isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState]);
+    };
 
-    const itemIcon = isDelayButtonStateComplete && successIcon ? successIcon : icon;
-    const itemText = isDelayButtonStateComplete && successText ? successText : text;
+    useImperativeHandle(innerRef, () => ({triggerPressAndUpdateSuccess}));
+
+    const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
+    const itemText = !isThrottledButtonActive && successText ? successText : text;
 
     return isMini ? (
         <BaseMiniContextMenuItem
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
-            isDelayButtonStateComplete={isDelayButtonStateComplete}
+            isDelayButtonStateComplete={!isThrottledButtonActive}
         >
             {({hovered, pressed}) => (
                 <Icon
                     small
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, isDelayButtonStateComplete))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
         </BaseMiniContextMenuItem>
@@ -85,16 +95,29 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
-            success={isDelayButtonStateComplete}
+            success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
+            focused={isFocused}
+            interactive={isThrottledButtonActive}
         />
     );
 }
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default withDelayToggleButtonState(ContextMenuItem);
+const ContextMenuItemWithRef = forwardRef((props, ref) => (
+    <ContextMenuItem
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
+
+export default ContextMenuItemWithRef;

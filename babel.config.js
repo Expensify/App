@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow'];
+const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -17,16 +17,8 @@ const defaultPlugins = [
 ];
 
 const webpack = {
-    env: {
-        production: {
-            presets: defaultPresets,
-            plugins: [...defaultPlugins, 'transform-remove-console'],
-        },
-        development: {
-            presets: defaultPresets,
-            plugins: defaultPlugins,
-        },
-    },
+    presets: defaultPresets,
+    plugins: defaultPlugins,
 };
 
 const metro = {
@@ -41,7 +33,48 @@ const metro = {
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
         // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
         'react-native-reanimated/plugin',
+        // Import alias for native devices
+        [
+            'module-resolver',
+            {
+                extensions: [
+                    '.native.js',
+                    '.native.jsx',
+                    '.native.ts',
+                    '.native.tsx',
+                    '.js',
+                    '.jsx',
+                    '.ts',
+                    '.tsx',
+                    '.ios.js',
+                    '.ios.jsx',
+                    '.ios.ts',
+                    '.ios.tsx',
+                    '.android.js',
+                    '.android.jsx',
+                    '.android.ts',
+                    '.android.tx',
+                ],
+                alias: {
+                    '@assets': './assets',
+                    '@components': './src/components',
+                    '@hooks': './src/hooks',
+                    '@libs': './src/libs',
+                    '@navigation': './src/libs/Navigation',
+                    '@pages': './src/pages',
+                    '@styles': './src/styles',
+                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                    '@src': './src',
+                    '@userActions': './src/libs/actions',
+                },
+            },
+        ],
     ],
+    env: {
+        production: {
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
+        },
+    },
 };
 
 /*
@@ -62,14 +95,23 @@ if (process.env.CAPTURE_METRICS === 'true') {
                 'scheduler/tracing': 'scheduler/tracing-profiling',
             },
         },
+        'extra-alias',
     ]);
 }
 
-module.exports = ({caller}) => {
+module.exports = (api) => {
+    console.debug('babel.config.js');
+    console.debug('  - api.version:', api.version);
+    console.debug('  - api.env:', api.env());
+    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
-    const runningIn = caller((args = {}) => args.name);
+    const runningIn = api.caller((args = {}) => args.name);
+    console.debug('  - running in: ', runningIn);
+
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

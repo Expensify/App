@@ -1,22 +1,23 @@
-import React, {useCallback} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CONST from '../../CONST';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import withLocalize from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import TextLink from '../../components/TextLink';
-import Text from '../../components/Text';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import Form from '../../components/Form';
-import styles from '../../styles/styles';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import _ from 'underscore';
+import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
 
@@ -40,7 +41,9 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
+    const styles = useThemeStyles();
     const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate} = props;
+    const isFocused = useIsFocused();
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -50,6 +53,14 @@ function BankAccountPlaidStep(props) {
 
         return errorFields;
     }, []);
+
+    useEffect(() => {
+        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        BankAccounts.setBankAccountSubStep(null);
+    }, [isFocused, plaidData]);
 
     const submit = useCallback(() => {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
@@ -79,6 +90,7 @@ function BankAccountPlaidStep(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
+            testID={BankAccountPlaidStep.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
@@ -88,7 +100,7 @@ function BankAccountPlaidStep(props) {
                 onBackButtonPress={onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled

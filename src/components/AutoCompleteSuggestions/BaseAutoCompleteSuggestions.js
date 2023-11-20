@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
-import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
+import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 /**
  * @param {Number} numRows
@@ -29,6 +29,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
 };
 
 function BaseAutoCompleteSuggestions(props) {
+    const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef(null);
     /**
@@ -70,7 +71,7 @@ function BaseAutoCompleteSuggestions(props) {
     });
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * props.suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight));
+    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
 
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge), {
@@ -110,10 +111,14 @@ function BaseAutoCompleteSuggestions(props) {
 BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-export default React.forwardRef((props, ref) => (
+const BaseAutoCompleteSuggestionsWithRef = React.forwardRef((props, ref) => (
     <BaseAutoCompleteSuggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseAutoCompleteSuggestionsWithRef.displayName = 'BaseAutoCompleteSuggestionsWithRef';
+
+export default BaseAutoCompleteSuggestionsWithRef;

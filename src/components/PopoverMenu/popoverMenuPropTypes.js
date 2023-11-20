@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback method fired when the user requests to close the modal */
@@ -32,6 +32,9 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
+
+    /** The anchor reference of the CreateMenu popover */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
 
     /** A react-native-animatable animation definition for the modal display animation. */
     animationIn: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),

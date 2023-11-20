@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import refPropTypes from '@components/refPropTypes';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
@@ -12,9 +12,6 @@ const propTypes = {
 
     /** Children to wrap with Tooltip. */
     children: PropTypes.node.isRequired,
-
-    /** Props inherited from withWindowDimensions */
-    ...windowDimensionsPropTypes,
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
@@ -32,6 +29,12 @@ const propTypes = {
 
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey: PropTypes.arrayOf(PropTypes.string),
+
+    /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
+    shouldHandleScroll: PropTypes.bool,
+
+    /** Reference to the tooltip container */
+    tooltipRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -42,6 +45,8 @@ const defaultProps = {
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
     renderTooltipContent: undefined,
     renderTooltipContentKey: [],
+    shouldHandleScroll: false,
+    tooltipRef: () => {},
 };
 
 export {propTypes, defaultProps};

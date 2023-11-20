@@ -2,13 +2,13 @@
  * Displays the user's local time and updates it every minute.
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
-import {View} from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import DateUtils from '../libs/DateUtils';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import DateUtils from '@libs/DateUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Timezone of the user from their personal details */
@@ -23,25 +23,18 @@ const propTypes = {
 };
 
 function AutoUpdateTime(props) {
+    const styles = useThemeStyles();
     /**
-     * @returns {moment} Returns the locale moment object
+     * @returns {Date} Returns the locale Date object
      */
     const getCurrentUserLocalTime = useCallback(
-        () => DateUtils.getLocalMomentFromDatetime(props.preferredLocale, null, props.timezone.selected),
+        () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, null, props.timezone.selected),
         [props.preferredLocale, props.timezone.selected],
     );
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
-    const timezoneName = useMemo(() => {
-        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
-        if (Number.isNaN(Number(currentUserLocalTime.zoneAbbr()))) {
-            return currentUserLocalTime.zoneAbbr();
-        }
-
-        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, e.g.: GMT +07
-        return `GMT ${currentUserLocalTime.zoneAbbr()}`;
-    }, [currentUserLocalTime]);
+    const timezoneName = useMemo(() => DateUtils.getZoneAbbreviation(currentUserLocalTime, props.timezone.selected), [currentUserLocalTime, props.timezone.selected]);
 
     useEffect(() => {
         // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
@@ -68,7 +61,7 @@ function AutoUpdateTime(props) {
                 {props.translate('detailsPage.localTime')}
             </Text>
             <Text numberOfLines={1}>
-                {currentUserLocalTime.format('LT')} {timezoneName}
+                {DateUtils.formatToLocalTime(currentUserLocalTime)} {timezoneName}
             </Text>
         </View>
     );

@@ -1,23 +1,23 @@
+import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import * as StyleUtils from '../../styles/StyleUtils';
-import BaseMiniContextMenuItem from '../BaseMiniContextMenuItem';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import getButtonState from '../../libs/getButtonState';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as Session from '../../libs/actions/Session';
+import _ from 'underscore';
+import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import getButtonState from '@libs/getButtonState';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {baseQuickEmojiReactionsDefaultProps, baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -40,6 +40,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    ...baseQuickEmojiReactionsDefaultProps,
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     reportAction: {},
@@ -54,6 +55,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function MiniQuickEmojiReactions(props) {
+    const styles = useThemeStyles();
     const ref = useRef();
 
     const openEmojiPicker = () => {
@@ -61,12 +63,12 @@ function MiniQuickEmojiReactions(props) {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiObject);
+                props.onEmojiSelected(emojiObject, props.emojiReactions);
             },
             ref.current,
             undefined,
             () => {},
-            props.reportAction,
+            props.reportAction.reportActionID,
         );
     };
 
@@ -77,14 +79,25 @@ function MiniQuickEmojiReactions(props) {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
-                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                 >
-                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
+                    <Text
+                        style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        {EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}
+                    </Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+                        openEmojiPicker();
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                })}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
@@ -105,9 +118,15 @@ MiniQuickEmojiReactions.propTypes = propTypes;
 MiniQuickEmojiReactions.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    // ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
+    // because of a couple spread operators, I think that's why ESLint struggles to see it
+    // eslint-disable-next-line rulesdir/onyx-props-must-have-default
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        emojiReactions: {
+            key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
         },
     }),
 )(MiniQuickEmojiReactions);

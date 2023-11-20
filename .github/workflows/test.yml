@@ -5,10 +5,11 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.sh', 'package.json', 'package-lock.json']
 
 jobs:
   jest:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -18,9 +19,11 @@ jobs:
         chunk: [ 1, 2, 3 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Get number of CPU cores
         id: cpu-cores
@@ -37,23 +40,27 @@ jobs:
         run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
   storybookTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     name: Storybook tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci
 
   shellTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     name: Shell tests
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Test CI git logic
         run: tests/unit/CIGitLogicTest.sh

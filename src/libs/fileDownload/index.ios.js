@@ -1,8 +1,8 @@
-import RNFetchBlob from 'react-native-blob-util';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import lodashGet from 'lodash/get';
+import RNFetchBlob from 'react-native-blob-util';
+import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
-import CONST from '../../CONST';
 
 /**
  * Downloads the file to Documents section in iOS
@@ -75,7 +75,7 @@ export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
         let fileDownloadPromise = null;
         const fileType = FileUtils.getFileType(fileUrl);
-        const attachmentName = fileName || FileUtils.getAttachmentName(fileUrl);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:

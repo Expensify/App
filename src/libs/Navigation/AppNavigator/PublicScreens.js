@@ -1,12 +1,14 @@
-import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import SignInPage from '../../../pages/signin/SignInPage';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
-import SCREENS from '../../../SCREENS';
+import React from 'react';
+import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
+import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
+import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
+import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
+import SignInPage from '@pages/signin/SignInPage';
+import UnlinkLoginPage from '@pages/UnlinkLoginPage';
+import ValidateLoginPage from '@pages/ValidateLoginPage';
+import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
-import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
-import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
 
 const RootStack = createStackNavigator();
 
@@ -37,6 +39,16 @@ function PublicScreens() {
                 name="AppleSignInDesktop"
                 options={defaultScreenOptions}
                 component={AppleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="GoogleSignInDesktop"
+                options={defaultScreenOptions}
+                component={GoogleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="SAMLSignIn"
+                options={defaultScreenOptions}
+                component={SAMLSignInPage}
             />
         </RootStack.Navigator>
     );

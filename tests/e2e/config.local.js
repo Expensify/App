@@ -1,8 +1,9 @@
 module.exports = {
-    WARM_UP_RUNS: 1,
+    MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
+    DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
+    MAIN_APP_PATH: './android/app/build/outputs/apk/e2e/release/app-e2e-release.apk',
+    DELTA_APP_PATH: './android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk',
+
+    BOOT_COOL_DOWN: 1 * 1000,
     RUNS: 8,
-    APP_PATHS: {
-        baseline: './android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk',
-        compare: './android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk',
-    },
 };

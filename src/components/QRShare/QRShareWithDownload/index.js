@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import fileDownload from '../../../libs/fileDownload';
+import {withNetwork} from '@components/OnyxProvider';
+import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
+import {qrShareDefaultProps, qrSharePropTypes} from '@components/QRShare/propTypes';
+import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
-import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
-import getQrCodeFileName from '../getQrCodeDownloadFileName';
 
 class QRShareWithDownload extends Component {
     qrShareRef = React.createRef();
@@ -17,7 +18,9 @@ class QRShareWithDownload extends Component {
         return new Promise((resolve, reject) => {
             // eslint-disable-next-line es/no-optional-chaining
             const svg = this.qrShareRef.current?.getSvg();
-            if (svg == null) return reject();
+            if (svg == null) {
+                return reject();
+            }
 
             svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(this.props.title))));
         });
@@ -29,6 +32,7 @@ class QRShareWithDownload extends Component {
                 ref={this.qrShareRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
+                logo={this.props.network.isOffline ? null : this.props.logo}
             />
         );
     }
@@ -36,4 +40,4 @@ class QRShareWithDownload extends Component {
 QRShareWithDownload.propTypes = qrSharePropTypes;
 QRShareWithDownload.defaultProps = qrShareDefaultProps;
 
-export default QRShareWithDownload;
+export default withNetwork()(QRShareWithDownload);

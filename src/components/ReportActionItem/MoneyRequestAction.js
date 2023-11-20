@@ -1,26 +1,28 @@
-import _ from 'underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import {withNetwork} from '../OnyxProvider';
-import compose from '../../libs/compose';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import networkPropTypes from '../networkPropTypes';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import IOUPreview from './IOUPreview';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import * as IOUUtils from '../../libs/IOUUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Report from '../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import refPropTypes from '../refPropTypes';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import refPropTypes from '@components/refPropTypes';
+import RenderHTML from '@components/RenderHTML';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import MoneyRequestPreview from './MoneyRequestPreview';
 
 const propTypes = {
     /** All the data of the action */
@@ -43,10 +45,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
 
     /** IOU report data object */
     iouReport: iouReportPropTypes,
@@ -59,17 +58,12 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
 
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -79,76 +73,78 @@ const defaultProps = {
     iouReport: {},
     reportActions: {},
     isHovered: false,
-    session: {
-        email: null,
-    },
     style: [],
+    isWhisper: false,
 };
 
-function MoneyRequestAction(props) {
-    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+function MoneyRequestAction({
+    action,
+    chatReportID,
+    requestReportID,
+    isMostRecentIOUReportAction,
+    contextMenuAnchor,
+    checkIfContextMenuActive,
+    chatReport,
+    iouReport,
+    reportActions,
+    isHovered,
+    network,
+    style,
+    isWhisper,
+}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
-    const onIOUPreviewPressed = () => {
+    const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
-            const reportActionID = lodashGet(props.action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID));
+            const reportActionID = lodashGet(action, 'reportActionID', '0');
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
             return;
         }
 
         // If the childReportID is not present, we need to create a new thread
-        const childReportID = lodashGet(props.action, 'childReportID', '0');
-        if (childReportID === '0') {
-            const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
-            const thread = ReportUtils.buildOptimisticChatReport(
-                participantAccountIDs,
-                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
-                    comment: props.action.originalMessage.comment,
-                }),
-                '',
-                CONST.POLICY.OWNER_EMAIL_FAKE,
-                CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-                false,
-                '',
-                undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                props.action.reportActionID,
-                props.requestReportID,
-            );
-
+        const childReportID = lodashGet(action, 'childReportID', 0);
+        if (!childReportID) {
+            const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-            Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
-            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
-        } else {
-            Report.openReport(childReportID);
-            Navigation.navigate(ROUTES.getReportRoute(childReportID));
+            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
+            return;
         }
+        Report.openReport(childReportID);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (
-        !_.isEmpty(props.iouReport) &&
-        !_.isEmpty(props.reportActions) &&
-        props.chatReport.hasOutstandingIOU &&
-        props.isMostRecentIOUReportAction &&
-        props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        props.network.isOffline
+        !_.isEmpty(iouReport) &&
+        !_.isEmpty(reportActions) &&
+        chatReport.hasOutstandingIOU &&
+        isMostRecentIOUReportAction &&
+        action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return (
-        <IOUPreview
-            iouReportID={props.requestReportID}
-            chatReportID={props.chatReportID}
+    return isDeletedParentAction || isReversedTransaction ? (
+        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
+    ) : (
+        <MoneyRequestPreview
+            iouReportID={requestReportID}
+            chatReportID={chatReportID}
             isBillSplit={isSplitBillAction}
-            action={props.action}
-            contextMenuAnchor={props.contextMenuAnchor}
-            checkIfContextMenuActive={props.checkIfContextMenuActive}
+            action={action}
+            contextMenuAnchor={contextMenuAnchor}
+            checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onIOUPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-            isHovered={props.isHovered}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
+            isHovered={isHovered}
+            isWhisper={isWhisper}
         />
     );
 }
@@ -158,7 +154,6 @@ MoneyRequestAction.defaultProps = defaultProps;
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
-    withLocalize,
     withOnyx({
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
@@ -169,9 +164,6 @@ export default compose(
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),

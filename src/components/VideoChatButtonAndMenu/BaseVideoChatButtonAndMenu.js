@@ -1,23 +1,24 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {View, Dimensions, Linking} from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Popover from '../Popover';
-import MenuItem from '../MenuItem';
-import ZoomIcon from '../../../assets/images/zoom-icon.svg';
-import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import Tooltip from '../Tooltip';
-import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import * as Session from '../../libs/actions/Session';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+import _ from 'underscore';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import Popover from '@components/Popover';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes as videoChatButtonAndMenuPropTypes} from './videoChatButtonAndMenuPropTypes';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -29,6 +30,8 @@ const propTypes = {
 };
 
 function BaseVideoChatButtonAndMenu(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
     const videoChatIconWrapperRef = useRef(null);
@@ -40,7 +43,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             },
         },
         {
@@ -48,7 +51,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(props.googleMeetURL);
+                Link.openExternalLink(props.googleMeetURL);
             },
         },
     ];
@@ -93,18 +96,18 @@ function BaseVideoChatButtonAndMenu(props) {
 
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                             if (props.isConcierge && props.guideCalendarLink) {
-                                Linking.openURL(props.guideCalendarLink);
+                                Link.openExternalLink(props.guideCalendarLink);
                                 return;
                             }
-                            setIsVideoChatMenuActive(true);
+                            setIsVideoChatMenuActive((previousVal) => !previousVal);
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Icon
                             src={Expensicons.Phone}
-                            fill={isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
+                            fill={isVideoChatMenuActive ? theme.heading : theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>
@@ -117,6 +120,8 @@ function BaseVideoChatButtonAndMenu(props) {
                     left: videoChatIconPosition.x - 150,
                     top: videoChatIconPosition.y + 40,
                 }}
+                withoutOverlay
+                anchorRef={videoChatButtonRef}
             >
                 <View style={props.isSmallScreenWidth ? {} : styles.pv3}>
                     {_.map(menuItemData, ({icon, text, onPress}) => (

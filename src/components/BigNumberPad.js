@@ -1,10 +1,11 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ControlSelection from '@libs/ControlSelection';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
-import ControlSelection from '../libs/ControlSelection';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
@@ -15,14 +16,14 @@ const propTypes = {
     longPressHandlerStateChanged: PropTypes.func,
 
     /** Used to locate this view from native classes. */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     longPressHandlerStateChanged: () => {},
-    nativeID: 'numPadView',
+    id: 'numPadView',
 };
 
 const padNumbers = [
@@ -33,7 +34,9 @@ const padNumbers = [
 ];
 
 function BigNumberPad(props) {
+    const styles = useThemeStyles();
     const [timer, setTimer] = useState(null);
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
      * Handle long press key on number pad.
@@ -57,7 +60,7 @@ function BigNumberPad(props) {
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            nativeID={props.nativeID}
+            id={props.id}
         >
             {_.map(padNumbers, (row, rowIndex) => (
                 <View
@@ -71,6 +74,7 @@ function BigNumberPad(props) {
                         return (
                             <Button
                                 key={column}
+                                medium={isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : props.toLocaleDigit(column)}

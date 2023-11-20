@@ -1,7 +1,32 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 describe('ReportActionsUtils', () => {
+    beforeAll(() =>
+        Onyx.init({
+            keys: ONYXKEYS,
+            registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        }),
+    );
+
+    beforeEach(() => {
+        // Wrap Onyx each onyx action with waitForBatchedUpdates
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        // Initialize the network key for OfflineWithFeedback
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
+
+    // Clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => {
+        Onyx.clear();
+    });
+
     describe('getSortedReportActions', () => {
         const cases = [
             [
@@ -148,10 +173,16 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"'}],
                 },
                 {
-                    created: '2022-11-08 22:27:01.825',
-                    reportActionID: '1661970171066218',
-                    actionName: 'REIMBURSED',
-                    message: [{html: 'Hello world'}],
+                    created: '2022-11-08 22:27:06.825',
+                    reportActionID: '1661970171066216',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
+                    message: [{html: 'Waiting for the bank account'}],
+                },
+                {
+                    created: '2022-11-06 22:27:08.825',
+                    reportActionID: '1661970171066220',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+                    message: [{html: 'I have changed the task'}],
                 },
             ];
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
@@ -221,6 +252,68 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
+        });
+    });
+
+    describe('getLastVisibleAction', () => {
+        it('should return the last visible action for a report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
+                reportID: 1,
+            };
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'action1',
+                actionName: 'ADDCOMMENT',
+                originalMessage: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+                message: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+            };
+            const action2 = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3, true),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'action2',
+                actionName: 'ADDCOMMENT',
+                originalMessage: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+                message: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+            };
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
+                        }),
+                    )
+                    .then(
+                        () =>
+                            new Promise((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                                    waitForCollectionCallback: true,
+                                    callback: () => {
+                                        Onyx.disconnect(connectionID);
+                                        const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
+                                        expect(res).toBe(action2);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
         });
     });
 });

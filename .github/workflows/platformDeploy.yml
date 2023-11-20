@@ -12,13 +12,18 @@ env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
 jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
     steps:
-      - id: isUserDeployer
+      - name: Check if user is deployer
+        id: isUserDeployer
         run: |
           if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
             echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
@@ -28,17 +33,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+  # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
+  deployChecklist:
+    name: Create or update deploy checklist
+    uses: ./.github/workflows/createDeployChecklist.yml
+    if: ${{ github.event_name != 'release' }}
+    needs: validateActor
+    secrets: inherit
+
   android:
     name: Build and deploy Android
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest-xl
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -75,9 +94,16 @@ jobs:
           name: android-sourcemap
           path: android/app/build/generated/sourcemaps/react/release/*.map
 
+      - name: Upload Android version to GitHub artifacts
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-production-release.aab
+          path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+
       - name: Upload Android version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/release/app-release.aab"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
@@ -105,9 +131,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-12-xl
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -116,7 +144,7 @@ jobs:
 
       - name: Build production desktop app
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build -- --publish always
+        run: npm run desktop-build
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -127,7 +155,7 @@ jobs:
 
       - name: Build staging desktop app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging -- --publish always
+        run: npm run desktop-build-staging
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -140,19 +168,38 @@ jobs:
     name: Build and deploy iOS
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true
 
+      - name: Cache Pod dependencies
+        uses: actions/cache@v3
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-cache-
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -187,6 +234,13 @@ jobs:
         with:
           name: ios-sourcemap
           path: main.jsbundle.map
+
+      - name: Upload iOS version to GitHub artifacts
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: New Expensify.ipa
+          path: /Users/runner/work/App/App/New Expensify.ipa
 
       - name: Upload iOS version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -228,9 +282,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest-xl
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
@@ -285,7 +341,8 @@ jobs:
     if: ${{ failure() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+      - name: Post Slack message on failure
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -295,7 +352,8 @@ jobs:
     if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -352,12 +410,14 @@ jobs:
   postGithubComment:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"

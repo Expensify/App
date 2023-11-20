@@ -50,6 +50,11 @@ module.exports = (env) => {
         module: {
             rules: [
                 {
+                    test: /\.tsx?$/,
+                    loader: 'babel-loader',
+                    exclude: /node_modules/,
+                },
+                {
                     test: /react-native-onyx/,
                     use: {
                         loader: 'babel-loader',

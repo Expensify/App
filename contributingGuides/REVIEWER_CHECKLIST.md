@@ -10,12 +10,12 @@
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
-    - [ ] Android / native
-    - [ ] Android / Chrome
-    - [ ] iOS / native
-    - [ ] iOS / Safari
-    - [ ] MacOS / Chrome / Safari
-    - [ ] MacOS / Desktop
+    - [ ] Android: Native
+    - [ ] Android: mWeb Chrome
+    - [ ] iOS: Native
+    - [ ] iOS: mWeb Safari
+    - [ ] MacOS: Chrome / Safari
+    - [ ] MacOS: Desktop
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
@@ -50,48 +50,49 @@
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 
 ### Screenshots/Videos
 <details>
-<summary>Web</summary>
+<summary>Android: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Safari</summary>
+<summary>iOS: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Desktop</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS</summary>
+<summary>MacOS: Chrome / Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Android</summary>
+<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

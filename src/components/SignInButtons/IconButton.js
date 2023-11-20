@@ -1,15 +1,16 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import Icon from '../Icon';
+import React from 'react';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The on press method */
     onPress: PropTypes.func,
+
     /** Which provider you are using to sign in */
     provider: PropTypes.string.isRequired,
 
@@ -25,14 +26,19 @@ const providerData = {
         icon: Expensicons.AppleLogo,
         accessibilityLabel: 'common.signInWithApple',
     },
+    [CONST.SIGN_IN_METHOD.GOOGLE]: {
+        icon: Expensicons.GoogleLogo,
+        accessibilityLabel: 'common.signInWithGoogle',
+    },
 };
 
 function IconButton({onPress, translate, provider}) {
+    const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
             onPress={onPress}
             style={styles.signInIconButton}
-            accessibilityRole="button"
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon

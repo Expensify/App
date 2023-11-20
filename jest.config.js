@@ -10,6 +10,7 @@ module.exports = {
     ],
     transform: {
         '^.+\\.jsx?$': 'babel-jest',
+        '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
@@ -22,7 +23,10 @@ module.exports = {
         doNotFake: ['nextTick'],
     },
     testEnvironment: 'jsdom',
-    setupFiles: ['<rootDir>/jest/setup.js'],
-    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+    setupFiles: ['<rootDir>/jest/setup.js', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
+    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.js'],
     cacheDirectory: '<rootDir>/.jest-cache',
+    moduleNameMapper: {
+        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.js',
+    },
 };

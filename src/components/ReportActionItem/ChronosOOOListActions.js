@@ -1,16 +1,16 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import Button from '../Button';
-import * as Chronos from '../../libs/actions/Chronos';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import DateUtils from '../../libs/DateUtils';
-import OfflineWithFeedback from '../OfflineWithFeedback';
+import Button from '@components/Button';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Chronos from '@userActions/Chronos';
 
 const propTypes = {
     /** The ID of the report */
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function ChronosOOOListActions(props) {
+    const styles = useThemeStyles();
     const events = lodashGet(props.action, 'originalMessage.events', []);
 
     if (!events.length) {
@@ -37,8 +38,8 @@ function ChronosOOOListActions(props) {
         <OfflineWithFeedback pendingAction={lodashGet(props.action, 'pendingAction', null)}>
             <View style={[styles.chatItemMessage]}>
                 {_.map(events, (event) => {
-                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
-                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
+                    const start = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
+                    const end = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
                     return (
                         <View
                             key={event.id}
@@ -49,12 +50,12 @@ function ChronosOOOListActions(props) {
                                     ? props.translate('chronos.oooEventSummaryFullDay', {
                                           summary: event.summary,
                                           dayCount: event.lengthInDays,
-                                          date: end.format('dddd LL'),
+                                          date: DateUtils.formatToLongDateWithWeekday(end),
                                       })
                                     : props.translate('chronos.oooEventSummaryPartialDay', {
                                           summary: event.summary,
-                                          timePeriod: `${start.format('LT')} - ${end.format('LT')}`,
-                                          date: end.format('dddd LL'),
+                                          timePeriod: `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
+                                          date: DateUtils.formatToLongDateWithWeekday(end),
                                       })}
                             </Text>
                             <Button

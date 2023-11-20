@@ -1,11 +1,12 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import intlPolyfill from '@libs/IntlPolyfill';
+import * as Metrics from '@libs/Metrics';
+import * as Device from '@userActions/Device';
+import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import platformSetup from './platformSetup';
-import * as Metrics from '../libs/Metrics';
-import * as Device from '../libs/actions/Device';
-import intlPolyfill from '../libs/IntlPolyfill';
 
 export default function () {
     /*
@@ -33,27 +34,16 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
-            [ONYXKEYS.IOU]: {
-                loading: false,
-                error: false,
-            },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.MODAL]: {
+                isVisible: false,
+                willAlertModalBecomeVisible: false,
+            },
         },
     });
 
-    // When enabled we will skip persisting to disk any server-side downloaded objects (e.g. workspaces, chats, etc) that can hog up a user's resources.
-    window.enableMemoryOnlyKeys = () => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, true);
-        Onyx.setMemoryOnlyKeys([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST]);
-    };
-
-    window.disableMemoryOnlyKeys = () => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, false);
-        Onyx.setMemoryOnlyKeys([]);
-    };
+    exposeGlobalMemoryOnlyKeysMethods();
 
     Device.setDeviceID();
 

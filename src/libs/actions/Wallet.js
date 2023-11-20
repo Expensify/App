@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as API from '@libs/API';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -69,12 +69,13 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
 }
 
 /**
- * Save the ID of the chat whose IOU triggered showing the KYC wall.
+ * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  *
+ * @param {String} source
  * @param {String} chatReportID
  */
-function setKYCWallSourceChatReportID(chatReportID) {
-    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
+function setKYCWallSource(source, chatReportID = '') {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {source, chatReportID});
 }
 
 /**
@@ -213,9 +214,9 @@ function acceptWalletTerms(parameters) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER_WALLET,
+            key: ONYXKEYS.WALLET_TERMS,
             value: {
-                shouldShowWalletActivationSuccess: true,
+                isLoading: true,
             },
         },
     ];
@@ -226,6 +227,7 @@ function acceptWalletTerms(parameters) {
             key: ONYXKEYS.WALLET_TERMS,
             value: {
                 errors: null,
+                isLoading: false,
             },
         },
     ];
@@ -235,8 +237,15 @@ function acceptWalletTerms(parameters) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
-                shouldShowWalletActivationSuccess: null,
+                isPendingOnfidoResult: null,
                 shouldShowFailedKYC: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                isLoading: false,
             },
         },
     ];
@@ -321,6 +330,45 @@ function answerQuestionsForWallet(answers, idNumber) {
     );
 }
 
+function requestPhysicalExpensifyCard(cardID, authToken, privatePersonalDetails) {
+    const {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        address: {city, country, state, street, zip},
+    } = privatePersonalDetails;
+    const params = {
+        authToken,
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        addressCity: city,
+        addressCountry: country,
+        addressState: state,
+        addressStreet: street,
+        addressZip: zip,
+    };
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        state: 4, // NOT_ACTIVATED
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: privatePersonalDetails,
+            },
+        ],
+    };
+    API.write('RequestPhysicalExpensifyCard', params, onyxData);
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -333,5 +381,6 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
-    setKYCWallSourceChatReportID,
+    setKYCWallSource,
+    requestPhysicalExpensifyCard,
 };
