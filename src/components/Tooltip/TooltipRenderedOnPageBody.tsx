@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
@@ -6,136 +5,138 @@ import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
 
-const propTypes = {
+type TooltipRenderedOnPageBodyProps = {
     /** Window width */
-    windowWidth: PropTypes.number.isRequired,
+    windowWidth: number;
 
     /** Tooltip Animation value */
     // eslint-disable-next-line react/forbid-prop-types
-    animation: PropTypes.object.isRequired,
+    animation: unknown;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
-    xOffset: PropTypes.number.isRequired,
+    xOffset: number;
 
     /** The distance between the top of the wrapper view and the top of the window */
-    yOffset: PropTypes.number.isRequired,
+    yOffset: number;
 
     /** The width of the tooltip's target */
-    targetWidth: PropTypes.number.isRequired,
+    targetWidth: number;
 
     /** The height of the tooltip's target */
-    targetHeight: PropTypes.number.isRequired,
+    targetHeight: number;
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: PropTypes.number,
+    shiftHorizontal?: number;
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical: PropTypes.number,
+    shiftVertical?: number;
 
     /** Text to be shown in the tooltip */
-    text: PropTypes.string.isRequired,
+    text: string;
 
     /** Maximum number of lines to show in tooltip */
-    numberOfLines: PropTypes.number.isRequired,
+    numberOfLines: number;
 
     /** Number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number,
+    maxWidth?: number;
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
-    renderTooltipContent: PropTypes.func,
+    renderTooltipContent?: () => React.ReactNode;
 };
 
-const defaultProps = {
-    shiftHorizontal: 0,
-    shiftVertical: 0,
-    renderTooltipContent: undefined,
-    maxWidth: 0,
-};
+const viewRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<View>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
-function TooltipRenderedOnPageBody(props) {
+function TooltipRenderedOnPageBody({
+    windowWidth,
+    animation,
+    xOffset,
+    yOffset,
+    targetWidth,
+    targetHeight,
+    shiftHorizontal = 0,
+    shiftVertical = 0,
+    text,
+    numberOfLines,
+    maxWidth = 0,
+    renderTooltipContent,
+}: TooltipRenderedOnPageBodyProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
-    const [contentMeasuredWidth, setContentMeasuredWidth] = useState(undefined);
+    const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number | undefined>(undefined);
     // The height of tooltip's wrapper.
-    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState(undefined);
-    const contentRef = useRef();
-    const rootWrapper = useRef();
+    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number | undefined>(undefined);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const rootWrapper = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!props.renderTooltipContent || !props.text) {
+        if (!renderTooltipContent || !text) {
             return;
         }
         Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
-    }, [props.text, props.renderTooltipContent]);
+    }, [text, renderTooltipContent]);
 
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
-        setContentMeasuredWidth(contentRef.current.getBoundingClientRect().width);
-        setWrapperMeasuredHeight(rootWrapper.current.getBoundingClientRect().height);
+        setContentMeasuredWidth(contentRef.current?.getBoundingClientRect().width);
+        setWrapperMeasuredHeight(rootWrapper.current?.getBoundingClientRect().height);
     }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
                 rootWrapper.current,
-                props.animation,
-                props.windowWidth,
-                props.xOffset,
-                props.yOffset,
-                props.targetWidth,
-                props.targetHeight,
-                props.maxWidth,
+                animation,
+                windowWidth,
+                xOffset,
+                yOffset,
+                targetWidth,
+                targetHeight,
+                maxWidth,
                 contentMeasuredWidth,
                 wrapperMeasuredHeight,
-                props.shiftHorizontal,
-                props.shiftVertical,
+                shiftHorizontal,
+                shiftVertical,
             ),
-        [
-            props.animation,
-            props.windowWidth,
-            props.xOffset,
-            props.yOffset,
-            props.targetWidth,
-            props.targetHeight,
-            props.maxWidth,
-            contentMeasuredWidth,
-            wrapperMeasuredHeight,
-            props.shiftHorizontal,
-            props.shiftVertical,
-        ],
+        [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
     );
 
     let content;
-    if (props.renderTooltipContent) {
-        content = <View ref={contentRef}>{props.renderTooltipContent()}</View>;
+    if (renderTooltipContent) {
+        content = <View ref={viewRef(contentRef)}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
-                numberOfLines={props.numberOfLines}
+                numberOfLines={numberOfLines}
                 style={textStyle}
             >
                 <Text
                     style={textStyle}
-                    ref={contentRef}
+                    ref={viewRef(contentRef)}
                 >
-                    {props.text}
+                    {text}
                 </Text>
             </Text>
         );
     }
 
+    const body = document.querySelector('body');
+
+    if (!body) {
+        return null;
+    }
+
     return ReactDOM.createPortal(
         <Animated.View
-            ref={rootWrapper}
+            ref={viewRef(rootWrapper)}
             style={[rootWrapperStyle, animationStyle]}
         >
             {content}
@@ -143,12 +144,10 @@ function TooltipRenderedOnPageBody(props) {
                 <View style={pointerStyle} />
             </View>
         </Animated.View>,
-        document.querySelector('body'),
+        body,
     );
 }
 
-TooltipRenderedOnPageBody.propTypes = propTypes;
-TooltipRenderedOnPageBody.defaultProps = defaultProps;
 TooltipRenderedOnPageBody.displayName = 'TooltipRenderedOnPageBody';
 
 export default React.memo(TooltipRenderedOnPageBody);

@@ -1,52 +1,37 @@
-import PropTypes from 'prop-types';
-import refPropTypes from '@components/refPropTypes';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import {ForwardedRef, ReactNode} from 'react';
 
-const propTypes = {
+type TooltipProps = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
-    text: PropTypes.string,
+    text: string;
 
     /** Maximum number of lines to show in tooltip */
-    numberOfLines: PropTypes.number,
+    numberOfLines: number;
 
     /** Children to wrap with Tooltip. */
-    children: PropTypes.node.isRequired,
+    children: ReactNode;
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+    shiftHorizontal: number | ((width: number) => number);
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+    shiftVertical: number | ((height: number) => number);
 
     /** Number of pixels to set max-width on tooltip  */
-    maxWidth: PropTypes.number,
+    maxWidth: number;
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
-    renderTooltipContent: PropTypes.func,
+    renderTooltipContent: unknown;
 
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
-    renderTooltipContentKey: PropTypes.arrayOf(PropTypes.string),
+    renderTooltipContentKey: string[];
 
     /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
-    shouldHandleScroll: PropTypes.bool,
+    shouldHandleScroll: boolean;
 
     /** Reference to the tooltip container */
-    tooltipRef: refPropTypes,
+    tooltipRef: ForwardedRef<unknown>;
 };
 
-const defaultProps = {
-    shiftHorizontal: 0,
-    shiftVertical: 0,
-    text: '',
-    maxWidth: variables.sideBarWidth,
-    numberOfLines: CONST.TOOLTIP_MAX_LINES,
-    renderTooltipContent: undefined,
-    renderTooltipContentKey: [],
-    shouldHandleScroll: false,
-    tooltipRef: () => {},
-};
-
-export {propTypes, defaultProps};
+export {TooltipProps};

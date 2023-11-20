@@ -1,8 +1,8 @@
-import {ReactElement} from 'react';
+import {ReactElement, ReactNode} from 'react';
 
 type HoverableProps = {
     /** Children to wrap with Hoverable. */
-    children: ((isHovered: boolean) => ReactElement) | ReactElement;
+    children: ((isHovered: boolean) => ReactElement) | ReactNode;
 
     /** Whether to disable the hover action */
     disabled?: boolean;

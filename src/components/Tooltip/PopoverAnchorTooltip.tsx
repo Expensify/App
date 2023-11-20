@@ -1,36 +1,21 @@
-import PropTypes from 'prop-types';
 import React, {useContext, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
 import BaseTooltip from './BaseTooltip';
-import {defaultProps as tooltipDefaultProps, propTypes as tooltipPropTypes} from './tooltipPropTypes';
+import {TooltipProps} from './types';
 
-const propTypes = {
-    ...tooltipPropTypes,
-
+type Props = TooltipProps & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
-    shouldRender: PropTypes.bool,
+    shouldRender: boolean;
 };
-
-const defaultProps = {
-    ...tooltipDefaultProps,
-    shouldRender: true,
-};
-
-function PopoverAnchorTooltip({shouldRender, children, ...props}) {
+function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Props) {
     const {isOpen, popover} = useContext(PopoverContext);
-    const tooltipRef = useRef(null);
+    const tooltipRef = useRef<View>(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
         // eslint-disable-next-line
         const tooltipNode = tooltipRef.current ? tooltipRef.current._childNode : null;
-        if (
-            isOpen &&
-            popover &&
-            popover.anchorRef &&
-            popover.anchorRef.current &&
-            tooltipNode &&
-            (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)
-        ) {
+        if (isOpen && popover?.anchorRef?.current && tooltipNode && (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)) {
             return true;
         }
 
@@ -53,7 +38,5 @@ function PopoverAnchorTooltip({shouldRender, children, ...props}) {
 }
 
 PopoverAnchorTooltip.displayName = 'PopoverAnchorTooltip';
-PopoverAnchorTooltip.propTypes = propTypes;
-PopoverAnchorTooltip.defaultProps = defaultProps;
 
 export default PopoverAnchorTooltip;

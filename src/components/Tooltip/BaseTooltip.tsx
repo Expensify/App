@@ -1,16 +1,16 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import Str from 'expensify-common/lib/str';
+import _ from 'lodash';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
-import _ from 'underscore';
 import Hoverable from '@components/Hoverable';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as tooltipPropTypes from './tooltipPropTypes';
+import variables from '@styles/variables';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
+import {TooltipProps} from './types';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -33,7 +33,7 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * @return {DOMRect} The chosen bounding box.
  */
 
-function chooseBoundingBox(target, clientX, clientY) {
+function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number): DOMRect {
     const slop = 5;
     const bbs = target.getClientRects();
     const clientXMin = clientX - slop;
@@ -41,6 +41,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     const clientYMin = clientY - slop;
     const clientYMax = clientY + slop;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < bbs.length; i++) {
         const bb = bbs[i];
         if (clientXMin <= bb.right && clientXMax >= bb.left && clientYMin <= bb.bottom && clientYMax >= bb.top) {
@@ -52,7 +53,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical, tooltipRef}) {
+function Tooltip({children, numberOfLines, maxWidth = variables.sideBarWidth, text = '', renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal = 0, shiftVertical = 0, tooltipRef}: TooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -74,10 +75,10 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
 
-    const target = useRef(null);
+    const target = useRef<HTMLElement>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e) => {
+    const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
         target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
@@ -120,10 +121,8 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
 
     /**
      * Update the tooltip bounding rectangle
-     *
-     * @param {Object} bounds - updated bounds
      */
-    const updateBounds = (bounds) => {
+    const updateBounds = (bounds: DOMRect) => {
         if (bounds.width === 0) {
             setIsRendered(false);
         }
@@ -183,8 +182,8 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={Str.result(shiftHorizontal)}
-                    shiftVertical={Str.result(shiftVertical)}
+                    shiftHorizontal={shiftHorizontal}
+                    shiftVertical={shiftVertical}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
@@ -212,8 +211,6 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     );
 }
 
-Tooltip.propTypes = tooltipPropTypes.propTypes;
-Tooltip.defaultProps = tooltipPropTypes.defaultProps;
 Tooltip.displayName = 'Tooltip';
 
 export default memo(Tooltip);
