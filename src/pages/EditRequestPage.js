@@ -128,7 +128,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // For small screen, we don't call openReport API when we go to a sub report page by deeplink
     // So we need to call openReport here for small screen
     useEffect(() => {
-        if (!isSmallScreenWidth || (!_.isEmpty(report) && !_.isEmpty(reportAction))) {
+        if (!isSmallScreenWidth || (!_.isEmpty(report) && !_.isEmpty(reportAction) && !_.isEmpty(transaction))) {
             return;
         }
         Report.openReport(route.params.threadReportID);
