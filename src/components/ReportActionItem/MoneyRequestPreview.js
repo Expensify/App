@@ -358,15 +358,17 @@ function MoneyRequestPreview(props) {
         return childContainer;
     }
 
+    const shouldDisableOnPress = props.isBillSplit && _.isEmpty(props.transaction);
+
     return (
         <PressableWithFeedback
-            onPress={props.onPreviewPressed}
+            onPress={shouldDisableOnPress ? undefined : props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles, shouldDisableOnPress && styles.cursorDefault]}
         >
             {childContainer}
         </PressableWithFeedback>
