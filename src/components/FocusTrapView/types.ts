@@ -1,10 +1,7 @@
-import {ReactNode} from 'react';
 import {ViewProps} from 'react-native';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type FocusTrapViewProps = {
-    /** Children to wrap with FocusTrap */
-    children: ReactNode;
-
+type FocusTrapViewProps = ChildrenProps & {
     /**
      *  Whether to enable the FocusTrap.
      *  If the FocusTrap is disabled, we just pass the children through.

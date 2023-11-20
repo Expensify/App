@@ -4,9 +4,8 @@
 import FocusTrap from 'focus-trap-react';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import viewRef from '@src/types/utils/viewRef';
 import FocusTrapViewProps from './types';
-
-const viewRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<View>;
 
 function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus = false, ...props}: FocusTrapViewProps) {
     /**
