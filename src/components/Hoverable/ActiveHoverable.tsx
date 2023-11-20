@@ -5,8 +5,6 @@ import HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
-// TODO: Do we really need distinction between onHover* and onMouse*?
-
 function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children, ...props}: ActiveHoverableProps, ref: Ref<R>) {
     const [isHovered, setIsHovered] = useState(false);
     const isScrolling = useRef(false);
@@ -39,6 +37,14 @@ function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children
 
         return () => scrollingListener.remove();
     }, [shouldHandleScroll]);
+
+    useEffect(() => {
+        const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
+
+        document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
+
+        return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
+    }, []);
 
     const child = useMemo(() => (typeof children === 'function' ? children(!isScrolling.current && isHovered) : children), [children, isHovered]);
 
