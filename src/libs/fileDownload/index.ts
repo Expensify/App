@@ -1,6 +1,7 @@
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
@@ -9,7 +10,7 @@ import type {FileDownload} from './types';
  */
 const fileDownload: FileDownload = (url, fileName) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot())) {
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix))) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);
