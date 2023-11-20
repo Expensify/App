@@ -1,17 +1,17 @@
 import {createRef} from 'react';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import * as API from '@libs/API';
-import * as CardUtils from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
+import * as API from '@libs/API';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 
 type KYCWallRef = {
-    continue?: () => void;
+    continueAction?: () => void;
 };
 
 /**
@@ -23,14 +23,14 @@ const kycWallRef = createRef<KYCWallRef>();
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
 function continueSetup(fallbackRoute = ROUTES.HOME) {
-    if (!kycWallRef.current?.continue) {
+    if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continue();
+    kycWallRef.current.continueAction();
 }
 
 function openWalletPage() {
@@ -214,7 +214,7 @@ function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
-        setupComplete: false,
+        setupComplete: true,
     });
 }
 
