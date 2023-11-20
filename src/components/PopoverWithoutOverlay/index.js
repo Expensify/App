@@ -7,6 +7,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
@@ -51,7 +52,7 @@ function Popover(props) {
 
     return (
         <View
-            style={[modalStyle, {zIndex: 10000}]}
+            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
             ref={props.withoutOverlayRef}
         >
             <SafeAreaInsetsContext.Consumer>
