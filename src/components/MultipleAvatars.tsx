@@ -7,12 +7,18 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {PersonalDetails} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
-import participantPropTypes from './participantPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
+
+// TODO: once `src/components/participantPropTypes.js` is migrated to TS, this type should be moved there
+type Participant = Pick<
+    PersonalDetails,
+    'accountID' | 'avatar' | 'displayName' | 'firstName' | 'lastName' | 'localCurrencyCode' | 'login' | 'payPalMeAddress' | 'phoneNumber' | 'pronouns' | 'timezone' | 'validated'
+>;
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -53,9 +59,9 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     maxAvatarsInRow?: number;
-    
+
     /** List of participants */
-    participants: PropTypes.arrayOf(participantPropTypes)
+    participants: Participant[];
 };
 
 type AvatarStyles = {
@@ -114,12 +120,16 @@ function MultipleAvatars({
         return CONST.AVATAR_SIZE.SMALLER;
     }, [isFocusMode, size]);
 
-    const participantsList = useMemo(() => _.reduce(participants, (all, participant) => {
-        // eslint-disable-next-line no-param-reassign
-        all[participant.accountID] = participant;
+    const participantsList = useMemo(
+        () =>
+            participants.reduce<Record<number, Participant>>((all, participant) => {
+                const items = all;
+                items[participant.accountID] = participant;
 
-        return all;
-    }, {}), [participants])
+                return items;
+            }, {}),
+        [participants],
+    );
 
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
@@ -145,7 +155,7 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                user={participantsList[icons[0].id]}
+                user={participantsList[Number(icons[0].id)]}
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
@@ -186,8 +196,8 @@ function MultipleAvatars({
                     >
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
-                                key={`stackedAvatars-${index}`}
-                                user={participantsList[icon.id]}
+                                key={`stackedAvatars-${icon.id}`}
+                                user={participantsList[Number(icon.id)]}
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
@@ -258,7 +268,7 @@ function MultipleAvatars({
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
                         <UserDetailsTooltip
-                            user={participantsList[icons[0].id]}
+                            user={participantsList[Number(icons[0].id)]}
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
@@ -280,7 +290,7 @@ function MultipleAvatars({
                         <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
-                                    user={participantsList[icons[1].id]}
+                                    user={participantsList[Number(icons[1].id)]}
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,
