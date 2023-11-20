@@ -1939,9 +1939,7 @@ export default {
     videoPlayer: {
         tooglePlay: 'Toggle play',
         moreOptions: 'More options',
-        fullscreen: 'Fullscreen',
         enterFullScreen: 'Enter fullscreen',
-        download: 'Download',
         playbackSpeed: 'Playback speed',
         openInAttachmentModal: 'Open in attachment modal',
     },

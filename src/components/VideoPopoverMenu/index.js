@@ -29,7 +29,7 @@ function VideoPopoverMenu() {
     const menuItems = [
         {
             icon: Expensicons.Download,
-            text: translate('videoPlayer.download'),
+            text: translate('common.download'),
             onSelected: () => {
                 console.log('Download');
             },

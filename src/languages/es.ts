@@ -2420,4 +2420,11 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
+    videoPlayer: {
+        tooglePlay: 'Toogle jugar',
+        moreOptions: 'Más opciones',
+        enterFullScreen: 'Entrar en pantalla completa',
+        playbackSpeed: 'Velocidad de reproducción',
+        openInAttachmentModal: 'Abrir en modo adjunto',
+    },
 } satisfies EnglishTranslation;
