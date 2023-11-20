@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
+import callOrReturn from '@src/types/utils/callOrReturn';
 import viewRef from '@src/types/utils/viewRef';
 
 type TooltipRenderedOnPageBodyProps = {
@@ -27,11 +28,11 @@ type TooltipRenderedOnPageBodyProps = {
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal?: number;
+    shiftHorizontal?: (() => number) | number;
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical?: number;
+    shiftVertical?: (() => number) | number;
 
     /** Text to be shown in the tooltip */
     text: string;
@@ -101,8 +102,8 @@ function TooltipRenderedOnPageBody({
                 maxWidth,
                 contentMeasuredWidth,
                 wrapperMeasuredHeight,
-                shiftHorizontal,
-                shiftVertical,
+                callOrReturn(shiftHorizontal),
+                callOrReturn(shiftVertical),
             ),
         [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
     );

@@ -195,8 +195,8 @@ function Tooltip({
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={callOrReturn(shiftHorizontal)}
-                    shiftVertical={callOrReturn(shiftVertical)}
+                    shiftHorizontal={shiftHorizontal}
+                    shiftVertical={shiftVertical}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
