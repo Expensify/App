@@ -13,7 +13,7 @@ type ExceededCommentLengthOnyxProps = {
     comment: OnyxEntry<string>;
 };
 
-type ExceededCommentLengthProps = {
+type ExceededCommentLengthProps = ExceededCommentLengthOnyxProps & {
     /** Report ID to get the comment from (used in withOnyx) */
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: string;
@@ -25,7 +25,7 @@ type ExceededCommentLengthProps = {
     onExceededMaxCommentLength: () => void;
 };
 
-function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: ExceededCommentLengthProps & ExceededCommentLengthOnyxProps) {
+function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: ExceededCommentLengthProps) {
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
