@@ -20,11 +20,15 @@ const propTypes = {
 
     /** List of recently used tags */
     policyRecentlyUsedTags: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+
+    /** Should show the selected option that is disabled? */
+    shouldShowDisabledAndSelectedOption: PropTypes.bool,
 };
 
 const defaultProps = {
     policyTags: {},
     policyRecentlyUsedTags: {},
+    shouldShowDisabledAndSelectedOption: false,
 };
 
 export {propTypes, defaultProps};

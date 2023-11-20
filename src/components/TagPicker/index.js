@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './tagPickerPropTypes';
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit, shouldShowDisabledAndSelectedOption}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -37,10 +37,18 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         ];
     }, [selectedTag]);
 
+    const enabledTags = useMemo(() => {
+        if (!shouldShowDisabledAndSelectedOption) {
+            return policyTagList;
+        }
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return tags;
+    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+
     const sections = useMemo(
-        () =>
-            OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, policyTagList, policyRecentlyUsedTagsList, false).tagOptions,
-        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList],
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);

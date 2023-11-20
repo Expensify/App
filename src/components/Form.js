@@ -351,7 +351,17 @@ function Form(props) {
                             // We delay the validation in order to prevent Checkbox loss of focus when
                             // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                             // web and mobile web platforms.
+
+                            // Prevents React from resetting its properties
+                            event.persist();
                             setTimeout(() => {
+                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                                if (
+                                    relatedTargetId &&
+                                    _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)
+                                ) {
+                                    return;
+                                }
                                 setTouchedInput(inputID);
                                 if (props.shouldValidateOnBlur) {
                                     onValidate(inputValues, !hasServerError);
