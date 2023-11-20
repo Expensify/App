@@ -241,7 +241,7 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
-                isInModal={isInModal}
+                shouldShowSmallScreen={shouldShowSmallScreen}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}

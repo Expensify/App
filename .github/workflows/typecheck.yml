@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: ./.github/actions/composite/setupNode
 
       - name: Type check with TypeScript
         run: npm run typecheck

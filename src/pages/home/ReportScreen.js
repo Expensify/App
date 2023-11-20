@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBlockViewportScroll from '@hooks/useBlockViewportScroll';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -150,6 +151,7 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    useBlockViewportScroll();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -374,6 +376,7 @@ function ReportScreen({
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
