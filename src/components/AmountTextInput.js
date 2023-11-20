@@ -41,7 +41,8 @@ const defaultProps = {
 function AmountTextInput(props) {
     const styles = useThemeStyles();
     return (
-        <TextInput accessibilityLabel="Text input field"
+        <TextInput
+            accessibilityLabel="Text input field"
             disableKeyboard
             autoGrow
             hideFocusedState

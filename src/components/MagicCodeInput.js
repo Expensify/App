@@ -307,7 +307,8 @@ function MagicCodeInput(props) {
                         </View>
                         {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
-                            <TextInput accessibilityLabel="Text input field"
+                            <TextInput
+                                accessibilityLabel="Text input field"
                                 ref={(ref) => {
                                     inputRefs.current[index] = ref;
                                     // Setting attribute type to "search" to prevent Password Manager from appearing in Mobile Chrome

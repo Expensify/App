@@ -38,7 +38,6 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUs
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
-            
         >
             {children}
         </PressableWithoutFeedback>
