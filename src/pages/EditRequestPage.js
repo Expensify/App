@@ -10,14 +10,17 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
+import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +69,9 @@ const propTypes = {
 
     /** Indicates whether the app is loading initial data */
     isLoadingReportData: PropTypes.bool,
+
+    /** Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -78,9 +84,10 @@ const defaultProps = {
     isLoadingReportData: true,
 };
 
-function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData}) {
+function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData, isSmallScreenWidth}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
+    const parentReportID = lodashGet(report, 'parentReportID', '0');
 
     const isTransactionLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isTransactionLoading = lodashGet(transaction, 'isLoading', false);
@@ -115,6 +122,18 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
 
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+
+    const reportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID);
+
+    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+    // So we need to call openReport here for small screen
+    useEffect(() => {
+        if (!isSmallScreenWidth || (!_.isEmpty(report) && !_.isEmpty(reportAction))) {
+            return;
+        }
+        Report.openReport(route.params.threadReportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSmallScreenWidth, route.params.threadReportID]);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -288,6 +307,7 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
+    withWindowDimensions,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
