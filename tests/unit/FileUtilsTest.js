@@ -1,5 +1,8 @@
+import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+
+jest.useFakeTimers();
 
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {
@@ -26,13 +29,13 @@ describe('FileUtils', () => {
         it('should append current time to the end of the file name', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
             const expectedFileName = `image-${DateUtils.getDBTime()}.jpg`;
-            expect(actualFileName).toEqual(expectedFileName);
+            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
 
         it('should append current time to the end of the file name without extension', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image');
             const expectedFileName = `image-${DateUtils.getDBTime()}`;
-            expect(actualFileName).toEqual(expectedFileName);
+            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
     });
 });

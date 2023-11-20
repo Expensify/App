@@ -1,25 +1,27 @@
-import React, {useCallback} from 'react';
-import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import reportPropTypes from './reportPropTypes';
+import React, {useCallback} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import Text from '../components/Text';
-import * as Expensicons from '../components/Icon/Expensicons';
-import MenuItem from '../components/MenuItem';
-import * as Report from '../libs/actions/Report';
-import CONST from '../CONST';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as Session from '../libs/actions/Session';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -60,6 +62,7 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
+    const styles = useThemeStyles();
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -152,7 +155,10 @@ function FlagCommentPage(props) {
     ));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={FlagCommentPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
@@ -178,4 +184,13 @@ FlagCommentPage.propTypes = propTypes;
 FlagCommentPage.defaultProps = defaultProps;
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default compose(withLocalize, withReportAndReportActionOrNotFound)(FlagCommentPage);
+export default compose(
+    withLocalize,
+    withReportAndReportActionOrNotFound,
+    withOnyx({
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || report.reportID}`,
+            canEvict: false,
+        },
+    }),
+)(FlagCommentPage);

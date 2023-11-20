@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import CONST from '../CONST';
-import Text from './Text';
+import React from 'react';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useLocalize from '../hooks/useLocalize';
+import Text from './Text';
 
 const propTypes = {
     parentNavigationSubtitleData: PropTypes.shape({
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function ParentNavigationSubtitle(props) {
+    const styles = useThemeStyles();
     const {workspaceName, rootReportName} = props.parentNavigationSubtitleData;
 
     const {translate} = useLocalize();
@@ -38,10 +39,10 @@ function ParentNavigationSubtitle(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.getReportRoute(props.parentReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.parentReportID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             style={[...props.pressableStyles]}
         >
             <Text

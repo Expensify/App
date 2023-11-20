@@ -1,13 +1,13 @@
-import React, {useState, useEffect} from 'react';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import participantPropTypes from '../../../components/participantPropTypes';
-import Text from '../../../components/Text';
-import Timers from '../../../libs/Timers';
-import CONST from '../../../CONST';
-import DateUtils from '../../../libs/DateUtils';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import participantPropTypes from '@components/participantPropTypes';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import Timers from '@libs/Timers';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -18,18 +18,18 @@ const propTypes = {
 
 function getParticipantLocalTime(participant, preferredLocale) {
     const reportRecipientTimezone = lodashGet(participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    const reportTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
-    const currentTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale);
-    const reportRecipientDay = reportTimezone.format('dddd');
-    const currentUserDay = currentTimezone.format('dddd');
-
+    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
+    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
+    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
+    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
     if (reportRecipientDay !== currentUserDay) {
-        return `${reportTimezone.format('LT')} ${reportRecipientDay}`;
+        return `${DateUtils.formatToLocalTime(reportTimezone)} ${reportRecipientDay}`;
     }
-    return `${reportTimezone.format('LT')}`;
+    return `${DateUtils.formatToLocalTime(reportTimezone)}`;
 }
 
 function ParticipantLocalTime(props) {
+    const styles = useThemeStyles();
     const {participant, preferredLocale, translate} = props;
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));
@@ -45,6 +45,10 @@ function ParticipantLocalTime(props) {
     }, [participant, preferredLocale]);
 
     const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
+
+    if (!reportRecipientDisplayName) {
+        return null;
+    }
 
     return (
         <View style={[styles.chatItemComposeSecondaryRow]}>

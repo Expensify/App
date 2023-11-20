@@ -1,30 +1,29 @@
-import _ from 'underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import moment from 'moment/moment';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {subYears} from 'date-fns';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NewDatePicker from '@components/NewDatePicker';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IdologyQuestions from './IdologyQuestions';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import CONST from '../../CONST';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import TextLink from '../../components/TextLink';
-import TextInput from '../../components/TextInput';
-import * as Wallet from '../../libs/actions/Wallet';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import AddressForm from '../ReimbursementAccount/AddressForm';
-import DatePicker from '../../components/DatePicker';
-import Form from '../../components/Form';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -70,29 +69,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const INPUT_IDS = {
-    LEGAL_FIRST_NAME: 'legalFirstName',
-    LEGAL_LAST_NAME: 'legalLastName',
-    PHONE_NUMBER: 'phoneNumber',
-    DOB: 'dob',
-    SSN: 'ssn',
-    ADDRESS: {
-        street: 'addressStreet',
-        city: 'addressCity',
-        state: 'addressState',
-        zipCode: 'addressZip',
-    },
-};
-const errorTranslationKeys = {
-    legalFirstName: 'bankAccount.error.firstName',
-    legalLastName: 'bankAccount.error.lastName',
-    phoneNumber: 'bankAccount.error.phoneNumber',
-    dob: 'bankAccount.error.dob',
-    age: 'bankAccount.error.age',
-    ssn: 'bankAccount.error.ssnLast4',
-    ssnFull9: 'additionalDetailsStep.ssnFull9Error',
-};
-
 const fieldNameTranslationKeys = {
     legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
     legalLastName: 'additionalDetailsStep.legalLastNameLabel',
@@ -104,8 +80,10 @@ const fieldNameTranslationKeys = {
 };
 
 function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const styles = useThemeStyles();
+    const currentDate = new Date();
+    const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
@@ -113,50 +91,37 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      * @returns {Object}
      */
     const validate = (values) => {
-        const errors = {};
+        const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = errorTranslationKeys.legalFirstName;
+        if (values.dob) {
+            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.age';
+            }
         }
 
-        if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
-            errors[INPUT_IDS.LEGAL_LAST_NAME] = errorTranslationKeys.legalLastName;
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
-        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.dob);
-        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.age);
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = 'bankAccount.error.zipCode';
         }
 
-        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
-            errors[INPUT_IDS.ADDRESS.street] = 'bankAccount.error.addressStreet';
-        }
-
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
-            errors[INPUT_IDS.ADDRESS.city] = 'bankAccount.error.addressCity';
-        }
-
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
-            errors[INPUT_IDS.ADDRESS.state] = 'bankAccount.error.addressState';
-        }
-
-        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
-            errors[INPUT_IDS.ADDRESS.zipCode] = 'bankAccount.error.zipCode';
-        }
-
-        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
-            errors[INPUT_IDS.PHONE_NUMBER] = errorTranslationKeys.phoneNumber;
+        if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+            errors.phoneNumber = 'bankAccount.error.phoneNumber';
         }
 
         // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
         if (walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = errorTranslationKeys.ssnFull9;
+            if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+                errors.ssn = 'additionalDetailsStep.ssnFull9Error';
             }
-        } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = errorTranslationKeys.ssn;
+        } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+            errors.ssn = 'bankAccount.error.ssnLast4';
         }
 
         return errors;
@@ -167,17 +132,16 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      */
     const activateWallet = (values) => {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
-            legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
-            legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
-            addressStreet: values[INPUT_IDS.ADDRESS.street],
-            addressCity: values[INPUT_IDS.ADDRESS.city],
-            addressState: values[INPUT_IDS.ADDRESS.state],
-            addressZip: values[INPUT_IDS.ADDRESS.zipCode],
-            dob: values[INPUT_IDS.DOB],
-            ssn: values[INPUT_IDS.SSN],
+            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant,
+            legalFirstName: values.legalFirstName,
+            legalLastName: values.legalLastName,
+            addressStreet: values.addressStreet,
+            addressCity: values.addressCity,
+            addressState: values.addressState,
+            addressZip: values.addressZipCode,
+            dob: values.dob,
+            ssn: values.ssn,
         };
-
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
     };
@@ -185,8 +149,10 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
-                style={[styles.flex1]}
+                shouldShowOfflineIndicator={false}
+                style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
+                testID={AdditionalDetailsStep.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
@@ -213,7 +179,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         {translate('additionalDetailsStep.helpLink')}
                     </TextLink>
                 </View>
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                     validate={validate}
                     onSubmit={activateWallet}
@@ -221,43 +187,51 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     submitButtonText={translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <TextInput
-                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="legalFirstName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
-                    <TextInput
-                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="legalLastName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
                     <AddressForm
-                        inputKeys={INPUT_IDS.ADDRESS}
+                        inputKeys={{
+                            street: 'addressStreet',
+                            city: 'addressCity',
+                            state: 'addressState',
+                            zipCode: 'addressZipCode',
+                        }}
                         translate={translate}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
                     />
-                    <TextInput
-                        inputID={INPUT_IDS.PHONE_NUMBER}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <DatePicker
-                        inputID={INPUT_IDS.DOB}
+                    <NewDatePicker
+                        inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
                         placeholder={translate('common.dob')}
@@ -265,17 +239,17 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         maxDate={maxDate}
                         shouldSaveDraft
                     />
-                    <TextInput
-                        inputID={INPUT_IDS.SSN}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="ssn"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
-                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-                </Form>
+                </FormProvider>
             </View>
         </>
     );

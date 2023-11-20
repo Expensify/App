@@ -1,33 +1,38 @@
-import React from 'react';
-import {Linking} from 'react-native';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import lodashGet from 'lodash/get';
+import React from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
+import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
+import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
+import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
+import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
+import Navigation from '@libs/Navigation/Navigation';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import * as Url from '@libs/Url';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as HTMLEngineUtils from '../htmlEngineUtils';
-import * as Link from '../../../libs/actions/Link';
-import CONFIG from '../../../CONFIG';
-import Text from '../../Text';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
-import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
-import * as Url from '../../../libs/Url';
-import ROUTES from '../../../ROUTES';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
 function AnchorRenderer(props) {
+    const styles = useThemeStyles();
     const htmlAttribs = props.tnode.attributes;
-
+    const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
+    const attrPath = Url.getPathFromURL(attrHref);
+    const hasSameOrigin = Url.hasSameExpensifyOrigin(attrHref, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath =
-        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) &&
+        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) ||
+            Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL) ||
+            attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
         !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
             ? attrPath
             : '';
@@ -41,14 +46,18 @@ function AnchorRenderer(props) {
         // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
         if (hasExpensifyOrigin && attrHref.indexOf('newdotreport?reportID=') > -1) {
             const reportID = attrHref.split('newdotreport?reportID=').pop();
-            const reportRoute = ROUTES.getReportRoute(reportID);
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
             Navigation.navigate(reportRoute);
             return;
         }
 
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-        if (internalNewExpensifyPath) {
+        if (internalNewExpensifyPath && hasSameOrigin) {
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(internalNewExpensifyPath)) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
@@ -59,10 +68,10 @@ function AnchorRenderer(props) {
             Link.openOldDotLink(internalExpensifyPath);
             return;
         }
-        Linking.openURL(attrHref);
+        Link.openExternalLink(attrHref);
     };
 
-    if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
+    if (!HTMLEngineUtils.isChildOfComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
@@ -70,6 +79,7 @@ function AnchorRenderer(props) {
             <Text
                 style={styles.link}
                 onPress={navigateToLink}
+                suppressHighlighting
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>

@@ -1,19 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
-import * as Expensicons from '../Icon/Expensicons';
-import * as Illustrations from '../Icon/Illustrations';
-import variables from '../../styles/variables';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 function ExpiredValidateCodeModal(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -33,7 +35,7 @@ function ExpiredValidateCodeModal(props) {
                 <Icon
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
-                    fill={colors.green}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

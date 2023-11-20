@@ -1,15 +1,16 @@
-import React, {useEffect, useRef} from 'react';
-import {Animated, Easing, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback, useEffect, useRef} from 'react';
+import {Animated, Easing, View} from 'react-native';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import * as StyleUtils from '@styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import themeColors from '../styles/themes/default';
-import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import usePrevious from '../hooks/usePrevious';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -28,31 +29,40 @@ const propTypes = {
     buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
     buttonRef: () => {},
 };
 
-function FloatingActionButton({isActive, onPress, buttonRef, translate, accessibilityLabel, accessibilityRole}) {
-    const animatedValue = useRef(new Animated.Value(isActive ? 1 : 0));
+function FloatingActionButton(props) {
+    const animatedValue = useRef(() => new Animated.Value(props.isActive ? 1 : 0));
+    const previousIsActive = usePrevious(props.isActive);
     const fabPressable = useRef(null);
-    const previousIsActive = usePrevious(isActive);
 
-    useEffect(() => {
-        if (isActive === previousIsActive) {
-            return;
-        }
-
-        const animationFinalValue = isActive ? 1 : 0;
-
+    /**
+     * Animates the floating action button
+     * Method is called when the isActive prop changes
+     */
+    const animateFloatingActionButton = useCallback(() => {
+        const animationFinalValue = props.isActive ? 1 : 0;
         Animated.timing(animatedValue.current, {
             toValue: animationFinalValue,
             duration: 340,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: false,
         }).start();
-    }, [isActive, previousIsActive]);
+    }, [props.isActive]);
+
+    useEffect(() => {
+        if (props.isActive === previousIsActive) {
+            return;
+        }
+
+        animateFloatingActionButton();
+    }, [props.isActive, animateFloatingActionButton, previousIsActive]);
 
     const rotate = animatedValue.current.interpolate({
         inputRange: [0, 1],
@@ -61,35 +71,35 @@ function FloatingActionButton({isActive, onPress, buttonRef, translate, accessib
 
     const backgroundColor = animatedValue.current.interpolate({
         inputRange: [0, 1],
-        outputRange: [themeColors.success, themeColors.buttonDefaultBG],
+        outputRange: [props.theme.success, props.theme.buttonDefaultBG],
     });
 
     const fill = animatedValue.current.interpolate({
         inputRange: [0, 1],
-        outputRange: [themeColors.textLight, themeColors.textDark],
+        outputRange: [props.theme.textLight, props.theme.textDark],
     });
 
     return (
-        <Tooltip text={translate('common.new')}>
-            <View style={styles.floatingActionButtonContainer}>
+        <Tooltip text={props.translate('common.new')}>
+            <View style={props.themeStyles.floatingActionButtonContainer}>
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
-                        if (buttonRef) {
+                        if (props.buttonRef) {
                             // eslint-disable-next-line no-param-reassign
-                            buttonRef.current = el;
+                            props.buttonRef.current = el;
                         }
                     }}
-                    accessibilityLabel={accessibilityLabel}
-                    accessibilityRole={accessibilityRole}
+                    accessibilityLabel={props.accessibilityLabel}
+                    role={props.role}
                     pressDimmingValue={1}
                     onPress={(e) => {
                         // Drop focus to avoid blue focus ring.
                         fabPressable.current.blur();
-                        onPress(e);
+                        props.onPress(e);
                     }}
                     onLongPress={() => {}}
-                    style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
+                    style={[props.themeStyles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                 >
                     <AnimatedIcon
                         src={Expensicons.Plus}
@@ -106,10 +116,14 @@ FloatingActionButton.defaultProps = defaultProps;
 
 const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
 
-export default React.forwardRef((props, ref) => (
+const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) => (
     <FloatingActionButtonWithLocalize
         // eslint-disable-next-line
         {...props}
         buttonRef={ref}
     />
 ));
+
+FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
+
+export default compose(withThemeStyles, withTheme, memo)(FloatingActionButtonWithLocalizeWithRef);

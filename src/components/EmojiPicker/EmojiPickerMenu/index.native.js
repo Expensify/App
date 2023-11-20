@@ -1,24 +1,25 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import Animated, {runOnUI, scrollTo, useAnimatedRef} from 'react-native-reanimated';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import compose from '../../../libs/compose';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import emojis from '../../../../assets/emojis';
-import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../Text';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import EmojiSkinToneList from '../EmojiSkinToneList';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as User from '../../../libs/actions/User';
-import TextInput from '../../TextInput';
-import CategoryShortcutBar from '../CategoryShortcutBar';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import _ from 'underscore';
+import emojis from '@assets/emojis';
+import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
+import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
+import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -41,6 +42,7 @@ const defaultProps = {
 };
 
 function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
+    const styles = useThemeStyles();
     const emojiList = useAnimatedRef();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
@@ -49,6 +51,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
@@ -83,16 +86,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         setFilteredEmojis(newFilteredEmojiList);
         setHeaderIndices(undefined);
     }, 300);
-
-    /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    const addToFrequentAndSelectEmoji = (emoji, emojiObject) => {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        onEmojiSelected(emoji, emojiObject);
-    };
 
     /**
      * @param {Number} skinTone
@@ -150,7 +143,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                 emoji={emojiCode}
             />
         );
@@ -164,8 +157,9 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             {!isFiltered && (
@@ -208,6 +202,16 @@ EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
+const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerMenu
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -218,12 +222,4 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerMenu
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(EmojiPickerMenuWithRef);

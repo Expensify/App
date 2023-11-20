@@ -33,6 +33,10 @@
                         "comment": "I Owe You reports"
                     },
                     {
+                        "/": "/request/*",
+                        "comment": "Money request"
+                    },
+                    {
                         "/": "/enable-payments/*",
                         "comment": "Payments setup"
                     },
@@ -59,6 +63,30 @@
                     {
                         "/": "/new/*",
                         "comment": "New Chat"
+                    },
+                    {
+                        "/": "/workspace/*",
+                        "comment": "Workspace Details"
+                    },
+                    {
+                        "/": "/get-assistance/*",
+                        "comment": "Get Assistance Pages"
+                    },
+                    {
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/search/*",
+                        "comment": "Search"
+                    },
+                    {
+                        "/": "/send/*",
+                        "comment": "Send money"
+                    },
+                    {
+                        "/": "/money2020/*",
+                        "comment": "Money 2020"
                     }
                 ]
             }

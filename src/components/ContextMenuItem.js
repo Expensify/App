@@ -1,14 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import MenuItem from './MenuItem';
-import Icon from './Icon';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import useThrottledButtonState from '../hooks/useThrottledButtonState';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getButtonState from '@libs/getButtonState';
+import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import Icon from './Icon';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
@@ -34,6 +34,12 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
+
+    /** Whether the menu item is focused or not */
+    isFocused: PropTypes.bool,
+
+    /** Forwarded ref to ContextMenuItem */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -42,9 +48,12 @@ const defaultProps = {
     successText: '',
     description: '',
     isAnonymousAction: false,
+    isFocused: false,
+    innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -60,6 +69,8 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             setThrottledButtonInactive();
         }
     };
+
+    useImperativeHandle(innerRef, () => ({triggerPressAndUpdateSuccess}));
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
@@ -89,6 +100,8 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
+            focused={isFocused}
+            interactive={isThrottledButtonActive}
         />
     );
 }
@@ -97,4 +110,14 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default ContextMenuItem;
+const ContextMenuItemWithRef = forwardRef((props, ref) => (
+    <ContextMenuItem
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
+
+export default ContextMenuItemWithRef;

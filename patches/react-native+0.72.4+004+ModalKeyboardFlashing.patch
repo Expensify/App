@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
+index 4b9f9ad..b72984c 100644
+--- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
++++ b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
+@@ -79,6 +79,13 @@ RCT_EXPORT_MODULE()
+     if (self->_presentationBlock) {
+       self->_presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
+     } else {
++      // In our App, If an input is blurred and a modal is opened, the rootView will become the firstResponder, which
++      // will cause system to retain a wrong keyboard state, and then the keyboard to flicker when the modal is closed.
++      // We first resign the rootView to avoid this problem.
++      UIWindow *window = RCTKeyWindow();
++      if (window && window.rootViewController && [window.rootViewController.view isFirstResponder]) {
++        [window.rootViewController.view resignFirstResponder];
++      }
+       [[modalHostView reactViewController] presentViewController:viewController
+                                                         animated:animated
+                                                       completion:completionBlock];

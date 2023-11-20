@@ -1,13 +1,13 @@
 import React from 'react';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import TextInput from '../TextInput';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
-import getOperatingSystem from '../../libs/getOperatingSystem';
 
-function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     /**
@@ -33,7 +33,7 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
             onChange={setModifiedRoomName}
@@ -41,8 +41,8 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             errorText={errorText}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
-            onBlur={onBlur}
-            autoFocus={autoFocus}
+            onBlur={() => isFocused && onBlur()}
+            autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
             shouldDelayFocus={shouldDelayFocus}
         />
@@ -53,10 +53,14 @@ RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 RoomNameInput.displayName = 'RoomNameInput';
 
-export default React.forwardRef((props, ref) => (
+const RoomNameInputWithRef = React.forwardRef((props, ref) => (
     <RoomNameInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
+
+export default RoomNameInputWithRef;

@@ -1,28 +1,29 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import UserDetailsTooltip from './UserDetailsTooltip';
-import styles from '../styles/styles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Text from './Text';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import reportPropTypes from '../pages/reportPropTypes';
-import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
     login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet, except for anon users) */
+  the person doesn't have their own avatar uploaded yet, except for anon users) */
     avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
@@ -33,24 +34,31 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     /* Onyx Props */
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    policy: {},
     personalDetails: {},
-    betas: [],
 };
 
 function ReportWelcomeText(props) {
+    const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
@@ -60,22 +68,22 @@ function ReportWelcomeText(props) {
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
+
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{props.translate('reportActionsView.sayHello')}</Text>
+                <Text style={[styles.textHero]}>
+                    {isChatRoom ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)}) : props.translate('reportActionsView.sayHello')}
+                </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
                     <>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
-                        <Text style={[styles.textStrong]}>
-                            {/* Use the policyExpenseChat owner's first name or their display name if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) ||
-                                lodashGet(props.personalDetails, [props.report.ownerAccountID, 'displayName'], '')}
-                        </Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID)}</Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
@@ -84,13 +92,16 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        <Text
-                            style={[styles.textStrong]}
-                            onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                        >
-                            {ReportUtils.getReportName(props.report)}
-                        </Text>
-                        <Text>{roomWelcomeMessage.phrase2}</Text>
+                        {roomWelcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
+                                suppressHighlighting
+                            >
+                                {ReportUtils.getReportName(props.report)}
+                            </Text>
+                        )}
+                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (
@@ -104,7 +115,8 @@ function ReportWelcomeText(props) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
+                                            suppressHighlighting
                                         >
                                             {displayName}
                                         </Text>
@@ -118,7 +130,9 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) && <Text>{props.translate('reportActionsView.usePlusButton')}</Text>}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
+                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
+                )}
             </Text>
         </>
     );
@@ -131,9 +145,6 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

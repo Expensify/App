@@ -1,8 +1,8 @@
-import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
+import Clipboard from '@libs/Clipboard';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
-import Clipboard from '../libs/Clipboard';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
@@ -12,18 +12,19 @@ const propTypes = {
     /** Styles to apply to the text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
-
+    urlToCopy: PropTypes.string,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     textStyles: [],
+    urlToCopy: null,
 };
 
 function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
-        Clipboard.setString(props.text);
-    }, [props.text]);
+        Clipboard.setString(props.urlToCopy || props.text);
+    }, [props.text, props.urlToCopy]);
 
     return (
         <PressableWithDelayToggle

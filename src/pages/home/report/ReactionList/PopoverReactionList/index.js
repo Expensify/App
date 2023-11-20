@@ -1,5 +1,5 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 const propTypes = {
@@ -29,7 +29,19 @@ function PopoverReactionList(props) {
         innerReactionListRef.current.showReactionList(event, reactionListAnchor);
     };
 
-    useImperativeHandle(props.innerRef, () => ({showReactionList}), []);
+    const hideReactionList = () => {
+        innerReactionListRef.current.hideReactionList();
+    };
+
+    /**
+     * Whether PopoverReactionList is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
+    const isActiveReportAction = (actionID) => Boolean(actionID) && reactionListReportActionID === actionID;
+
+    useImperativeHandle(props.innerRef, () => ({showReactionList, hideReactionList, isActiveReportAction}));
 
     return (
         <BasePopoverReactionList

@@ -1,25 +1,26 @@
-import React, {useCallback, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import reportPropTypes from '../../reportPropTypes';
-import ROUTES from '../../../ROUTES';
-import * as Report from '../../../libs/actions/Report';
-import RoomNameInput from '../../../components/RoomNameInput';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -42,12 +43,14 @@ const defaultProps = {
 };
 
 function RoomNamePage(props) {
+    const styles = useThemeStyles();
     const policy = props.policy;
     const report = props.report;
     const reports = props.reports;
     const translate = props.translate;
 
     const roomNameInputRef = useRef(null);
+    const isFocused = useIsFocused();
 
     const validate = useCallback(
         (values) => {
@@ -81,11 +84,12 @@ function RoomNamePage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID={RoomNamePage.displayName}
         >
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
@@ -100,6 +104,7 @@ function RoomNamePage(props) {
                             ref={(ref) => (roomNameInputRef.current = ref)}
                             inputID="roomName"
                             defaultValue={report.reportName}
+                            isFocused={isFocused}
                         />
                     </View>
                 </Form>
@@ -114,7 +119,7 @@ RoomNamePage.displayName = 'RoomNamePage';
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

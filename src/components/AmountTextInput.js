@@ -1,15 +1,16 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import refPropTypes from './refPropTypes';
 import TextInput from './TextInput';
-import styles from '../styles/styles';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
 
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,
@@ -25,15 +26,20 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Function to call to handle key presses in the text input */
+    onKeyPress: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     selection: undefined,
     onSelectionChange: () => {},
+    onKeyPress: () => {},
 };
 
 function AmountTextInput(props) {
+    const styles = useThemeStyles();
     return (
         <TextInput
             disableKeyboard
@@ -45,11 +51,12 @@ function AmountTextInput(props) {
             ref={props.forwardedRef}
             value={props.formattedAmount}
             placeholder={props.placeholder}
-            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            onKeyPress={props.onKeyPress}
         />
     );
 }
@@ -58,10 +65,14 @@ AmountTextInput.propTypes = propTypes;
 AmountTextInput.defaultProps = defaultProps;
 AmountTextInput.displayName = 'AmountTextInput';
 
-export default React.forwardRef((props, ref) => (
+const AmountTextInputWithRef = React.forwardRef((props, ref) => (
     <AmountTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AmountTextInputWithRef.displayName = 'AmountTextInputWithRef';
+
+export default AmountTextInputWithRef;

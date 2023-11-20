@@ -1,12 +1,16 @@
-import _ from 'underscore';
-import React, {useMemo} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
-import Modal from '../Modal';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
-import useLocalize from '../../hooks/useLocalize';
-import searchCountryOptions from '../../libs/searchCountryOptions';
+import React, {useEffect, useMemo} from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import StringUtils from '@libs/StringUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -39,17 +43,29 @@ const defaultProps = {
 };
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
 
     const countryStates = useMemo(
         () =>
-            _.map(translate('allStates'), (state) => ({
-                value: state.stateISO,
-                keyForList: state.stateISO,
-                text: state.stateName,
-                isSelected: currentState === state.stateISO,
-                searchValue: `${state.stateISO}${state.stateName}`.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, ''),
-            })),
+            _.map(_.keys(COMMON_CONST.STATES), (state) => {
+                const stateName = translate(`allStates.${state}.stateName`);
+                const stateISO = translate(`allStates.${state}.stateISO`);
+                return {
+                    value: stateISO,
+                    keyForList: stateISO,
+                    text: stateName,
+                    isSelected: currentState === stateISO,
+                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+                };
+            }),
         [translate, currentState],
     );
 
@@ -65,24 +81,28 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={label || translate('common.state')}
-                shouldShowBackButton
-                onBackButtonPress={onClose}
-            />
-            <SelectionListRadio
-                headerMessage={headerMessage}
-                textInputLabel={label || translate('common.state')}
-                textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults, indexOffset: 0}]}
-                onSelectRow={onStateSelected}
-                onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
-                shouldDelayFocus
-                initiallyFocusedOptionKey={currentState}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+                testID={StateSelectorModal.displayName}
+            >
+                <HeaderWithBackButton
+                    title={label || translate('common.state')}
+                    shouldShowBackButton
+                    onBackButtonPress={onClose}
+                />
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={label || translate('common.state')}
+                    textInputValue={searchValue}
+                    sections={[{data: searchResults, indexOffset: 0}]}
+                    onSelectRow={onStateSelected}
+                    onChangeText={setSearchValue}
+                    initiallyFocusedOptionKey={currentState}
+                    shouldStopPropagation
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }

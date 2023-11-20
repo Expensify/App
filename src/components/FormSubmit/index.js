@@ -1,9 +1,10 @@
-import React from 'react';
 import lodashGet from 'lodash/get';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import * as ComponentUtils from '@libs/ComponentUtils';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '@src/CONST';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
-import CONST from '../../CONST';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 function FormSubmit({innerRef, children, onSubmit, style}) {
     /**
@@ -26,6 +27,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
         if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
+            event.preventDefault();
             onSubmit();
             return;
         }
@@ -36,11 +38,31 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         }
     };
 
+    const preventDefaultFormBehavior = (e) => e.preventDefault();
+
+    useEffect(() => {
+        const form = innerRef.current;
+
+        // Prevent the browser from applying its own validation, which affects the email input
+        form.setAttribute('novalidate', '');
+
+        form.addEventListener('submit', preventDefaultFormBehavior);
+
+        return () => {
+            if (!form) {
+                return;
+            }
+
+            form.removeEventListener('submit', preventDefaultFormBehavior);
+        };
+    }, [innerRef]);
+
     return (
         // React-native-web prevents event bubbling on TextInput for key presses
         // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
         // Thus use capture phase.
         <View
+            role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
             ref={innerRef}
             onKeyDownCapture={submitForm}
             style={style}
@@ -53,10 +75,14 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const FormSubmitWithRef = React.forwardRef((props, ref) => (
     <FormSubmit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+FormSubmitWithRef.displayName = 'FormSubmitWithRef';
+
+export default FormSubmitWithRef;

@@ -1,30 +1,31 @@
-import React, {useRef, useState, useEffect, useContext, useMemo, useCallback} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import lodashCloneDeep from 'lodash/cloneDeep';
 import {useIsFocused} from '@react-navigation/native';
-import * as Report from '../../../libs/actions/Report';
-import reportActionPropTypes from './reportActionPropTypes';
-import Visibility from '../../../libs/Visibility';
-import Timing from '../../../libs/actions/Timing';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Performance from '../../../libs/Performance';
-import {withNetwork} from '../../../components/OnyxProvider';
-import FloatingMessageCounter from './FloatingMessageCounter';
-import networkPropTypes from '../../../components/networkPropTypes';
-import ReportActionsList from './ReportActionsList';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import reportPropTypes from '../../reportPropTypes';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useInitialValue from '@hooks/useInitialValue';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {didUserLogInDuringSession} from '@libs/SessionUtils';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ReportScreenContext from '../ReportScreenContext';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsList from './ReportActionsList';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -32,6 +33,15 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report metadata loading states */
+    isLoadingInitialReportActions: PropTypes.bool,
+
+    /** The report actions are loading more data */
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** The report actions are loading newer data */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -49,6 +59,12 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -56,43 +72,26 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
+    session: {
+        authTokenType: '',
+    },
 };
 
-// In the component we are subscribing to the arrival of new actions.
-// As there is the possibility that there are multiple instances of a ReportScreen
-// for the same report, we only ever want one subscription to be active, as
-// the subscriptions could otherwise be conflicting.
-const newActionUnsubscribeMap = {};
-
 function ReportActionsView(props) {
-    const context = useContext(ReportScreenContext);
-
     useCopySelectionHelper();
-
-    const {scrollToBottom} = useReportScrollManager();
-
+    const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const hasCachedActions = useRef(_.size(props.reportActions) > 0);
+    const isFirstRender = useRef(true);
+    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
+    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-
-    // We use the newMarkerReport ID in a network subscription, we don't want to constantly re-create
-    // the subscription (as we want to avoid loosing events), so we use a ref to store the value in addition.
-    // As the value is also needed for UI updates, we also store it in state.
-    const [newMarkerReportActionID, _setNewMarkerReportActionID] = useState(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
-    const newMarkerReportActionIDRef = useRef(newMarkerReportActionID);
-    const setNewMarkerReportActionID = useCallback((value) => {
-        newMarkerReportActionIDRef.current = value;
-        _setNewMarkerReportActionID(value);
-    }, []);
-
-    const currentScrollOffset = useRef(0);
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
-    const prevReportActionsRef = useRef(props.reportActions);
-    const prevReportRef = useRef(props.report);
     const prevNetworkRef = useRef(props.network);
+    const prevAuthTokenType = usePrevious(props.session.authTokenType);
+
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
@@ -113,83 +112,9 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!isReportFullyVisible) {
-                return;
-            }
-            // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
-            // e.g. they could have read these messages on another device and only just become active here
-            const hasUnreadActions = ReportUtils.isUnread(props.report);
-            if (!hasUnreadActions) {
-                setNewMarkerReportActionID('');
-            }
-        });
-        return () => {
-            if (!unsubscribeVisibilityListener) {
-                return;
-            }
-            unsubscribeVisibilityListener();
-        };
-    }, [isReportFullyVisible, isFocused, props.report, setNewMarkerReportActionID]);
-
-    useEffect(() => {
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
-        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
-        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
-        //         because the two subscriptions could conflict!
-        //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
-        //         fire again, as the focus has changed and will set up the subscription correctly again.
-        const previousSubUnsubscribe = newActionUnsubscribeMap[reportID];
-        if (previousSubUnsubscribe) {
-            previousSubUnsubscribe();
-        }
-
-        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
-        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = Report.subscribeToNewActionEvent(reportID, (isFromCurrentUser, newActionID) => {
-            const isNewMarkerReportActionIDSet = !_.isEmpty(newMarkerReportActionIDRef.current);
-
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (isFromCurrentUser) {
-                scrollToBottom();
-                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-                setNewMarkerReportActionID('');
-            } else if (isReportFullyVisible) {
-                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-                // stays in it's previous position.
-                if (currentScrollOffset.current === 0) {
-                    Report.readNewestAction(reportID);
-                    setNewMarkerReportActionID('');
-                } else if (!isNewMarkerReportActionIDSet) {
-                    // The report is not in view and we received a comment from another user while the new marker is not set
-                    // so we will set the new marker now.
-                    setNewMarkerReportActionID(newActionID);
-                }
-            } else if (!isNewMarkerReportActionIDSet) {
-                setNewMarkerReportActionID(newActionID);
-            }
-        });
-        const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
-            }
-            Report.unsubscribeFromReportChannel(reportID);
-        };
-
-        newActionUnsubscribeMap[reportID] = cleanup;
-
-        return () => {
-            cleanup();
-        };
-    }, [isReportFullyVisible, reportID, scrollToBottom, setNewMarkerReportActionID]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
@@ -210,60 +135,30 @@ function ReportActionsView(props) {
     }, [props.network, props.report, isReportFullyVisible]);
 
     useEffect(() => {
+        const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
+        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
+            if (isReportFullyVisible) {
+                openReportIfNecessary();
+            } else {
+                Report.reconnect(reportID);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.session, props.report, isReportFullyVisible]);
+
+    useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
         const didScreenSizeIncrease = prevIsSmallScreenWidth && !props.isSmallScreenWidth;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
-            setNewMarkerReportActionID(ReportUtils.isUnread(props.report) ? ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions) : '');
             openReportIfNecessary();
         }
         // update ref with current state
         prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isSmallScreenWidth, props.report, props.reportActions, isReportFullyVisible]);
-
-    useEffect(() => {
-        const prevReportActions = prevReportActionsRef.current;
-        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
-        // one marking the unread point, we need to recalculate which action should be the unread marker.
-        if (prevReportActions && ReportUtils.isUnread(props.report) && prevReportActions.length > props.report.length)
-            setNewMarkerReportActionID(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
-
-        prevReportActionsRef.current = props.reportActions;
-    }, [props.report, props.reportActions, setNewMarkerReportActionID]);
-
-    useEffect(() => {
-        // If the last unread message was deleted, remove the *New* green marker and the *New Messages* notification at scroll just as the deletion starts.
-        if (
-            !(
-                ReportUtils.isUnread(props.report) &&
-                props.reportActions.length > 0 &&
-                props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                !props.network.isOffline
-            )
-        ) {
-            return;
-        }
-        const reportActionsWithoutPendingOne = lodashCloneDeep(props.reportActions);
-        reportActionsWithoutPendingOne.shift();
-        if (newMarkerReportActionID !== ReportUtils.getNewMarkerReportActionID(props.report, reportActionsWithoutPendingOne)) {
-            setNewMarkerReportActionID(ReportUtils.getNewMarkerReportActionID(props.report, reportActionsWithoutPendingOne));
-        }
-    }, [props.report, props.reportActions, props.network, newMarkerReportActionID, setNewMarkerReportActionID]);
-
-    useEffect(() => {
-        const prevReport = prevReportRef.current;
-        // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
-        // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = prevReport && prevReport.lastReadTime !== props.report.lastReadTime && ReportUtils.isUnread(props.report);
-        if (didManuallyMarkReportAsUnread) {
-            setNewMarkerReportActionID(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
-        }
-        // update ref with current report
-        prevReportRef.current = props.report;
-    }, [props.report, props.reportActions, setNewMarkerReportActionID]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -281,50 +176,54 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadMoreChats = () => {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingMoreReportActions) {
+    const loadOlderChats = () => {
+        // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
+        if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
 
         const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
-
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
-    };
-
-    const scrollToBottomAndMarkReportAsRead = () => {
-        scrollToBottom();
-        Report.readNewestAction(reportID);
+        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
 
     /**
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
      */
-    const toggleFloatingMessageCounter = () => {
-        if (currentScrollOffset.current < -200 && !isFloatingMessageCounterVisible) {
-            setIsFloatingMessageCounterVisible(true);
-        }
+    const loadNewerChats = useMemo(
+        () =>
+            _.throttle(({distanceFromStart}) => {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                    return;
+                }
 
-        if (currentScrollOffset.current > -200 && isFloatingMessageCounterVisible) {
-            setIsFloatingMessageCounterVisible(false);
-        }
-    };
+                // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+                // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+                //
+                // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+                // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+                //
+                // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+                // This should be removed once the issue of frequent re-renders is resolved.
+                //
+                // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
+                if (isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    isFirstRender.current = false;
+                    return;
+                }
 
-    /**
-     * keeps track of the Scroll offset of the main messages list
-     *
-     * @param {Object} {nativeEvent}
-     */
-    const trackScroll = ({nativeEvent}) => {
-        currentScrollOffset.current = -nativeEvent.contentOffset.y;
-        toggleFloatingMessageCounter();
-    };
+                const newestReportAction = _.first(props.reportActions);
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            }, 500),
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+    );
+
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -334,7 +233,7 @@ function ReportActionsView(props) {
         }
 
         didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions.current ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -352,22 +251,19 @@ function ReportActionsView(props) {
 
     return (
         <>
-            <FloatingMessageCounter
-                isActive={isFloatingMessageCounterVisible && !_.isEmpty(newMarkerReportActionID)}
-                onClick={scrollToBottomAndMarkReportAsRead}
-            />
             <ReportActionsList
                 report={props.report}
-                onScroll={trackScroll}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
-                loadMoreChats={loadMoreChats}
-                newMarkerReportActionID={newMarkerReportActionID}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                loadOlderChats={loadOlderChats}
+                loadNewerChats={loadNewerChats}
+                isLoadingInitialReportActions={props.isLoadingInitialReportActions}
+                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
+                isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
             />
-            <PopoverReactionList ref={context.reactionListRef} />
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
@@ -393,11 +289,19 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingMoreReportActions !== newProps.report.isLoadingMoreReportActions) {
+    if (lodashGet(oldProps.session, 'authTokenType') !== lodashGet(newProps.session, 'authTokenType')) {
         return false;
     }
 
-    if (oldProps.report.isLoadingReportActions !== newProps.report.isLoadingReportActions) {
+    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
+        return false;
+    }
+
+    if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
+        return false;
+    }
+
+    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
         return false;
     }
 
@@ -441,15 +345,19 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
-        return false;
-    }
-
     if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.nonReimbursableTotal') !== lodashGet(oldProps, 'report.nonReimbursableTotal')) {
+        return false;
+    }
+
     if (lodashGet(newProps, 'report.writeCapability') !== lodashGet(oldProps, 'report.writeCapability')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.participantAccountIDs', 0) !== lodashGet(oldProps, 'report.participantAccountIDs', 0)) {
         return false;
     }
 
@@ -458,4 +366,14 @@ function arePropsEqual(oldProps, newProps) {
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);
+export default compose(
+    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
+    withWindowDimensions,
+    withLocalize,
+    withNetwork(),
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(MemoizedReportActionsView);

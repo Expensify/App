@@ -6,8 +6,8 @@ phases:
       # Install correct version of node
       - export NVM_DIR=$HOME/.nvm
       - . $NVM_DIR/nvm.sh
-      - nvm install 16.15.1
-      - nvm use 16.15.1
+      - nvm install 20.9.0
+      - nvm use 20.9.0
 
       # Reverse ports using AWS magic
       - PORT=4723
@@ -20,7 +20,7 @@ phases:
     commands:
       - cd zip
       - npm install underscore
-      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout
+      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout --mainAppPath app-e2eRelease.apk --deltaAppPath app-e2edeltaRelease.apk
 
 artifacts:
 - $WORKING_DIRECTORY

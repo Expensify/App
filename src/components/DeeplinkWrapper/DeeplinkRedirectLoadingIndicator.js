@@ -1,22 +1,40 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import TextLink from '../TextLink';
-import Text from '../Text';
-import Icon from '../Icon';
-import * as Illustrations from '../Icon/Illustrations';
-import * as Expensicons from '../Icon/Expensicons';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import {withOnyx} from 'react-native-onyx';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     openLinkInBrowser: PropTypes.func.isRequired,
 
+    session: PropTypes.shape({
+        /** Currently logged-in user email */
+        email: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
-function DeeplinkRedirectLoadingIndicator(props) {
+const defaultProps = {
+    session: {
+        email: '',
+    },
+};
+
+function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -27,11 +45,12 @@ function DeeplinkRedirectLoadingIndicator(props) {
                         src={Illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                    <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
-                    <Text>
-                        {props.translate('deeplinkWrapper.youCanAlso')} <TextLink onPress={props.openLinkInBrowser}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
+                    <Text>{translate('deeplinkWrapper.loggedInAs', {email: session.email})}</Text>
+                    <Text style={[styles.textAlignCenter]}>
+                        {translate('deeplinkWrapper.doNotSeePrompt')} <TextLink onPress={() => openLinkInBrowser(true)}>{translate('deeplinkWrapper.tryAgain')}</TextLink>
+                        {translate('deeplinkWrapper.or')} <TextLink onPress={() => Navigation.navigate(ROUTES.HOME)}>{translate('deeplinkWrapper.continueInWeb')}</TextLink>.
                     </Text>
                 </View>
             </View>
@@ -39,7 +58,7 @@ function DeeplinkRedirectLoadingIndicator(props) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={colors.green}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>
@@ -48,6 +67,14 @@ function DeeplinkRedirectLoadingIndicator(props) {
 }
 
 DeeplinkRedirectLoadingIndicator.propTypes = propTypes;
+DeeplinkRedirectLoadingIndicator.defaultProps = defaultProps;
 DeeplinkRedirectLoadingIndicator.displayName = 'DeeplinkRedirectLoadingIndicator';
 
-export default withLocalize(DeeplinkRedirectLoadingIndicator);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(DeeplinkRedirectLoadingIndicator);

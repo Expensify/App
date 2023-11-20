@@ -1,23 +1,23 @@
-import React from 'react';
-import {View, ScrollView, Linking} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ScreenWrapper from '../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Section from '../components/Section';
-import styles from '../styles/styles';
-import Text from '../components/Text';
-import * as Expensicons from '../components/Icon/Expensicons';
-import * as Illustrations from '../components/Icon/Illustrations';
-import * as Report from '../libs/actions/Report';
-import * as Link from '../libs/actions/Link';
-import CONST from '../CONST';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Route object from navigation */
@@ -44,6 +44,7 @@ const defaultProps = {
 };
 
 function GetAssistancePage(props) {
+    const styles = useThemeStyles();
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
@@ -68,7 +69,7 @@ function GetAssistancePage(props) {
     if (guideCalendarLink) {
         menuItems.splice(1, 0, {
             title: props.translate('getAssistancePage.scheduleSetupCall'),
-            onPress: () => Linking.openURL(guideCalendarLink),
+            onPress: () => Link.openExternalLink(guideCalendarLink),
             icon: Expensicons.Phone,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
@@ -78,7 +79,7 @@ function GetAssistancePage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={GetAssistancePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
