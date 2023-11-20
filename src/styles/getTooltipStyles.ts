@@ -1,4 +1,4 @@
-import {TextStyle, View, ViewStyle} from 'react-native';
+import {Animated, TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import styles from './styles';
@@ -123,16 +123,16 @@ type TooltipStyles = {
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
 export default function getTooltipStyles(
-    tooltip: View | HTMLDivElement,
-    currentSize: number,
+    tooltip: View | HTMLDivElement | null,
+    currentSize: Animated.Value,
     windowWidth: number,
     xOffset: number,
     yOffset: number,
     tooltipTargetWidth: number,
     tooltipTargetHeight: number,
     maxWidth: number,
-    tooltipContentWidth: number,
-    tooltipWrapperHeight: number,
+    tooltipContentWidth = 0,
+    tooltipWrapperHeight = 0,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 ): TooltipStyles {
@@ -147,7 +147,7 @@ export default function getTooltipStyles(
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
     // Set the scale to 1 to be able to measure the tooltip size correctly when it's not ready yet.
-    let scale = 1;
+    let scale = new Animated.Value(1);
     let shouldShowBelow = false;
     let horizontalShift = 0;
     let horizontalShiftPointer = 0;
@@ -162,7 +162,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;

@@ -10,8 +10,7 @@ type TooltipRenderedOnPageBodyProps = {
     windowWidth: number;
 
     /** Tooltip Animation value */
-    // eslint-disable-next-line react/forbid-prop-types
-    animation: unknown;
+    animation: Animated.Value;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
     xOffset: number;

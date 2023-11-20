@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import callOrReturn from '@src/types/utils/callOrReturn';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
 import {TooltipProps} from './types';
@@ -52,11 +53,6 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
 
     // If no matching bounding box is found, fall back to getBoundingClientRect.
     return target.getBoundingClientRect();
-}
-
-// TODO: Move to utils
-function callOrReturn<T>(value: T | (() => T)): T {
-    return typeof value === 'function' ? (value as () => T)() : value;
 }
 
 function Tooltip({
