@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -9,14 +10,13 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsList from '@components/OptionsList';
 import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
-import {useIsFocused} from "@react-navigation/native";
-import useLocalize from "@hooks/useLocalize";
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -44,8 +44,8 @@ const defaultProps = {
 };
 
 const BaseOptionsSelector = ({
-                                 onSelectRow,
-                                 sections,
+    onSelectRow,
+    sections,
     value,
     onChangeText,
     maxLength,
@@ -84,7 +84,6 @@ const BaseOptionsSelector = ({
     shouldAllowScrollingChildren,
     nestedScrollEnabled,
 }) => {
-
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
 
@@ -115,9 +114,9 @@ const BaseOptionsSelector = ({
             });
         });
 
-        setDisabledOptionsIndexes(calcDisabledOptionsIndexes)
+        setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
         return allOptions;
-    }
+    };
 
     /**
      * @param {Array<Object>} allOptions
@@ -143,7 +142,7 @@ const BaseOptionsSelector = ({
         }
 
         return defaultIndex;
-    }
+    };
 
     const relatedTarget = useRef(null);
     const listRef = useRef();
@@ -158,7 +157,7 @@ const BaseOptionsSelector = ({
 
     const initialAllOptions = useMemo(() => {
         return flattenSections();
-    },[])
+    }, []);
 
     const [allOptions, setAllOptions] = useState(initialAllOptions);
     const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
@@ -184,9 +183,8 @@ const BaseOptionsSelector = ({
             }
 
             unSubscribeFromKeyboardShortcut();
-        }
+        };
     }, []);
-
 
     useEffect(() => {
         if (isFocused) {
@@ -203,7 +201,7 @@ const BaseOptionsSelector = ({
                 textInputRef.current.focus();
             }, CONST.ANIMATED_TRANSITION);
         }
-    }, [isFocused])
+    }, [isFocused]);
 
     useEffect(() => {
         const newOptions = flattenSections();
@@ -218,7 +216,7 @@ const BaseOptionsSelector = ({
         const newFocusedIndex = selectedOptions.length;
 
         setAllOptions(newOptions);
-        setFocusedIndex(_.isNumber(initialFocusedIndex) ? initialFocusedIndex : newFocusedIndex)
+        setFocusedIndex(_.isNumber(initialFocusedIndex) ? initialFocusedIndex : newFocusedIndex);
     }, [sections]);
 
     useEffect(() => {
@@ -241,7 +239,7 @@ const BaseOptionsSelector = ({
     const updateSearchValue = (value) => {
         setErrorMessage(value.length > maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: maxLength}) : '');
         onChangeText(value);
-    }
+    };
 
     const subscribeToKeyboardShortcut = () => {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -274,7 +272,7 @@ const BaseOptionsSelector = ({
             CTRLEnterConfig.modifiers,
             true,
         );
-    }
+    };
 
     const unSubscribeFromKeyboardShortcut = () => {
         if (enterSubscription.current) {
@@ -284,7 +282,7 @@ const BaseOptionsSelector = ({
         if (CTRLEnterSubscription.current) {
             CTRLEnterSubscription.current();
         }
-    }
+    };
 
     const selectFocusedOption = () => {
         const focusedOption = allOptions[focusedIndex];
@@ -309,7 +307,7 @@ const BaseOptionsSelector = ({
                 });
             }, 500);
         }
-    }
+    };
 
     const focus = () => {
         if (!textInputRef.current) {
@@ -317,15 +315,14 @@ const BaseOptionsSelector = ({
         }
 
         textInputRef.current.focus();
-    }
-
+    };
 
     /**
      * @param {Number} index
      */
     const updateFocusedIndex = (index) => {
         setFocusedIndex(index);
-    }
+    };
 
     /**
      * Scrolls to the focused index within the SectionList
@@ -353,7 +350,7 @@ const BaseOptionsSelector = ({
         }
 
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
-    }
+    };
 
     /**
      * Completes the follow-up actions after a row is selected
@@ -383,7 +380,7 @@ const BaseOptionsSelector = ({
             // Focus the first unselected item from the list (i.e: the best result according to the current search term)
             setFocusedIndex(selectedOptions.length);
         });
-    }
+    };
 
     /**
      * Completes the follow-up action after clicking on multiple select button
@@ -397,154 +394,153 @@ const BaseOptionsSelector = ({
             }
         }
         onAddToSelection(option);
-    }
+    };
 
-        const shouldShowFooter =
-            !isReadOnly && (shouldShowConfirmButton || footerContent) && !(canSelectMultipleOptions && _.isEmpty(selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(confirmButtonText) ? translate('common.confirm') : confirmButtonText;
-        const shouldShowDefaultConfirmButton = !footerContent && defaultConfirmButtonText;
-        const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : safeAreaPaddingBottomStyle;
-        const textInput = (
-            <TextInput
-                ref={textInputRef}
-                value={value}
-                label={textInputLabel}
-                accessibilityLabel={textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={updateSearchValue}
-                errorText={errorMessage}
-                onSubmitEditing={selectFocusedOption}
-                placeholder={placeholderText}
-                maxLength={maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
-                keyboardType={keyboardType}
-                onBlur={(e) => {
-                    if (!shouldPreventDefaultFocusOnSelectRow) {
-                        return;
-                    }
-                    relatedTarget.current = e.relatedTarget;
-                }}
-                selectTextOnFocus
-                blurOnSubmit={Boolean(allOptions.length)}
-                spellCheck={false}
-                shouldInterceptSwipe={shouldTextInputInterceptSwipe}
-                isLoading={isLoadingNewOptions}
-            />
-        );
-        const optionsList = (
-            <OptionsList
-                ref={listRef}
-                optionHoveredStyle={optionHoveredStyle}
-                onSelectRow={onSelectRow ? selectRow : undefined}
-                sections={sections}
-                focusedIndex={focusedIndex}
-                selectedOptions={selectedOptions}
-                canSelectMultipleOptions={canSelectMultipleOptions}
-                shouldShowMultipleOptionSelectorAsButton={shouldShowMultipleOptionSelectorAsButton}
-                multipleOptionSelectorButtonText={multipleOptionSelectorButtonText}
-                onAddToSelection={addToSelection}
-                hideSectionHeaders={hideSectionHeaders}
-                headerMessage={errorMessage ? '' : headerMessage}
-                boldStyle={boldStyle}
-                showTitleTooltip={showTitleTooltip}
-                isDisabled={isDisabled}
-                shouldHaveOptionSeparator={shouldHaveOptionSeparator}
-                highlightSelectedOptions={highlightSelectedOptions}
-                onLayout={() => {
-                    if (selectedOptions.length === 0) {
-                        scrollToIndex(focusedIndex, false);
-                    }
+    const shouldShowFooter = !isReadOnly && (shouldShowConfirmButton || footerContent) && !(canSelectMultipleOptions && _.isEmpty(selectedOptions));
+    const defaultConfirmButtonText = _.isUndefined(confirmButtonText) ? translate('common.confirm') : confirmButtonText;
+    const shouldShowDefaultConfirmButton = !footerContent && defaultConfirmButtonText;
+    const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : safeAreaPaddingBottomStyle;
+    const textInput = (
+        <TextInput
+            ref={textInputRef}
+            value={value}
+            label={textInputLabel}
+            accessibilityLabel={textInputLabel}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            onChangeText={updateSearchValue}
+            errorText={errorMessage}
+            onSubmitEditing={selectFocusedOption}
+            placeholder={placeholderText}
+            maxLength={maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
+            keyboardType={keyboardType}
+            onBlur={(e) => {
+                if (!shouldPreventDefaultFocusOnSelectRow) {
+                    return;
+                }
+                relatedTarget.current = e.relatedTarget;
+            }}
+            selectTextOnFocus
+            blurOnSubmit={Boolean(allOptions.length)}
+            spellCheck={false}
+            shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+            isLoading={isLoadingNewOptions}
+        />
+    );
+    const optionsList = (
+        <OptionsList
+            ref={listRef}
+            optionHoveredStyle={optionHoveredStyle}
+            onSelectRow={onSelectRow ? selectRow : undefined}
+            sections={sections}
+            focusedIndex={focusedIndex}
+            selectedOptions={selectedOptions}
+            canSelectMultipleOptions={canSelectMultipleOptions}
+            shouldShowMultipleOptionSelectorAsButton={shouldShowMultipleOptionSelectorAsButton}
+            multipleOptionSelectorButtonText={multipleOptionSelectorButtonText}
+            onAddToSelection={addToSelection}
+            hideSectionHeaders={hideSectionHeaders}
+            headerMessage={errorMessage ? '' : headerMessage}
+            boldStyle={boldStyle}
+            showTitleTooltip={showTitleTooltip}
+            isDisabled={isDisabled}
+            shouldHaveOptionSeparator={shouldHaveOptionSeparator}
+            highlightSelectedOptions={highlightSelectedOptions}
+            onLayout={() => {
+                if (selectedOptions.length === 0) {
+                    scrollToIndex(focusedIndex, false);
+                }
 
-                    if (onLayout) {
-                        onLayout();
-                    }
-                }}
-                contentContainerStyles={[safeAreaPaddingBottomStyle, ...contentContainerStyles]}
-                sectionHeaderStyle={sectionHeaderStyle}
-                listContainerStyles={listContainerStyles}
-                listStyles={listStyles}
-                isLoading={!shouldShowOptions}
-                showScrollIndicator={showScrollIndicator}
-                isRowMultilineSupported={isRowMultilineSupported}
-                isLoadingNewOptions={isLoadingNewOptions}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                nestedScrollEnabled={nestedScrollEnabled}
-                bounces={!shouldTextInputAppearBelowOptions || !shouldAllowScrollingChildren}
-            />
-        );
+                if (onLayout) {
+                    onLayout();
+                }
+            }}
+            contentContainerStyles={[safeAreaPaddingBottomStyle, ...contentContainerStyles]}
+            sectionHeaderStyle={sectionHeaderStyle}
+            listContainerStyles={listContainerStyles}
+            listStyles={listStyles}
+            isLoading={!shouldShowOptions}
+            showScrollIndicator={showScrollIndicator}
+            isRowMultilineSupported={isRowMultilineSupported}
+            isLoadingNewOptions={isLoadingNewOptions}
+            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            nestedScrollEnabled={nestedScrollEnabled}
+            bounces={!shouldTextInputAppearBelowOptions || !shouldAllowScrollingChildren}
+        />
+    );
 
-        const optionsAndInputsBelowThem = (
-            <>
-                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                    {children}
-                    {shouldShowTextInput && textInput}
-                </View>
-            </>
-        );
+    const optionsAndInputsBelowThem = (
+        <>
+            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+            <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                {children}
+                {shouldShowTextInput && textInput}
+            </View>
+        </>
+    );
 
-        return (
-            <ArrowKeyFocusManager
-                disabledIndexes={disabledOptionsIndexes}
-                focusedIndex={focusedIndex}
-                maxIndex={allOptions.length - 1}
-                onFocusedIndexChanged={disableArrowKeysActions ? () => {} : updateFocusedIndex}
-                shouldResetIndexOnEndReached={false}
-            >
-                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                    {/*
-                     * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
-                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
-                     * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
-                     */}
-                    {shouldTextInputAppearBelowOptions && shouldAllowScrollingChildren && (
-                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                            <ScrollView
-                                horizontal
-                                bounces={false}
-                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
-                            >
-                                {optionsAndInputsBelowThem}
-                            </ScrollView>
+    return (
+        <ArrowKeyFocusManager
+            disabledIndexes={disabledOptionsIndexes}
+            focusedIndex={focusedIndex}
+            maxIndex={allOptions.length - 1}
+            onFocusedIndexChanged={disableArrowKeysActions ? () => {} : updateFocusedIndex}
+            shouldResetIndexOnEndReached={false}
+        >
+            <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
+                {/*
+                 * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
+                 * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                 * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
+                 */}
+                {shouldTextInputAppearBelowOptions && shouldAllowScrollingChildren && (
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <ScrollView
+                            horizontal
+                            bounces={false}
+                            contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                        >
+                            {optionsAndInputsBelowThem}
                         </ScrollView>
-                    )}
-
-                    {shouldTextInputAppearBelowOptions && !shouldAllowScrollingChildren && optionsAndInputsBelowThem}
-
-                    {!shouldTextInputAppearBelowOptions && (
-                        <>
-                            <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
-                                {children}
-                                {shouldShowTextInput && textInput}
-                                {Boolean(textInputAlert) && (
-                                    <FormHelpMessage
-                                        message={textInputAlert}
-                                        style={[styles.mb3]}
-                                        isError={false}
-                                    />
-                                )}
-                            </View>
-                            {optionsList}
-                        </>
-                    )}
-                </View>
-                {shouldShowFooter && (
-                    <FixedFooter>
-                        {shouldShowDefaultConfirmButton && (
-                            <Button
-                                success
-                                style={[styles.w100]}
-                                text={defaultConfirmButtonText}
-                                onPress={onConfirmSelection}
-                                pressOnEnter
-                                enterKeyEventListenerPriority={1}
-                            />
-                        )}
-                        {footerContent}
-                    </FixedFooter>
+                    </ScrollView>
                 )}
-            </ArrowKeyFocusManager>
-        );
-}
+
+                {shouldTextInputAppearBelowOptions && !shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+
+                {!shouldTextInputAppearBelowOptions && (
+                    <>
+                        <View style={shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                            {children}
+                            {shouldShowTextInput && textInput}
+                            {Boolean(textInputAlert) && (
+                                <FormHelpMessage
+                                    message={textInputAlert}
+                                    style={[styles.mb3]}
+                                    isError={false}
+                                />
+                            )}
+                        </View>
+                        {optionsList}
+                    </>
+                )}
+            </View>
+            {shouldShowFooter && (
+                <FixedFooter>
+                    {shouldShowDefaultConfirmButton && (
+                        <Button
+                            success
+                            style={[styles.w100]}
+                            text={defaultConfirmButtonText}
+                            onPress={onConfirmSelection}
+                            pressOnEnter
+                            enterKeyEventListenerPriority={1}
+                        />
+                    )}
+                    {footerContent}
+                </FixedFooter>
+            )}
+        </ArrowKeyFocusManager>
+    );
+};
 
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
