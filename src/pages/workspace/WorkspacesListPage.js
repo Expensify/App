@@ -7,7 +7,7 @@ import FeatureList from '@components/FeatureList';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -20,8 +20,8 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -108,6 +108,8 @@ function dismissWorkspaceError(policyID, pendingAction) {
 }
 
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
@@ -169,7 +171,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                iconFill: themeColors.textLight,
+                iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy.pendingAction,
@@ -179,11 +181,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
             illustration={LottieAnimations.WorkspacePlanet}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.workspaces')}
@@ -211,6 +213,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
 WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
+WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
     withPolicyAndFullscreenLoading,

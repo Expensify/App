@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
 import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -7,7 +6,7 @@ import PagerView from 'react-native-pager-view';
 import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
 import _ from 'underscore';
 import refPropTypes from '@components/refPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
@@ -81,6 +80,7 @@ function AttachmentCarouselPager({
     containerWidth,
     containerHeight,
 }) {
+    const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
 
@@ -168,8 +168,10 @@ function AttachmentCarouselPager({
         </GestureHandlerRootView>
     );
 }
+
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
+AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
 const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager

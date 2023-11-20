@@ -117,6 +117,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
+        referral: 'Referral',
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',
@@ -215,7 +216,7 @@ export default {
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         join: 'Join',
-        joinThread: 'Join thread',
+        leave: 'Leave',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
@@ -592,8 +593,8 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
+            splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
@@ -640,11 +641,8 @@ export default {
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
-        headline: 'You qualify for access to our exclusive lounges.',
-        description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
-        coffeePromo: 'Great coffee and cocktails',
-        networkingPromo: 'Network with other members',
-        viewsPromo: 'Incredible views of San Francisco',
+        headline: 'The Expensify Lounge is closed.',
+        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
@@ -813,7 +811,6 @@ export default {
         title: 'Private notes',
         personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
-        notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
         myNote: 'My note',
     },
@@ -890,6 +887,7 @@ export default {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
+        cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1640,6 +1638,7 @@ export default {
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
+        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
@@ -1846,7 +1845,7 @@ export default {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     teachersUnitePage: {
-        teachersUnite: 'Teachers unite!',
+        teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
@@ -1910,7 +1909,31 @@ export default {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
+    referralProgram: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
+            buttonText1: 'Start a chat, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Start a chat with a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+            buttonText1: 'Request money, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Request money from a new Expensify account. Get  $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+            buttonText1: 'Send money, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send money to a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
+            buttonText1: 'Refer a friend, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send your Expensify referral link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+        },
+        copyReferralLink: 'Copy referral link',
     },
 } satisfies TranslationBase;

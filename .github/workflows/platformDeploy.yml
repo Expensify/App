@@ -12,6 +12,10 @@ env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
     needs: validateActor
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -58,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -142,7 +146,7 @@ jobs:
     runs-on: macos-12-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -154,7 +158,7 @@ jobs:
 
       - name: Build production desktop app
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build -- --publish always
+        run: npm run desktop-build
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -165,7 +169,7 @@ jobs:
 
       - name: Build staging desktop app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging -- --publish always
+        run: npm run desktop-build-staging
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -181,7 +185,7 @@ jobs:
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -293,7 +297,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -363,7 +367,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -420,11 +424,11 @@ jobs:
   postGithubComment:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
