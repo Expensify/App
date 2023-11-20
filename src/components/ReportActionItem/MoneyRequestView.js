@@ -76,7 +76,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
-    transactionViolations: [],
+    transactionViolations: null,
     policyTags: {},
 };
 
