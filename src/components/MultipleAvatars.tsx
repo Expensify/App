@@ -11,6 +11,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
+import participantPropTypes from './participantPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 type MultipleAvatarsProps = {
@@ -52,6 +53,9 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     maxAvatarsInRow?: number;
+    
+    /** List of participants */
+    participants: PropTypes.arrayOf(participantPropTypes)
 };
 
 type AvatarStyles = {
@@ -92,6 +96,7 @@ function MultipleAvatars({
     shouldShowTooltip = true,
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
+    participants = [],
 }: MultipleAvatarsProps) {
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size]);
@@ -108,6 +113,13 @@ function MultipleAvatars({
 
         return CONST.AVATAR_SIZE.SMALLER;
     }, [isFocusMode, size]);
+
+    const participantsList = useMemo(() => _.reduce(participants, (all, participant) => {
+        // eslint-disable-next-line no-param-reassign
+        all[participant.accountID] = participant;
+
+        return all;
+    }, {}), [participants])
 
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
@@ -133,7 +145,7 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={icons[0].id}
+                user={participantsList[icons[0].id]}
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
@@ -174,8 +186,8 @@ function MultipleAvatars({
                     >
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
-                                key={`stackedAvatars-${icon.id}`}
-                                accountID={icon.id}
+                                key={`stackedAvatars-${index}`}
+                                user={participantsList[icon.id]}
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
@@ -246,7 +258,7 @@ function MultipleAvatars({
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
                         <UserDetailsTooltip
-                            accountID={icons[0].id}
+                            user={participantsList[icons[0].id]}
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
@@ -268,7 +280,7 @@ function MultipleAvatars({
                         <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
-                                    accountID={icons[1].id}
+                                    user={participantsList[icons[1].id]}
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,

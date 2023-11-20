@@ -211,6 +211,7 @@ function OptionRow(props) {
                                         />
                                     ) : (
                                         <MultipleAvatars
+                                            participants={props.option.participantsList}
                                             icons={props.option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}

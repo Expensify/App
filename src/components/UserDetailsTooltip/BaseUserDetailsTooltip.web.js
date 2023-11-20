@@ -19,11 +19,11 @@ function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
 
-    const userDetails = lodashGet(personalDetails, props.accountID, props.fallbackUserDetails);
-    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID);
+    const userDetails = props.user || props.fallbackUserDetails;
+    let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
-    let userAccountID = props.accountID;
+    let userAccountID = props.user ? props.user.accountID : props.accountID;
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.

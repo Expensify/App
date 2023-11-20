@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import avatarPropTypes from '@components/avatarPropTypes';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
+import participantPropTypes from '@components/participantPropTypes';
 
 const propTypes = {
     /** User's Account ID */
@@ -20,8 +20,6 @@ const propTypes = {
     icon: avatarPropTypes,
     /** Component that displays the tooltip */
     children: PropTypes.node.isRequired,
-    /** List of personalDetails (keyed by accountID)  */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID: PropTypes.number,
@@ -29,12 +27,15 @@ const propTypes = {
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
      A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+
+    /** User object containing the details needed to display in a tooltip */
+    user: participantPropTypes,
 };
 
 const defaultProps = {
     accountID: '',
     fallbackUserDetails: {displayName: '', login: '', avatar: '', type: ''},
-    personalDetailsList: {},
+    user: {},
     delegateAccountID: 0,
     icon: undefined,
     shiftHorizontal: 0,
