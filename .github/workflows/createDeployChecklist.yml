@@ -1,0 +1,28 @@
+name: Create or update deploy checklist
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  createChecklist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Set up git for OSBotify
+        id: setupGitForOSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Create or update deploy checklist
+        uses: ./.github/actions/javascript/createOrUpdateStagingDeploy
+        with:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
