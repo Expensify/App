@@ -42,6 +42,7 @@ function AmountTextInput(props) {
     const styles = useThemeStyles();
     return (
         <TextInput
+            accessibilityLabel="Text input field"
             disableKeyboard
             autoGrow
             hideFocusedState
@@ -55,7 +56,7 @@ function AmountTextInput(props) {
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ROLE.PRESENTATION}
             onKeyPress={props.onKeyPress}
         />
     );

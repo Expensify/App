@@ -193,7 +193,7 @@ function OptionRow(props) {
                             props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={props.hoverStyle || styles.sidebarLinkHover}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
@@ -268,7 +268,7 @@ function OptionRow(props) {
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />

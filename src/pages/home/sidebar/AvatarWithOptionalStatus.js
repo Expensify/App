@@ -42,7 +42,7 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
         <View style={styles.sidebarStatusAvatarContainer}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 onPress={showStatusPage}
                 style={styles.flex1}
             >

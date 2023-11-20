@@ -154,28 +154,31 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     </View>
                     <View style={[styles.mv5]}>
                         <TextInput
+                            accessibilityLabel="Text input field"
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <TextInput
+                            accessibilityLabel="Text input field"
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <TextInput
+                            accessibilityLabel="Text input field"
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (

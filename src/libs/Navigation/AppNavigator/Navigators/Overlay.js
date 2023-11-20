@@ -28,14 +28,14 @@ function Overlay(props) {
                     style={[styles.draggableTopBar]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                 />
                 <PressableWithoutFeedback
                     style={[styles.flex1]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     noDragArea
                     nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
                 />

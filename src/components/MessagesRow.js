@@ -56,7 +56,7 @@ function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
                     <PressableWithoutFeedback
                         onPress={onClose}
                         style={[styles.touchableButtonImage]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon src={Expensicons.Close} />
