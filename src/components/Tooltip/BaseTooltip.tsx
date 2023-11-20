@@ -53,7 +53,23 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth = variables.sideBarWidth, text = '', renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal = 0, shiftVertical = 0, tooltipRef}: TooltipProps) {
+function callOrReturn<T>(value: T | (() => T)): T {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return typeof value === 'function' ? value() : value;
+}
+
+function Tooltip({
+    numberOfLines,
+    maxWidth = variables.sideBarWidth,
+    text = '',
+    renderTooltipContent,
+    renderTooltipContentKey = [],
+    shouldHandleScroll,
+    shiftHorizontal = 0,
+    shiftVertical = 0,
+    tooltipRef,
+    children,
+}: TooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -75,7 +91,7 @@ function Tooltip({children, numberOfLines, maxWidth = variables.sideBarWidth, te
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
 
-    const target = useRef<HTMLElement>(null);
+    const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
@@ -182,15 +198,15 @@ function Tooltip({children, numberOfLines, maxWidth = variables.sideBarWidth, te
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={shiftHorizontal}
-                    shiftVertical={shiftVertical}
+                    shiftHorizontal={callOrReturn(shiftHorizontal)}
+                    shiftVertical={callOrReturn(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
                     renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
-                    key={[text, ...renderTooltipContentKey, preferredLocale]}
+                    key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                 />
             )}
             <BoundsObserver

@@ -130,10 +130,6 @@ function TooltipRenderedOnPageBody({
 
     const body = document.querySelector('body');
 
-    if (!body) {
-        return null;
-    }
-
     return ReactDOM.createPortal(
         <Animated.View
             ref={viewRef(rootWrapper)}

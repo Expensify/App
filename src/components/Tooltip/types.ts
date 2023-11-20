@@ -12,17 +12,17 @@ type TooltipProps = {
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: number | ((width: number) => number);
+    shiftHorizontal: number | (() => number);
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical: number | ((height: number) => number);
+    shiftVertical: number | (() => number);
 
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: number;
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
-    renderTooltipContent: unknown;
+    renderTooltipContent: () => ReactNode;
 
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey: string[];
