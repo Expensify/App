@@ -430,7 +430,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
-    weekStartsAndEndsOn: getWeekStartsAndEndsOn,
+    getWeekStartsAndEndsOn,
 };
 
 export default DateUtils;

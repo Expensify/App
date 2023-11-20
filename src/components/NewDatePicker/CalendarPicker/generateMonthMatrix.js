@@ -1,5 +1,5 @@
 import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
-import {getWeekStartsAndEndsOn} from '@libs/DateUtils';
+import DateUtils from '@libs/DateUtils';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.
@@ -26,7 +26,7 @@ export default function generateMonthMatrix(year, month) {
     }
 
     // Get the week day for the start and end of week
-    const {weekStartsOn, weekEndsOn} = getWeekStartsAndEndsOn();
+    const {weekStartsOn, weekEndsOn} = DateUtils.getWeekStartsAndEndsOn();
 
     // Get the number of days in the month and the first day of the month
     const firstDayOfMonth = startOfMonth(new Date(year, month, 1));
