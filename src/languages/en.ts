@@ -117,6 +117,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
+        referral: 'Referral',
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',
@@ -215,7 +216,7 @@ export default {
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         join: 'Join',
-        joinThread: 'Join thread',
+        leave: 'Leave',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
@@ -592,8 +593,7 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
@@ -887,6 +887,7 @@ export default {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
+        cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1908,7 +1909,31 @@ export default {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
+    referralProgram: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
+            buttonText1: 'Start a chat, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Start a chat with a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+            buttonText1: 'Request money, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Request money from a new Expensify account. Get  $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+            buttonText1: 'Send money, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send money to a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
+            buttonText1: 'Refer a friend, ',
+            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send your Expensify referral link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+        },
+        copyReferralLink: 'Copy referral link',
     },
 } satisfies TranslationBase;

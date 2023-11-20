@@ -72,7 +72,7 @@ const metro = {
     ],
     env: {
         production: {
-            plugins: ['transform-remove-console', {exclude: ['error', 'warn']}],
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
     },
 };
