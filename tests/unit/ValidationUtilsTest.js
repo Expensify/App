@@ -313,4 +313,17 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
         });
     });
+
+    describe('ValidatePersonName', () => {
+        test('Valid person name', () => {
+            expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
+        });
+
+        test('Invalid person name', () => {
+            expect(ValidationUtils.isValidPersonName('123 test')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test #$')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test123$')).toBe(false);
+        });
+    });
 });
