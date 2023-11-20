@@ -130,14 +130,16 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     /**
-     * Returns the translated violation message for a given field, if one exists, `undefined` if not.
+     * Returns the translated violation name for the provided field.
+     *
+     * Returns `undefined`If the user is not permitted to use violations or no violation exists on that field.
      */
     const getViolationForField = useCallback(
         (field) => {
             if (!canUseViolations) {
                 return undefined;
             }
-            return ViolationUtils.getViolationForField(transactionViolations, field, translate);
+            return ViolationUtils.getTranslatedViolationNameForField(field, transactionViolations, translate);
         },
         [canUseViolations, transactionViolations, translate],
     );

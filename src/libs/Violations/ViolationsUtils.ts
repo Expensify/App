@@ -5,7 +5,7 @@ import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@
 import possibleViolationsByField, {ViolationField} from './possibleViolationsByField';
 
 const ViolationsUtils = {
-    getViolationForField(transactionViolations: TransactionViolation[], field: ViolationField, translate: (key: string) => string): string {
+    getTranslatedViolationNameForField(field: ViolationField, transactionViolations: TransactionViolation[], translate: (key: string) => string): string {
         const fieldViolations = transactionViolations.filter((violation) => possibleViolationsByField[field]?.includes(violation.name)).map((violation) => translate(violation.name));
         return fieldViolations[0];
     },
