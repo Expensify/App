@@ -8,8 +8,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
@@ -25,6 +25,7 @@ const defaultProps = {
 };
 
 function EmojiPickerButtonDropdown(props) {
+    const styles = useThemeStyles();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -38,7 +39,6 @@ function EmojiPickerButtonDropdown(props) {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             shiftVertical: 4,
-            shouldUseTargetLocation: true,
         });
     };
 

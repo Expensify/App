@@ -88,18 +88,18 @@ platforms:
     image: /assets/images/settings-new-dot.svg
   
     hubs:
-      - href: getting-started
-        title: Getting Started
-        icon: /assets/images/accounting.svg
-        description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
-      
+      - href: chat
+        title: Chat
+        icon: /assets/images/chat-bubble.svg
+        description: Enhance your financial experience using Expensify's chat feature, offering quick and secure communication for personalized support and payment transfers.
+
       - href: account-settings
         title: Account Settings
         icon: /assets/images/gears.svg
         description: Discover how to personalize your profile, add secondary logins, and grant delegated access to employees with our comprehensive guide on Account Settings.
 
-      - href: bank-accounts-and-credit-cards
-        title: Bank Accounts & Credit Cards
+      - href: bank-accounts
+        title: Bank Accounts
         icon: /assets/images/bank-card.svg
         description: Find out how to connect Expensify to your financial institutions, track credit card transactions, and best practices for reconciling company cards.
       
@@ -108,11 +108,6 @@ platforms:
         icon: /assets/images/money-wings.svg
         description: Here is where you can review Expensify's billing and subscription options, plan types, and payment methods.
       
-      - href: expense-and-report-features
-        title: Expense & Report Features
-        icon: /assets/images/money-receipt.svg
-        description: From enabling automatic expense auditing to tracking attendees, here is where you can review tips and tutorials to streamline expense management.
-
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
@@ -128,21 +123,6 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
       
-      - href: insights-and-custom-reporting
-        title: Insights & Custom Reporting
-        icon: /assets/images/monitor.svg
-        description: From exporting reports to creating custom templates, here is where you can learn more about Expensify's versatile export options.
-
-      - href: integrations
-        title: Integrations
-        icon: /assets/images/workflow.svg
-        description: Enhance Expensify’s capabilities by integrating it with your accounting or HR software. Here is where you can learn more about creating a synchronized financial management ecosystem.
-
-      - href: manage-employees-and-report-approvals
-        title: Manage Employees & Report Approvals
-        icon: /assets/images/envelope-receipt.svg
-        description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
-
       - href: send-payments
         title: Send Payments
         icon: /assets/images/money-wings.svg
