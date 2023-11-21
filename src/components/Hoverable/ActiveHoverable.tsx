@@ -5,7 +5,7 @@ import HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
-function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children, ...props}: ActiveHoverableProps, ref: Ref<R>) {
+function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, ref: Ref<R>) {
     const [isHovered, setIsHovered] = useState(false);
     const isScrolling = useRef(false);
     const isHoveredRef = useRef(false);
