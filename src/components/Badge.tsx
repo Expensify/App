@@ -29,7 +29,7 @@ type BadgeProps = {
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles, textStyles, onPress = () => {}}: BadgeProps) {
