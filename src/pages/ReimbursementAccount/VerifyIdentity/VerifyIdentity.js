@@ -14,6 +14,7 @@ import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbur
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +58,7 @@ function VerifyIdentity({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            BankAccounts.clearOnfidoToken();
             Navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
         } else {
             prevScreen();

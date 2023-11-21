@@ -66,6 +66,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onfidoTo
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
             Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
         } else {
             prevScreen();

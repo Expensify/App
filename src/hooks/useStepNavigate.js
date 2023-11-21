@@ -13,26 +13,27 @@ export default function useStepNavigate(reimbursementAccount, onfidoToken = '') 
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 // maybe we should also save different current step in BE as well here
                 Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
-                return;
+                break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (!shouldShowOnfido) {
                     Navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
-                    return;
+                    break;
                 }
                 Navigation.navigate(ROUTES.BANK_VERIFY_IDENTITY);
-                return;
+                break;
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 Navigation.navigate(ROUTES.BANK_COMPANY_OWNER);
-                return;
+                break;
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 Navigation.navigate(ROUTES.BANK_COMPLETE_VERIFICATION);
-                return;
+                break;
             case CONST.BANK_ACCOUNT.STEP.ENABLE: // ??
                 // Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
-                return;
+                break;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute());
+                break;
+            // Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute());
         }
     }, [currentStep, shouldShowOnfido]);
 }

@@ -102,6 +102,8 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            BankAccounts.setBankAccountSubStep(null);
+            BankAccounts.setPlaidEvent(null);
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute());
         } else {
             prevScreen();

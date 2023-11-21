@@ -102,6 +102,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             Navigation.goBack(ROUTES.BANK_BANK_INFO);
         } else {
             prevScreen();
