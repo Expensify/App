@@ -58,6 +58,7 @@ export default {
     },
 
     SETTINGS: 'settings',
+    SETTINGS_NEW: 'settings_new',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',

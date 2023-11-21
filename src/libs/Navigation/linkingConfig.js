@@ -429,6 +429,12 @@ export default {
                     },
                 },
             },
+
+            [NAVIGATORS.SETTINGS_NAVIGATOR]: {
+                screens: {
+                    [SCREENS.SETTINGS_NEW]: ROUTES.SETTINGS_NEW,
+                }
+            }
         },
     },
 };

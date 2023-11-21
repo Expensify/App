@@ -5,5 +5,6 @@
 export default {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
+    SETTINGS_NAVIGATOR: 'Settings_Navigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
 } as const;
