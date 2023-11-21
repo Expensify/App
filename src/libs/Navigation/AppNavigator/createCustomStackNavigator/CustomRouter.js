@@ -3,12 +3,14 @@ import lodashFindLast from 'lodash/findLast';
 import _ from 'underscore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import CentralPaneNavigator from '../Navigators/CentralPaneNavigator';
 
 /**
  * @param {Object} state - react-navigation state
+ * @param {String} centralRoute - name of the central route
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+const isAtLeastOneCentralPaneNavigatorInState = (state, centralRoute) => _.find(state.routes, (r) => r.name === centralRoute);
 
 /**
  * @param {Object} state - react-navigation state
@@ -41,22 +43,37 @@ const getTopMostReportIDFromRHP = (state) => {
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
  *
  * @param {Object} state - react-navigation state
+ * @param {String} centralRoute - name of the central route
  */
-const addCentralPaneNavigatorRoute = (state) => {
+const addCentralPaneNavigatorRoute = (state, centralRoute) => {
     const reportID = getTopMostReportIDFromRHP(state);
-    const centralPaneNavigatorRoute = {
-        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-        state: {
-            routes: [
-                {
-                    name: SCREENS.REPORT,
-                    params: {
-                        reportID,
+    let centralPaneNavigatorRoute;
+    if (centralRoute === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        centralPaneNavigatorRoute = {
+            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+            state: {
+                routes: [
+                    {
+                        name: SCREENS.REPORT,
+                        params: {
+                            reportID,
+                        },
                     },
-                },
-            ],
-        },
-    };
+                ],
+            },
+        };
+    } else {
+        centralPaneNavigatorRoute = {
+            name: centralRoute,
+            state: {
+                routes: [
+                    {
+                        name: 'SettingsCentralPane',
+                    },
+                ],
+            },
+        };
+    }
     state.routes.splice(1, 0, centralPaneNavigatorRoute);
     // eslint-disable-next-line no-param-reassign
     state.index = state.routes.length - 1;
@@ -64,16 +81,20 @@ const addCentralPaneNavigatorRoute = (state) => {
 
 function CustomRouter(options) {
     const stackRouter = StackRouter(options);
+    const centralRoute = options.centralRoute || NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
+    console.log('CustomRouter', centralRoute);
 
     return {
         ...stackRouter,
         getRehydratedState(partialState, {routeNames, routeParamList}) {
+            console.log('getRehydratedState', centralRoute);
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
+            if (!isAtLeastOneCentralPaneNavigatorInState(partialState, centralRoute) && !options.getIsSmallScreenWidth()) {
+                console.log('getRehydratedState', centralRoute, 'adding CentralPaneNavigator');
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
                 // eslint-disable-next-line no-param-reassign
                 partialState.stale = true;
-                addCentralPaneNavigatorRoute(partialState);
+                addCentralPaneNavigatorRoute(partialState, centralRoute);
             }
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList});
             return state;

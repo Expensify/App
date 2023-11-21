@@ -64,6 +64,7 @@ function ResponsiveStackNavigator(props) {
         initialRouteName: props.initialRouteName,
         // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
         getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
+        centralRoute: props.centralRoute,
     });
 
     const stateToRender = useMemo(() => {

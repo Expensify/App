@@ -32,6 +32,7 @@ function SettingsNavigator({navigation}) {
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
                 mode="modal"
+                initialRouteName={SCREENS.SETTINGS_HOME}
             >
                 <RootStack.Screen
                     name={SCREENS.SETTINGS_HOME}
@@ -39,14 +40,10 @@ function SettingsNavigator({navigation}) {
                     getComponent={loadSidebarScreen}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SETTINGS_NEW_PROFILE}
+                    name='SettingsCentralPane'
                     options={screenOptions.centralPaneNavigator}
                     component={ModalStackNavigators.SettingsModalStackNavigator}
                 />
-                {/* <RootStack.Screen
-                        name="Settings"
-                        component={ModalStackNavigators.SettingsModalStackNavigator}
-                    /> */}
             </RootStack.Navigator>
         </View>
     );

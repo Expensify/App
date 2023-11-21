@@ -245,7 +245,7 @@ function FloatingActionButtonAndPopover(props) {
                 onPress={() => {
                     console.log('FloatingActionButtonAndPopover.js: showCreateMenu()');
                     // navigate to new screen
-                    Navigation.navigate(ROUTES.SETTINGS_NEW_PROFILE);
+                    Navigation.navigate(ROUTES.SETTINGS_HOME);
                 }}
             />
         </View>
