@@ -17,11 +17,9 @@ type AvatarProps = {
     source?: AvatarSource;
 
     /** Extra styles to pass to Image */
-    // eslint-disable-next-line react/forbid-prop-types
     imageStyles?: ViewStyle[];
 
     /** Additional styles to pass to Icon */
-    // eslint-disable-next-line react/forbid-prop-types
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
     /** Extra styles to pass to View wrapper */
@@ -96,8 +94,8 @@ function Avatar({
                         fill={imageError ? theme.offline : iconFillColor}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
-                            isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name) : {},
-                            imageError ? StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor) : {},
+                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
+                            imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
                             iconAdditionalStyles,
                         ]}
                     />
