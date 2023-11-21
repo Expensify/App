@@ -109,7 +109,7 @@ describe('test workflow platformDeploy', () => {
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
-                    mockJobs: testMockJobs
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');

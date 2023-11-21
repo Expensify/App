@@ -1,9 +1,7 @@
 const utils = require('../utils/utils');
 
 const assertUpdateChecklistJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
-    const steps = [
-        utils.createStepAssertion('updateChecklist', true, null, 'UPDATECHECKLIST', 'Run updateChecklist'),
-    ];
+    const steps = [utils.createStepAssertion('updateChecklist', true, null, 'UPDATECHECKLIST', 'Run updateChecklist')];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -19,10 +17,18 @@ const assertUpdateChecklistJobExecuted = (workflowResult, didExecute = true, isS
 const assertDeployBlockerJobExecuted = (workflowResult, didExecute = true, isSuccessful = true, failsAt = -1) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'DEPLOYBLOCKER', 'Checkout'),
-        utils.createStepAssertion('Give the issue/PR the Hourly, Engineering labels', true, null, 'DEPLOYBLOCKER', 'Give the issue/PR the Hourly, Engineering labels', [], [{key: 'GITHUB_TOKEN', value: '***'}]),
+        utils.createStepAssertion(
+            'Give the issue/PR the Hourly, Engineering labels',
+            true,
+            null,
+            'DEPLOYBLOCKER',
+            'Give the issue/PR the Hourly, Engineering labels',
+            [],
+            [{key: 'GITHUB_TOKEN', value: '***'}],
+        ),
         utils.createStepAssertion('Comment on deploy blocker', true, null, 'DEPLOYBLOCKER', 'Comment on deploy blocker', [], [{key: 'GITHUB_TOKEN', value: '***'}]),
     ];
-    
+
     steps.forEach((expectedStep, i) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {

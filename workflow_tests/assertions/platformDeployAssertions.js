@@ -13,9 +13,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 };
 
 const assertDeployChecklistJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion('deployChecklist', true, null, 'DEPLOY_CHECKLIST', 'Run deployChecklist'),
-    ];
+    const steps = [utils.createStepAssertion('deployChecklist', true, null, 'DEPLOY_CHECKLIST', 'Run deployChecklist')];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
