@@ -27,8 +27,10 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import usePrevious from '@hooks/usePrevious';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -69,6 +71,13 @@ const defaultProps = {
     policies: {},
 };
 
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
+}
+
 function WorkspaceNewRoomPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -77,6 +86,7 @@ function WorkspaceNewRoomPage(props) {
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(props.formData.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -85,13 +95,44 @@ function WorkspaceNewRoomPage(props) {
 
         return ReportUtils.isPolicyAdmin(policyID, props.policies);
     }, [policyID, props.policies]);
+    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        Report.addPolicyReport(policyID, values.roomName, visibility, writeCapability, values.welcomeMessage);
+        const participants = [props.session.accountID];
+        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const policyReport = ReportUtils.buildOptimisticChatReport(
+            participants,
+            values.roomName,
+            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID,
+            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            visibility,
+            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    
+            // The room might contain all policy members so notifying always should be opt-in only.
+            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            '',
+            '',
+            parsedWelcomeMessage,
+        );
+        setNewRoomReportID(policyReport.reportID);
+        Report.addPolicyReport(policyReport);
     };
+
+    useEffect(() => {
+        return clearNewRoomFormError;
+    }, []);
+
+    useEffect(() => {
+        if (((wasLoading && !props.formData.isLoading) || (isOffline && props.formData.isLoading)) && _.isEmpty(props.formData.errorFields)) {
+            Navigation.dismissModal(newRoomReportID);
+        }
+    }, [props.formData]);
 
     useEffect(() => {
         if (isPolicyAdmin) {
@@ -265,5 +306,11 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
+        formData: {
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        }
     }),
 )(WorkspaceNewRoomPage);
