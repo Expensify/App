@@ -2002,6 +2002,9 @@ function openReportFromDeepLink(url, isAuthenticated) {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
+                if (!route) {
+                    return;
+                }
                 if (route === ROUTES.CONCIERGE) {
                     navigateToConciergeChat(true);
                     return;
