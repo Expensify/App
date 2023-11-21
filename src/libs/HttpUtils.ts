@@ -117,7 +117,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-        if (typeof data[key] === "undefined") {
+        if (typeof data[key] === 'undefined') {
             return;
         }
         formData.append(key, data[key] as string | Blob);
