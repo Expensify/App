@@ -4076,7 +4076,7 @@ const styles = (theme: ThemeColors) =>
 
         videoThumbnailPlayButton: {
             backgroundColor: '#061B09CC',
-            borderRadius: '50%',
+            borderRadius: 100,
             width: 72,
             height: 72,
             alignItems: 'center',

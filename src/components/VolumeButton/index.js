@@ -41,8 +41,8 @@ function ProgressBar({style}) {
     });
 
     const progressBarStyle = useAnimatedStyle(() => {
-        updateVolume(volume.value);
-        setVolumeIcon({icon: getVolumeIcon(volume.value)});
+        runOnJS(updateVolume)(volume.value);
+        runOnJS(setVolumeIcon)({icon: getVolumeIcon(volume.value)});
         return {height: `${volume.value * 100}%`};
     });
 
