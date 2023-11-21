@@ -24,7 +24,6 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
@@ -62,9 +61,6 @@ const propTypes = {
         }),
     ),
 
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 };
@@ -72,7 +68,6 @@ const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
-    allPolicyMembers: {},
 };
 
 function WorkspaceNewRoomPage(props) {
@@ -96,8 +91,7 @@ function WorkspaceNewRoomPage(props) {
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
+        Report.addPolicyReport(policyID, values.roomName, visibility, writeCapability, values.welcomeMessage);
     };
 
     useEffect(() => {
@@ -275,9 +269,6 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
 )(WorkspaceNewRoomPage);
