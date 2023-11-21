@@ -13,20 +13,25 @@ type WithPolicyAndFullscreenLoadingOnyxProps = {
 
 type WithPolicyAndFullscreenLoadingProps = WithPolicyProps & WithPolicyAndFullscreenLoadingOnyxProps;
 
+type ComponentWithPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps, TRef> = ComponentType<
+    Omit<Omit<TProps & RefAttributes<TRef>, keyof WithPolicyAndFullscreenLoadingOnyxProps>, keyof WithPolicyOnyxProps>
+>;
+
 export default function withPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<Omit<TProps & React.RefAttributes<TRef>, 'isLoadingReportData'>, keyof WithPolicyOnyxProps>> {
-    function WithPolicyAndFullscreenLoading(props: TProps, ref: ForwardedRef<TRef>) {
-        const isLoadingReportData = props.isLoadingReportData ?? true;
-
-        if (isLoadingReportData && isEmpty(props.policy) && isEmpty(props.policyDraft)) {
+): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
+    function WithPolicyAndFullscreenLoading({isLoadingReportData = true, policy, policyDraft, ...rest}: TProps, ref: ForwardedRef<TRef>) {
+        if (isLoadingReportData && isEmpty(policy) && isEmpty(policyDraft)) {
             return <FullscreenLoadingIndicator />;
         }
 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(rest as TProps)}
+                isLoadingReportData={isLoadingReportData}
+                policy={policy}
+                policyDraft={policyDraft}
                 ref={ref}
             />
         );
