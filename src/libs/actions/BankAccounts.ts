@@ -119,6 +119,13 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
     };
 }
 
+function addBusinessAddressForDraft(businessAddress: {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string}) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, businessAddress);
+}
+
+function addPersonalAddressForDraft(personalAddress: {requestorAddressStreet?: string; requestorAddressCity?: string; requestorAddressState?: string; requestorAddressZipCode?: string}) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, personalAddress);
+}
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
@@ -433,6 +440,8 @@ function setReimbursementAccountLoading(isLoading: boolean) {
 }
 
 export {
+    addBusinessAddressForDraft,
+    addPersonalAddressForDraft,
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,

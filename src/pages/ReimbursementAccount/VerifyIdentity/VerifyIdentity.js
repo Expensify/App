@@ -57,7 +57,7 @@ function VerifyIdentity({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
         } else {
             prevScreen();
         }

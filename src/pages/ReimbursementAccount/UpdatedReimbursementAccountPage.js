@@ -25,7 +25,6 @@ import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -37,7 +36,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import BankAccountStep from './BankAccountStep';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
@@ -137,17 +135,17 @@ const ROUTE_NAMES = {
  */
 function getStepToOpenFromRouteParams(route) {
     switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
-        case ROUTE_NAMES.NEW:
+        case 'new':
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        case ROUTE_NAMES.COMPANY:
+        case 'company':
             return CONST.BANK_ACCOUNT.STEP.COMPANY;
-        case ROUTE_NAMES.PERSONAL_INFORMATION:
+        case 'personal-information':
             return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-        case ROUTE_NAMES.CONTRACT:
+        case 'contract':
             return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
-        case ROUTE_NAMES.VALIDATE:
+        case 'validate':
             return CONST.BANK_ACCOUNT.STEP.VALIDATION;
-        case ROUTE_NAMES.ENABLE:
+        case 'enable':
             return CONST.BANK_ACCOUNT.STEP.ENABLE;
         default:
             return '';
@@ -358,7 +356,7 @@ function UpdatedReimbursementAccountPage({
 
             const backTo = lodashGet(route.params, 'backTo');
             const policyId = lodashGet(route.params, 'policyID');
-            // Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
@@ -496,7 +494,7 @@ function UpdatedReimbursementAccountPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={BankAccountStep.displayName}
+            testID={UpdatedReimbursementAccountPage.displayName}
         >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
@@ -523,11 +521,11 @@ function UpdatedReimbursementAccountPage({
                             icon={Expensicons.Bank}
                             text={translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
-                                navigation.navigate(ROUTES.BANK_BANK_INFO);
                                 if (isPlaidDisabled || !user.validated) {
                                     return;
                                 }
-                                BankAccounts.openPlaidView();
+                                BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                                Navigation.navigate(ROUTES.BANK_BANK_INFO);
                             }}
                             isDisabled={isPlaidDisabled || !user.validated}
                             style={[styles.mt4]}
@@ -543,7 +541,7 @@ function UpdatedReimbursementAccountPage({
                                 disabled={!user.validated}
                                 onPress={() => {
                                     BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-                                    navigation.navigate(ROUTES.BANK_BANK_INFO);
+                                    Navigation.navigate(ROUTES.BANK_BANK_INFO);
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}

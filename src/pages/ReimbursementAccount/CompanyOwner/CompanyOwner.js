@@ -37,7 +37,6 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
     const startFrom = useMemo(() => 0, []);
 
     const submit = useCallback(() => {
-        console.log(reimbursementAccount, reimbursementAccountDraft);
         Navigation.navigate(ROUTES.BANK_COMPLETE_VERIFICATION);
     }, [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -56,7 +55,7 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(ROUTES.BANK_VERIFY_IDENTITY);
         } else {
             prevScreen();
         }

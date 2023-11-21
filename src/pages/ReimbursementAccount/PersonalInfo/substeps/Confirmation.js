@@ -116,6 +116,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         />
                     )}
                     <Button
+                        isLoading={reimbursementAccount.isLoading}
                         success
                         style={[styles.w100, styles.mt2, styles.pb5]}
                         onPress={onNext}

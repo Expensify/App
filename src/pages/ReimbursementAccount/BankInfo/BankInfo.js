@@ -6,9 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useStepNavigate from '@hooks/useStepNavigate';
 import useSubStep from '@hooks/useSubStep';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import navigation from '@navigation/Navigation';
 import Navigation from '@navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -18,7 +18,6 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +50,8 @@ const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken}) {
     const {translate} = useLocalize();
 
+    useStepNavigate(reimbursementAccount);
+
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
     const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -80,7 +81,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN],
             });
         }
-        navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
     }, [reimbursementAccount, setupType, values]);
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
@@ -102,8 +102,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            BankAccounts.setBankAccountSubStep(null);
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute());
         } else {
             prevScreen();
         }

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -5,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useStepNavigate from '@hooks/useStepNavigate';
 import useSubStep from '@hooks/useSubStep';
 import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
@@ -31,6 +33,9 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** The token required to initialize the Onfido SDK */
+    onfidoToken: PropTypes.string,
 };
 
 const defaultProps = {
@@ -41,8 +46,9 @@ const defaultProps = {
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
+function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onfidoToken}) {
     const {translate} = useLocalize();
+    useStepNavigate(reimbursementAccount, onfidoToken);
 
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -53,7 +59,6 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
-        Navigation.navigate(ROUTES.BANK_VERIFY_IDENTITY);
     }, [reimbursementAccount, values]);
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
@@ -61,7 +66,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
         } else {
             prevScreen();
         }
@@ -104,5 +109,8 @@ export default withOnyx({
     },
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+    },
+    onfidoToken: {
+        key: ONYXKEYS.ONFIDO_TOKEN,
     },
 })(PersonalInfo);

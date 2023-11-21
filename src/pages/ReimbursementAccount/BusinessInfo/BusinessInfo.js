@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useStepNavigate from '@hooks/useStepNavigate';
 import useSubStep from '@hooks/useSubStep';
 import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
@@ -17,6 +18,7 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import handleStepSelected from '@pages/ReimbursementAccount/utils/handleStepSelected';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -65,6 +67,7 @@ const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
 function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID}) {
     const {translate} = useLocalize();
+    useStepNavigate(reimbursementAccount);
 
     /**
      * @param {Array} fieldNames
@@ -91,7 +94,6 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
-        Navigation.navigate(ROUTES.BANK_PERSONAL_INFO);
     }, [reimbursementAccount, values, getBankAccountFields, policyID]);
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
@@ -100,7 +102,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.goBack(ROUTES.BANK_BANK_INFO);
         } else {
             prevScreen();
         }
@@ -120,8 +122,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
-                    // TODO Will be replaced with proper values
+                    onStepSelected={handleStepSelected}
                     startStep={1}
                     stepNames={CONST.BANK_ACCOUNT.STEPS_HEADER_STEP_NAMES}
                 />
