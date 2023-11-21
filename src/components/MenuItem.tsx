@@ -44,50 +44,7 @@ type UnresponsiveProps = {
     interactive: false;
 }
 
-type TitleIconProps = {
-    /** Boolean whether to display the title right icon */
-    shouldShowTitleIcon: true;
-
-    /** Icon to display at right side of title */
-    titleIcon: IconType;
-}
-
-type NoTitleIconProps = {
-    shouldShowTitleIcon?: false;
-    
-    titleIcon?: undefined;
-}
-
-type RightIconProps = {
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon: true;
-
-    /** Overrides the icon for shouldShowRightIcon */
-    iconRight: IconType;
-}
-
-type NoRightIconProps = {
-    shouldShowRightIcon?: false;
-
-    iconRight?: IconType;
-}
-
-type RightComponent = {
-    /** Should render component on the right */
-    shouldShowRightComponent: true;
-
-    /** Component to be displayed on the right */
-    rightComponent: ReactNode;
-}
-
-type NoRightComponent = {
-    shouldShowRightComponent?: false;
-
-    rightComponent?: undefined;
-}
-
-type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | NoTitleIconProps) &
-(RightIconProps | NoRightIconProps) & (RightComponent | NoRightComponent) & {
+type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
  
@@ -132,6 +89,24 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
 
     /** An icon to display under the main item */
     furtherDetailsIcon?: IconType;
+
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon?: boolean;
+
+    /** Icon to display at right side of title */
+    titleIcon?: IconType;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
+
+    /** Overrides the icon for shouldShowRightIcon */
+    iconRight?: IconType;
+
+    /** Should render component on the right */
+    shouldShowRightComponent?: boolean;
+
+    /** Component to be displayed on the right */
+    rightComponent?: ReactNode;
 
     /** A description text to show under the title */
     description?: string;
@@ -278,7 +253,7 @@ function MenuItem({
         return title ? `<comment>${title}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
 
-    const hasPressableRightComponent = iconRight || (rightComponent && shouldShowRightComponent);
+    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
@@ -427,7 +402,7 @@ function MenuItem({
                                                     {renderTitleContent()}
                                                 </Text>
                                             )}
-                                            {Boolean(shouldShowTitleIcon) && (
+                                            {Boolean(shouldShowTitleIcon) && Boolean(titleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
                                                         src={titleIcon}
