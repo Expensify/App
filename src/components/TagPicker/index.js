@@ -45,14 +45,14 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
         return tags;
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
-    
+
     const initialFocusedIndex = useMemo(() => {
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
             return _.chain(enabledTags)
-            .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
-            .value();
+                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
+                .value();
         }
-        
+
         return 0;
     }, [enabledTags, selectedOptions, isTagsCountBelowThreshold]);
 
