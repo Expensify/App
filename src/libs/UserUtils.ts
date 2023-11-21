@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import {ImageSourcePropType} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -191,6 +192,14 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
+/**
+ * Gets the secondary phone login number
+ */
+function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+    return parsedLoginList.find((login) => Str.isValidPhone(login));
+}
+
 export {
     hashText,
     hasLoginListError,
@@ -204,5 +213,6 @@ export {
     getSmallSizeAvatar,
     getFullSizeAvatar,
     generateAccountID,
+    getSecondaryPhoneLogin,
 };
 export type {AvatarSource};

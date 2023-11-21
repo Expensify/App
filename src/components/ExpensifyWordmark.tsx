@@ -1,7 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
 import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
@@ -12,39 +10,35 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ImageSVG from './ImageSVG';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions from './withWindowDimensions';
+import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-const propTypes = {
+type ExpensifyWordmarkProps = WindowDimensionsProps & {
     /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    style: {},
+    style?: StyleProp<ViewStyle>;
 };
 
 const logoComponents = {
     [CONST.ENVIRONMENT.DEV]: DevLogo,
     [CONST.ENVIRONMENT.STAGING]: StagingLogo,
     [CONST.ENVIRONMENT.PRODUCTION]: ProductionLogo,
+    [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };
 
-function ExpensifyWordmark(props) {
+function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
     const styles = useThemeStyles();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
+    const LogoComponent = environment ? logoComponents[environment] : AdHocLogo;
 
-    const LogoComponent = logoComponents[environment] || AdHocLogo;
     return (
         <>
             <View
                 style={[
-                    StyleUtils.getSignInWordmarkWidthStyle(environment, props.isSmallScreenWidth),
-                    StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                    props.isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
-                    ...(_.isArray(props.style) ? props.style : [props.style]),
+                    StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
+                    StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
+                    isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
+                    style,
                 ]}
             >
                 <ImageSVG
@@ -57,6 +51,5 @@ function ExpensifyWordmark(props) {
 }
 
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';
-ExpensifyWordmark.defaultProps = defaultProps;
-ExpensifyWordmark.propTypes = propTypes;
+
 export default withWindowDimensions(ExpensifyWordmark);

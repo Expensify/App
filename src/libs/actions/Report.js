@@ -470,6 +470,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     if (!reportID) {
         return;
     }
+
+    const commandName = 'OpenReport';
+
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -535,6 +538,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        idempotencyKey: `${commandName}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -612,6 +616,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        params.idempotencyKey = `${params.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -632,12 +637,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+        API.makeRequestWithSideEffects(commandName, params, onyxData).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write('OpenReport', params, onyxData);
+        API.write(commandName, params, onyxData);
     }
 }
 
@@ -1542,14 +1547,11 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
  * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
-    const participants = _.unique([currentUserAccountID, ...members]);
+function addPolicyReport(policyID, reportName, visibility, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
+    const participants = [currentUserAccountID];
     const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,

@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
-import compose from '@libs/compose';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -11,31 +11,26 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
-    shouldAnimate: PropTypes.bool,
+type ReportHeaderSkeletonViewProps = {
+    shouldAnimate?: boolean;
 };
 
-const defaultProps = {
-    shouldAnimate: true,
-};
-
-function ReportHeaderSkeletonView(props) {
+function ReportHeaderSkeletonView({shouldAnimate = true}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <View style={[styles.appContentHeader]}>
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-                {props.isSmallScreenWidth && (
+            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+                {isSmallScreenWidth && (
                     <PressableWithFeedback
                         onPress={() => {}}
                         style={[styles.LHNToggle]}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('common.back')}
+                        accessibilityLabel={translate('common.back')}
                     >
                         <Icon
                             fill={theme.icon}
@@ -44,7 +39,7 @@ function ReportHeaderSkeletonView(props) {
                     </PressableWithFeedback>
                 )}
                 <SkeletonViewContentLoader
-                    animate={props.shouldAnimate}
+                    animate={shouldAnimate}
                     width={styles.w100.width}
                     height={variables.contentHeaderHeight}
                     backgroundColor={theme.highlightBG}
@@ -73,7 +68,6 @@ function ReportHeaderSkeletonView(props) {
     );
 }
 
-ReportHeaderSkeletonView.propTypes = propTypes;
-ReportHeaderSkeletonView.defaultProps = defaultProps;
 ReportHeaderSkeletonView.displayName = 'ReportHeaderSkeletonView';
-export default compose(withWindowDimensions, withLocalize)(ReportHeaderSkeletonView);
+
+export default ReportHeaderSkeletonView;
