@@ -54,16 +54,16 @@ function getSelectedStatusType(data) {
 }
 
 const useValidateCustomDate = (data) => {
-    const localize = useLocalize();
+    const {translate} = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
         const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
-        const dateError = dateValidationErrorKey ? localize.translate(dateValidationErrorKey) : '';
+        const dateError = dateValidationErrorKey ? translate(dateValidationErrorKey) : '';
         setCustomDateError(dateError);
 
-        const timeError = timeValidationErrorKey ? localize.translate(timeValidationErrorKey) : '';
+        const timeError = timeValidationErrorKey ? translate(timeValidationErrorKey) : '';
         setCustomTimeError(timeError);
 
         return {
@@ -87,7 +87,7 @@ const useValidateCustomDate = (data) => {
 
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const styles = useThemeStyles();
-    const localize = useLocalize();
+    const {translate} = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
@@ -95,11 +95,11 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
                 value,
-                text: localize.translate(`statusPage.timePeriods.${value}`),
+                text: translate(`statusPage.timePeriods.${value}`),
                 keyForList: key,
                 isSelected: draftPeriod === value,
             })),
-        [draftPeriod, localize],
+        [draftPeriod, translate],
     );
 
     const {customDateError, customTimeError, validateCustomDate} = useValidateCustomDate(draftClearAfter);
@@ -178,13 +178,13 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             testID={StatusClearAfterPage.displayName}
         >
             <HeaderWithBackButton
-                title="Status"
+                title={translate('statusPage.clearAfter')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
-            <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>{localize.translate('statusPage.whenClearStatus')}</Text>
+            <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>{translate('statusPage.whenClearStatus')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
-                submitButtonText="Save"
+                submitButtonText={translate('statusPage.save')}
                 onSubmit={onSubmit}
                 style={[styles.flexGrow1, styles.mb4]}
                 scrollContextEnabled={false}
@@ -197,7 +197,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                         <>
                             <MenuItemWithTopDescription
                                 title={customStatusDate}
-                                description={localize.translate('statusPage.date')}
+                                description={translate('statusPage.date')}
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
@@ -207,7 +207,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
-                                description={localize.translate('statusPage.time')}
+                                description={translate('statusPage.time')}
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}

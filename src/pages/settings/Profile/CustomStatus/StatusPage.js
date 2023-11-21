@@ -2,14 +2,15 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import MobileBackgroundImage from '@assets/images/money-stack.svg';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -17,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
@@ -117,21 +119,18 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         }
         return {};
     }, [brickRoadIndicator]);
+
     return (
-        <HeaderPageLayout
-            title={translate('statusPage.status')}
-            onBackButtonPress={navigateBackToPreviousScreen}
-            headerContent={
-                <MobileBackgroundImage
-                    pointerEvents="none"
-                    style={styles.staticHeaderImage}
-                />
-            }
-            headerContainerStyles={[styles.staticHeaderImage]}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
-            childrenContainerStyles={[styles.flex1, styles.pt0]}
-            scrollViewContainerStyles={[styles.flex1]}
+        <ScreenWrapper
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS])]}
+            shouldEnablePickerAvoiding={false}
+            includeSafeAreaPaddingBottom={false}
+            testID={HeaderPageLayout.displayName}
         >
+            <HeaderWithBackButton
+                title={translate('statusPage.status')}
+                onBackButtonPress={navigateBackToPreviousScreen}
+            />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.flex1]}
@@ -142,11 +141,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 validate={validateForm}
                 enabledWhenOffline
             >
-                <View style={[styles.mh5, styles.mv5]}>
+                <View style={[styles.mh5, styles.mv4]}>
                     <Text style={[styles.textHeadline]}>{translate('statusPage.setStatusTitle')}</Text>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
-                <View style={[styles.mb2, styles.mt6]}>
+                <View style={[styles.mb2, styles.mt4]}>
                     <View style={[styles.mb4, styles.ph5]}>
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
@@ -188,7 +187,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     )}
                 </View>
             </FormProvider>
-        </HeaderPageLayout>
+        </ScreenWrapper>
     );
 }
 
