@@ -93,6 +93,8 @@ type OriginalMessageClosed = {
         policyName: string;
         reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
         lastModified?: string;
+        newAccountID?: number;
+        oldAccountID?: number;
     };
 };
 
