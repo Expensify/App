@@ -22,7 +22,7 @@ Expensify bills the owner of the expense policy for the activity on that policy.
 Each month, Expensify will send a consolidated bill detailing:
 - **Pay-per-use seats:** This is the number of active clients and their users for the month.
 - **Expensify Card discount**: This amount reflects how much spend is put on your card, which then determines the discount for that month.
-- **Total monthly price:** This amount is the overall price of Expensify when using the Expensify Card discount to offset the cost of the pay-per-use seats
+- **Total monthly price:** This amount is the overall price of Expensify when using the Expensify Card discount to offset the cost of the pay-per-use seats.
 - **Policy list:** This is an overview of all client policies with their respective active seats.
 
 ## Consolidated Domain Billing
