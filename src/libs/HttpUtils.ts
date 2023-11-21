@@ -52,7 +52,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
                     CONST.HTTP_STATUS.UNKNOWN_ERROR,
                 ];
-                if (serviceInterruptedStatuses.indexOf(response.status) > -1) {
+                if (serviceInterruptedStatuses.indexOf(response.status as ValueOf<typeof CONST.HTTP_STATUS>) > -1) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status.toString(),
