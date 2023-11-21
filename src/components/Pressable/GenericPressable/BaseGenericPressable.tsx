@@ -132,7 +132,7 @@ function GenericPressable(
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text')),
+                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('presentation')),
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),

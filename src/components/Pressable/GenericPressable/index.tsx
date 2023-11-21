@@ -14,7 +14,7 @@ function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: 
             // change native accessibility props to web accessibility props
             focusable={focusable}
             tabIndex={!accessible || !focusable ? -1 : 0}
-            role={props.accessibilityRole as Role}
+            role={props.role as Role}
             id={props.nativeID}
             aria-label={props.accessibilityLabel}
             aria-labelledby={props.accessibilityLabelledBy}
