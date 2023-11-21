@@ -6,6 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,8 +19,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FormProvider from "@components/Form/FormProvider";
-import InputWrapper from "@components/Form/InputWrapper";
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
 
