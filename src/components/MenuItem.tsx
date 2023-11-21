@@ -1,7 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {FC, ForwardedRef, ReactNode, forwardRef, useEffect, useMemo} from 'react';
-import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
-import _ from 'underscore';
+import React, {FC, ForwardedRef, ReactNode, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
@@ -21,7 +20,7 @@ import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
-import Icon from './Icon';
+import Icon, { SrcProps } from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import MultipleAvatars from './MultipleAvatars';
@@ -29,6 +28,7 @@ import PressableWithSecondaryInteraction from './PressableWithSecondaryInteracti
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
+import { DisplayNameWithTooltip } from './DisplayNames/types';
 
 type ResponsiveProps = {
     /** Function to fire when component is pressed */
@@ -60,14 +60,16 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: StyleProp<AnimatedStyle<ViewStyle>>;
 
+    descriptionTextStyle?: StyleProp<ViewStyle>;
+
     /** Icon to display on the left side of component */
     icon?: ReactNode | string | AvatarType;
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     /** The fill color to pass into the icon. */
     iconFill?: string;
 
     /** Secondary icon to display on the left side of component, right of the icon */
-    secondaryIcon?: ReactNode;
+    secondaryIcon?: (props: SrcProps) => React.ReactNode;
 
     /** The fill color to pass into the secondary icon. */
     secondaryIconFill?: string;
@@ -157,7 +159,11 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     floatRightAvatars?: AvatarType[];
 
     /** Prop to represent the size of the float right avatar images to be shown */
-    floatRightAvatarSize?: typeof CONST.AVATAR_SIZE;    
+    floatRightAvatarSize?: typeof CONST.AVATAR_SIZE[keyof typeof CONST.AVATAR_SIZE];
+
+    viewMode?: typeof CONST.OPTION_MODE[keyof typeof CONST.OPTION_MODE];
+
+    numberOfLinesTitle?: number;
 
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu?: boolean;
@@ -189,10 +195,12 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     onSecondaryInteraction: () => void;
 
     /** Array of objects that map display names to their corresponding tooltip */
-    titleWithTooltips: ReactNode[];
+    titleWithTooltips: DisplayNameWithTooltip[];
 };
+
 function MenuItem({
     interactive = true, onPress, badgeText, style = styles.popoverMenuItem, wrapperStyle, titleStyle, hoverAndPressStyle,
+    descriptionTextStyle = styles.breakWord, viewMode = CONST.OPTION_MODE.DEFAULT, numberOfLinesTitle = 1,
     icon, iconFill, secondaryIcon, secondaryIconFill, iconType = CONST.ICON_TYPE_ICON, iconWidth, iconHeight, iconStyles, fallbackIcon = Expensicons.FallbackAvatar, shouldShowTitleIcon = false, titleIcon,
     shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon, furtherDetails,
     description, error, success = false, focused = false, disabled = false,
@@ -203,34 +211,32 @@ function MenuItem({
     shouldBlockSelection = false, shouldParseTitle = false, shouldCheckActionAllowedOnPress = true, onSecondaryInteraction, titleWithTooltips
 }: MenuItemProps, ref: ForwardedRef<View>) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [html, setHtml] = React.useState('');
+    const [html, setHtml] = useState('');
+    const titleRef = useRef('');
 
-    const isDeleted = _.contains(style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const titleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            icon && !_.isArray(icon) && (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
+            icon && !Array.isArray(icon) && (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             shouldShowBasicTitle ? undefined : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
-            isDeleted ? styles.offlineFeedback.deleted : undefined,
+            styles.offlineFeedback.deleted
         ],
         titleStyle,
     );
-    const descriptionTextStyle = StyleUtils.combineStyles([
+    const descriptionTextStyles = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        icon && !_.isArray(icon) ? styles.ml3 : undefined,
+        icon && !Array.isArray(icon) && styles.ml3,
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         descriptionTextStyle,
-        isDeleted ? styles.offlineFeedback.deleted : undefined,
+        styles.offlineFeedback.deleted
     ]);
 
-    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-
-    const titleRef = React.useRef('');
     useEffect(() => {
         if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
             return;
@@ -241,22 +247,22 @@ function MenuItem({
     }, [title, shouldParseTitle]);
 
     const getProcessedTitle = useMemo(() => {
-        let title = '';
+        let processedTitle = '';
         if (shouldRenderAsHTML) {
-            title = convertToLTR(title);
+            processedTitle = title ? convertToLTR(title) : '';
         }
 
         if (shouldParseTitle) {
-            title = html;
+            processedTitle = html;
         }
 
-        return title ? `<comment>${title}</comment>` : '';
+        return processedTitle ? `<comment>${processedTitle}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
-        if (titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
+        if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
                     fullTitle={title}
@@ -279,7 +285,9 @@ function MenuItem({
             (event.currentTarget as HTMLElement).blur();
         }
 
-        onPress(event);
+        if (onPress) {
+            onPress(event);
+        }
     };
 
     return (
@@ -290,12 +298,12 @@ function MenuItem({
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
-                    style={({pressed}) => [
+                    style={({pressed}: { pressed: PressableStateCallbackType }) => [
                         style,
                         !interactive && styles.cursorDefault,
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true),
                         (isHovered || pressed) && hoverAndPressStyle,
-                        ...(_.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                        ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                     ]}
                     disabled={disabled}
@@ -308,16 +316,16 @@ function MenuItem({
                             <View style={[styles.flexColumn, styles.flex1]}>
                                 {Boolean(label) && (
                                     <View style={icon ? styles.mb2 : null}>
-                                        <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                             {label}
                                         </Text>
                                     </View>
                                 )}
                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
-                                    {Boolean(icon) && _.isArray(icon) && (
+                                    {Boolean(icon) && Array.isArray(icon) && (
                                         <MultipleAvatars
                                             isHovered={isHovered}
-                                            isPressed={pressed}
+                                            isPressed={Boolean(pressed)}
                                             icons={icon}
                                             size={avatarSize}
                                             secondAvatarStyle={[
@@ -327,19 +335,19 @@ function MenuItem({
                                             ]}
                                         />
                                     )}
-                                    {Boolean(icon) && !_.isArray(icon) && (
+                                    {Boolean(icon) && !Array.isArray(icon) && (
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
                                                     hovered={isHovered}
-                                                    pressed={pressed}
+                                                    pressed={Boolean(pressed)}
                                                     src={icon}
                                                     width={iconWidth}
                                                     height={iconHeight}
                                                     fill={
-                                                        iconFill ||
+                                                        iconFill ??
                                                         StyleUtils.getIconFillColor(
-                                                            getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                            getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive),
                                                             true,
                                                         )
                                                     }
@@ -365,15 +373,15 @@ function MenuItem({
                                             )}
                                         </View>
                                     )}
-                                    {Boolean(secondaryIcon) && (
+                                    {secondaryIcon && (
                                         <View style={[styles.popoverMenuIcon, iconStyles]}>
                                             <Icon
                                                 src={secondaryIcon}
                                                 width={iconWidth}
                                                 height={iconHeight}
                                                 fill={
-                                                    secondaryIconFill ||
-                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
+                                                    secondaryIconFill ??
+                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true)
                                                 }
                                             />
                                         </View>
@@ -381,7 +389,7 @@ function MenuItem({
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
                                         {Boolean(description) && shouldShowDescriptionOnTop && (
                                             <Text
-                                                style={descriptionTextStyle}
+                                                style={descriptionTextStyles}
                                                 numberOfLines={2}
                                             >
                                                 {description}
@@ -413,7 +421,7 @@ function MenuItem({
                                         </View>
                                         {Boolean(description) && !shouldShowDescriptionOnTop && (
                                             <Text
-                                                style={descriptionTextStyle}
+                                                style={descriptionTextStyles}
                                                 numberOfLines={2}
                                             >
                                                 {description}
@@ -444,7 +452,7 @@ function MenuItem({
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                {Boolean(badgeText) && (
+                                {badgeText && (
                                     <Badge
                                         text={badgeText}
                                         badgeStyles={[
@@ -455,18 +463,18 @@ function MenuItem({
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(subtitle || subtitle === 0) && (
+                                {(subtitle ?? subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, style]}>{subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, style as TextStyle]}>{subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(floatRightAvatars) && (
                                     <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
-                                            isPressed={pressed}
+                                            isPressed={Boolean(pressed)}
                                             icons={floatRightAvatars}
-                                            size={floatRightAvatarSize || fallbackAvatarSize}
+                                            size={floatRightAvatarSize ?? fallbackAvatarSize}
                                             fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                             shouldStackHorizontally={shouldStackHorizontally}
                                         />
@@ -489,7 +497,7 @@ function MenuItem({
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={iconRight}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive))}
                                         />
                                     </View>
                                 )}

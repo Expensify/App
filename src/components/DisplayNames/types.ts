@@ -29,7 +29,7 @@ type DisplayNamesProps = {
     tooltipEnabled?: boolean;
 
     /** Arbitrary styles of the displayName text */
-    textStyles: StyleProp<TextStyle>;
+    textStyles?: StyleProp<TextStyle>;
 
     /**
      * Overrides the text that's read by the screen reader when the user interacts with the element. By default, the
@@ -42,3 +42,7 @@ type DisplayNamesProps = {
 };
 
 export default DisplayNamesProps;
+
+export type {
+    DisplayNameWithTooltip
+}
