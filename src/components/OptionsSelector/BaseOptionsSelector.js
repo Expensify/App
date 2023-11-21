@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -50,6 +51,7 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
@@ -539,6 +541,7 @@ class BaseOptionsSelector extends Component {
                                 src={Info}
                                 height={20}
                                 width={20}
+                                fill={this.props.theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </View>
@@ -567,4 +570,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus, withTheme)(BaseOptionsSelector);
