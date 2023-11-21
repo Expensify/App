@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import colors from '@styles/colors';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
+import spacing from '@styles/utilities/spacing';
 
 const propTypes = {
     style: stylePropTypes.isRequired,
@@ -33,15 +34,23 @@ function ProgressBar({style}) {
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
+    const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
     const onSliderLayout = (e) => {
         setSliderHeight(e.nativeEvent.layout.height);
     };
 
-    const pan = Gesture.Pan().onChange((event) => {
-        const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
-        volume.value = Math.min(Math.max(val, 0), 1);
-    });
+    const pan = Gesture.Pan()
+        .onBegin(() => {
+            runOnJS(setIsSliderBeingUsed)(true);
+        })
+        .onChange((event) => {
+            const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
+            volume.value = Math.min(Math.max(val, 0), 1);
+        })
+        .onEnd(() => {
+            runOnJS(setIsSliderBeingUsed)(false);
+        });
 
     const progressBarStyle = useAnimatedStyle(() => {
         runOnJS(updateVolume)(volume.value);
@@ -53,15 +62,17 @@ function ProgressBar({style}) {
         <Hoverable>
             {(isHovered) => (
                 <Animated.View style={[styles.videoIconButton, style]}>
-                    {isHovered && (
+                    {(isSliderBeingUsed || isHovered) && (
                         <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>
-                                <Animated.View
-                                    style={[styles.volumeSliderOverlay]}
-                                    onLayout={onSliderLayout}
-                                >
-                                    <Animated.View style={[styles.volumeSliderFill, progressBarStyle]} />
-                                </Animated.View>
+                                <View style={spacing.ph2}>
+                                    <View
+                                        style={[styles.volumeSliderOverlay]}
+                                        onLayout={onSliderLayout}
+                                    >
+                                        <Animated.View style={[styles.volumeSliderFill, progressBarStyle]} />
+                                    </View>
+                                </View>
                             </GestureDetector>
                         </View>
                     )}
