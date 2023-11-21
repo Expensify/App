@@ -13,7 +13,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +40,7 @@ const defaultProps = {
 };
 
 function NewTaskTitlePage(props) {
+    const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     /**

@@ -154,6 +154,9 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & (TitleIconProps | N
     /** Text that appears above the title */
     label?: string;
 
+    /** Label to be displayed on the right */
+    rightLabel?: string;
+
     /** Text to display for the item */
     title?: string;
 
@@ -218,7 +221,7 @@ function MenuItem({
     icon, iconFill, secondaryIcon, secondaryIconFill, iconType = CONST.ICON_TYPE_ICON, iconWidth, iconHeight, iconStyles, fallbackIcon = Expensicons.FallbackAvatar, shouldShowTitleIcon = false, titleIcon,
     shouldShowRightIcon = false, iconRight = Expensicons.ArrowRight, furtherDetailsIcon, furtherDetails,
     description, error, success = false, focused = false, disabled = false,
-    title, subtitle, shouldShowBasicTitle, label, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
+    title, subtitle, shouldShowBasicTitle, label, rightLabel, shouldShowSelectedState = false, isSelected = false, shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false, shouldShowRightComponent = false, rightComponent,
     floatRightAvatars = [], floatRightAvatarSize, avatarSize = CONST.AVATAR_SIZE.DEFAULT, isSmallAvatarSubscriptMenu = false,
     brickRoadIndicator, shouldRenderAsHTML = false, shouldGreyOutWhenDisabled = true, isAnonymousAction = false,
@@ -500,6 +503,11 @@ function MenuItem({
                                             src={Expensicons.DotIndicator}
                                             fill={brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
+                                    </View>
+                                )}
+                                {Boolean(rightLabel) && (
+                                    <View style={styles.justifyContentCenter}>
+                                        <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                     </View>
                                 )}
                                 {Boolean(shouldShowRightIcon) && (
