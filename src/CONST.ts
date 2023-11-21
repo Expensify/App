@@ -2879,8 +2879,13 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
-    /** <input /> types that will show a virtual keyboard in a mobile browser */
-    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
 
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
