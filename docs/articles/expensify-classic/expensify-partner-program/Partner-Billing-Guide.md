@@ -42,7 +42,7 @@ If your firm wants to have a console view of all client policies and domains, yo
 
   1. Create a dedicated email address that will act as the universal policy owner, for example, accounting@myfirm.com.
   2. Register this email with Expensify or your chosen platform and ensure it is verified and secured.
-  3. Within each client policy settings, add your centralized email (e.g. accounting@myfirm.com) as a policy admin.
+  3. Within each client workspace settings, add your centralized email (e.g. accounting@myfirm.com) as a workspace admin.
   4. Do the same with each client domain.
 
 
