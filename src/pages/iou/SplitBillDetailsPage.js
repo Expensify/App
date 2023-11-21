@@ -101,6 +101,7 @@ function SplitBillDetailsPage(props) {
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
+        tag: splitTag,
     } = isEditingSplitBill && props.draftTransaction ? ReportUtils.getTransactionDetails(props.draftTransaction) : ReportUtils.getTransactionDetails(props.transaction);
 
     const onConfirm = useCallback(
@@ -134,6 +135,7 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
+                            iouTag={splitTag}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields

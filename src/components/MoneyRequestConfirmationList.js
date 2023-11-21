@@ -240,7 +240,7 @@ function MoneyRequestConfirmationList(props) {
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
