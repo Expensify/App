@@ -1,5 +1,5 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import isFunction from 'lodash/isFunction';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button, Keyboard, View} from 'react-native';
@@ -7,12 +7,14 @@ import Popover from '@components/Popover';
 import TextInput from '@components/TextInput';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const dateValue = value || defaultValue;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
@@ -77,7 +79,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = dateValue ? format(new Date(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const dateAsText = dateValue ? format(parseISO(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -85,14 +87,14 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 forceActiveLabel
                 label={label}
                 accessibilityLabel={label}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={dateAsText}
                 placeholder={placeholder}
                 errorText={errorText}
                 containerStyles={containerStyles}
                 textInputContainerStyles={[isPickerVisible && styles.borderColorFocus]}
                 onPress={showPicker}
-                editable={false}
+                readOnly
                 disabled={disabled}
                 onBlur={onBlur}
                 ref={inputRef}
@@ -104,12 +106,13 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
                     <Button
                         title={translate('common.reset')}
-                        color={themeColors.textError}
+                        color={theme.textError}
                         onPress={reset}
                     />
+
                     <Button
                         title={translate('common.done')}
-                        color={themeColors.link}
+                        color={theme.link}
                         onPress={selectDate}
                     />
                 </View>

@@ -29,7 +29,7 @@ import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -100,8 +100,8 @@ const getPhoneNumber = (details) => {
 };
 
 function ProfilePage(props) {
+    const styles = useThemeStyles();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
@@ -148,15 +148,15 @@ function ProfilePage(props) {
     }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper
+            testID={ProfilePage.displayName}
+            shouldEnableAutoFocus
+        >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
-            <View
-                pointerEvents="box-none"
-                style={[styles.containerWithSpaceBetween]}
-            >
+            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 {hasMinimumDetails && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>
@@ -172,7 +172,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
@@ -301,14 +301,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         report: {
             key: ({route, session}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));
                 const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
-                if (Number(session.accountID) === accountID || Session.isAnonymousUser() || !reportID) {
+                if ((session && Number(session.accountID) === accountID) || Session.isAnonymousUser() || !reportID) {
                     return null;
                 }
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;

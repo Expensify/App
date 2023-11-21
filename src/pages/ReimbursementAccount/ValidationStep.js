@@ -21,7 +21,7 @@ import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -77,6 +77,7 @@ const filterInput = (amount) => {
 };
 
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -160,24 +161,24 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                         <TextInput
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                         <TextInput
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (

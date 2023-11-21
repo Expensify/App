@@ -9,7 +9,9 @@ import {withNetwork} from '@components/OnyxProvider';
 import Picker from '@components/Picker';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -17,7 +19,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ const propTypes = {
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -135,7 +137,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
     validate(values) {
         const errors = {};
         const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
+        const outputCurrency = lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD);
+        // Allow one more decimal place for accuracy
+        const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
         if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
         } else if (NumberUtils.parseFloatAnyLocale(values.rate) <= 0) {
@@ -159,7 +163,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                         submitButtonText={this.props.translate('common.save')}
-                        style={[styles.mh5, styles.flexGrow1]}
+                        style={[this.props.themeStyles.mh5, this.props.themeStyles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
                         onSubmit={this.submit}
@@ -176,21 +180,22 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
-                                containerStyles={[styles.mt4]}
+                                containerStyles={[this.props.themeStyles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                aria-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                inputMode={CONST.INPUT_MODE.DECIMAL}
                                 maxLength={12}
                                 value={this.state.rate}
                                 onChangeText={(value) => this.setState({rate: value})}
                             />
-                            <View style={[styles.mt4]}>
+
+                            <View style={[this.props.themeStyles.mt4]}>
                                 <Picker
                                     value={this.state.unit}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
@@ -218,4 +223,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withThemeStyles,
 )(WorkspaceRateAndUnitPage);

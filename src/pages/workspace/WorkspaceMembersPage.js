@@ -27,7 +27,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +73,7 @@ const defaultProps = {
 };
 
 function WorkspaceMembersPage(props) {
+    const styles = useThemeStyles();
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
@@ -365,6 +366,7 @@ function WorkspaceMembersPage(props) {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
                     },
                 ],
                 errors: policyMember.errors,
