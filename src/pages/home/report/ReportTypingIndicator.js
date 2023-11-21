@@ -27,7 +27,10 @@ function ReportTypingIndicator(props) {
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
-    const firstUserTypingID = useMemo(() => firstUserTyping && Number.isNaN(Number(firstUserTyping)) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping, [firstUserTyping]);
+    const firstUserTypingID = useMemo(
+        () => (firstUserTyping && Number.isNaN(Number(firstUserTyping)) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
+        [firstUserTyping],
+    );
 
     // If we are offline, the user typing statuses are not up-to-date so do not show them
     if (isOffline) {
