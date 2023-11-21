@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -24,7 +24,6 @@ import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import nextStepPropTypes from '@pages/nextStepPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -104,9 +103,6 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
-    /** Next steps buttons to take action for an expense report */
-    nextStep: nextStepPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -120,7 +116,6 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
-    nextStep: {},
     policy: {},
 };
 
@@ -140,6 +135,7 @@ function ReportPreview(props) {
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
     const isReportDraft = isPolicyExpenseChat && ReportUtils.isReportDraft(props.iouReport);
+    const isApproved = ReportUtils.isReportApproved(props.iouReport);
 
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -195,7 +191,7 @@ function ReportPreview(props) {
             return props.translate('common.receipt');
         }
         const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        if (ReportUtils.isReportApproved(props.iouReport)) {
+        if (isApproved) {
             return props.translate('iou.managerApproved', {manager: payerOrApproverName});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
@@ -207,18 +203,16 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowApproveButton = !!lodashGet(props.nextStep, 'buttons.approve', null);
-    const shouldShowPayButtonForGroupPolicies = !!lodashGet(props.nextStep, 'buttons.reimburse', null);
-    const shouldShowPayButtonForFreePlan =
-        (ReportUtils.isIOUReport(props.iouReport) || policyType === CONST.POLICY.TYPE.FREE) &&
-        isCurrentUserManager &&
-        !isReportDraft &&
-        !iouSettled &&
-        !iouCanceled &&
-        !props.iouReport.isWaitingOnBankAccount &&
-        reimbursableSpend !== 0;
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
-    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
+    const shouldShowPayButton = ReportUtils.isGroupPolicyExpenseChat(props.chatReport)
+        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && isApproved && !iouSettled && !iouCanceled
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+    const shouldShowApproveButton = useMemo(() => {
+        if (!_.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType)) {
+            return false;
+        }
+        return isCurrentUserManager && !isReportDraft && !isApproved && !iouSettled;
+    }, [policyType, isCurrentUserManager, isReportDraft, isApproved, iouSettled]);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
@@ -282,8 +276,8 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
-                                nextStep={props.nextStep}
-                                shouldShowPaymentOptions={shouldShowPaymentOptions}
+                                shouldShowPaymentOptions={shouldShowPayButton}
+                                shouldShowApproveButton={shouldShowApproveButton}
                                 style={[styles.mt3]}
                                 kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -329,9 +323,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        nextStep: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`,
         },
     }),
 )(ReportPreview);
