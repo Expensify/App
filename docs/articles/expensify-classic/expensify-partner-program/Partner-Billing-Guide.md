@@ -60,7 +60,6 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 - Accessing Billing: **Settings: Go to Settings > Your Account > Payments > Billing History.**
 - Download the Receipt: Click on **"Download Receipt CSV".**
 
-
 # Deep Dive
 - Using client IDs for all Workspaces: It's beneficial to use client IDs for all Workspaces to ensure each one is easily recognizable.
 - Benefits of itemized billing receipts: Employing client IDs offers itemized billing by client, with each itemization detailing unique active users.
