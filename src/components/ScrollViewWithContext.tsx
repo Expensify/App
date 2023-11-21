@@ -63,3 +63,4 @@ ScrollViewWithContextWithRef.displayName = 'ScrollViewWithContextWithRef';
 
 export default React.forwardRef(ScrollViewWithContextWithRef);
 export {ScrollContext};
+export type {ScrollContextValue};

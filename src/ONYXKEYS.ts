@@ -379,7 +379,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
-    [ONYXKEYS.NVP_PREFERRED_LOCALE]: ValueOf<typeof CONST.LOCALES>;
+    [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;

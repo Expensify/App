@@ -1,12 +1,12 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {ScrollContext} from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
+import useScroll from '@hooks/useScroll';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import type {BasePickerHandle, BasePickerProps, PickerSize} from './types';
@@ -30,7 +30,7 @@ function BasePicker<TPickerValue>(
         isDisabled = false,
         errorText = '',
         hintText = '',
-        containerStyles = [],
+        containerStyles,
         placeholder = {},
         size = 'normal',
         icon = getDefaultPickerIcon,
@@ -64,7 +64,7 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
-    const context = useContext(ScrollContext);
+    const context = useScroll();
 
     /**
      * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onValueChange

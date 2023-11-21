@@ -12,6 +12,7 @@ import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import Fund from './Fund';
 import IOU from './IOU';
+import Locale from './Locale';
 import Login from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
@@ -67,6 +68,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     IOU,
+    Locale,
     Login,
     MapboxAccessToken,
     Modal,

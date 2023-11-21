@@ -1,18 +1,18 @@
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Locale} from '@src/types/onyx';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
 
 type LocalePickerOnyxProps = {
     /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
+    preferredLocale: OnyxEntry<Locale>;
 };
 
 type LocalePickerProps = LocalePickerOnyxProps & {
