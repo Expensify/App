@@ -21,6 +21,7 @@ export default {
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
+        PROFILE: 'Settings_Profile',
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',

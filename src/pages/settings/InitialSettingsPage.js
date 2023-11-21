@@ -382,13 +382,18 @@ function InitialSettingsPage(props) {
         </View>
     );
 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+
     return (
         <HeaderPageLayout
             title={translate('common.settings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => {
+                console.log('navigateBackTo', navigateBackTo);
+                Navigation.goBack(navigateBackTo)
+            }}
         >
             <View style={styles.w100}>
                 {getMenuItems}

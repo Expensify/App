@@ -1,4 +1,4 @@
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import _ from 'underscore';
 import styles from '@styles/styles';
@@ -7,7 +7,8 @@ import SCREENS from '@src/SCREENS';
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    // TODO: Can remove it 
+    // cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
 /**
@@ -131,7 +132,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator({
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator({
-    [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default,
     Settings_Share_Code: () => require('../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default,
     Settings_Profile: () => require('../../../pages/settings/Profile/ProfilePage').default,

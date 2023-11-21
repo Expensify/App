@@ -234,9 +234,6 @@ export default {
                     },
                     SettingsCentralPane: {
                         screens: {
-                            [SCREENS.SETTINGS.ROOT]: {
-                                path: ROUTES.SETTINGS,
-                            },
                             [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
@@ -309,7 +306,7 @@ export default {
                                 path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                                 exact: true,
                             },
-                            Settings_Profile: {
+                            [SCREENS.SETTINGS.PROFILE]: {
                                 path: ROUTES.SETTINGS_PROFILE,
                                 exact: true,
                             },

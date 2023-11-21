@@ -70,7 +70,7 @@ const addCentralPaneNavigatorRoute = (state, centralRoute) => {
             state: {
                 routes: [
                     {
-                        name: SCREENS.SETTINGS.PREFERENCES,
+                        name: SCREENS.SETTINGS.PROFILE,
                     },
                 ],
             },
