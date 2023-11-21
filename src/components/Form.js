@@ -6,10 +6,11 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
@@ -108,6 +109,7 @@ const defaultProps = {
 };
 
 function Form(props) {
+    const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
@@ -302,7 +304,8 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = _.isBoolean(defaultValue) ? defaultValue : defaultValue || '';
+                    // eslint-disable-next-line es/no-nullish-coalescing-operators
+                    inputValues[inputID] = defaultValue ?? '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -458,24 +461,26 @@ function Form(props) {
                 )}
             </FormSubmit>
         ),
+
         [
-            childrenWrapperWithProps,
-            errors,
-            formContentRef,
-            formRef,
-            errorMessage,
-            inputRefs,
-            inputValues,
-            submit,
             props.style,
-            children,
-            props.formState,
-            props.footerContent,
-            props.enabledWhenOffline,
-            props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.formState.errorFields,
+            props.formState.isLoading,
+            props.footerContent,
             props.submitButtonStyles,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            submit,
+            childrenWrapperWithProps,
+            children,
+            inputValues,
+            errors,
+            errorMessage,
+            styles.mh0,
+            styles.mt5,
+            styles.flex1,
         ],
     );
 
@@ -540,7 +545,7 @@ export default compose(
             key: (props) => props.formID,
         },
         draftValues: {
-            key: (props) => `${props.formID}Draft`,
+            key: (props) => FormUtils.getDraftKey(props.formID),
         },
     }),
 )(Form);

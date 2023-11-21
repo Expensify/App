@@ -8,6 +8,7 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -15,6 +16,7 @@ import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -29,9 +31,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,8 +75,11 @@ const defaultProps = {
 };
 
 function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -172,6 +177,12 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             />
                         </View>
                     </OfflineWithFeedback>
+                )}
+                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                    <ReceiptEmptyState
+                        hasError={hasErrors}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                    />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
@@ -272,11 +283,11 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                 )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                        <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                        <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                         />
                     </View>
                 )}

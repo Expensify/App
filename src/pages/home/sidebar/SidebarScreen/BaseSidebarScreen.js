@@ -4,7 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import * as Browser from '@libs/Browser';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import sidebarPropTypes from './sidebarPropTypes';
@@ -18,6 +18,7 @@ const startTimer = () => {
 };
 
 function BaseSidebarScreen(props) {
+    const styles = useThemeStyles();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -29,6 +30,7 @@ function BaseSidebarScreen(props) {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
+            shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>
