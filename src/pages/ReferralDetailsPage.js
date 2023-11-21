@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -64,7 +65,7 @@ function ReferralDetailsPage({route, account}) {
         >
             <HeaderWithBackButton
                 title={translate('common.referral')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.flex1]}>
                 <Icon
@@ -95,7 +96,7 @@ function ReferralDetailsPage({route, account}) {
                     success
                     style={[styles.w100]}
                     text={translate('common.buttonConfirm')}
-                    onPress={Navigation.goBack}
+                    onPress={() => Navigation.goBack(ROUTES.HOME)}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
