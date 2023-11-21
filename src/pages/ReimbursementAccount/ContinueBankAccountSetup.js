@@ -14,7 +14,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
@@ -38,6 +38,7 @@ const propTypes = {
 const defaultProps = {policyName: ''};
 
 function ContinueBankAccountSetup(props) {
+    const styles = useThemeStyles();
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
