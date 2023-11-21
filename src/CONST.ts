@@ -2879,14 +2879,6 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
-    /**
-     * native IDs for close buttons in Overlay component
-     */
-    OVERLAY: {
-        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
-        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
-    },
-
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
             MONEY_REQUEST: 'request',
