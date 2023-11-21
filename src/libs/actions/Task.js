@@ -435,7 +435,7 @@ function editTask(report, {title, description}) {
     );
 }
 
-function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
+function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
     const reportName = report.reportName.trim();
@@ -520,8 +520,6 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         },
         {optimisticData, successData, failureData},
     );
-
-    Navigation.dismissModal(report.reportID);
 }
 
 /**
@@ -623,9 +621,9 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee: assigneeEmail, assigneeAccountID});
 
-    // When we're editing the assignee, we immediately call editTaskAssigneeAndNavigate. Since setting the assignee is async,
-    // the chatReport is not yet set when editTaskAssigneeAndNavigate is called. So we return the chatReport here so that
-    // editTaskAssigneeAndNavigate can use it.
+    // When we're editing the assignee, we immediately call editTaskAssignee. Since setting the assignee is async,
+    // the chatReport is not yet set when editTaskAssignee is called. So we return the chatReport here so that
+    // editTaskAssignee can use it.
     return chatReport;
 }
 
@@ -937,7 +935,7 @@ function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
 export {
     createTaskAndNavigate,
     editTask,
-    editTaskAssigneeAndNavigate,
+    editTaskAssignee,
     setTitleValue,
     setDescriptionValue,
     setTaskReport,

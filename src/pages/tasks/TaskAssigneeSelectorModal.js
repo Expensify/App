@@ -196,10 +196,13 @@ function TaskAssigneeSelectorModal(props) {
 
         // Check to see if we're editing a task and if so, update the assignee
         if (report) {
-            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+            if (option.accountID !== report.managerID) {
+                const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
-            // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                // Pass through the selected assignee
+                Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);    
+            }
+            return Navigation.dismissModal(report.reportID);
         }
     };
 
