@@ -66,6 +66,9 @@ const propTypes = {
      * */
     hideModalContentWhileAnimating: PropTypes.bool,
 
+    /** Should the modal use custom focus trap logic */
+    shouldEnableFocusTrap: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -84,6 +87,7 @@ const defaultProps = {
     statusBarTranslucent: true,
     avoidKeyboard: false,
     hideModalContentWhileAnimating: false,
+    shouldEnableFocusTrap: false,
 };
 
 export {propTypes, defaultProps};

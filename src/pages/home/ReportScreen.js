@@ -374,6 +374,7 @@ function ReportScreen({
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
