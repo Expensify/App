@@ -28,8 +28,8 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -107,6 +107,8 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -215,7 +217,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -232,10 +234,10 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
 
@@ -268,6 +270,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
+            selection.end,
         ],
     );
 
@@ -533,7 +536,7 @@ function ComposerWithSuggestions({
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
-                    placeholderTextColor={themeColors.placeholderText}
+                    placeholderTextColor={theme.placeholderText}
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"

@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -22,6 +22,7 @@ const OFFSET_X = {
 };
 
 function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
+    const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
     useEffect(() => {
