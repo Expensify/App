@@ -794,10 +794,10 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
     });
 
     if (_.has(transactionChanges, 'waypoints')) {
-        // Delete the backup transaction when editing waypoints when the server responds successfully and there are no errors
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             value: null,
         });
     }
