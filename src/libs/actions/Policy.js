@@ -1045,7 +1045,6 @@ function generateCustomUnitID() {
 }
 
 /**
- *
  * @returns {Object}
  */
 function buildOptimisticCustomUnits() {
