@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from '@src/types/modules/react-navigation';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
