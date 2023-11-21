@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ROUTES from '@src/ROUTES';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
@@ -18,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -62,7 +62,7 @@ function ReferralDetailsPage({route, account}) {
         };
 
         return fallbackRoutes[contentType];
-    };
+    }
 
     return (
         <ScreenWrapper
