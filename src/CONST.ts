@@ -2879,9 +2879,6 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
-    /** <input /> types that will show a virtual keyboard in a mobile browser */
-    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
-
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
             MONEY_REQUEST: 'request',
@@ -2891,7 +2888,7 @@ const CONST = {
             SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 } as const;
