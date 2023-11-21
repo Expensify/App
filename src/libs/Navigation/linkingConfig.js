@@ -432,18 +432,21 @@ export default {
 
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
                 screens: {
-                    Settings: {
-                        screens: {
-                            [SCREENS.SETTINGS_HOME]: {
-                                path: ROUTES.SETTINGS_HOME,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS_NEW_PROFILE]: {
-                                path: ROUTES.SETTINGS_NEW_PROFILE,
-                                exact: true,
-                            },
-                        }
-                    }
+                    [SCREENS.SETTINGS_HOME]: {
+                        path: ROUTES.SETTINGS_HOME,
+                    },
+                    SettingsCentralPane: {
+                        path: ROUTES.SETTINGS_NEW_PROFILE,
+                        exact: true,
+                    },
+                    // Settings: {
+                    //     screens: {
+                    //         [SCREENS.SETTINGS_NEW_PROFILE]: {
+                    //             path: ROUTES.SETTINGS_NEW_PROFILE,
+                    //             exact: true,
+                    //         },
+                    //     }
+                    // }
                 },
             }
         },

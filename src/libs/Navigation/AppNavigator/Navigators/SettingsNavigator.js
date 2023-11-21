@@ -2,14 +2,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { View } from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+
+const loadSidebarScreen = () => require('../../../../pages/home/sidebar/SidebarScreen').default;
 
 const propTypes = {
     /* Navigation functions provided by React Navigation */
@@ -33,15 +32,14 @@ function SettingsNavigator({navigation}) {
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
                 mode="modal"
-                centralRoute="Settings"
             >
                 <RootStack.Screen
                     name={SCREENS.SETTINGS_HOME}
                     options={screenOptions.homeScreen}
-                    getComponent={NotFoundPage}
+                    getComponent={loadSidebarScreen}
                 />
                 <RootStack.Screen
-                    name="Settings"
+                    name='SettingsCentralPane'
                     options={screenOptions.centralPaneNavigator}
                     component={ModalStackNavigators.SettingsModalStackNavigator}
                 />
