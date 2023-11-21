@@ -5,7 +5,9 @@ import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import useLocalize from '@hooks/useLocalize';
 import colors from '@styles/colors';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
@@ -27,6 +29,7 @@ const getVolumeIcon = (volume) => {
 };
 
 function ProgressBar({style}) {
+    const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
@@ -63,11 +66,16 @@ function ProgressBar({style}) {
                         </View>
                     )}
 
-                    <Icon
-                        src={volumeIcon.icon}
-                        fill={colors.white}
-                        small
-                    />
+                    <PressableWithoutFeedback
+                        accessibilityLabel={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
+                        onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
+                    >
+                        <Icon
+                            src={volumeIcon.icon}
+                            fill={colors.white}
+                            small
+                        />
+                    </PressableWithoutFeedback>
                 </Animated.View>
             )}
         </Hoverable>

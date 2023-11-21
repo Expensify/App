@@ -2426,5 +2426,7 @@ export default {
         enterFullScreen: 'Entrar en pantalla completa',
         playbackSpeed: 'Velocidad de reproducción',
         openInAttachmentModal: 'Abrir en modo adjunto',
+        mute: 'Silenciar',
+        unmute: 'Desactivar',
     },
 } satisfies EnglishTranslation;

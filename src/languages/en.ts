@@ -1942,5 +1942,7 @@ export default {
         enterFullScreen: 'Enter fullscreen',
         playbackSpeed: 'Playback speed',
         openInAttachmentModal: 'Open in attachment modal',
+        mute: 'Mute',
+        unmute: 'Unmute',
     },
 } satisfies TranslationBase;
