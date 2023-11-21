@@ -232,7 +232,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                                             return;
                                         }
                                         const filePath = file.uri;
-                                        IOU.setMoneyRequestReceipt(filePath, file.name, file.type);
+                                        IOU.setMoneyRequestReceipt(filePath, file.name);
 
                                         if (transactionID) {
                                             IOU.replaceReceipt(transactionID, file, filePath);
