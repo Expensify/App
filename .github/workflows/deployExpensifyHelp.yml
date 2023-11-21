@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Create docs routes file
         run: ./.github/scripts/createDocsRoutes.sh

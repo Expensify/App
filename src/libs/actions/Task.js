@@ -222,7 +222,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         {optimisticData, successData, failureData},
     );
 
-    Navigation.dismissModal(optimisticTaskReport.reportID);
+    Navigation.dismissModal(parentReportID);
 }
 
 /**

@@ -98,6 +98,7 @@ function ConfirmModal(props) {
             shouldSetModalVisibility={props.shouldSetModalVisibility}
             onModalHide={props.onModalHide}
             type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            shouldEnableFocusTrap
         >
             <ConfirmContent
                 title={props.title}
