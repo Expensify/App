@@ -1,11 +1,12 @@
 import {findFocusedRoute, getActionFromState, NavigationState} from '@react-navigation/core';
-import {CommonActions, CommonNavigationAction, EventMapCore, getPathFromState, PartialRoute, Route, StackActions, StackActionType} from '@react-navigation/native';
+import {CommonActions, CommonNavigationAction, EventMapCore, getPathFromState, PartialRoute, Route as RouteRN, StackActions, StackActionType} from '@react-navigation/native';
 import _ from 'lodash';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
@@ -18,7 +19,7 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let pendingRoute: string | null = null;
+let pendingRoute: Route | null = null;
 
 let shouldPopAllStateOnUP = false;
 
@@ -38,19 +39,19 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
 }
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state as NavigationState<RootStackParamList>);
 
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state as NavigationState<RootStackParamList>);
 
 type NavigationRoute = NavigationState['routes'][number];
 // eslint-disable-next-line @typescript-eslint/ban-types
-type NavigationOptionalRoute = PartialRoute<Route<string, object | undefined>>;
+type NavigationPartialRoute = PartialRoute<RouteRN<string, object | undefined>>;
 
 /**
  * Method for finding on which index in stack we are.
  */
-const getActiveRouteIndex = (route: NavigationState | NavigationRoute | NavigationOptionalRoute, index?: number): number | undefined => {
+const getActiveRouteIndex = (route: NavigationState | NavigationRoute | NavigationPartialRoute, index?: number): number | undefined => {
     if ('routes' in route && route.routes) {
         const childActiveRoute = route.routes[route.index ?? 0];
         return getActiveRouteIndex(childActiveRoute, route.index ?? 0);
@@ -97,7 +98,7 @@ function getDistanceFromPathInRootNavigator(path: string): number {
  * Main navigation method for redirecting to a route.
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
-function navigate(route: string = ROUTES.HOME, type?: string) {
+function navigate(route: Route = ROUTES.HOME, type?: string) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -114,7 +115,7 @@ function navigate(route: string = ROUTES.HOME, type?: string) {
  * @param shouldEnforceFallback - Enforces navigation to fallback route
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute: string, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -262,7 +263,7 @@ function getRouteNameFromStateEvent(event: EventMapCore<NavigationState>['state'
  * @param routePath Path to check
  * @return is active
  */
-function isActiveRoute(routePath: string): boolean {
+function isActiveRoute(routePath: Route): boolean {
     // We remove First forward slash from the URL before matching
     return getActiveRoute().substring(1) === routePath;
 }
