@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import CONST from '@src/CONST';
+import {ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
@@ -17,7 +17,16 @@ import * as ReportUtils from './ReportUtils';
  * @param shouldConvertToLowercase
  */
 
-function buildMessageFragmentForValue(newValue, oldValue, valueName, valueInQuotes, setFragments, removalFragments, changeFragments, shouldConvertToLowercase = true) {
+function buildMessageFragmentForValue(
+    newValue: string,
+    oldValue: string,
+    valueName: string,
+    valueInQuotes: boolean,
+    setFragments: string[],
+    removalFragments: string[],
+    changeFragments: string[],
+    shouldConvertToLowercase = true,
+) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
@@ -43,29 +52,25 @@ function buildMessageFragmentForValue(newValue, oldValue, valueName, valueInQuot
  * @param valueInQuotes
  */
 
-function getMessageLine(prefix, messageFragments) {
+function getMessageLine(prefix: string, messageFragments: string[]) {
     if (messageFragments.length === 0) {
         return '';
     }
-    return _.reduce(
-        messageFragments,
-        (acc, value, index) => {
-            if (index === messageFragments.length - 1) {
-                if (messageFragments.length === 1) {
-                    return `${acc} ${value}.`;
-                }
-                if (messageFragments.length === 2) {
-                    return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
-                }
-                return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+    return messageFragments.reduce((acc, value, index) => {
+        if (index === messageFragments.length - 1) {
+            if (messageFragments.length === 1) {
+                return `${acc} ${value}.`;
             }
-            if (index === 0) {
-                return `${acc} ${value}`;
+            if (messageFragments.length === 2) {
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
             }
-            return `${acc}, ${value}`;
-        },
-        prefix,
-    );
+            return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+        }
+        if (index === 0) {
+            return `${acc} ${value}`;
+        }
+        return `${acc}, ${value}`;
+    }, prefix);
 }
 
 /**
@@ -78,7 +83,7 @@ function getMessageLine(prefix, messageFragments) {
  * @returns {String}
  */
 
-function getForDistanceRequest(newDistance, oldDistance, newAmount, oldAmount) {
+function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
@@ -96,51 +101,46 @@ function getForDistanceRequest(newDistance, oldDistance, newAmount, oldAmount) {
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  *
- * @param {Object} reportAction
- * @returns {String}
+ * @param reportAction
  */
-function getForReportAction(reportAction) {
-    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
-    if (_.isEmpty(reportActionOriginalMessage)) {
-        return Localize.translateLocal('iou.changedTheRequest');
+function getForReportAction(reportAction: ReportAction) {
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+        return '';
     }
+    const reportActionOriginalMessage = reportAction.originalMessage;
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(ReportUtils.getReport(reportID), 'policyID', '');
     const policyTags = PolicyUtils.getPolicyTags(policyID);
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 
-    const removalFragments = [];
-    const setFragments = [];
-    const changeFragments = [];
+    const removalFragments: string[] = [];
+    const setFragments: string[] = [];
+    const changeFragments: string[] = [];
 
-    const hasModifiedAmount =
-        _.has(reportActionOriginalMessage, 'oldAmount') &&
-        _.has(reportActionOriginalMessage, 'oldCurrency') &&
-        _.has(reportActionOriginalMessage, 'amount') &&
-        _.has(reportActionOriginalMessage, 'currency');
+    const hasModifiedAmount = reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency;
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    const hasModifiedMerchant = reportActionOriginalMessage.oldMerchant && reportActionOriginalMessage.merchant;
     if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage.oldCurrency;
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
+        const oldCurrency = reportActionOriginalMessage.oldCurrency ?? '';
+        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount ?? 0, oldCurrency);
 
-        const currency = reportActionOriginalMessage.currency;
-        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
+        const currency = reportActionOriginalMessage.currency ?? '';
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
-        if (hasModifiedMerchant && reportActionOriginalMessage.merchant.includes('@')) {
-            return getForDistanceRequest(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
+        if (hasModifiedMerchant && (reportActionOriginalMessage.merchant ?? '').includes('@')) {
+            return getForDistanceRequest(reportActionOriginalMessage.merchant ?? '', reportActionOriginalMessage.oldMerchant ?? '', amount, oldAmount);
         }
 
         buildMessageFragmentForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
+    const hasModifiedComment = reportActionOriginalMessage.oldComment && reportActionOriginalMessage.newComment;
     if (hasModifiedComment) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.newComment,
-            reportActionOriginalMessage.oldComment,
+            reportActionOriginalMessage.newComment ?? '',
+            reportActionOriginalMessage.oldComment ?? '',
             Localize.translateLocal('common.description'),
             true,
             setFragments,
@@ -149,12 +149,12 @@ function getForReportAction(reportAction) {
         );
     }
 
-    const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
+    const hasModifiedCreated = reportActionOriginalMessage.oldCreated && reportActionOriginalMessage.created;
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        const formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated), CONST.DATE.FNS_FORMAT_STRING);
+        const formattedOldCreated = format(new Date(reportActionOriginalMessage.oldCreated ?? ''), CONST.DATE.FNS_FORMAT_STRING);
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.created,
+            reportActionOriginalMessage.created ?? '',
             formattedOldCreated,
             Localize.translateLocal('common.date'),
             false,
@@ -166,8 +166,8 @@ function getForReportAction(reportAction) {
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.merchant,
-            reportActionOriginalMessage.oldMerchant,
+            reportActionOriginalMessage.merchant ?? '',
+            reportActionOriginalMessage.oldMerchant ?? '',
             Localize.translateLocal('common.merchant'),
             true,
             setFragments,
@@ -176,11 +176,11 @@ function getForReportAction(reportAction) {
         );
     }
 
-    const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
+    const hasModifiedCategory = reportActionOriginalMessage.oldCategory && reportActionOriginalMessage.category;
     if (hasModifiedCategory) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.category,
-            reportActionOriginalMessage.oldCategory,
+            reportActionOriginalMessage.category ?? '',
+            reportActionOriginalMessage.oldCategory ?? '',
             Localize.translateLocal('common.category'),
             true,
             setFragments,
@@ -189,11 +189,11 @@ function getForReportAction(reportAction) {
         );
     }
 
-    const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
+    const hasModifiedTag = reportActionOriginalMessage.oldTag && reportActionOriginalMessage.tag;
     if (hasModifiedTag) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.tag,
-            reportActionOriginalMessage.oldTag,
+            reportActionOriginalMessage.tag ?? '',
+            reportActionOriginalMessage.oldTag ?? '',
             policyTagListName,
             true,
             setFragments,
@@ -203,11 +203,11 @@ function getForReportAction(reportAction) {
         );
     }
 
-    const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
+    const hasModifiedBillable = reportActionOriginalMessage.oldBillable && reportActionOriginalMessage.billable;
     if (hasModifiedBillable) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage.billable,
-            reportActionOriginalMessage.oldBillable,
+            reportActionOriginalMessage.billable ?? '',
+            reportActionOriginalMessage.oldBillable ?? '',
             Localize.translateLocal('iou.request'),
             true,
             setFragments,
@@ -221,7 +221,7 @@ function getForReportAction(reportAction) {
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
-        return message;
+        return Localize.translateLocal('iou.changedTheRequest');
     }
     message = `${message.substring(1, message.length)}`;
     return message;
