@@ -8,7 +8,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -19,6 +19,7 @@ import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
+    const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);

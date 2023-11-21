@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Children view component for this action item */
@@ -9,6 +9,7 @@ const propTypes = {
 };
 
 function ReportActionItemDraft(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.chatItemDraft]}>
             <View style={styles.flex1}>{props.children}</View>

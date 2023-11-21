@@ -27,7 +27,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -95,6 +95,7 @@ const defaultProps = {
 };
 
 function LoginForm(props) {
+    const styles = useThemeStyles();
     const input = useRef();
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);

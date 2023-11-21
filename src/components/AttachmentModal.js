@@ -20,11 +20,10 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -112,6 +111,8 @@ const defaultProps = {
 };
 
 function AttachmentModal(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
@@ -360,12 +361,8 @@ function AttachmentModal(props) {
         }
         const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
-        const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-        const isSettled = ReportUtils.isSettled(props.parentReport.reportID);
 
-        const isAdmin = Policy.isAdminOfFreePolicy([props.policy]) && ReportUtils.isExpenseReport(props.parentReport);
-        const isRequestor = ReportUtils.isMoneyRequestReport(props.parentReport) && lodashGet(props.session, 'accountID', null) === parentReportAction.actorAccountID;
-        const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
@@ -412,7 +409,7 @@ function AttachmentModal(props) {
                 onSubmit={submitAndClose}
                 onClose={closeModal}
                 isVisible={isModalOpen}
-                backgroundColor={themeColors.componentBG}
+                backgroundColor={theme.componentBG}
                 onModalShow={() => {
                     props.onModalShow();
                     setShouldLoadAttachment(true);

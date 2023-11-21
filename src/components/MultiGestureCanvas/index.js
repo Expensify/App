@@ -17,7 +17,7 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Constants from './Constants';
 import MultiGestureCanvasContentWrapper from './MultiGestureCanvasContentWrapper';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
@@ -58,6 +58,7 @@ function getDeepDefaultProps({contentSize: contentSizeProp, contentScaling: cont
 }
 
 function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}) {
+    const styles = useThemeStyles();
     const {contentSize, contentScaling, zoomRange} = getDeepDefaultProps(props);
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);

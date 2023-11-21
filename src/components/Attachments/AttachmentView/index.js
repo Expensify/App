@@ -15,9 +15,9 @@ import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import cursor from '@styles/utilities/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,8 @@ function AttachmentView({
     fallbackSource,
     transaction,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
 
@@ -190,7 +192,7 @@ function AttachmentView({
                     <Tooltip text={translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
-                            color={themeColors.textSupporting}
+                            color={theme.textSupporting}
                         />
                     </Tooltip>
                 </View>

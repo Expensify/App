@@ -317,7 +317,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );
