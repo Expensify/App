@@ -103,6 +103,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         const backgroundColorFromRoute =
             currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
         const backgroundColorFallback = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS] || themeColors.appBG;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currentScreenBackgroundColor = backgroundColorFromRoute || backgroundColorFallback;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
@@ -116,15 +117,16 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         statusBarAnimation.value = withDelay(300, withTiming(1));
     };
 
-    const handleStateChange = (state: NavigationState<RootStackParamList> | undefined) => {
+    const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
         }
+
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
-            currentReport?.updateCurrentReportID(state);
+            currentReport?.updateCurrentReportID(state as NavigationState<RootStackParamList>);
         }, 0);
-        parseAndLogRoute(state);
+        parseAndLogRoute(state as NavigationState<RootStackParamList>);
         animateStatusBarBackgroundColor();
     };
 

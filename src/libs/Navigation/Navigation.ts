@@ -51,7 +51,7 @@ type NavigationOptionalRoute = PartialRoute<Route<string, object | undefined>>;
 /**
  * Method for finding on which index in stack we are.
  */
-const getActiveRouteIndex = (route: NavigationState<RootStackParamList> | NavigationRoute | NavigationOptionalRoute, index?: number): number | undefined => {
+const getActiveRouteIndex = (route: NavigationState | NavigationRoute | NavigationOptionalRoute, index?: number): number | undefined => {
     if ('routes' in route && route.routes) {
         const childActiveRoute = route.routes[route.index ?? 0];
         return getActiveRouteIndex(childActiveRoute, route.index ?? 0);
@@ -170,7 +170,7 @@ function goBack(fallbackRoute: string, shouldEnforceFallback = false, shouldPopT
 /**
  * Update route params for the specified route.
  */
-function setParams(params: Record<string, string>, routeKey: string) {
+function setParams(params: Record<string, unknown>, routeKey: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
@@ -198,7 +198,6 @@ function dismissModal(targetReportID?: string) {
 
                 const action: CommonNavigationAction | StackActionType | undefined = getActionFromState(state, linkingConfig.config);
                 if (action) {
-                    action.type;
                     navigationRef.current?.dispatch(action);
                 }
                 // If not-found page is in the route stack, we need to close it
