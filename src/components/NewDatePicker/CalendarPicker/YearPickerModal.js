@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function YearPickerModal(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {

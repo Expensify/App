@@ -28,8 +28,8 @@ import * as PaymentUtils from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -39,6 +39,8 @@ import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './walletPagePropTypes';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -343,7 +345,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                         <>
                                             {shouldShowLoadingSpinner ? (
                                                 <ActivityIndicator
-                                                    color={themeColors.spinner}
+                                                    color={theme.spinner}
                                                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                     style={[styles.mt7, styles.mb5]}
                                                 />
@@ -399,8 +401,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             <View style={alertViewStyle}>
                                                                 <Icon
                                                                     src={Expensicons.Hourglass}
-                                                                    fill={themeColors.icon}
+                                                                    fill={theme.icon}
                                                                 />
+
                                                                 <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
                                                             </View>
                                                         );
@@ -411,8 +414,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             <View style={alertViewStyle}>
                                                                 <Icon
                                                                     src={Expensicons.Exclamation}
-                                                                    fill={themeColors.icon}
+                                                                    fill={theme.icon}
                                                                 />
+
                                                                 <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
                                                             </View>
                                                         );
@@ -445,6 +449,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             shouldShowAddPaymentMethodButton={false}
                                             shouldShowAssignedCards
                                             shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
                                             style={styles.mt5}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
