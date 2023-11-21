@@ -88,7 +88,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (!sharedElement || !shouldUseSharedVideoElement) {
+        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
             return;
         }
 
