@@ -108,11 +108,21 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
             .value();
     }, [report, personalDetailsList, session, translate]);
     const isFocused = useIsFocused();
+
+    const navigateToEditPageTimeoutRef = React.useRef(null);
     useEffect(() => {
-        if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
-            return;
-        }
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        navigateToEditPageTimeoutRef.current = setTimeout(() => {
+            if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
+                return;
+            }
+            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        }, CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!navigateToEditPageTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(navigateToEditPageTimeoutRef.current);
+        };
     }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
     return (
         <ScreenWrapper

@@ -258,9 +258,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => {
-                                    ReportUtils.navigateToPrivateNotes(props.report, props.session);
-                                }}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}

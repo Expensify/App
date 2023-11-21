@@ -138,9 +138,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => {
-                    ReportUtils.navigateToPrivateNotes(props.report, props.session);
-                },
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
