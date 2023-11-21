@@ -21,6 +21,7 @@ const propTypes = {
 
 const defaultProps = {
     textStyles: [],
+    viewStyles: []
 };
 
 function WrappedText(props) {
@@ -49,18 +50,17 @@ function WrappedText(props) {
         if (idx === textParts.length - 1) {
             positionalStyle = {...positionalStyle, ...elementStyles.last};
         }
-        console.error('positional style', positionalStyle)
         return positionalStyle;
     };
-    console.error(viewStyles)
+
     return (
         <>
             {_.map(textParts, (value, idx) => (
                 <View
                     key={idx}
-                    style={[getViewStyleAtIndex(idx)]}
+                    style={[getViewStyleAtIndex(idx), {justifyContent: 'center'}]}
                 >
-                    <Text style={textStyles}>{value}</Text>
+                    <Text style={[textStyles]}>{value}</Text>
                 </View>
             ))}
         </>

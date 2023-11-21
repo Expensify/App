@@ -12,6 +12,7 @@ function CodeRenderer(props) {
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
+    console.error(boxModelStyle, textStyle)
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
     const font = StyleUtils.getFontFamilyMonospace({
         fontStyle: textStyle.fontStyle,
@@ -33,13 +34,17 @@ function CodeRenderer(props) {
         fontWeight: undefined,
         fontStyle: undefined,
     }
+
+    const boxModelOverride = {
+        height: 22
+    }
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
-    console.error('CODE RENDEERER', props)
+    // console.error('CODE RENDEERER')
     return (
         <InlineCodeBlock
         defaultRendererProps={defaultRendererProps}
         TDefaultRenderer={props.TDefaultRenderer}
-        boxModelStyle={boxModelStyle}
+        boxModelStyle={{...boxModelStyle, ...boxModelOverride}}
         textStyle={{...textStyle, ...textStyleOverride}}
         key={props.key}
         />
