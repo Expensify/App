@@ -14,13 +14,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 
 const assertDeployChecklistJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DEPLOY_CHECKLIST', 'Checkout'),
-        utils.createStepAssertion('Setup Node', true, null, 'DEPLOY_CHECKLIST', 'Setup Node'),
-        utils.createStepAssertion('Set version', true, null, 'DEPLOY_CHECKLIST', 'Set version'),
-        utils.createStepAssertion('Create or update staging deploy', true, null, 'DEPLOY_CHECKLIST', 'Create or update staging deploy', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'NPM_VERSION', value: '1.2.3'},
-        ]),
+        utils.createStepAssertion('deployChecklist', true, null, 'DEPLOY_CHECKLIST', 'Run deployChecklist'),
     ];
 
     steps.forEach((expectedStep) => {
