@@ -71,31 +71,27 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
-    const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isPayer = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType) ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
-    const shouldShowPayButtonForFreePlan = useMemo(
-        () =>
-            (ReportUtils.isIOUReport(moneyRequestReport) || policyType === CONST.POLICY.TYPE.FREE) &&
-            isPayer &&
-            !isDraft &&
-            !isSettled &&
-            !moneyRequestReport.isWaitingOnBankAccount &&
-            reimbursableTotal !== 0 &&
-            !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, policyType],
+    const shouldShowPayButton = useMemo(
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
     );
-
-    const shouldShowApproveButton = !!lodashGet(nextStep, 'buttons.approve', null);
-    const shouldShowPayButtonForGroupPolicies = !!lodashGet(nextStep, 'buttons.reimburse', null);
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
+    const shouldShowApproveButton = useMemo(() => {
+        if (!_.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType)) {
+            return false;
+        }
+        return isManager && !isDraft && !isApproved && !isSettled;
+    }, [policyType, isManager, isDraft, isApproved, isSettled]);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const shouldShowNextSteps = isDraft && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton || shouldShowNextSteps;
-    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
@@ -124,10 +120,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions={shouldShowPaymentOptions}
+                            shouldShowPaymentOptions={shouldShowPayButton}
+                            shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                            nextStep={nextStep}
                         />
                     </View>
                 )}
@@ -159,9 +155,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions={shouldShowPaymentOptions}
+                            shouldShowPaymentOptions={shouldShowPayButton}
+                            shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
-                            nextStep={nextStep}
                         />
                     </View>
                 )}
