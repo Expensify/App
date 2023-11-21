@@ -1544,11 +1544,7 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {String} writeCapability
- * @param {String} welcomeMessage
+ * @param {Object} policyReport
  */
 function addPolicyReport(policyReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -2501,6 +2497,13 @@ function searchInServer(searchInput) {
     debouncedSearchInServer(searchInput);
 }
 
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -2562,4 +2565,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    clearNewRoomFormError,
 };

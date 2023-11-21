@@ -16,9 +16,11 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -27,10 +29,8 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import usePrevious from '@hooks/usePrevious';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -64,19 +64,34 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Form state for NEW_ROOM_FORM */
+    formState: PropTypes.shape({
+        /** Loading state for the form */
+        isLoading: PropTypes.bool,
+
+        /** Field errors in the form */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
+    /** Session details for the user */
+    session: PropTypes.shape({
+        /** accountID of current user */
+        accountID: PropTypes.number,
+    }),
 };
 const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
-};
-
-function clearNewRoomFormError() {
-    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+    formState: {
         isLoading: false,
         errorFields: {},
-    });
-}
+    },
+    session: {
+        accountID: 0,
+    },
+};
 
 function WorkspaceNewRoomPage(props) {
     const styles = useThemeStyles();
@@ -86,7 +101,7 @@ function WorkspaceNewRoomPage(props) {
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    const wasLoading = usePrevious(props.formData.isLoading);
+    const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -113,7 +128,7 @@ function WorkspaceNewRoomPage(props) {
             '',
             visibility,
             writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-    
+
             // The room might contain all policy members so notifying always should be opt-in only.
             CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             '',
@@ -125,14 +140,16 @@ function WorkspaceNewRoomPage(props) {
     };
 
     useEffect(() => {
-        return clearNewRoomFormError;
+        Report.clearNewRoomFormError();
     }, []);
 
     useEffect(() => {
-        if (((wasLoading && !props.formData.isLoading) || (isOffline && props.formData.isLoading)) && _.isEmpty(props.formData.errorFields)) {
-            Navigation.dismissModal(newRoomReportID);
+        if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
+            return;
         }
-    }, [props.formData]);
+        Navigation.dismissModal(newRoomReportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+    }, [props.formState]);
 
     useEffect(() => {
         if (isPolicyAdmin) {
@@ -306,11 +323,11 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        formData: {
-            key: ONYXKEYS.FORMS.NEW_ROOM_FORM
+        formState: {
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
         },
         session: {
             key: ONYXKEYS.SESSION,
-        }
+        },
     }),
 )(WorkspaceNewRoomPage);
