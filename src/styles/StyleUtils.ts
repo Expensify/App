@@ -17,6 +17,12 @@ import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+type AvatarStyle = {
+    width: number;
+    height: number;
+    borderRadius: number;
+    backgroundColor: string;
+};
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -56,10 +62,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
+    modalContainerStyleMarginTop: DimensionValue | undefined;
+    modalContainerStyleMarginBottom: DimensionValue | undefined;
+    modalContainerStylePaddingTop: DimensionValue | undefined;
+    modalContainerStylePaddingBottom: DimensionValue | undefined;
     insets: EdgeInsets;
 };
 
@@ -210,7 +216,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): ViewStyle {
+function getAvatarStyle(size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -241,7 +247,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -288,12 +294,19 @@ function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyl
     return eReceiptColorStyles[colorCode];
 }
 
+type SafeAreaPadding = {
+    paddingTop: number;
+    paddingBottom: number;
+    paddingLeft: number;
+    paddingRight: number;
+};
+
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
     return {
-        paddingTop: insets?.top,
+        paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
@@ -449,7 +462,7 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: boolean): ViewStyle {
+function getSignInWordmarkWidthStyle(isSmallScreenWidth: boolean, environment?: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
@@ -569,6 +582,22 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     };
 }
 
+/**
+ * Combine margin/padding with safe area inset
+ *
+ * @param modalContainerValue - margin or padding value
+ * @param safeAreaValue - safe area inset
+ * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
+ */
+function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+    // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
+    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
+        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    return modalContainerValue;
+}
+
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
     shouldAddTopSafeAreaMargin,
@@ -586,12 +615,12 @@ function getModalPaddingStyles({
 }: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: (modalContainerStyleMarginTop ?? 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom ?? 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop ?? 0) + safeAreaPaddingTop : modalContainerStylePaddingTop ?? 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom ?? 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom ?? 0,
+        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -1012,13 +1041,14 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
         overflow: 'hidden',
         top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
+        minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
 }
 
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): TextStyle {
+function getColoredBackgroundStyle(isColored: boolean): StyleProp<TextStyle> {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
