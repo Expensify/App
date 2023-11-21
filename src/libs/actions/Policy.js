@@ -88,6 +88,13 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
+let allRecentlyUsedTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedTags = val),
+});
+
 let networkStatus = {};
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -1458,6 +1465,21 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
+/**
+ * @param {String} policyID
+ * @param {String} tag
+ * @returns {Object}
+ */
+function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
+    if (!policyID || !tag) {
+        return [];
+    }
+
+    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, []);
+
+    return lodashUnion([tag], policyRecentlyUsedTags);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1489,5 +1511,6 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
 };
