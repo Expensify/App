@@ -7,16 +7,8 @@ import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-<<<<<<< HEAD
-import styles from '@styles/styles';
-import * as Link from '@userActions/Link';
-=======
-import * as Url from '@libs/Url';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
-import * as Session from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
->>>>>>> origin
 import CONST from '@src/CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
@@ -29,55 +21,8 @@ function AnchorRenderer(props) {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-<<<<<<< HEAD
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
-=======
-    const attrPath = Url.getPathFromURL(attrHref);
-    const hasSameOrigin = Url.hasSameExpensifyOrigin(attrHref, environmentURL);
-    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
-    const internalNewExpensifyPath =
-        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) ||
-            Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL) ||
-            attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
-            ? attrPath
-            : '';
-    const internalExpensifyPath =
-        hasExpensifyOrigin && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME) && attrPath;
-    const navigateToLink = () => {
-        // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
-        // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
-        // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
-        // Normally, the link would be sent to Link.openOldDotLink() and opened in a new tab, and that's jarring to the user. Since the intention is to link to a specific NewDot chat,
-        // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
-        if (hasExpensifyOrigin && attrHref.indexOf('newdotreport?reportID=') > -1) {
-            const reportID = attrHref.split('newdotreport?reportID=').pop();
-            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-            Navigation.navigate(reportRoute);
-            return;
-        }
-
-        // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
-        // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-        if (internalNewExpensifyPath && hasSameOrigin) {
-            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(internalNewExpensifyPath)) {
-                Session.signOutAndRedirectToSignIn();
-                return;
-            }
-            Navigation.navigate(internalNewExpensifyPath);
-            return;
-        }
-
-        // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
-        // As attachments also use expensify.com we don't want it working the same as links.
-        if (internalExpensifyPath && !isAttachment) {
-            Link.openOldDotLink(internalExpensifyPath);
-            return;
-        }
-        Link.openExternalLink(attrHref);
-    };
->>>>>>> origin
 
     if (!HTMLEngineUtils.isChildOfComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
