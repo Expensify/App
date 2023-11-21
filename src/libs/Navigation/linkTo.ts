@@ -43,7 +43,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState<RootS
     return currentAction;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<ReactNavigation.RootParamList> | null, path: string, type?: string) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: string, type?: string) {
     if (navigation === undefined || navigation === null) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }

@@ -1,6 +1,6 @@
 import {NavigationContainerRefWithCurrent} from '@react-navigation/core';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UseFlipper = (ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>) => void;
+type UseFlipper = (ref: NavigationContainerRefWithCurrent<RootStackParamList>) => void;
 
 export default UseFlipper;

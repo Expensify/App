@@ -4,8 +4,9 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 
-const linkingConfig: LinkingOptions<ReactNavigation.RootParamList> = {
+const linkingConfig: LinkingOptions<RootStackParamList> = {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
