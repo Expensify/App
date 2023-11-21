@@ -452,6 +452,56 @@ describe('Migrations', () => {
                         },
                     });
                 }));
+
+        it('Should remove any instances of ownerEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
+                    reportID: 1,
+                    ownerEmail: 'fake@test.com',
+                    ownerAccountID: 5,
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                ownerAccountID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of managerEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
+                    reportID: 1,
+                    managerEmail: 'fake@test.com',
+                    managerID: 5,
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                managerID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
     });
 
     describe('CheckForPreviousReportActionID', () => {
