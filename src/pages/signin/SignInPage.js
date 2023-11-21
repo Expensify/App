@@ -13,9 +13,8 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {stylesGenerator} from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import darkTheme from '@styles/themes/default';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -27,8 +26,6 @@ import LoginForm from './LoginForm';
 import SignInPageLayout from './SignInPageLayout';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
-
-const styles = stylesGenerator(darkTheme);
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -139,6 +136,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 }
 
 function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
+    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
