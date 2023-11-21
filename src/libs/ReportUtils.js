@@ -397,7 +397,7 @@ function isPolicyExpenseChat(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
-/** Wether the provided report belongs to a Control policy and is an epxense chat
+/** Wether the provided report belongs to a Control policy and is an expense chat
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -405,12 +405,20 @@ function isControlPolicyExpenseChat(report) {
     return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
-/** Wether the provided report belongs to a Control policy and is an epxense report
+/** Wether the provided report belongs to a Control policy and is an expense report
  * @param {Object} report
  * @returns {Boolean}
  */
 function isControlPolicyExpenseReport(report) {
     return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/** Wether the provided report belongs to a Control or Collect policy and is an expense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isGroupPolicyExpenseReport(report) {
+    return isExpenseReport(report) && _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], getPolicyType(report, allPolicies)) ;
 }
 
 /**
@@ -4324,6 +4332,7 @@ export {
     isPolicyExpenseChat,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
+    isGroupPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
