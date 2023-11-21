@@ -109,6 +109,7 @@ function NewTaskDetailsPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        autoCorrect={false}
                     />
                 </View>
                 <View style={styles.mb5}>
