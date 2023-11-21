@@ -96,7 +96,7 @@ const darkTheme = {
         [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
         [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
         [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-        [SCREENS.SETTINGS.STATUS]: colors.green700,
+        [SCREENS.SETTINGS.STATUS]: colors.darkAppBackground,
         [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
     },
 } satisfies ThemeColors;
