@@ -84,7 +84,7 @@ function RoomInvitePage(props) {
     }, []);
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers, true);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap = {};
@@ -104,13 +104,16 @@ function RoomInvitePage(props) {
         const sections = [];
         let indexOffset = 0;
 
-        sections.push({
-            title: undefined,
-            data: selectedOptions,
-            shouldShow: true,
-            indexOffset,
-        });
-        indexOffset += selectedOptions.length;
+        // Only show the selected participants if the search is empty
+        if (searchTerm === '') {
+            sections.push({
+                title: undefined,
+                data: selectedOptions,
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += selectedOptions.length;
+        }
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);

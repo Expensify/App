@@ -1595,15 +1595,17 @@ function formatMemberForList(member, config = {}) {
  * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} excludeLogins
+ * @param {Boolean} includeSelectedOptions
  * @returns {Object}
  */
-function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = []) {
+function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = [], includeSelectedOptions = false) {
     return getOptions([], personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: true,
+        includeSelectedOptions,
     });
 }
 
