@@ -1,60 +1,83 @@
 import {deepEqual} from 'fast-equals';
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
-import _ from 'underscore';
-import participantPropTypes from '@components/participantPropTypes';
-import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
-import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
+import {PersonalDetails, Policy, ReportAction, Transaction} from '@src/types/onyx';
+import {LHNOptionsListProps} from './LHNOptionsList';
+import OptionRowLHN from './OptionRowLHN';
 
-const propTypes = {
+// const propTypes = {
+//     /** Whether row should be focused */
+//     isFocused: PropTypes.bool,
+
+//     /** List of users' personal details */
+//     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+//     /** The preferred language for the app */
+//     preferredLocale: PropTypes.string,
+
+//     /** The full data of the report */
+//     // eslint-disable-next-line react/forbid-prop-types
+//     fullReport: PropTypes.object,
+
+//     /** The policy which the user has access to and which the report could be tied to */
+//     policy: PropTypes.shape({
+//         /** The ID of the policy */
+//         id: PropTypes.string,
+//         /** Name of the policy */
+//         name: PropTypes.string,
+//         /** Avatar of the policy */
+//         avatar: PropTypes.string,
+//     }),
+
+//     /** The action from the parent report */
+//     parentReportAction: PropTypes.shape(reportActionPropTypes),
+
+//     /** The transaction from the parent report action */
+//     transaction: transactionPropTypes,
+
+//     ...basePropTypes,
+// };
+
+// const defaultProps = {
+//     isFocused: false,
+//     personalDetails: {},
+//     fullReport: {},
+//     policy: {},
+//     parentReportAction: {},
+//     transaction: {},
+//     preferredLocale: CONST.LOCALES.DEFAULT,
+//     ...baseDefaultProps,
+// };
+
+type OptionRowLHNDataProps = {
     /** Whether row should be focused */
-    isFocused: PropTypes.bool,
+    isFocused: boolean;
 
     /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: Record<string, PersonalDetails>;
 
     /** The preferred language for the app */
-    preferredLocale: PropTypes.string,
+    preferredLocale: string;
 
     /** The full data of the report */
-    // eslint-disable-next-line react/forbid-prop-types
-    fullReport: PropTypes.object,
+    fullReport: Report;
 
     /** The policy which the user has access to and which the report could be tied to */
-    policy: PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-        /** Name of the policy */
-        name: PropTypes.string,
-        /** Avatar of the policy */
-        avatar: PropTypes.string,
-    }),
+    policy: Policy;
 
     /** The action from the parent report */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReportAction: ReportAction;
 
     /** The transaction from the parent report action */
-    transaction: transactionPropTypes,
+    transaction: Transaction;
 
-    ...basePropTypes,
-};
+    comment: string;
 
-const defaultProps = {
-    isFocused: false,
-    personalDetails: {},
-    fullReport: {},
-    policy: {},
-    parentReportAction: {},
-    transaction: {},
-    preferredLocale: CONST.LOCALES.DEFAULT,
-    ...baseDefaultProps,
-};
+    receiptTransactions: Transaction[];
+} & LHNOptionsListProps;
 
 /*
  * This component gets the data from onyx for the actual
@@ -74,7 +97,7 @@ function OptionRowLHNData({
     parentReportAction,
     transaction,
     ...propsToForward
-}) {
+}: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
     const optionItemRef = useRef();
@@ -116,8 +139,6 @@ function OptionRowLHNData({
     );
 }
 
-OptionRowLHNData.propTypes = propTypes;
-OptionRowLHNData.defaultProps = defaultProps;
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**

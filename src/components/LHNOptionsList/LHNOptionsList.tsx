@@ -1,102 +1,60 @@
-import {FlashList} from '@shopify/flash-list';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import {ContentStyle, FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import _ from 'underscore';
-import participantPropTypes from '@components/participantPropTypes';
-import transactionPropTypes from '@components/transactionPropTypes';
-import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import withCurrentReportID, {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
-import stylePropTypes from '@styles/stylePropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
-
-const propTypes = {
-    /** Wrapper style for the section list */
-    style: stylePropTypes,
-
-    /** Extra styles for the section list container */
-    contentContainerStyles: stylePropTypes.isRequired,
-
-    /** Sections for the section list */
-    data: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** Callback to fire when a row is selected */
-    onSelectRow: PropTypes.func.isRequired,
-
-    /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
-
-    /** Whether to allow option focus or not */
-    shouldDisableFocusOptions: PropTypes.bool,
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-        /** Name of the policy */
-        name: PropTypes.string,
-        /** Avatar of the policy */
-        avatar: PropTypes.string,
-    }),
-
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    /** The transaction from the parent report action */
-    transactions: PropTypes.objectOf(transactionPropTypes),
-    /** List of draft comments */
-    draftComments: PropTypes.objectOf(PropTypes.string),
-    ...withCurrentReportIDPropTypes,
-};
-
-const defaultProps = {
-    style: undefined,
-    shouldDisableFocusOptions: false,
-    reportActions: {},
-    reports: {},
-    policy: {},
-    preferredLocale: CONST.LOCALES.DEFAULT,
-    personalDetails: {},
-    transactions: {},
-    draftComments: {},
-    ...withCurrentReportIDDefaultProps,
-};
 
 const keyExtractor = (item) => `report_${item}`;
 
 type LHNOptionsListProps = {
+    /** Wrapper style for the section list */
     style?: StyleProp<ViewStyle>;
-    contentContainerStyles: StyleProp<ViewStyle>;
+
+    /** Extra styles for the section list container */
+    contentContainerStyles?: ContentStyle;
+
+    /** Sections for the section list */
     data: string[];
+
+    /** Callback to fire when a row is selected */
     onSelectRow: (reportID: string) => void;
+
+    /** Toggle between compact and default view of the option */
     optionMode: ValueOf<typeof CONST.OPTION_MODE>;
+
+    /** Whether to allow option focus or not */
     shouldDisableFocusOptions?: boolean;
-    policy: OnyxEntry<Policy>;
+
+    /** The policy which the user has access to and which the report could be tied to */
+    policy: OnyxEntry<Record<string, Policy>>;
+
+    /** All reports shared with the user */
     reports: OnyxEntry<Record<string, Report>>;
-    reportActions: OnyxEntry<ReportActions>;
+
+    /** Array of report actions for this report */
+    reportActions: OnyxEntry<Record<string, ReportActions>>;
+
+    /** Indicates which locale the user currently has selected */
     preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
+
+    /** List of users' personal details */
     personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
-};
+
+    /** The transaction from the parent report action */
+    transactions: OnyxEntry<Record<string, Transaction>>;
+
+    /** List of draft comments */
+    draftComments: OnyxEntry<Record<string, string>>;
+} & CurrentReportIDContextValue;
 
 function LHNOptionsList({
     style,
@@ -104,36 +62,31 @@ function LHNOptionsList({
     data,
     onSelectRow,
     optionMode,
-    shouldDisableFocusOptions,
-    reports,
-    reportActions,
-    policy,
-    preferredLocale,
-    personalDetails,
-    transactions,
-    draftComments,
-    currentReportID,
-}) {
+    shouldDisableFocusOptions = false,
+    reports = {},
+    reportActions = {},
+    policy = {},
+    preferredLocale = CONST.LOCALES.DEFAULT,
+    personalDetails = {},
+    transactions = {},
+    draftComments = {},
+    currentReportID = '',
+}: LHNOptionsListProps) {
     const styles = useThemeStyles();
     /**
      * Function which renders a row in the list
-     *
-     * @param {Object} params
-     * @param {Object} params.item
-     *
-     * @return {Component}
      */
     const renderItem = useCallback(
-        ({item: reportID}) => {
-            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
-            const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
-            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
-            const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
-            const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
-            const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
+        ({item: reportID}: {item: string}) => {
+            const itemFullReport: Report | undefined = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
+            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
+            const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID : '';
+            const itemTransaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
+            const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport?.participantAccountIDs ?? [], personalDetails);
 
             return (
                 <OptionRowLHNData
@@ -157,7 +110,7 @@ function LHNOptionsList({
     );
 
     return (
-        <View style={style || styles.flex1}>
+        <View style={style ?? styles.flex1}>
             <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
@@ -174,8 +127,6 @@ function LHNOptionsList({
     );
 }
 
-LHNOptionsList.propTypes = propTypes;
-LHNOptionsList.defaultProps = defaultProps;
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default compose(
@@ -204,3 +155,5 @@ export default compose(
         },
     }),
 )(LHNOptionsList);
+
+export type {LHNOptionsListProps};

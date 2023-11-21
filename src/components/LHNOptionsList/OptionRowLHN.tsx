@@ -67,13 +67,13 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
         return null;
     }
 
-    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    if (isHidden && !isFocused && !optionItem.isPinned) {
+    const isHidden = optionItem?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (isHidden && !isFocused && !optionItem?.isPinned) {
         return null;
     }
 
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = optionItem?.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], style);
     const alternateTextStyle = StyleUtils.combineStyles(
         viewMode === CONST.OPTION_MODE.COMPACT
@@ -124,9 +124,9 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
         );
     };
 
-    const emojiCode = optionItem.status.emojiCode ?? '';
-    const statusText = optionItem.status.text ?? '';
-    const statusClearAfterDate = optionItem.status.clearAfter ?? '';
+    const emojiCode = optionItem.status?.emojiCode ?? '';
+    const statusText = optionItem.status?.text ?? '';
+    const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
