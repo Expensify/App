@@ -61,6 +61,9 @@ type BaseModalProps = WindowDimensionsProps &
          * See: https://github.com/react-native-modal/react-native-modal/pull/116
          * */
         hideModalContentWhileAnimating?: boolean;
+
+        /** Whether the modal should use focus trap */
+        shouldEnableFocusTrap?: boolean;
     };
 
 export default BaseModalProps;
