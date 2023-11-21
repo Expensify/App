@@ -257,6 +257,7 @@ export default {
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
+        required: 'Obligatorio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',

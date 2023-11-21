@@ -267,6 +267,7 @@ export default {
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
         card: 'Card',
+        required: 'Required',
     },
     location: {
         useCurrent: 'Use current location',
