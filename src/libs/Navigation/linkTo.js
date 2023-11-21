@@ -83,6 +83,17 @@ export default function linkTo(navigation, path, type) {
     if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
+            // There are situations where a route already exists on the current navigation stack
+            // But we want to push the same route instead of going back in the stack
+            // Which would break the user navigation history
+            if (type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            }
+            // There are situations when the user is trying to access a route which he has no access to
+            // So we want to redirect him to the right one and replace the one he tried to access
+            if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+            }
             root.dispatch(minimalAction);
             return;
         }
