@@ -824,6 +824,16 @@ function getReport(reportID) {
 }
 
 /**
+ * Get the report policyID given a reportID
+ *
+ * @param {String} reportID
+ * @returns {String}
+ */
+function getReportPolicyID(reportID) {
+    return getReport(reportID).policyID || '';
+}
+
+/**
  * Get the notification preference given a report
  *
  * @param {Object} report
@@ -4173,6 +4183,7 @@ export {
     getDisplayNamesWithTooltips,
     getDisplayNamesStringFromTooltips,
     getReportName,
+    getReportPolicyID,
     getReport,
     getReportNotificationPreference,
     getReportIDFromLink,

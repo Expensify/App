@@ -90,6 +90,7 @@ type ReportActionBase = {
     avatar?: string;
     automatic?: boolean;
     shouldShow?: boolean;
+    reportID?: string;
     childReportID?: string;
     childReportName?: string;
     childType?: string;

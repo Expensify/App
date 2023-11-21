@@ -1,5 +1,4 @@
 import {format} from 'date-fns';
-import lodashGet from 'lodash/get';
 import CONST from '@src/CONST';
 import {ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -80,7 +79,6 @@ function getMessageLine(prefix: string, messageFragments: string[]) {
  * @param oldDistance
  * @param newAmount
  * @param oldAmount
- * @returns {String}
  */
 
 function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
@@ -108,8 +106,7 @@ function getForReportAction(reportAction: ReportAction) {
         return '';
     }
     const reportActionOriginalMessage = reportAction.originalMessage;
-    const reportID = lodashGet(reportAction, 'reportID', '');
-    const policyID = lodashGet(ReportUtils.getReport(reportID), 'policyID', '');
+    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID ?? '');
     const policyTags = PolicyUtils.getPolicyTags(policyID);
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 

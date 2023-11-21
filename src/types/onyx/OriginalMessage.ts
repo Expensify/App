@@ -213,4 +213,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, OriginalMessageModifiedExpense};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName};
