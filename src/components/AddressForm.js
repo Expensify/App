@@ -65,7 +65,7 @@ const defaultProps = {
 function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldSaveDraft, state, street1, street2, submitButtonText, zip}) {
     const {translate} = useLocalize();
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [country, 'samples'], '');
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
     const isUSAForm = country === CONST.COUNTRY.US;
 
     /**
