@@ -52,7 +52,7 @@ function Avatar({
     iconAdditionalStyles = [],
     containerStyles = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    fill = undefined,
+    fill,
     fallbackIcon = Expensicons.FallbackAvatar,
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
