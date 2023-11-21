@@ -1,8 +1,22 @@
 diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
-index b4c7106..d5083d3 100644
+index b4c7106..c6efb0f 100644
 --- a/node_modules/@onfido/react-native-sdk/android/build.gradle
 +++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
-@@ -135,9 +135,9 @@ afterEvaluate { project ->
+@@ -84,6 +84,13 @@ android {
+         sourceCompatibility JavaVersion.VERSION_1_8
+         targetCompatibility JavaVersion.VERSION_1_8
+     }
++
++    publishing {
++        singleVariant('release') {
++            withSourcesJar()
++            withJavadocJar()
++        }
++    }
+ }
+ 
+ repositories {
+@@ -135,9 +142,9 @@ afterEvaluate { project ->
          group = "Reporting"
          description = "Generate Jacoco coverage reports after running tests."
          reports {
@@ -15,86 +29,3 @@ index b4c7106..d5083d3 100644
          }
          classDirectories.setFrom(fileTree(
                  dir: 'build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/onfido/reactnative/sdk',
-diff --git a/node_modules/@onfido/react-native-sdk/android/publish.gradle b/node_modules/@onfido/react-native-sdk/android/publish.gradle
-index 216d52d..f797b74 100644
---- a/node_modules/@onfido/react-native-sdk/android/publish.gradle
-+++ b/node_modules/@onfido/react-native-sdk/android/publish.gradle
-@@ -4,41 +4,41 @@ afterEvaluate {
-         archiveClassifier = "sources"
-     }
- 
--    publishing {
--        def packageJson = new groovy.json.JsonSlurper().parseText(file('../package.json').text)
--
--        publications {
--            mavenJava(MavenPublication) {
--                // The new gradle publish plugin doesn't allow the @onfido/ prefix
--                artifactId = packageJson.name.replace("@onfido/", "onfido-")
--                groupId = 'com.onfido.reactnative.sdk'
--                version = packageJson.version
--
--                from components.release
--
--                artifact sourceJar
--
--                pom {
--                    name = packageJson.title
--                    description = packageJson.description
--                    url = packageJson.repository.baseUrl
--
--                    licenses {
--                        license {
--                            name = packageJson.license
--                            url = packageJson.repository.baseUrl + '/blob/master/' + packageJson.licenseFilename
--                            distribution = 'repo'
--                        }
--                    }
--
--                    developers {
--                        developer {
--                            id = packageJson.author.email
--                            name = packageJson.author.name
--                        }
--                    }
--                }
--            }
--        }
--    }
-+//    publishing {
-+//        def packageJson = new groovy.json.JsonSlurper().parseText(file('../package.json').text)
-+//
-+//        publications {
-+//            mavenJava(MavenPublication) {
-+//                // The new gradle publish plugin doesn't allow the @onfido/ prefix
-+//                artifactId = packageJson.name.replace("@onfido/", "onfido-")
-+//                groupId = 'com.onfido.reactnative.sdk'
-+//                version = packageJson.version
-+//
-+//                from components.release
-+//
-+//                artifact sourceJar
-+//
-+//                pom {
-+//                    name = packageJson.title
-+//                    description = packageJson.description
-+//                    url = packageJson.repository.baseUrl
-+//
-+//                    licenses {
-+//                        license {
-+//                            name = packageJson.license
-+//                            url = packageJson.repository.baseUrl + '/blob/master/' + packageJson.licenseFilename
-+//                            distribution = 'repo'
-+//                        }
-+//                    }
-+//
-+//                    developers {
-+//                        developer {
-+//                            id = packageJson.author.email
-+//                            name = packageJson.author.name
-+//                        }
-+//                    }
-+//                }
-+//            }
-+//        }
-+//    }
- }
