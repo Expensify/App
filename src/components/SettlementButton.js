@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -9,7 +8,6 @@ import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
-import nextStepPropTypes from '@pages/nextStepPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -42,6 +40,9 @@ const propTypes = {
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: PropTypes.string.isRequired,
+
+    /** Should we show the approve button? */
+    shouldShowApproveButton: PropTypes.bool,
 
     /** Should we show the payment options? */
     shouldShowPaymentOptions: PropTypes.bool,
@@ -84,9 +85,6 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
-
-    /** The next step for the report */
-    nextStep: nextStepPropTypes,
 };
 
 const defaultProps = {
@@ -104,6 +102,7 @@ const defaultProps = {
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
     shouldShowPaymentOptions: false,
+    shouldShowApproveButton: false,
     style: [],
     policyID: '',
     formattedAmount: '',
@@ -116,7 +115,6 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    nextStep: {},
 };
 
 function SettlementButton({
@@ -133,11 +131,11 @@ function SettlementButton({
     isDisabled,
     isLoading,
     formattedAmount,
-    nextStep,
     nvp_lastPaymentMethod,
     onPress,
     pressOnEnter,
     policyID,
+    shouldShowApproveButton,
     shouldShowPaymentOptions,
     style,
 }) {
@@ -147,9 +145,6 @@ function SettlementButton({
     useEffect(() => {
         PaymentMethods.openWalletPage();
     }, []);
-
-    const shouldShowApproveButton = !!lodashGet(nextStep, 'buttons.approve', null);
-    const shouldShowPayButtonForGroupPolicies = !!lodashGet(nextStep, 'buttons.reimburse', null);
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -183,7 +178,7 @@ function SettlementButton({
         let paymentMethod = nvp_lastPaymentMethod[policyID] || '';
         if (!shouldShowPaymentOptions) {
             // Only show the Approve button if the user cannot pay the request
-            if (shouldShowApproveButton && !shouldShowPayButtonForGroupPolicies) {
+            if (shouldShowApproveButton) {
                 return [approveButtonOption];
             }
 
@@ -224,7 +219,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate, shouldShowApproveButton, shouldShowPayButtonForGroupPolicies]);
+    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate, shouldShowApproveButton]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
