@@ -1,5 +1,5 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactNode, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -9,7 +9,15 @@ import {ScrollContext} from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
-import type {BasePickerHandle, BasePickerProps} from './types';
+import type {BasePickerHandle, BasePickerProps, PickerSize} from './types';
+
+const getDefaultPickerIcon = (iconSize: PickerSize): ReactElement => (
+    <Icon
+        src={Expensicons.DownArrow}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+    />
+);
 
 function BasePicker<TPickerValue>(
     {
@@ -25,13 +33,7 @@ function BasePicker<TPickerValue>(
         containerStyles = [],
         placeholder = {},
         size = 'normal',
-        icon = (iconSize) => (
-            <Icon
-                src={Expensicons.DownArrow}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
-            />
-        ),
+        icon = getDefaultPickerIcon,
         shouldFocusPicker = false,
         onBlur = () => {},
         additionalPickerEvents = () => {},
