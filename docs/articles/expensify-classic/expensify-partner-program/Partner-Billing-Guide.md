@@ -57,8 +57,8 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 **Note:** If a client has multiple workspaces, ensure each workspace has a consistent client ID.
 
 # How to access and download billing receipts
-Accessing Billing **Settings: Go to Settings > Your Account > Payments > Billing History.**
-Download the Receipt: Click on **"Download Receipt CSV".**
+- Accessing Billing: **Settings: Go to Settings > Your Account > Payments > Billing History.**
+- Download the Receipt: Click on **"Download Receipt CSV".**
 
 
 # Deep Dive
