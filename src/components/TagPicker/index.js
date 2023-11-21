@@ -38,13 +38,16 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
     }, [selectedTag]);
 
     const enabledTags = useMemo(() => {
-        if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList;
-        }
-        const selectedNames = _.map(selectedOptions, (s) => s.name);
-        return _.chain(policyTagList)
+        const sortedTagList = _.chain(policyTagList)
             .values()
             .sortBy((policyTag) => policyTag.name)
+            .value();
+
+        if (!shouldShowDisabledAndSelectedOption) {
+            return sortedTagList;
+        }
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        return _.chain(sortedTagList)
             .filter((policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name))
             .value();
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
