@@ -2,8 +2,7 @@ import {useContext, useEffect, useState} from 'react';
 import {Appearance, ColorSchemeName} from 'react-native';
 import {PreferredThemeContext} from '@components/OnyxProvider';
 import CONST from '@src/CONST';
-
-type ThemePreference = typeof CONST.THEME.LIGHT | typeof CONST.THEME.DARK;
+import {ThemePreference} from './types';
 
 function useThemePreference() {
     const [themePreference, setThemePreference] = useState<ThemePreference>(CONST.THEME.DEFAULT);

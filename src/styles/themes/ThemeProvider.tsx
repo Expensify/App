@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import darkTheme from './default';
 import lightTheme from './light';
 import ThemeContext from './ThemeContext';
+import {ThemePreference} from './types';
 import useThemePreference from './useThemePreference';
 
 const propTypes = {
@@ -12,12 +13,16 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function ThemeProvider(props: React.PropsWithChildren) {
+type ThemeProviderProps = React.PropsWithChildren & {
+    theme?: ThemePreference;
+};
+
+function ThemeProvider({children, theme: themePreferenceProp}: ThemeProviderProps) {
     const themePreference = useThemePreference();
 
-    const theme = useMemo(() => (themePreference === CONST.THEME.LIGHT ? lightTheme : darkTheme), [themePreference]);
+    const theme = useMemo(() => ((themePreferenceProp ?? themePreference) === CONST.THEME.LIGHT ? lightTheme : darkTheme), [themePreference, themePreferenceProp]);
 
-    return <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>;
+    return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
 
 ThemeProvider.propTypes = propTypes;
