@@ -52,7 +52,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
                     CONST.HTTP_STATUS.UNKNOWN_ERROR,
                 ];
-                if (serviceInterruptedStatuses.some((status) => status === response.status)) {
+                if (serviceInterruptedStatuses.indexOf(response.status) > -1) {
                     throw new HttpsError({
                         message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status.toString(),
@@ -117,7 +117,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-        if (!data[key]) {
+        if (typeof data[key] === "undefined") {
             return;
         }
         formData.append(key, data[key] as string | Blob);
