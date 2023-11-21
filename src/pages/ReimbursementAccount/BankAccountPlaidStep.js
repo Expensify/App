@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -18,6 +17,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import FormProvider from "@components/Form/FormProvider";
+import InputWrapper from "@components/Form/InputWrapper";
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
 
@@ -99,7 +100,7 @@ function BankAccountPlaidStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
@@ -122,7 +123,8 @@ function BankAccountPlaidStep(props) {
                     selectedPlaidAccountID={selectedPlaidAccountID}
                 />
                 {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) && (
-                    <CheckboxWithLabel
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
                         accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
                         inputID="acceptTerms"
@@ -136,7 +138,7 @@ function BankAccountPlaidStep(props) {
                         shouldSaveDraft
                     />
                 )}
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
