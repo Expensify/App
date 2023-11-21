@@ -83,6 +83,11 @@ const BaseOptionsSelector = ({
     shouldTextInputInterceptSwipe,
     shouldAllowScrollingChildren,
     nestedScrollEnabled,
+    shouldDelayFocus,
+    safeAreaPaddingBottomStyle,
+    contentContainerStyles,
+    listContainerStyles,
+    listStyles,
 }) => {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
