@@ -61,34 +61,25 @@ function openOldDotLink(url: string) {
     );
 }
 
-/**
- * @param {string} href
- * @returns {string}
- */
-function getInternalNewExpensifyPath(href) {
+function getInternalNewExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
+        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find(path => path === attrPath)
         ? attrPath
         : '';
 }
 
-/**
- * @param {string} href
- * @returns {string}
- */
-function getInternalExpensifyPath(href) {
+function getInternalExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
-    return hasExpensifyOrigin && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME) && attrPath;
+    if (!hasExpensifyOrigin || attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) || attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME)) {
+        return '';
+    }
+
+    return attrPath;
 }
 
-/**
- * @param {string} href
- * @param {string} environmentURL
- * @param {boolean} [isAttachment]
- */
-function openLink(href, environmentURL, isAttachment = false) {
+function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
@@ -101,7 +92,7 @@ function openLink(href, environmentURL, isAttachment = false) {
     // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID ?? '');
         Navigation.navigate(reportRoute);
         return;
     }
