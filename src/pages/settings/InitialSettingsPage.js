@@ -388,6 +388,7 @@ function InitialSettingsPage(props) {
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             <View style={styles.w100}>
                 {getMenuItems}

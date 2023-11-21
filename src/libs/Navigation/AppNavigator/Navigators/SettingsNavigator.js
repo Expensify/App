@@ -7,7 +7,6 @@ import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRoot
 import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
 import SCREENS from '@src/SCREENS';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default;
 

@@ -70,7 +70,7 @@ const addCentralPaneNavigatorRoute = (state, centralRoute) => {
             state: {
                 routes: [
                     {
-                        name: 'SettingsCentralPane',
+                        name: SCREENS.SETTINGS.PREFERENCES,
                     },
                 ],
             },
@@ -86,6 +86,15 @@ function CustomRouter(options) {
 
     return {
         ...stackRouter,
+        getInitialState({routeNames, routeParamList, routeGetIdList}) {
+            console.log('getInitialState', routeNames, routeParamList, routeGetIdList);
+            const centralRoute = options.centralRoute();
+            const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
+            if (!isAtLeastOneCentralPaneNavigatorInState(initialState, centralRoute) && !options.getIsSmallScreenWidth()) {
+                addCentralPaneNavigatorRoute(initialState, centralRoute);
+            }
+            return initialState;
+        },
         getRehydratedState(partialState, {routeNames, routeParamList}) {
             const centralRoute = options.centralRoute();
             console.log('getRehydratedState', centralRoute);

@@ -66,7 +66,7 @@ const getActiveRouteIndex = function (route, index) {
         return getActiveRouteIndex(childActiveRoute, route.state.index || 0);
     }
 
-    if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
         return 0;
     }
 
@@ -144,6 +144,12 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
         const lastRoute = _.last(rootState.routes);
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
         if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+            navigationRef.current.goBack();
+            return;
+        }
+
+        if(lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+            console.log('lastRoute', lastRoute);
             navigationRef.current.goBack();
             return;
         }

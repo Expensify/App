@@ -45,7 +45,7 @@ function PreferencesPage(props) {
     return (
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            shouldShowBackButton={false}
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
         >
