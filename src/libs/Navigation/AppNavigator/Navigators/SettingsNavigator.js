@@ -8,38 +8,47 @@ import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRoot
 import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 
 const propTypes = {
     /* Navigation functions provided by React Navigation */
     navigation: PropTypes.shape({
         goBack: PropTypes.func.isRequired,
+        getState: PropTypes.func.isRequired,
     }).isRequired,
 };
 
 const RootStack = createCustomStackNavigator();
 
-function SettingsNavigator() {
+function SettingsNavigator({navigation}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+
+    console.log('navigation state', navigation.getState());
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
-                initialRouteName={ROUTES.SETTINGS_NEW_PROFILE}
                 mode="modal"
+                centralRoute="Settings"
             >
                 <RootStack.Screen
-                    name={NAVIGATORS.SETTINGS_NAVIGATOR}
-                    options={screenOptions.centralPaneNavigator}
-                    component={NotFoundPage}
-                />
-                                <RootStack.Screen
-                    name={ROUTES.SETTINGS_NEW_PROFILE}
-                    options={screenOptions.fullScreen}
+                    name={SCREENS.SETTINGS_HOME}
+                    options={screenOptions.homeScreen}
                     getComponent={NotFoundPage}
                 />
+                <RootStack.Screen
+                    name="Settings"
+                    options={screenOptions.centralPaneNavigator}
+                    component={ModalStackNavigators.SettingsModalStackNavigator}
+                />
+                {/* <RootStack.Screen
+                        name="Settings"
+                        component={ModalStackNavigators.SettingsModalStackNavigator}
+                    /> */}
             </RootStack.Navigator>
         </View>
     );

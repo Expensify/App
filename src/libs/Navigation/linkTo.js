@@ -58,6 +58,7 @@ export default function linkTo(navigation, path, type) {
     const state = getStateFromPath(path);
 
     const action = getActionFromState(state, linkingConfig.config);
+    console.log('linkTo', state, action);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {

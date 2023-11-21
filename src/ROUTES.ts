@@ -58,7 +58,7 @@ export default {
     },
 
     SETTINGS: 'settings',
-    SETTINGS_NEW: 'settings_new',
+    SETTINGS_HOME: 'settings_new',
     SETTINGS_NEW_PROFILE: 'settings_new/profile',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',

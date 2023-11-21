@@ -337,7 +337,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.SETTINGS_NAVIGATOR}
+                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={screenOptions.fullScreen}
                     component={SettingsNavigator}
                 />
