@@ -3,8 +3,6 @@ import avatarPropTypes from '@components/avatarPropTypes';
 import participantPropTypes from '@components/participantPropTypes';
 
 const propTypes = {
-    /** User's Account ID */
-    accountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
         /** Avatar URL */

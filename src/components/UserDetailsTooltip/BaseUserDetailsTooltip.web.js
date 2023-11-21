@@ -18,7 +18,6 @@ function BaseUserDetailsTooltip(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
-
     const userDetails = props.user || props.fallbackUserDetails;
     let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';

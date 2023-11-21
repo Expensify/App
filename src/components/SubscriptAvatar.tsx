@@ -6,8 +6,15 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {PersonalDetails} from '@src/types/onyx';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
+
+// TODO: once `src/components/participantPropTypes.js` is migrated to TS, this type should be moved there
+type Participant = Pick<
+    PersonalDetails,
+    'accountID' | 'avatar' | 'displayName' | 'firstName' | 'lastName' | 'localCurrencyCode' | 'login' | 'payPalMeAddress' | 'phoneNumber' | 'pronouns' | 'timezone' | 'validated'
+>;
 
 type SubAvatar = {
     /** Avatar source to display */
@@ -44,9 +51,20 @@ type SubscriptAvatarProps = {
 
     /** Whether to show the tooltip */
     showTooltip?: boolean;
+
+    /** List of the participants of the chat */
+    participants: Participant[];
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({
+    mainAvatar = {},
+    secondaryAvatar = {},
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor,
+    noMargin = false,
+    showTooltip = true,
+    participants = [],
+}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
@@ -57,7 +75,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={mainAvatar.id ?? -1}
+                user={participants.find((participant) => participant.accountID === mainAvatar.id)}
                 icon={mainAvatar}
             >
                 <View>
@@ -73,7 +91,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={secondaryAvatar.id ?? -1}
+                user={participants.find((participant) => participant.accountID === secondaryAvatar.id)}
                 icon={secondaryAvatar}
             >
                 <View
