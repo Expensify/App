@@ -35,7 +35,7 @@ type ViolationField = 'merchant' | 'amount' | 'category' | 'date' | 'tag' | 'com
  *   // ...
  * }
  */
-const possibleViolationsByField = invertBy(violationFields, (value) => value) as Record<ViolationField, ViolationName[]>;
+const possibleViolationsByField = invertBy(violationFields) as Record<ViolationField, ViolationName[]>;
 
 export default possibleViolationsByField;
 export type {ViolationField};
