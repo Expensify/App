@@ -63,9 +63,11 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.setReadyToFocus();
+            if (!fullscreen) {
+                ComposerFocusManager.setReadyToFocus();
+            }
         },
-        [shouldSetModalVisibility, onModalHide],
+        [shouldSetModalVisibility, onModalHide, fullscreen],
     );
 
     useEffect(() => {
@@ -108,6 +110,10 @@ function BaseModal(
         }
 
         onClose();
+    };
+
+    const handleDismissModal = () => {
+        ComposerFocusManager.setReadyToFocus();
     };
 
     const {
@@ -170,6 +176,7 @@ function BaseModal(
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
+            onDismiss={handleDismissModal}
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
