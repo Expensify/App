@@ -6,7 +6,7 @@ import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
 /**
- * Downloading attachment in web, desktop
+ * The function performs the downloading of an attachment on web/desktop platforms.
  */
 const fileDownload: FileDownload = (url, fileName) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
