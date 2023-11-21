@@ -17,7 +17,7 @@ All ExpensifyApproved! Partners are automatically eligible for a special rate of
 
 # Understanding the billing process
 
-Expensify bills the owner of the expense policy for the activity on that policy. If accountants retain ownership of client policies, they receive the bill and can then re-bill their clients based on individual agreements.
+Expensify bills the owner of the expense workspace for the activity on that workspace. If accountants retain ownership of client workspaces, they receive the bill and can then re-bill their clients based on individual agreements.
 
 Each month, Expensify will send a consolidated bill detailing:
 - **Pay-per-use seats:** This is the number of active clients and their users for the month.
