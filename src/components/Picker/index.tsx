@@ -2,21 +2,21 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import BasePicker from './BasePicker';
 import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
 
-const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange): AdditionalPickerEvents => ({
-    onMouseDown,
-    onChange: (e) => {
-        if (e.target.selectedIndex === undefined) {
-            return;
-        }
-        const index = e.target.selectedIndex;
-        const value = e.target.options[index].value;
-        onChange(value, index);
-    },
-});
+function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
+    const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>): AdditionalPickerEvents => ({
+        onMouseDown,
+        onChange: (e) => {
+            if (e.target.selectedIndex === undefined) {
+                return;
+            }
+            const index = e.target.selectedIndex;
+            const value = e.target.options[index].value;
+            onChange(value as TPickerValue, index);
+        },
+    });
 
-function Picker(props: BasePickerProps, ref: ForwardedRef<BasePickerHandle>) {
     return (
-        <BasePicker
+        <BasePicker<TPickerValue>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Forward the ref to Picker, as we implement imperative methods there

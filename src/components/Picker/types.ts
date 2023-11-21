@@ -12,22 +12,22 @@ type BasePickerHandle = {
 
 type OnMouseDown = () => void;
 
-type OnChange = (value: string, index: number) => void;
+type OnChange<TPickerValue> = (value: TPickerValue, index: number) => void;
 
 type AdditionalPickerEvents = {
     onMouseDown?: OnMouseDown;
     onChange?: (event: ChangeEvent<HTMLSelectElement>) => void;
 };
 
-type AdditionalPickerEventsCallback = (onMouseDown: OnMouseDown, onChange: OnChange) => AdditionalPickerEvents;
+type AdditionalPickerEventsCallback<TPickerValue> = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>) => AdditionalPickerEvents;
 
 type DefaultPickerEventsCallback = () => void;
 
 type PickerSize = 'normal' | 'small';
 
-type PickerItem = {
+type PickerItem<TPickerValue> = {
     /** The value of the item that is being selected */
-    value: string | number;
+    value: TPickerValue;
 
     /** The text to display for the item */
     label: string;
@@ -41,7 +41,7 @@ type PickerPlaceholder = {
     label?: string;
 };
 
-type BasePickerProps = {
+type BasePickerProps<TPickerValue> = {
     /** BasePicker label */
     label?: string | null;
 
@@ -49,10 +49,10 @@ type BasePickerProps = {
     isDisabled?: boolean;
 
     /** Input value */
-    value?: string | number | null;
+    value?: TPickerValue | null;
 
     /** The items to display in the list of selections */
-    items: PickerItem[];
+    items: Array<PickerItem<TPickerValue>>;
 
     /** Something to show as the placeholder before something is selected */
     placeholder?: PickerPlaceholder;
@@ -70,7 +70,7 @@ type BasePickerProps = {
     inputID?: string;
 
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
-    onInputChange: (value: string | number, index?: number) => void;
+    onInputChange: (value: TPickerValue, index?: number) => void;
 
     /** Size of a picker component */
     size?: PickerSize;
@@ -85,7 +85,7 @@ type BasePickerProps = {
     onBlur?: () => void;
 
     /** Additional events passed to the core BasePicker for specific platforms such as web */
-    additionalPickerEvents?: AdditionalPickerEventsCallback | DefaultPickerEventsCallback;
+    additionalPickerEvents?: AdditionalPickerEventsCallback<TPickerValue> | DefaultPickerEventsCallback;
 
     /** Hint text that appears below the picker */
     hintText?: string;

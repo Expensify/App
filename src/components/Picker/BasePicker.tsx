@@ -1,5 +1,5 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, ReactNode, RefObject, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,7 +11,7 @@ import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
-function BasePicker(
+function BasePicker<TPickerValue>(
     {
         items,
         backgroundColor,
@@ -35,7 +35,7 @@ function BasePicker(
         shouldFocusPicker = false,
         onBlur = () => {},
         additionalPickerEvents = () => {},
-    }: BasePickerProps,
+    }: BasePickerProps<TPickerValue>,
     ref: ForwardedRef<BasePickerHandle>,
 ) {
     const [isHighlighted, setIsHighlighted] = useState(false);
@@ -68,7 +68,7 @@ function BasePicker(
      * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onValueChange
      * We are overriding this behavior to make BasePicker work with Form
      */
-    const onValueChange = (inputValue: string, index: number) => {
+    const onValueChange = (inputValue: TPickerValue, index: number) => {
         if (inputID) {
             onInputChange(inputValue);
             return;
@@ -135,7 +135,7 @@ function BasePicker(
                         {label}
                     </Text>
                 )}
-                <Text numberOfLines={1}>{value}</Text>
+                <Text numberOfLines={1}>{value as ReactNode}</Text>
                 {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
             </View>
         );

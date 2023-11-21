@@ -35,11 +35,11 @@ function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}
         <Picker
             label={size === 'normal' ? translate('languagePage.language') : null}
             onInputChange={(locale) => {
-                if (locale === preferredLocale || typeof locale !== 'string') {
+                if (locale === preferredLocale) {
                     return;
                 }
 
-                App.setLocale(locale as ValueOf<typeof CONST.LOCALES>);
+                App.setLocale(locale);
             }}
             items={localesToLanguages}
             size={size}
