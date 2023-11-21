@@ -11,6 +11,7 @@ import SCREENS from '@src/SCREENS';
 export type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
+        reportID: string;
     };
 };
 
