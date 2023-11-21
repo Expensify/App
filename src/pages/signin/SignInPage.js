@@ -277,10 +277,10 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
-    /**
-  This variable is only added to make sure the component is re-rendered
-  whenever the activeClients change, so that we call the
-  ActiveClientManager.isClientTheLeader function
+    /** 
+  This variable is only added to make sure the component is re-rendered 
+  whenever the activeClients change, so that we call the 
+  ActiveClientManager.isClientTheLeader function 
   everytime the leader client changes.
   We use that function to prevent repeating code that checks which client is the leader.
   */
