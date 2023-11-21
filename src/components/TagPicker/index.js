@@ -40,7 +40,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
     const initialFocusedIndex = useMemo(() => {
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
             return _.chain(policyTagList)
-                .values()
                 .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
                 .value();
         }
@@ -53,8 +52,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             return policyTagList;
         }
         const selectedNames = _.map(selectedOptions, (s) => s.name);
-        const tags = _.filter(policyTagList, (policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name));
-        return tags;
+        return _.filter(policyTagList, (policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name));
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(
