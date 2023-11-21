@@ -165,7 +165,10 @@ function ReportDetailsPage(props) {
     ) : null;
 
     return (
-        <ScreenWrapper testID={ReportDetailsPage.displayName}>
+        <ScreenWrapper
+            testID={ReportDetailsPage.displayName}
+            shouldEnableAutoFocus
+        >
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
