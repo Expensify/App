@@ -26,7 +26,8 @@ export default function generateMonthMatrix(year, month) {
     }
 
     // Get the week day for the start and end of week
-    const {weekStartsOn, weekEndsOn} = DateUtils.getWeekStartsAndEndsOn();
+    const weekStartsOn = DateUtils.getWeekStartsOn();
+    const weekEndsOn = DateUtils.getWeekEndsOn();
 
     // Get the number of days in the month and the first day of the month
     const firstDayOfMonth = startOfMonth(new Date(year, month, 1));

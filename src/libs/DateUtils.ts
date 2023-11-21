@@ -30,10 +30,6 @@ import * as Localize from './Localize';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-type WeekStartsAndEndsOn = {
-    weekStartsOn: WeekDay;
-    weekEndsOn: WeekDay;
-};
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -66,13 +62,19 @@ Onyx.connect({
 });
 
 /**
- * Get the day of the week that the week starts and ends on
+ * Get the day of the week that the week starts on
  */
-function getWeekStartsAndEndsOn(): WeekStartsAndEndsOn {
-    return {
-        weekStartsOn: 1, // Assuming Monday is the start of the week
-        weekEndsOn: 0, // Assuming Sunday is the end of the week
-    };
+function getWeekStartsOn(): WeekDay {
+    return CONST.WEEK_STARTS_ON;
+}
+
+/**
+ * Get the day of the week that the week ends on
+ */
+function getWeekEndsOn(): WeekDay {
+    const weekStartsOn = getWeekStartsOn();
+
+    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as WeekDay);
 }
 
 /**
@@ -160,7 +162,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
     let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
-    const {weekStartsOn} = getWeekStartsAndEndsOn();
+    const weekStartsOn = getWeekStartsOn();
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -300,7 +302,7 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
-    const {weekStartsOn} = getWeekStartsAndEndsOn();
+    const weekStartsOn = getWeekStartsOn();
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
@@ -430,7 +432,8 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
-    getWeekStartsAndEndsOn,
+    getWeekStartsOn,
+    getWeekEndsOn,
 };
 
 export default DateUtils;
