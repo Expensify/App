@@ -42,7 +42,11 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             return policyTagList;
         }
         const selectedNames = _.map(selectedOptions, (s) => s.name);
-        return _.filter(policyTagList, (policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name));
+        return _.chain(policyTagList)
+            .values()
+            .sortBy((policyTag) => policyTag.name)
+            .filter((policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name))
+            .value();
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const initialFocusedIndex = useMemo(() => {
