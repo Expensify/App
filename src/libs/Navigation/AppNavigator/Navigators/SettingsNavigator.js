@@ -39,7 +39,7 @@ function SettingsNavigator({navigation}) {
                     getComponent={loadSidebarScreen}
                 />
                 <RootStack.Screen
-                    name='SettingsCentralPane'
+                    name={SCREENS.SETTINGS_NEW_PROFILE}
                     options={screenOptions.centralPaneNavigator}
                     component={ModalStackNavigators.SettingsModalStackNavigator}
                 />

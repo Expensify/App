@@ -435,7 +435,7 @@ export default {
                     [SCREENS.SETTINGS_HOME]: {
                         path: ROUTES.SETTINGS_HOME,
                     },
-                    SettingsCentralPane: {
+                    [SCREENS.SETTINGS_NEW_PROFILE]: {
                         path: ROUTES.SETTINGS_NEW_PROFILE,
                         exact: true,
                     },
