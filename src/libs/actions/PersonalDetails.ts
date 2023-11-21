@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -242,7 +243,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     address: {
-                        street: `${street}\n${street2}`,
+                        street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                         city,
                         state,
                         zip,
