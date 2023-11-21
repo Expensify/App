@@ -105,9 +105,9 @@ test('should scroll and click some of the items', () => {
         expect(lhnOptionsList).toBeDefined();
 
         fireEvent.scroll(lhnOptionsList, eventData);
-        // find elements that are currently visible in the viewport
-        const button1 = await screen.findByTestId('7');
-        const button2 = await screen.findByTestId('8');
+
+        const button1 = await screen.findByTestId('1');
+        const button2 = await screen.findByTestId('2');
         fireEvent.press(button1);
         fireEvent.press(button2);
     };
