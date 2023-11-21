@@ -3,7 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import useEnvironment from '@hooks/useEnvironment';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
@@ -39,6 +39,7 @@ const defaultProps = {
 
 function TextLink(props) {
     const {environmentURL} = useEnvironment();
+    const styles = useThemeStyles();
     const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
@@ -68,7 +69,7 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}

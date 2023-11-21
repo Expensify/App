@@ -6,6 +6,7 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
@@ -71,8 +72,6 @@ const propTypes = {
     shouldValidateOnChange: PropTypes.bool,
 };
 
-const VALIDATE_DELAY = 200;
-
 const defaultProps = {
     isSubmitButtonVisible: true,
     formState: {
@@ -110,14 +109,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -188,11 +180,14 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
+        // Prepare values before submitting
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -201,7 +196,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
-        onSubmit(inputValues);
+        onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
@@ -248,28 +243,19 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onTouched)) {
                         propsToParse.onTouched(event);
                     }
                 },
                 onPress: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onPress)) {
                         propsToParse.onPress(event);
                     }
                 },
-                onPressOut: (event) => {
-                    // To prevent validating just pressed inputs, we need to set the touched input right after
-                    // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
-                    // as the onValidate is delayed
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                onPressIn: (event) => {
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onPressIn)) {
                         propsToParse.onPressIn(event);
                     }
@@ -285,7 +271,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);
                             }
-                        }, VALIDATE_DELAY);
+                        }, 200);
                     }
 
                     if (_.isFunction(propsToParse.onBlur)) {
@@ -331,7 +317,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );
