@@ -16,31 +16,35 @@ const propTypes = {
 
 const defaultProps = {};
 
+const getVolumeIcon = (volume) => {
+    if (volume === 0) {
+        return Expensicons.Mute;
+    }
+    if (volume <= 0.5) {
+        return Expensicons.VolumeLow;
+    }
+    return Expensicons.VolumeHigh;
+};
+
 function ProgressBar({style}) {
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
+    const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
 
     const onSliderLayout = (e) => {
         setSliderHeight(e.nativeEvent.layout.height);
     };
 
-    const getVolumeIcon = () => {
-        if (volume.value === 0) {
-            return Expensicons.Mute;
-        }
-        if (volume.value <= 0.5) {
-            return Expensicons.VolumeLow;
-        }
-        return Expensicons.VolumeHigh;
-    };
-
     const pan = Gesture.Pan().onChange((event) => {
         const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
         volume.value = Math.min(Math.max(val, 0), 1);
-        runOnJS(updateVolume)(volume.value);
     });
 
-    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
+    const progressBarStyle = useAnimatedStyle(() => {
+        updateVolume(volume.value);
+        setVolumeIcon({icon: getVolumeIcon(volume.value)});
+        return {height: `${volume.value * 100}%`};
+    });
 
     return (
         <Hoverable>
@@ -60,7 +64,7 @@ function ProgressBar({style}) {
                     )}
 
                     <Icon
-                        src={getVolumeIcon()}
+                        src={volumeIcon.icon}
                         fill={colors.white}
                         small
                     />
