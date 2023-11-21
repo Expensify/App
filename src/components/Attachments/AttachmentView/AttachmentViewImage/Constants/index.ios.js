@@ -2,7 +2,7 @@ import {DEFAULT_MAX_ZOOM_SCALE, DEFAULT_MIN_ZOOM_SCALE} from '@components/MultiG
 
 const modalZoomRange = {
     min: DEFAULT_MIN_ZOOM_SCALE,
-    max: DEFAULT_MAX_ZOOM_SCALE * 1.19, // => to 23.8; tested to be the same perceived zoom scale compared to the attachment carousel on iOS
+    max: DEFAULT_MAX_ZOOM_SCALE * 1.19, // => 23.8; tested to be the same perceived zoom scale compared to the attachment carousel on iOS
 };
 
 const carouselZoomRange = {
