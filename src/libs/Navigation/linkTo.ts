@@ -3,6 +3,7 @@ import {NavigationAction, NavigationContainerRef, NavigationState} from '@react-
 import _ from 'lodash';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -14,7 +15,7 @@ import linkingConfig from './linkingConfig';
  * @param state The root state
  * @returns minimalAction minimal action is the action that we should dispatch
  */
-function getMinimalAction(action: NavigationAction, state: NavigationState): NavigationAction {
+function getMinimalAction(action: NavigationAction, state: NavigationState<RootStackParamList>): NavigationAction {
     let currentAction = action;
     let currentState = state;
     let currentTargetKey = null;

@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
@@ -50,7 +51,7 @@ type NavigationOptionalRoute = PartialRoute<Route<string, object | undefined>>;
 /**
  * Method for finding on which index in stack we are.
  */
-const getActiveRouteIndex = (route: NavigationState | NavigationRoute | NavigationOptionalRoute, index?: number): number | undefined => {
+const getActiveRouteIndex = (route: NavigationState<RootStackParamList> | NavigationRoute | NavigationOptionalRoute, index?: number): number | undefined => {
     if ('routes' in route && route.routes) {
         const childActiveRoute = route.routes[route.index ?? 0];
         return getActiveRouteIndex(childActiveRoute, route.index ?? 0);

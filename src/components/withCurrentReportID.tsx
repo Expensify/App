@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import React, {ComponentType, createContext, ForwardedRef, forwardRef, RefAttributes, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 
 type CurrentReportIDContextValue = {
-    updateCurrentReportID: (state: NavigationState) => void;
+    updateCurrentReportID: (state: NavigationState<RootStackParamList>) => void;
     currentReportID: string;
 };
 type CurrentReportIDContextProviderProps = {
@@ -36,7 +37,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      * @param state root navigation state
      */
     const updateCurrentReportID = useCallback(
-        (state: NavigationState) => {
+        (state: NavigationState<RootStackParamList>) => {
             setCurrentReportID(Navigation.getTopmostReportId(state) ?? '');
         },
         [setCurrentReportID],

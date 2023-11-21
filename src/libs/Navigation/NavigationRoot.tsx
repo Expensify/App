@@ -8,6 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
 import themeColors from '@styles/themes/default';
+import {RootStackParamList} from '@src/types/modules/react-navigation';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -32,7 +33,7 @@ type NavigationRootProps = {
 /**
  * Intercept navigation state changes and log it
  */
-function parseAndLogRoute(state: NavigationState) {
+function parseAndLogRoute(state: NavigationState<RootStackParamList>) {
     if (!state) {
         return;
     }
@@ -115,7 +116,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         statusBarAnimation.value = withDelay(300, withTiming(1));
     };
 
-    const handleStateChange = (state: NavigationState | undefined) => {
+    const handleStateChange = (state: NavigationState<RootStackParamList> | undefined) => {
         if (!state) {
             return;
         }
