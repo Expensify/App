@@ -11,5 +11,5 @@ outputs:
   HAS_DEPLOY_BLOCKERS:
     description: A true/false indicating whether or not a deploy blocker was found.
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'index.js'

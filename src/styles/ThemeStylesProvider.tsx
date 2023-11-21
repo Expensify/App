@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
 import {stylesGenerator} from './styles';
 import useTheme from './themes/useTheme';
