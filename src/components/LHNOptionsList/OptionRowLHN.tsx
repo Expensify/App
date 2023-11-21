@@ -1,11 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {RefObject, useCallback, useRef, useState} from 'react';
-import {StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import _ from 'underscore';
+import React, {useCallback, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -32,18 +27,8 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import {Beta} from '@src/types/onyx';
+import {OptionRowLHNProps} from './types';
 
-type OptionRowLHNProps = {
-    hoverStyle?: StyleProp<ViewStyle>;
-    betas?: Beta[];
-    reportID: string;
-    isFocused?: boolean;
-    onSelectRow?: (optionItem: unknown, popoverAnchor: RefObject<Element>) => void;
-    viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
-    style?: StyleProp<ViewStyle>;
-    optionItem?: unknown;
-};
 function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -184,7 +169,7 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
                         ]}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
-                        needsOffscreenAlphaCompositing={optionItem.icons.length >= 2}
+                        needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -192,13 +177,13 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={isFocused ? theme.activeComponentBG : theme.sidebar}
-                                            mainAvatar={optionItem.icons[0]}
-                                            secondaryAvatar={optionItem.icons[1]}
+                                            mainAvatar={optionItem?.icons?.[0]}
+                                            secondaryAvatar={optionItem?.icons?.[1]}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={optionItem.icons}
+                                            icons={optionItem.icons ?? []}
                                             isFocusMode={viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[

@@ -1,12 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import SidebarUtils from '@libs/SidebarUtils';
+import SidebarUtils, {OptionData} from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as Report from '@userActions/Report';
-import {PersonalDetails, Policy, ReportAction, Transaction} from '@src/types/onyx';
-import {LHNOptionsListProps} from './LHNOptionsList';
+import * as ReportLib from '@userActions/Report';
 import OptionRowLHN from './OptionRowLHN';
+import {OptionRowLHNDataProps} from './types';
 
 // const propTypes = {
 //     /** Whether row should be focused */
@@ -52,33 +51,6 @@ import OptionRowLHN from './OptionRowLHN';
 //     ...baseDefaultProps,
 // };
 
-type OptionRowLHNDataProps = {
-    /** Whether row should be focused */
-    isFocused: boolean;
-
-    /** List of users' personal details */
-    personalDetails: Record<string, PersonalDetails>;
-
-    /** The preferred language for the app */
-    preferredLocale: string;
-
-    /** The full data of the report */
-    fullReport: Report;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: Policy;
-
-    /** The action from the parent report */
-    parentReportAction: ReportAction;
-
-    /** The transaction from the parent report action */
-    transaction: Transaction;
-
-    comment: string;
-
-    receiptTransactions: Transaction[];
-} & LHNOptionsListProps;
-
 /*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.
@@ -100,10 +72,10 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
-    const optionItemRef = useRef();
+    const optionItemRef = useRef<OptionData | undefined>();
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-        const lastReportAction = _.first(sortedReportActions);
+        const lastReportAction = sortedReportActions[0];
         return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
@@ -114,7 +86,9 @@ function OptionRowLHNData({
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
-        optionItemRef.current = item;
+        if (item) {
+            optionItemRef.current = item;
+        }
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
@@ -122,10 +96,10 @@ function OptionRowLHNData({
     }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
+        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
         }
-        Report.setReportWithDraft(reportID, true);
+        ReportLib.setReportWithDraft(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

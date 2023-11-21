@@ -527,3 +527,5 @@ export default {
     isSidebarLoadedReady,
     resetIsSidebarLoadedReadyPromise,
 };
+
+export type {OptionData};

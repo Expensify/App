@@ -1,37 +1,20 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-type SubAvatar = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
-
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name?: string;
-
-    /** Avatar id */
-    id?: number | string;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-};
-
 type SubscriptAvatarProps = {
     /** Avatar URL or icon */
-    mainAvatar?: SubAvatar;
+    mainAvatar?: Icon;
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar?: SubAvatar;
+    secondaryAvatar?: Icon;
 
     /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -46,7 +29,14 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({
+    mainAvatar = {} as Icon,
+    secondaryAvatar = {} as Icon,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor,
+    noMargin = false,
+    showTooltip = true,
+}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;

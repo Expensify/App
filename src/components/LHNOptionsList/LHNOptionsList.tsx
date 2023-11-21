@@ -12,49 +12,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
+import {LHNOptionsListProps} from './types';
 
 const keyExtractor = (item) => `report_${item}`;
-
-type LHNOptionsListProps = {
-    /** Wrapper style for the section list */
-    style?: StyleProp<ViewStyle>;
-
-    /** Extra styles for the section list container */
-    contentContainerStyles?: ContentStyle;
-
-    /** Sections for the section list */
-    data: string[];
-
-    /** Callback to fire when a row is selected */
-    onSelectRow: (reportID: string) => void;
-
-    /** Toggle between compact and default view of the option */
-    optionMode: ValueOf<typeof CONST.OPTION_MODE>;
-
-    /** Whether to allow option focus or not */
-    shouldDisableFocusOptions?: boolean;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: OnyxEntry<Record<string, Policy>>;
-
-    /** All reports shared with the user */
-    reports: OnyxEntry<Record<string, Report>>;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<Record<string, ReportActions>>;
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
-
-    /** List of users' personal details */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
-
-    /** The transaction from the parent report action */
-    transactions: OnyxEntry<Record<string, Transaction>>;
-
-    /** List of draft comments */
-    draftComments: OnyxEntry<Record<string, string>>;
-} & CurrentReportIDContextValue;
 
 function LHNOptionsList({
     style,
@@ -69,8 +29,8 @@ function LHNOptionsList({
     preferredLocale = CONST.LOCALES.DEFAULT,
     personalDetails = {},
     transactions = {},
-    draftComments = {},
     currentReportID = '',
+    draftComments = {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     /**
