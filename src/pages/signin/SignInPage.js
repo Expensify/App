@@ -13,8 +13,9 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import {stylesGenerator} from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import darkTheme from '@styles/themes/default';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -26,6 +27,8 @@ import LoginForm from './LoginForm';
 import SignInPageLayout from './SignInPageLayout';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
+
+const styles = stylesGenerator(darkTheme);
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -136,7 +139,6 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 }
 
 function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
-    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -277,10 +279,10 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
-    /** 
-  This variable is only added to make sure the component is re-rendered 
-  whenever the activeClients change, so that we call the 
-  ActiveClientManager.isClientTheLeader function 
+    /**
+  This variable is only added to make sure the component is re-rendered
+  whenever the activeClients change, so that we call the
+  ActiveClientManager.isClientTheLeader function
   everytime the leader client changes.
   We use that function to prevent repeating code that checks which client is the leader.
   */
