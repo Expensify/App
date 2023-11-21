@@ -10,7 +10,7 @@ The ExpensifyApproved! Partner Program offers exclusive billing rates and featur
 #  Get exclusive partner pricing
 
 All ExpensifyApproved! Partners are automatically eligible for a special rate of $9/seat monthly, without an annual commitment when they adopt the Expensify Card. This provides flexibility as active users can vary. Here are the specifics on pricing for our Approved! Partners’ clients:
-- **Bundled pricing:** US Clients using the Expensify Card get up to a 50% discount, bringing their monthly bill to $9/seat. Reach out to your Partner Manager to discuss exclusive international pricing discount.s 
+- **Bundled pricing:** US Clients using the Expensify Card get up to a 50% discount, bringing their monthly bill to $9/seat. Reach out to your Partner Manager to discuss exclusive international pricing discount.
 - **Unbundled pricing (or pay-per-use pricing):** Clients not using the Expensify Card are billed at $18/seat monthly.
 - **No annual commitment:** Partners pay only for what they use, with no annual subscriptions required.
 - **Expensify Card revenue share:** All partners receive a 0.5% revenue share on Expensify Card transactions made by clients. This revenue share can be passed back to the client for an additional discount to offset their Expensify bill
