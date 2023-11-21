@@ -54,6 +54,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
+    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList');
 
     return (
         <OptionsSelector
@@ -62,8 +63,10 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
+            // Focus the first option when searching
             focusedIndex={0}
-            initiallyFocusedOptionKey={lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList')}
+            // Focus the selected option on first load
+            initiallyFocusedOptionKey={selectedOptionKey}
             headerMessage={headerMessage}
             shouldShowTextInput={shouldShowTextInput}
             textInputLabel={translate('common.search')}
