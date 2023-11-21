@@ -2425,7 +2425,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        iouReport.total * -1,
+        -iouReport.total,
         iouReport.currency,
         '',
         [recipient],
