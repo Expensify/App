@@ -146,7 +146,7 @@
     "react-native-performance": "^5.1.0",
     "react-native-permissions": "^3.9.3",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#eae05855286dc699954415cc1d629bfd8e8e47e2",
-    "react-native-plaid-link-sdk": "^10.0.0",
+    "react-native-plaid-link-sdk": "10.8.0",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-quick-sqlite": "^8.0.0-beta.2",
     "react-native-reanimated": "3.5.4",
