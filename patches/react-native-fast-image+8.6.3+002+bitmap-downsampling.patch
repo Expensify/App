@@ -1,0 +1,269 @@
+diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
+index 1339f5c..9dfec0c 100644
+--- a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
++++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
+@@ -176,7 +176,8 @@ class FastImageViewWithUrl extends AppCompatImageView {
+                             .apply(FastImageViewConverter
+                                     .getOptions(context, imageSource, mSource)
+                                     .placeholder(mDefaultSource) // show until loaded
+-                                    .fallback(mDefaultSource)); // null will not be treated as error
++                                    .fallback(mDefaultSource))
++                            .transform(new ResizeTransformation());
+ 
+             if (key != null)
+                 builder.listener(new FastImageRequestListener(key));
+diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/ResizeTransformation.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/ResizeTransformation.java
+new file mode 100644
+index 0000000..1daa227
+--- /dev/null
++++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/ResizeTransformation.java
+@@ -0,0 +1,41 @@
++package com.dylanvann.fastimage;
++
++ import android.content.Context;
++ import android.graphics.Bitmap;
++
++ import androidx.annotation.NonNull;
++
++ import com.bumptech.glide.load.Transformation;
++ import com.bumptech.glide.load.engine.Resource;
++ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
++ import com.bumptech.glide.load.resource.bitmap.BitmapResource;
++
++ import java.security.MessageDigest;
++
++ public class ResizeTransformation implements Transformation<Bitmap> {
++
++     private final double MAX_BYTES = 25000000.0;
++
++     @NonNull
++     @Override
++     public Resource<Bitmap> transform(@NonNull Context context, @NonNull Resource<Bitmap> resource, int outWidth, int outHeight) {
++         Bitmap toTransform = resource.get();
++
++         if (toTransform.getByteCount() > MAX_BYTES) {
++             double scaleFactor = Math.sqrt(MAX_BYTES / (double) toTransform.getByteCount());
++             int newHeight = (int) (outHeight * scaleFactor);
++             int newWidth = (int) (outWidth * scaleFactor);
++
++             BitmapPool pool = GlideApp.get(context).getBitmapPool();
++             Bitmap scaledBitmap =  Bitmap.createScaledBitmap(toTransform, newWidth, newHeight, true);
++             return BitmapResource.obtain(scaledBitmap, pool);
++         }
++
++         return resource;
++     }
++
++     @Override
++     public void updateDiskCacheKey(@NonNull MessageDigest messageDigest) {
++         messageDigest.update(("ResizeTransformation").getBytes());
++     }
++ }
+\ No newline at end of file
+diff --git a/node_modules/react-native-fast-image/dist/index.cjs.js b/node_modules/react-native-fast-image/dist/index.cjs.js
+index 2df6a29..68b0e69 100644
+--- a/node_modules/react-native-fast-image/dist/index.cjs.js
++++ b/node_modules/react-native-fast-image/dist/index.cjs.js
+@@ -28,28 +28,22 @@ const cacheControl = {
+   // Only load from cache.
+   cacheOnly: 'cacheOnly'
+ };
+-
+ const resolveDefaultSource = defaultSource => {
+   if (!defaultSource) {
+     return null;
+   }
+-
+   if (reactNative.Platform.OS === 'android') {
+     // Android receives a URI string, and resolves into a Drawable using RN's methods.
+     const resolved = reactNative.Image.resolveAssetSource(defaultSource);
+-
+     if (resolved) {
+       return resolved.uri;
+     }
+-
+     return null;
+-  } // iOS or other number mapped assets
++  }
++  // iOS or other number mapped assets
+   // In iOS the number is passed, and bridged automatically into a UIImage
+-
+-
+   return defaultSource;
+ };
+-
+ function FastImageBase({
+   source,
+   defaultSource,
+@@ -68,7 +62,8 @@ function FastImageBase({
+   ...props
+ }) {
+   if (fallback) {
+-    const cleanedSource = { ...source
++    const cleanedSource = {
++      ...source
+     };
+     delete cleanedSource.cache;
+     const resolvedSource = reactNative.Image.resolveAssetSource(cleanedSource);
+@@ -89,7 +84,6 @@ function FastImageBase({
+       resizeMode: resizeMode
+     })), children);
+   }
+-
+   const resolvedSource = reactNative.Image.resolveAssetSource(source);
+   const resolvedDefaultSource = resolveDefaultSource(defaultSource);
+   return /*#__PURE__*/React__default['default'].createElement(reactNative.View, {
+@@ -108,7 +102,6 @@ function FastImageBase({
+     resizeMode: resizeMode
+   })), children);
+ }
+-
+ const FastImageMemo = /*#__PURE__*/React.memo(FastImageBase);
+ const FastImageComponent = /*#__PURE__*/React.forwardRef((props, ref) => /*#__PURE__*/React__default['default'].createElement(FastImageMemo, _extends__default['default']({
+   forwardedRef: ref
+@@ -118,19 +111,16 @@ const FastImage = FastImageComponent;
+ FastImage.resizeMode = resizeMode;
+ FastImage.cacheControl = cacheControl;
+ FastImage.priority = priority;
+-
+ FastImage.preload = sources => reactNative.NativeModules.FastImageView.preload(sources);
+-
+ FastImage.clearMemoryCache = () => reactNative.NativeModules.FastImageView.clearMemoryCache();
+-
+ FastImage.clearDiskCache = () => reactNative.NativeModules.FastImageView.clearDiskCache();
+-
+ const styles = reactNative.StyleSheet.create({
+   imageContainer: {
+     overflow: 'hidden'
+   }
+-}); // Types of requireNativeComponent are not correct.
++});
+ 
++// Types of requireNativeComponent are not correct.
+ const FastImageView = reactNative.requireNativeComponent('FastImageView', FastImage, {
+   nativeOnly: {
+     onFastImageLoadStart: true,
+diff --git a/node_modules/react-native-fast-image/dist/index.d.ts b/node_modules/react-native-fast-image/dist/index.d.ts
+index a2672c6..a663020 100644
+--- a/node_modules/react-native-fast-image/dist/index.d.ts
++++ b/node_modules/react-native-fast-image/dist/index.d.ts
+@@ -1,5 +1,5 @@
+ import React from 'react';
+-import { FlexStyle, LayoutChangeEvent, ShadowStyleIOS, StyleProp, TransformsStyle, ImageRequireSource, AccessibilityProps, ViewProps, ColorValue } from 'react-native';
++import { AccessibilityProps, ColorValue, FlexStyle, ImageRequireSource, LayoutChangeEvent, ShadowStyleIOS, StyleProp, TransformsStyle, ViewProps } from 'react-native';
+ export declare type ResizeMode = 'contain' | 'cover' | 'stretch' | 'center';
+ declare const resizeMode: {
+     readonly contain: "contain";
+@@ -27,11 +27,6 @@ export declare type Source = {
+     priority?: Priority;
+     cache?: Cache;
+ };
+-export interface OnLoadStartEvent {
+-    nativeEvent: {
+-        cachePath: string | null;
+-    };
+-}
+ export interface OnLoadEvent {
+     nativeEvent: {
+         width: number;
+@@ -62,7 +57,7 @@ export interface FastImageProps extends AccessibilityProps, ViewProps {
+     defaultSource?: ImageRequireSource;
+     resizeMode?: ResizeMode;
+     fallback?: boolean;
+-    onLoadStart?(event: OnLoadStartEvent): void;
++    onLoadStart?(): void;
+     onProgress?(event: OnProgressEvent): void;
+     onLoad?(event: OnLoadEvent): void;
+     onError?(): void;
+diff --git a/node_modules/react-native-fast-image/dist/index.d.ts.map b/node_modules/react-native-fast-image/dist/index.d.ts.map
+index ba43a24..960403b 100644
+--- a/node_modules/react-native-fast-image/dist/index.d.ts.map
++++ b/node_modules/react-native-fast-image/dist/index.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.tsx"],"names":[],"mappings":"AAAA,OAAO,KAA2B,MAAM,OAAO,CAAA;AAC/C,OAAO,EACH,kBAAkB,EAClB,UAAU,EACV,SAAS,EAET,kBAAkB,EAClB,iBAAiB,EAGjB,cAAc,EACd,SAAS,EAET,eAAe,EAEf,SAAS,EAEZ,MAAM,cAAc,CAAA;AAErB,oBAAY,UAAU,GAAG,SAAS,GAAG,OAAO,GAAG,SAAS,GAAG,QAAQ,CAAA;AAEnE,QAAA,MAAM,UAAU;;;;;CAKN,CAAA;AAEV,oBAAY,QAAQ,GAAG,KAAK,GAAG,QAAQ,GAAG,MAAM,CAAA;AAEhD,QAAA,MAAM,QAAQ;;;;CAIJ,CAAA;AAEV,aAAK,KAAK,GAAG,WAAW,GAAG,KAAK,GAAG,WAAW,CAAA;AAE9C,QAAA,MAAM,YAAY;;;;CAOR,CAAA;AAEV,oBAAY,MAAM,GAAG;IACjB,GAAG,CAAC,EAAE,MAAM,CAAA;IACZ,OAAO,CAAC,EAAE;QAAE,CAAC,GAAG,EAAE,MAAM,GAAG,MAAM,CAAA;KAAE,CAAA;IACnC,QAAQ,CAAC,EAAE,QAAQ,CAAA;IACnB,KAAK,CAAC,EAAE,KAAK,CAAA;CAChB,CAAA;AAED,MAAM,WAAW,WAAW;IACxB,WAAW,EAAE;QACT,KAAK,EAAE,MAAM,CAAA;QACb,MAAM,EAAE,MAAM,CAAA;KACjB,CAAA;CACJ;AAED,MAAM,WAAW,eAAe;IAC5B,WAAW,EAAE;QACT,MAAM,EAAE,MAAM,CAAA;QACd,KAAK,EAAE,MAAM,CAAA;KAChB,CAAA;CACJ;AAED,MAAM,WAAW,UAAW,SAAQ,SAAS,EAAE,eAAe,EAAE,cAAc;IAC1E,kBAAkB,CAAC,EAAE,SAAS,GAAG,QAAQ,CAAA;IACzC,sBAAsB,CAAC,EAAE,MAAM,CAAA;IAC/B,uBAAuB,CAAC,EAAE,MAAM,CAAA;IAChC,eAAe,CAAC,EAAE,MAAM,CAAA;IACxB,WAAW,CAAC,EAAE,MAAM,CAAA;IACpB,WAAW,CAAC,EAAE,MAAM,CAAA;IACpB,YAAY,CAAC,EAAE,MAAM,CAAA;IACrB,mBAAmB,CAAC,EAAE,MAAM,CAAA;IAC5B,oBAAoB,CAAC,EAAE,MAAM,CAAA;IAC7B,YAAY,CAAC,EAAE,MAAM,CAAA;IACrB,OAAO,CAAC,EAAE,MAAM,CAAA;CACnB;AAED,MAAM,WAAW,cAAe,SAAQ,kBAAkB,EAAE,SAAS;IACjE,MAAM,CAAC,EAAE,MAAM,GAAG,kBAAkB,CAAA;IACpC,aAAa,CAAC,EAAE,kBAAkB,CAAA;IAClC,UAAU,CAAC,EAAE,UAAU,CAAA;IACvB,QAAQ,CAAC,EAAE,OAAO,CAAA;IAElB,WAAW,CAAC,IAAI,IAAI,CAAA;IAEpB,UAAU,CAAC,CAAC,KAAK,EAAE,eAAe,GAAG,IAAI,CAAA;IAEzC,MAAM,CAAC,CAAC,KAAK,EAAE,WAAW,GAAG,IAAI,CAAA;IAEjC,OAAO,CAAC,IAAI,IAAI,CAAA;IAEhB,SAAS,CAAC,IAAI,IAAI,CAAA;IAElB;;;;;;OAMG;IACH,QAAQ,CAAC,EAAE,CAAC,KAAK,EAAE,iBAAiB,KAAK,IAAI,CAAA;IAE7C;;;OAGG;IACH,KAAK,CAAC,EAAE,SAAS,CAAC,UAAU,CAAC,CAAA;IAE7B;;;;OAIG;IACH,SAAS,CAAC,EAAE,UAAU,CAAA;IAEtB;;OAEG;IACH,MAAM,CAAC,EAAE,MAAM,CAAA;IAEf;;OAEG;IACH,QAAQ,CAAC,EAAE,KAAK,CAAC,SAAS,CAAA;CAC7B;AAmGD,MAAM,WAAW,yBAAyB;IACtC,UAAU,EAAE,OAAO,UAAU,CAAA;IAC7B,QAAQ,EAAE,OAAO,QAAQ,CAAA;IACzB,YAAY,EAAE,OAAO,YAAY,CAAA;IACjC,OAAO,EAAE,CAAC,OAAO,EAAE,MAAM,EAAE,KAAK,IAAI,CAAA;IACpC,gBAAgB,EAAE,MAAM,OAAO,CAAC,IAAI,CAAC,CAAA;IACrC,cAAc,EAAE,MAAM,OAAO,CAAC,IAAI,CAAC,CAAA;CACtC;AAED,QAAA,MAAM,SAAS,EAAE,KAAK,CAAC,aAAa,CAAC,cAAc,CAAC,GAChD,yBAAqD,CAAA;AAqCzD,eAAe,SAAS,CAAA"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-fast-image/dist/index.js b/node_modules/react-native-fast-image/dist/index.js
+index 58e0308..78de1f5 100644
+--- a/node_modules/react-native-fast-image/dist/index.js
++++ b/node_modules/react-native-fast-image/dist/index.js
+@@ -21,28 +21,22 @@ const cacheControl = {
+   // Only load from cache.
+   cacheOnly: 'cacheOnly'
+ };
+-
+ const resolveDefaultSource = defaultSource => {
+   if (!defaultSource) {
+     return null;
+   }
+-
+   if (Platform.OS === 'android') {
+     // Android receives a URI string, and resolves into a Drawable using RN's methods.
+     const resolved = Image.resolveAssetSource(defaultSource);
+-
+     if (resolved) {
+       return resolved.uri;
+     }
+-
+     return null;
+-  } // iOS or other number mapped assets
++  }
++  // iOS or other number mapped assets
+   // In iOS the number is passed, and bridged automatically into a UIImage
+-
+-
+   return defaultSource;
+ };
+-
+ function FastImageBase({
+   source,
+   defaultSource,
+@@ -61,7 +55,8 @@ function FastImageBase({
+   ...props
+ }) {
+   if (fallback) {
+-    const cleanedSource = { ...source
++    const cleanedSource = {
++      ...source
+     };
+     delete cleanedSource.cache;
+     const resolvedSource = Image.resolveAssetSource(cleanedSource);
+@@ -82,7 +77,6 @@ function FastImageBase({
+       resizeMode: resizeMode
+     })), children);
+   }
+-
+   const resolvedSource = Image.resolveAssetSource(source);
+   const resolvedDefaultSource = resolveDefaultSource(defaultSource);
+   return /*#__PURE__*/React.createElement(View, {
+@@ -101,7 +95,6 @@ function FastImageBase({
+     resizeMode: resizeMode
+   })), children);
+ }
+-
+ const FastImageMemo = /*#__PURE__*/memo(FastImageBase);
+ const FastImageComponent = /*#__PURE__*/forwardRef((props, ref) => /*#__PURE__*/React.createElement(FastImageMemo, _extends({
+   forwardedRef: ref
+@@ -111,19 +104,16 @@ const FastImage = FastImageComponent;
+ FastImage.resizeMode = resizeMode;
+ FastImage.cacheControl = cacheControl;
+ FastImage.priority = priority;
+-
+ FastImage.preload = sources => NativeModules.FastImageView.preload(sources);
+-
+ FastImage.clearMemoryCache = () => NativeModules.FastImageView.clearMemoryCache();
+-
+ FastImage.clearDiskCache = () => NativeModules.FastImageView.clearDiskCache();
+-
+ const styles = StyleSheet.create({
+   imageContainer: {
+     overflow: 'hidden'
+   }
+-}); // Types of requireNativeComponent are not correct.
++});
+ 
++// Types of requireNativeComponent are not correct.
+ const FastImageView = requireNativeComponent('FastImageView', FastImage, {
+   nativeOnly: {
+     onFastImageLoadStart: true,
