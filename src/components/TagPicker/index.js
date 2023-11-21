@@ -37,24 +37,26 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         ];
     }, [selectedTag]);
 
-    const enabledTags = useMemo(() => {
-        if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList;
-        }
-        const selectedNames = _.map(selectedOptions, (s) => s.name);
-        const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
-        return tags;
-    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
-
     const initialFocusedIndex = useMemo(() => {
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(enabledTags)
+            return _.chain(policyTagList)
+                .values()
                 .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
                 .value();
         }
 
         return 0;
-    }, [enabledTags, selectedOptions, isTagsCountBelowThreshold]);
+    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
+
+    const enabledTags = useMemo(() => {
+        if (!shouldShowDisabledAndSelectedOption) {
+            return policyTagList;
+        }
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        const tags = _.filter(policyTagList, (policyTag) => policyTag.enabled || selectedNames.includes(policyTag.name));
+        return tags;
+    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+
 
     const sections = useMemo(
         () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
