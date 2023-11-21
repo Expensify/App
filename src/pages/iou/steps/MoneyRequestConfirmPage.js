@@ -50,12 +50,29 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
+    /** The policy of the current report */
+    policy: PropTypes.shape({
+        /** Whether the policy requires a tag */
+        requiresTag: PropTypes.bool,
+
+        /** Whether the policy requires a category */
+        requiresCategory: PropTypes.bool,
+
+        /** Whether there is more than one list of tags */
+        hasMultipleTagLists: PropTypes.bool,
+
+        /** Whether the policy has enable tax tracking */
+        isTrackingTaxEnabled: PropTypes.bool,
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     personalDetails: {},
+    policyCategories: {},
+    policyTags: {},
     iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -173,6 +190,7 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.category,
                 props.iou.tag,
                 props.iou.billable,
+                props.policy.id,
             );
         },
         [
@@ -186,6 +204,7 @@ function MoneyRequestConfirmPage(props) {
             props.iou.category,
             props.iou.tag,
             props.iou.billable,
+            props.policy.id,
         ],
     );
 
@@ -429,6 +448,15 @@ export default compose(
         },
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ONYXKEYS.POLICY_CATEGORIES,
+        },
+        policyTags: {
+            key: ONYXKEYS.POLICY_TAGS,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

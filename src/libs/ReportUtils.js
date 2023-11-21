@@ -100,6 +100,10 @@ function getPolicyTags(policyID) {
     return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
 }
 
+function getPolicyCategories(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, []);
+}
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -4295,6 +4299,8 @@ export {
     getParentNavigationSubtitle,
     getPolicyName,
     getPolicyType,
+    getPolicyCategories,
+    getPolicyTags,
     isArchivedRoom,
     isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,

@@ -19,6 +19,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
+import ViolationsUtils from '@libs/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -154,6 +155,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    policyID,
 ) {
     const optimisticData = [
         {
@@ -380,6 +382,28 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
+    if (!policyID) {
+        return [optimisticData, successData, failureData];
+    }
+    const policy = ReportUtils.getPolicy(policyID);
+    const policyTags = ReportUtils.getPolicyTags(policyID);
+    const policyCategories = ReportUtils.getPolicyCategories(policyID);
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTags, policyTags, policy.requiresCategory, policyCategories);
+
+    if (violationsOnyxData) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: violationsOnyxData,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+    }
+
     return [optimisticData, successData, failureData];
 }
 
@@ -401,6 +425,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
+ * @param {String} [policyID]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -430,6 +455,7 @@ function getMoneyRequestInformation(
     category = undefined,
     tag = undefined,
     billable = undefined,
+    policyID = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -592,6 +618,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        policyID,
     );
 
     return {
@@ -839,6 +866,9 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
+ * @param {String} [policyID]
+ * @param {Object} [policyTags]
+ * @param {Object} [policyCategories]
  */
 function requestMoney(
     report,
@@ -854,12 +884,29 @@ function requestMoney(
     category = undefined,
     tag = undefined,
     billable = undefined,
+    policyID = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
-        getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
+        getMoneyRequestInformation(
+            currentChatReport,
+            participant,
+            comment,
+            amount,
+            currency,
+            created,
+            merchant,
+            payeeAccountID,
+            payeeEmail,
+            receipt,
+            undefined,
+            category,
+            tag,
+            billable,
+            policyID,
+        );
 
     API.write(
         'RequestMoney',
