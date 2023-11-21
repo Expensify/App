@@ -141,6 +141,18 @@ function resetMoneyRequestInfo(id = '') {
     });
 }
 
+/**
+ *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
+ *
+ * @param {Object} transaction
+ * @returns {Object}
+ */
+function getReceiptError(transaction) {
+    return _.isEmpty(transaction.receipt)
+        ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename});
+}
+
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -2975,18 +2987,6 @@ function navigateToNextPage(iou, iouType, report, path = '') {
  */
 function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
-}
-
-/**
- *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
- *
- * @param {Object} transaction
- * @returns {Object}
- */
-function getReceiptError(transaction) {
-    return _.isEmpty(transaction.receipt)
-        ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename});
 }
 
 export {
