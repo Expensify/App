@@ -99,7 +99,6 @@ class ShareCodePage extends React.Component {
 
                     <View style={{marginTop: 36}}>
                         <MenuItem
-                            isAnonymousAction
                             title={this.props.translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                             icon={Expensicons.Cash}
                             onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
