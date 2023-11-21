@@ -3,8 +3,6 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
-
-
 ```yaml
 name: CI
 on: pull_request
@@ -44,12 +42,12 @@ Due to the large, ever-growing history of this repo, do not do any full-fetches 
 
 ```yaml
 # Bad
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
   with:
     fetch-depth: 0
 
 # Good
-- uses: actions/checkout@v3
+- uses: actions/checkout@v4
 ```
 
 ```sh
@@ -65,7 +63,7 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
-1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
+1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v4`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
 1. If an untrusted (i.e: not maintained by GitHub) external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
@@ -141,12 +139,11 @@ In order to bundle actions with their dependencies into a single Node.js executa
 
 - When calling your GitHub Action from one of our workflows, you must:
     - First call `@actions/checkout`.
-    - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
+    - Use the relative path of the action in GitHub from the root of this repo, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: ./.github/actions/javascript/bumpVersion
       ```
-       Do not try to use a relative path.
-- Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
+
 - You can't use any dynamic values or environment variables in a `uses` statement
 - In general, it is a best practice to minimize any side-effects of each action. Using atomic ("dumb") actions that have a clear and simple purpose will promote reuse and make it easier to understand the workflows that use them.

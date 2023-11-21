@@ -3,9 +3,8 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {computeHorizontalShift, computeVerticalShift} from '@styles/getPopoverWithMeasuredContentStyles';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Popover from './Popover';
 import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
@@ -37,9 +36,6 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
-
-    /** Whether we should use the target location from anchor element directly */
-    shouldUseTargetLocation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -55,7 +51,6 @@ const defaultProps = {
         width: 0,
     },
     withoutOverlay: false,
-    shouldUseTargetLocation: false,
 };
 
 /**
@@ -66,6 +61,7 @@ const defaultProps = {
  */
 
 function PopoverWithMeasuredContent(props) {
+    const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
@@ -95,9 +91,6 @@ function PopoverWithMeasuredContent(props) {
         setIsContentMeasured(true);
     };
 
-    const {x: horizontal, y: vertical} = props.anchorRef.current ? getClickedTargetLocation(props.anchorRef.current) : {};
-    const clickedTargetLocation = props.anchorRef.current && props.shouldUseTargetLocation ? {horizontal, vertical} : props.anchorPosition;
-
     const adjustedAnchorPosition = useMemo(() => {
         let horizontalConstraint;
         switch (props.anchorAlignment.horizontal) {
@@ -111,18 +104,13 @@ function PopoverWithMeasuredContent(props) {
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: clickedTargetLocation.horizontal};
+                horizontalConstraint = {left: props.anchorPosition.horizontal};
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = clickedTargetLocation.vertical;
-
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                if (!anchorLocationVertical) {
-                    break;
-                }
-                verticalConstraint = {top: anchorLocationVertical - popoverHeight};
+                verticalConstraint = {top: props.anchorPosition.vertical - popoverHeight};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
@@ -138,7 +126,7 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [props.anchorPosition, props.anchorAlignment, clickedTargetLocation.vertical, clickedTargetLocation.horizontal, popoverWidth, popoverHeight]);
+    }, [props.anchorPosition, props.anchorAlignment, popoverWidth, popoverHeight]);
 
     const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
@@ -156,11 +144,11 @@ function PopoverWithMeasuredContent(props) {
         </Popover>
     ) : (
         /*
-            This is an invisible view used to measure the size of the popover,
-            before it ever needs to be displayed.
-            We do this because we need to know its dimensions in order to correctly animate the popover,
-            but we can't measure its dimensions without first rendering it.
-        */
+      This is an invisible view used to measure the size of the popover,
+      before it ever needs to be displayed.
+      We do this because we need to know its dimensions in order to correctly animate the popover,
+      but we can't measure its dimensions without first rendering it.
+  */
         <View
             style={styles.invisiblePopover}
             onLayout={measurePopover}
