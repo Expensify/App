@@ -8,6 +8,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -209,6 +210,7 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
@@ -222,7 +224,6 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
-
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -704,6 +705,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -716,6 +718,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
 
