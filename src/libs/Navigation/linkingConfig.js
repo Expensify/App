@@ -36,7 +36,203 @@ export default {
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
-                    Settings: {
+                    Private_Notes: {
+                        screens: {
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW.route,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST.route,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT.route,
+                        },
+                    },
+                    Report_Details: {
+                        screens: {
+                            Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS.route,
+                            Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
+                        },
+                    },
+                    Report_Settings: {
+                        screens: {
+                            Report_Settings_Root: {
+                                path: ROUTES.REPORT_SETTINGS.route,
+                            },
+                            Report_Settings_Room_Name: {
+                                path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
+                            },
+                            Report_Settings_Notification_Preferences: {
+                                path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
+                            },
+                            Report_Settings_Write_Capability: {
+                                path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
+                            },
+                        },
+                    },
+                    Report_WelcomeMessage: {
+                        screens: {
+                            Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE.route,
+                        },
+                    },
+                    NewChat: {
+                        screens: {
+                            NewChat_Root: {
+                                path: ROUTES.NEW,
+                                exact: true,
+                                screens: {
+                                    chat: {
+                                        path: ROUTES.NEW_CHAT,
+                                        exact: true,
+                                    },
+                                    room: {
+                                        path: ROUTES.NEW_ROOM,
+                                        exact: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    NewTask: {
+                        screens: {
+                            NewTask_Root: ROUTES.NEW_TASK,
+                            NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                            NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
+                            NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                            NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                            NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
+                        },
+                    },
+                    TeachersUnite: {
+                        screens: {
+                            [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
+                        },
+                    },
+                    Search: {
+                        screens: {
+                            Search_Root: ROUTES.SEARCH,
+                        },
+                    },
+                    Details: {
+                        screens: {
+                            Details_Root: ROUTES.DETAILS.route,
+                        },
+                    },
+                    Profile: {
+                        screens: {
+                            Profile_Root: ROUTES.PROFILE.route,
+                        },
+                    },
+                    Participants: {
+                        screens: {
+                            ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
+                        },
+                    },
+                    RoomInvite: {
+                        screens: {
+                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
+                        },
+                    },
+                    RoomMembers: {
+                        screens: {
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
+                        },
+                    },
+                    MoneyRequest: {
+                        screens: {
+                            Money_Request: {
+                                path: ROUTES.MONEY_REQUEST.route,
+                                exact: true,
+                                screens: {
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
+                                        exact: true,
+                                    },
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
+                                        exact: true,
+                                    },
+                                },
+                            },
+                            Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
+                            Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
+                            Money_Request_Date: ROUTES.MONEY_REQUEST_DATE.route,
+                            Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY.route,
+                            Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY.route,
+                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
+                            Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
+                            Money_Request_Edit_Waypoint: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
+                            Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
+                            Money_Request_Distance: ROUTES.MONEY_REQUEST_DISTANCE.route,
+                            IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
+                            IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
+                            IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                        },
+                    },
+                    SplitDetails: {
+                        screens: {
+                            SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
+                        },
+                    },
+                    Task_Details: {
+                        screens: {
+                            Task_Title: ROUTES.TASK_TITLE.route,
+                            Task_Description: ROUTES.TASK_DESCRIPTION.route,
+                            Task_Assignee: ROUTES.TASK_ASSIGNEE.route,
+                        },
+                    },
+                    AddPersonalBankAccount: {
+                        screens: {
+                            AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
+                        },
+                    },
+                    EnablePayments: {
+                        screens: {
+                            EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                        },
+                    },
+                    Wallet_Statement: {
+                        screens: {
+                            WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                        },
+                    },
+                    Flag_Comment: {
+                        screens: {
+                            FlagComment_Root: ROUTES.FLAG_COMMENT.route,
+                        },
+                    },
+                    EditRequest: {
+                        screens: {
+                            EditRequest_Root: ROUTES.EDIT_REQUEST.route,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST.route,
+                        },
+                    },
+                    SignIn: {
+                        screens: {
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
+                        },
+                    },
+                    Referral: {
+                        screens: {
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        },
+                    },
+                },
+            },
+
+            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+                screens: {
+                    [SCREENS.SETTINGS_HOME]: {
+                        path: ROUTES.SETTINGS_HOME,
+                    },
+                    SettingsCentralPane: {
                         screens: {
                             [SCREENS.SETTINGS.ROOT]: {
                                 path: ROUTES.SETTINGS,
@@ -238,210 +434,6 @@ export default {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                         },
-                    },
-                    Private_Notes: {
-                        screens: {
-                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW.route,
-                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST.route,
-                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT.route,
-                        },
-                    },
-                    Report_Details: {
-                        screens: {
-                            Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS.route,
-                            Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
-                        },
-                    },
-                    Report_Settings: {
-                        screens: {
-                            Report_Settings_Root: {
-                                path: ROUTES.REPORT_SETTINGS.route,
-                            },
-                            Report_Settings_Room_Name: {
-                                path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
-                            },
-                            Report_Settings_Notification_Preferences: {
-                                path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
-                            },
-                            Report_Settings_Write_Capability: {
-                                path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
-                            },
-                        },
-                    },
-                    Report_WelcomeMessage: {
-                        screens: {
-                            Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE.route,
-                        },
-                    },
-                    NewChat: {
-                        screens: {
-                            NewChat_Root: {
-                                path: ROUTES.NEW,
-                                exact: true,
-                                screens: {
-                                    chat: {
-                                        path: ROUTES.NEW_CHAT,
-                                        exact: true,
-                                    },
-                                    room: {
-                                        path: ROUTES.NEW_ROOM,
-                                        exact: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    NewTask: {
-                        screens: {
-                            NewTask_Root: ROUTES.NEW_TASK,
-                            NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
-                            NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
-                            NewTask_Details: ROUTES.NEW_TASK_DETAILS,
-                            NewTask_Title: ROUTES.NEW_TASK_TITLE,
-                            NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
-                        },
-                    },
-                    TeachersUnite: {
-                        screens: {
-                            [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
-                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
-                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
-                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
-                        },
-                    },
-                    Search: {
-                        screens: {
-                            Search_Root: ROUTES.SEARCH,
-                        },
-                    },
-                    Details: {
-                        screens: {
-                            Details_Root: ROUTES.DETAILS.route,
-                        },
-                    },
-                    Profile: {
-                        screens: {
-                            Profile_Root: ROUTES.PROFILE.route,
-                        },
-                    },
-                    Participants: {
-                        screens: {
-                            ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
-                        },
-                    },
-                    RoomInvite: {
-                        screens: {
-                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
-                        },
-                    },
-                    RoomMembers: {
-                        screens: {
-                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
-                        },
-                    },
-                    MoneyRequest: {
-                        screens: {
-                            Money_Request: {
-                                path: ROUTES.MONEY_REQUEST.route,
-                                exact: true,
-                                screens: {
-                                    manual: {
-                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
-                                        exact: true,
-                                    },
-                                    scan: {
-                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
-                                        exact: true,
-                                    },
-                                    distance: {
-                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
-                                        exact: true,
-                                    },
-                                },
-                            },
-                            Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT.route,
-                            Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
-                            Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
-                            Money_Request_Date: ROUTES.MONEY_REQUEST_DATE.route,
-                            Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                            Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
-                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY.route,
-                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
-                            Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
-                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
-                            Money_Request_Edit_Waypoint: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
-                            Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                            Money_Request_Distance: ROUTES.MONEY_REQUEST_DISTANCE.route,
-                            IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
-                            IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
-                            IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-                        },
-                    },
-                    SplitDetails: {
-                        screens: {
-                            SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
-                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
-                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
-                        },
-                    },
-                    Task_Details: {
-                        screens: {
-                            Task_Title: ROUTES.TASK_TITLE.route,
-                            Task_Description: ROUTES.TASK_DESCRIPTION.route,
-                            Task_Assignee: ROUTES.TASK_ASSIGNEE.route,
-                        },
-                    },
-                    AddPersonalBankAccount: {
-                        screens: {
-                            AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
-                        },
-                    },
-                    EnablePayments: {
-                        screens: {
-                            EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                        },
-                    },
-                    Wallet_Statement: {
-                        screens: {
-                            WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
-                        },
-                    },
-                    Flag_Comment: {
-                        screens: {
-                            FlagComment_Root: ROUTES.FLAG_COMMENT.route,
-                        },
-                    },
-                    EditRequest: {
-                        screens: {
-                            EditRequest_Root: ROUTES.EDIT_REQUEST.route,
-                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST.route,
-                        },
-                    },
-                    SignIn: {
-                        screens: {
-                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
-                        },
-                    },
-                    Referral: {
-                        screens: {
-                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
-                        },
-                    },
-                },
-            },
-
-            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.SETTINGS_HOME]: {
-                        path: ROUTES.SETTINGS_HOME,
-                    },
-                    SettingsCentralPane: {
-                        screens: {
-                            [SCREENS.SETTINGS_NEW_PROFILE]: {
-                                path: ROUTES.SETTINGS_NEW_PROFILE,
-                                exact: true,
-                            }
-                        }
                     },
                     // Settings: {
                     //     screens: {
