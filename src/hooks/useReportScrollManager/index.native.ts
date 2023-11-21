@@ -24,7 +24,9 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
+        setTimeout(() => {
+            flatListRef.current?.scrollToOffset({animated: false, offset: 0});
+        }, 10);
     }, [flatListRef]);
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom};
