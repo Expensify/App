@@ -1,21 +1,42 @@
 import BaseModalProps, {PopoverAnchorPosition} from '@components/Modal/types';
 import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 
+type AnchorAlignment = {horizontal: string; vertical: string};
+
+type PopoverDimensions = {
+    width: number;
+    height: number;
+};
+
 type PopoverProps = {
-    anchorPosition: PopoverAnchorPosition;
-    anchorAlignment: {horizontal: string; vertical: string};
+    /** The anchor position of the popover */
+    anchorPosition?: PopoverAnchorPosition;
+
+    /** The anchor alignment of the popover */
+    anchorAlignment: AnchorAlignment;
+
+    /** The anchor ref of the popover */
     anchorRef: React.RefObject<HTMLElement>;
+
+    /** Whether disable the animations */
     disableAnimation: boolean;
+
+    /** Whether we don't want to show overlay */
     withoutOverlay: boolean;
-    popoverDimensions?: {
-        width: number;
-        height: number;
-    };
+
+    /** The dimensions of the popover */
+    popoverDimensions?: PopoverDimensions;
+
+    /** The ref of the popover */
     withoutOverlayRef?: React.RefObject<HTMLElement>;
+
+    /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
+
+    /** The popover children */
     children: React.ReactNode;
 } & BaseModalProps;
 
-type PopoverPropsWithWindowDimensions = PopoverProps & WindowDimensionsProps;
+type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
-export type {PopoverProps, PopoverPropsWithWindowDimensions};
+export type {PopoverProps, PopoverWithWindowDimensionsProps};

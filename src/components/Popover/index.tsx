@@ -5,14 +5,14 @@ import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {PopoverPropsWithWindowDimensions} from './types';
+import {PopoverWithWindowDimensionsProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 
-function Popover(props: PopoverPropsWithWindowDimensions) {
+function Popover(props: PopoverWithWindowDimensionsProps) {
     const {
         isVisible,
         onClose,
