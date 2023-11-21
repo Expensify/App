@@ -432,8 +432,8 @@ export default {
 
             [NAVIGATORS.SETTINGS_NAVIGATOR]: {
                 screens: {
-                    [SCREENS.SETTINGS_NEW]: ROUTES.SETTINGS_NEW,
-                }
+                    [SCREENS.SETTINGS_NEW_PROFILE]: {path: ROUTES.SETTINGS_NEW_PROFILE},
+                },
             }
         },
     },

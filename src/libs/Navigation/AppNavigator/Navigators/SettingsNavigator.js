@@ -1,12 +1,13 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import { View } from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-
-const Stack = createStackNavigator();
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
+import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Navigation functions provided by React Navigation */
@@ -15,18 +16,32 @@ const propTypes = {
     }).isRequired,
 };
 
+const RootStack = createCustomStackNavigator();
+
 function SettingsNavigator() {
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
 
     return (
-            <View style={styles.fullScreen}>
-                <Stack.Navigator screenOptions={RHPScreenOptions}>
-                    <Stack.Screen
-                        name="NewNavigator"
-                        component={NotFoundPage}
-                    />
-                </Stack.Navigator>
-            </View>
+        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+            <RootStack.Navigator
+                isSmallScreenWidth={isSmallScreenWidth}
+                initialRouteName={ROUTES.SETTINGS_NEW_PROFILE}
+                mode="modal"
+            >
+                <RootStack.Screen
+                    name={NAVIGATORS.SETTINGS_NAVIGATOR}
+                    options={screenOptions.centralPaneNavigator}
+                    component={NotFoundPage}
+                />
+                                <RootStack.Screen
+                    name={ROUTES.SETTINGS_NEW_PROFILE}
+                    options={screenOptions.fullScreen}
+                    getComponent={NotFoundPage}
+                />
+            </RootStack.Navigator>
+        </View>
     );
 }
 

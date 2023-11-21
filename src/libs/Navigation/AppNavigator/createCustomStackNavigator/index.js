@@ -19,20 +19,23 @@ const propTypes = {
     /* Screen options defined for this navigator */
     // eslint-disable-next-line react/forbid-prop-types
     screenOptions: PropTypes.object,
+
+    centralRoute: PropTypes.string,
 };
 
 const defaultProps = {
     initialRouteName: undefined,
     screenOptions: undefined,
+    centralRoute: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
 };
 
-function reduceReportRoutes(routes) {
+function reduceReportRoutes(routes, centralRoute=NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
     const result = [];
     let count = 0;
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (route.name === centralRoute) {
             // Remove all report routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
@@ -42,6 +45,8 @@ function reduceReportRoutes(routes) {
             result.push(route);
         }
     });
+
+    console.log('reduceReportRoutes', centralRoute, routes, result);
 
     return result.reverse();
 }
@@ -62,14 +67,16 @@ function ResponsiveStackNavigator(props) {
     });
 
     const stateToRender = useMemo(() => {
-        const result = reduceReportRoutes(state.routes);
+        const result = reduceReportRoutes(state.routes, props.centralRoute);
 
         return {
             ...state,
             index: result.length - 1,
             routes: [...result],
         };
-    }, [state]);
+    }, [props.centralRoute, state]);
+
+    console.log('ResponsiveStackNavigator', props.centralRoute);
 
     return (
         <NavigationContent>
