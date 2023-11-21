@@ -5,13 +5,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
-import useLocalize from "@hooks/useLocalize";
 
 const propTypes = {
-
     /** policyID of the workspace where user is setting up bank account */
     policyID: PropTypes.string.isRequired,
 };

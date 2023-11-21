@@ -24,7 +24,6 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         return account.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
     }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
-
     const {setAnimationDirection} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
