@@ -25,8 +25,7 @@ export default function generateMonthMatrix(year, month) {
         throw new Error('Month cannot be greater than 11');
     }
 
-    // Get the week day for the start and end of week
-    const weekStartsOn = DateUtils.getWeekStartsOn();
+    // Get the week day for the end of week
     const weekEndsOn = DateUtils.getWeekEndsOn();
 
     // Get the number of days in the month and the first day of the month
@@ -36,11 +35,6 @@ export default function generateMonthMatrix(year, month) {
     // Create a matrix to hold the calendar days
     const matrix = [];
     let currentWeek = [];
-
-    // Add null values for days before the first day of the month
-    for (let i = weekStartsOn; i < getDay(firstDayOfMonth); i++) {
-        currentWeek.push(null);
-    }
 
     // Add calendar days to the matrix
     for (let i = 1; i <= daysInMonth; i++) {
@@ -61,5 +55,11 @@ export default function generateMonthMatrix(year, month) {
         }
         matrix.push(currentWeek);
     }
+
+    // Add null values for days before the first day of the month
+    for (let i = matrix[0].length; i < 7; i++) {
+        matrix[0].unshift(null);
+    }
+
     return matrix;
 }
