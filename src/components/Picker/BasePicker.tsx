@@ -6,7 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import useScroll from '@hooks/useScroll';
+import useScrollContext from '@hooks/useScrollContext';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import type {BasePickerHandle, BasePickerProps, PickerSize} from './types';
@@ -64,7 +64,7 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
-    const context = useScroll();
+    const context = useScrollContext();
 
     /**
      * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onValueChange
