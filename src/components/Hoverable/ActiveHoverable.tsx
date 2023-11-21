@@ -51,19 +51,17 @@ function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children
     const onMouseEnter = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(true);
-            props.onMouseEnter?.(e);
             child.props.onMouseEnter?.(e);
         },
-        [updateIsHovered, props, child.props],
+        [updateIsHovered, child.props],
     );
 
     const onMouseLeave = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(false);
-            props.onMouseLeave?.(e);
             child.props.onMouseLeave?.(e);
         },
-        [updateIsHovered, props, child.props],
+        [updateIsHovered, child.props],
     );
 
     return cloneElement(child, {
