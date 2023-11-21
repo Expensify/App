@@ -9,6 +9,7 @@ import SCREENS from '@src/SCREENS';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 
 const loadSidebarScreen = () => require('../../../../pages/home/sidebar/SidebarScreen').default;
+const loadPage = () => require('../../../../pages/ErrorPage/NotFoundPage').default;
 
 const propTypes = {
     /* Navigation functions provided by React Navigation */
@@ -27,17 +28,20 @@ function SettingsNavigator({navigation}) {
 
     console.log('navigation state', navigation.getState());
 
+    console.log('loadSidebarScreen', loadSidebarScreen, 'not found page', loadPage)
+
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
                 mode="modal"
                 initialRouteName={SCREENS.SETTINGS_HOME}
+                centralRoute='SettingsCentralPane'
             >
                 <RootStack.Screen
                     name={SCREENS.SETTINGS_HOME}
                     options={screenOptions.homeScreen}
-                    getComponent={loadSidebarScreen}
+                    getComponent={loadPage}
                 />
                 <RootStack.Screen
                     name='SettingsCentralPane'

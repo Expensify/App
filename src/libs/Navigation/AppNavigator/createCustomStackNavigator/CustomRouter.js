@@ -3,14 +3,16 @@ import lodashFindLast from 'lodash/findLast';
 import _ from 'underscore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import CentralPaneNavigator from '../Navigators/CentralPaneNavigator';
 
 /**
  * @param {Object} state - react-navigation state
  * @param {String} centralRoute - name of the central route
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = (state, centralRoute) => _.find(state.routes, (r) => r.name === centralRoute);
+const isAtLeastOneCentralPaneNavigatorInState = (state, centralRoute) => {
+    console.log('isAtLeastOneCentralPaneNavigatorInState', centralRoute);
+    return _.find(state.routes, (r) => r.name === centralRoute)
+};
 
 /**
  * @param {Object} state - react-navigation state
@@ -81,16 +83,15 @@ const addCentralPaneNavigatorRoute = (state, centralRoute) => {
 
 function CustomRouter(options) {
     const stackRouter = StackRouter(options);
-    const centralRoute = options.centralRoute || NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
-    console.log('CustomRouter', centralRoute);
 
     return {
         ...stackRouter,
         getRehydratedState(partialState, {routeNames, routeParamList}) {
+            const centralRoute = options.centralRoute();
             console.log('getRehydratedState', centralRoute);
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
             if (!isAtLeastOneCentralPaneNavigatorInState(partialState, centralRoute) && !options.getIsSmallScreenWidth()) {
-                console.log('getRehydratedState', centralRoute, 'adding CentralPaneNavigator');
+                console.log('getRehydratedState', centralRoute, 'adding central pane');
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
                 // eslint-disable-next-line no-param-reassign
                 partialState.stale = true;

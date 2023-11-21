@@ -52,11 +52,15 @@ function reduceReportRoutes(routes, centralRoute=NAVIGATORS.CENTRAL_PANE_NAVIGAT
 }
 
 function ResponsiveStackNavigator(props) {
+    console.log('ResponsiveStackNavigator', props.centralRoute)
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
 
     isSmallScreenWidthRef.current = isSmallScreenWidth;
+
+    const centralRouteRef = useRef(props.centralRoute);
+    centralRouteRef.current = props.centralRoute;
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
         children: props.children,
@@ -64,7 +68,7 @@ function ResponsiveStackNavigator(props) {
         initialRouteName: props.initialRouteName,
         // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
         getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
-        centralRoute: props.centralRoute,
+        centralRoute: () => centralRouteRef.current,
     });
 
     const stateToRender = useMemo(() => {

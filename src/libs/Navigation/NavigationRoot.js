@@ -75,6 +75,7 @@ function NavigationRoot(props) {
         if (!navigationRef.isReady() || !props.authenticated) {
             return;
         }
+        // TODO: Add force rehydration!
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth, props.authenticated]);
