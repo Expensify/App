@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import {AnimationDirection} from './AnimatedStepContext';
@@ -20,6 +20,7 @@ type AnimatedStepProps = ChildrenProps & {
 
 function getAnimationStyle(direction: AnimationDirection) {
     let transitionValue;
+    const styles = useThemeStyles();
 
     if (direction === 'in') {
         transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
