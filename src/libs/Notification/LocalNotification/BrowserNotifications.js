@@ -6,8 +6,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
 
-const DEFAULT_DELAY = 4000;
-
 const notificationCache = [];
 
 /**
@@ -53,13 +51,12 @@ function closeNotification(notificationID) {
  * @param {String} params.title
  * @param {String} params.body
  * @param {String} [params.icon] Path to icon
- * @param {Number} [params.delay]
  * @param {Function} [params.onClick]
  * @param {String} [params.tag]
  *
  * @return {Promise} - resolves with Notification object or undefined
  */
-function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}) {
+function push({title, body, onClick = () => {}, tag = '', icon}) {
     return new Promise((resolve) => {
         if (!title || !body) {
             throw new Error('BrowserNotification must include title and body parameter.');
@@ -78,12 +75,6 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
                 icon,
             });
             notificationCache[notificationID] = notification;
-
-            // If we pass in a delay param greater than 0 the notification
-            // will auto-close after the specified time.
-            if (delay > 0) {
-                setTimeout(() => closeNotification(notificationID), delay);
-            }
 
             notification.onclick = () => {
                 onClick();
@@ -135,7 +126,6 @@ export default {
         push({
             title,
             body,
-            delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',
         });
@@ -145,7 +135,6 @@ export default {
         push({
             title: _.map(reportAction.person, (f) => f.text).join(', '),
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
-            delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',
         });
@@ -158,7 +147,6 @@ export default {
         push({
             title: 'Update available',
             body: 'A new version of this app is available!',
-            delay: 0,
             onClick: () => {
                 AppUpdate.triggerUpdateAvailable();
             },
