@@ -6,7 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from "@styles/useThemeStyles";
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import MessagesRow from './MessagesRow';
 
@@ -64,8 +64,7 @@ const defaultProps = {
     errors: null,
     shouldShowErrorMessages: true,
     shouldDisableOpacity: false,
-    onClose: () => {
-    },
+    onClose: () => {},
     style: [],
     contentContainerStyle: [],
     errorRowStyles: [],
@@ -73,7 +72,6 @@ const defaultProps = {
     needsOffscreenAlphaCompositing: false,
     canDismissError: true,
 };
-
 
 function OfflineWithFeedback(props) {
     const styles = useThemeStyles();
@@ -97,17 +95,20 @@ function OfflineWithFeedback(props) {
      * @param {Array} children
      * @return {Array}
      */
-    const applyStrikeThrough = useCallback((childrenToStyle) => React.Children.map(childrenToStyle, (child) => {
-        if (!React.isValidElement(child)) {
-            return child;
-        }
-        const elementProps = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
-        if (child.props.children) {
-            elementProps.children = applyStrikeThrough(child.props.children);
-        }
-        return React.cloneElement(child, elementProps);
-    }), [styles])
-
+    const applyStrikeThrough = useCallback(
+        (childrenToStyle) =>
+            React.Children.map(childrenToStyle, (child) => {
+                if (!React.isValidElement(child)) {
+                    return child;
+                }
+                const elementProps = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
+                if (child.props.children) {
+                    elementProps.children = applyStrikeThrough(child.props.children);
+                }
+                return React.cloneElement(child, elementProps);
+            }),
+        [styles],
+    );
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {

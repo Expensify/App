@@ -13,10 +13,10 @@ import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withThemeStyles from "@components/withThemeStyles";
-import withTheme from "@components/withTheme";
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
+import withTheme from '@components/withTheme';
+import withThemeStyles from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -463,8 +463,24 @@ class BaseOptionsSelector extends Component {
 
         const optionsAndInputsBelowThem = (
             <>
-                <View style={[this.props.themeStyles.flexGrow0, this.props.themeStyles.flexShrink1, this.props.themeStyles.flexBasisAuto, this.props.themeStyles.w100, this.props.themeStyles.flexRow]}>{optionsList}</View>
-                <View style={this.props.shouldUseStyleForChildren ? [this.props.themeStyles.ph5, this.props.themeStyles.pv5, this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink0] : []}>
+                <View
+                    style={[
+                        this.props.themeStyles.flexGrow0,
+                        this.props.themeStyles.flexShrink1,
+                        this.props.themeStyles.flexBasisAuto,
+                        this.props.themeStyles.w100,
+                        this.props.themeStyles.flexRow,
+                    ]}
+                >
+                    {optionsList}
+                </View>
+                <View
+                    style={
+                        this.props.shouldUseStyleForChildren
+                            ? [this.props.themeStyles.ph5, this.props.themeStyles.pv5, this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink0]
+                            : []
+                    }
+                >
                     {this.props.children}
                     {this.props.shouldShowTextInput && textInput}
                 </View>
@@ -522,7 +538,16 @@ class BaseOptionsSelector extends Component {
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
                             }}
-                            style={[this.props.themeStyles.p5, this.props.themeStyles.w100, this.props.themeStyles.br2, this.props.themeStyles.highlightBG, this.props.themeStyles.flexRow, this.props.themeStyles.justifyContentBetween, this.props.themeStyles.alignItemsCenter, {gap: 10}]}
+                            style={[
+                                this.props.themeStyles.p5,
+                                this.props.themeStyles.w100,
+                                this.props.themeStyles.br2,
+                                this.props.themeStyles.highlightBG,
+                                this.props.themeStyles.flexRow,
+                                this.props.themeStyles.justifyContentBetween,
+                                this.props.themeStyles.alignItemsCenter,
+                                {gap: 10},
+                            ]}
                             accessibilityLabel="referral"
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >

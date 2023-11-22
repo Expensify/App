@@ -3,10 +3,8 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from "@styles/themes/useTheme";
-import useThemeStyles from "@styles/useThemeStyles";
-// TODO: should it be removed?
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -69,7 +67,7 @@ function MultipleAvatars({
     fallbackIcon,
     icons = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle = [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
+    secondAvatarStyle = undefined,
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,
@@ -83,20 +81,25 @@ function MultipleAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(() => ({
-        [CONST.AVATAR_SIZE.SMALL]: {
-            singleAvatarStyle: styles.singleAvatarSmall,
-            secondAvatarStyles: styles.secondAvatarSmall,
-        },
-        [CONST.AVATAR_SIZE.LARGE]: {
-            singleAvatarStyle: styles.singleAvatarMedium,
-            secondAvatarStyles: styles.secondAvatarMedium,
-        },
-        [CONST.AVATAR_SIZE.DEFAULT]: {
-            singleAvatarStyle: styles.singleAvatar,
-            secondAvatarStyles: styles.secondAvatar,
-        },
-    }), [styles]);
+    const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
+        () => ({
+            [CONST.AVATAR_SIZE.SMALL]: {
+                singleAvatarStyle: styles.singleAvatarSmall,
+                secondAvatarStyles: styles.secondAvatarSmall,
+            },
+            [CONST.AVATAR_SIZE.LARGE]: {
+                singleAvatarStyle: styles.singleAvatarMedium,
+                secondAvatarStyles: styles.secondAvatarMedium,
+            },
+            [CONST.AVATAR_SIZE.DEFAULT]: {
+                singleAvatarStyle: styles.singleAvatar,
+                secondAvatarStyles: styles.secondAvatar,
+            },
+        }),
+        [styles],
+    );
+
+    const secondAvatarDefaultStyles = secondAvatarStyle ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size]);
@@ -270,7 +273,9 @@ function MultipleAvatars({
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
+                        <View
+                            style={[secondAvatarStyles, secondAvatarDefaultStyles, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}
+                        >
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
                                     accountID={icons[1].id}
