@@ -19,6 +19,7 @@ function BaseListItem({
     item,
     isFocused = false,
     isDisabled = false,
+    isHide = false,
     showTooltip,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
@@ -56,6 +57,7 @@ function BaseListItem({
                         styles.userSelectNone,
                         isUserItem ? styles.peopleRow : styles.optionRow,
                         isFocused && styles.sidebarLinkActive,
+                        isHide && styles.opacity0,
                     ]}
                 >
                     {canSelectMultiple && (

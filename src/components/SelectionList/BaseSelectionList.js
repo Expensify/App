@@ -72,7 +72,7 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
-    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(5);
+    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : 5);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -304,6 +304,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
+                isHide={!maxToRenderPerBatch}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}

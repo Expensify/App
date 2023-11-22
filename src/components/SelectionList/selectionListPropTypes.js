@@ -91,6 +91,7 @@ const baseListItemPropTypes = {
     ...commonListItemPropTypes,
     item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
     shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
+    isHide: PropTypes.bool,
 };
 
 const propTypes = {
@@ -183,7 +184,7 @@ const propTypes = {
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-				/** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
+    /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
 };
 
