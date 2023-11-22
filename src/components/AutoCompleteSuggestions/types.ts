@@ -2,6 +2,11 @@ import {ReactElement} from 'react';
 
 type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
+type RenderSuggestionMenuItemProps<TSuggestion> = {
+    item: TSuggestion;
+    index: number;
+};
+
 type AutoCompleteSuggestionsProps<TSuggestion> = {
     /** Array of suggestions */
     suggestions: TSuggestion[];
@@ -30,4 +35,4 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
 };
 
-export default AutoCompleteSuggestionsProps;
+export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};

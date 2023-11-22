@@ -5,7 +5,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
-import type AutoCompleteSuggestionsProps from './types';
+import type {AutoCompleteSuggestionsProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,

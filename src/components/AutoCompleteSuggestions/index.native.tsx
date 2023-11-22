@@ -1,7 +1,7 @@
 import {Portal} from '@gorhom/portal';
 import React from 'react';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
-import type AutoCompleteSuggestionsProps from './types';
+import type {AutoCompleteSuggestionsProps} from './types';
 
 function AutoCompleteSuggestions<TSuggestion>({measureParentContainer, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     return (

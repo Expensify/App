@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {ForwardedRef, forwardRef, ReactElement, useCallback, useEffect, useRef} from 'react';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -7,14 +7,11 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import {propTypes} from './autoCompleteSuggestionsPropTypes';
+import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
 
-/**
- * @param {Number} numRows
- * @param {Boolean} isSuggestionPickerLarge
- * @returns {Number}
- */
-const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
+const viewForwardedRef = (ref: ForwardedRef<Animated.View | HTMLDivElement>) => ref as ForwardedRef<Animated.View>;
+
+const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
         if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
             // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
@@ -29,28 +26,26 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
-function BaseAutoCompleteSuggestions({
-    highlightedSuggestionIndex,
-    onSelect,
-    renderSuggestionMenuItem,
-    suggestions,
-    accessibilityLabelExtractor,
-    keyExtractor,
-    isSuggestionPickerLarge,
-    forwardedRef,
-}) {
+function BaseAutoCompleteSuggestions<TSuggestion>(
+    {
+        highlightedSuggestionIndex,
+        onSelect,
+        accessibilityLabelExtractor,
+        renderSuggestionMenuItem,
+        suggestions,
+        isSuggestionPickerLarge,
+        keyExtractor,
+    }: AutoCompleteSuggestionsProps<TSuggestion>,
+    ref: ForwardedRef<Animated.View | HTMLDivElement>,
+) {
     const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
-    const scrollRef = useRef(null);
+    const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
      * Render a suggestion menu item component.
-     * @param {Object} params
-     * @param {Object} params.item
-     * @param {Number} params.index
-     * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item, index}) => (
+        ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
             <PressableWithFeedback
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
@@ -84,7 +79,7 @@ function BaseAutoCompleteSuggestions({
 
     return (
         <Animated.View
-            ref={forwardedRef}
+            ref={viewForwardedRef(ref)}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
@@ -104,17 +99,6 @@ function BaseAutoCompleteSuggestions({
     );
 }
 
-BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-const BaseAutoCompleteSuggestionsWithRef = React.forwardRef((props, ref) => (
-    <BaseAutoCompleteSuggestions
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-BaseAutoCompleteSuggestionsWithRef.displayName = 'BaseAutoCompleteSuggestionsWithRef';
-
-export default BaseAutoCompleteSuggestionsWithRef;
+export default forwardRef(BaseAutoCompleteSuggestions);
