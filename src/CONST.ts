@@ -2906,6 +2906,13 @@ const CONST = {
      * The maximum count of items per page for OptionsSelector
      */
     OPTIONS_SELECTOR_PAGE_LIMITATION: 500,
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
+    },
 } as const;
 
 export default CONST;
