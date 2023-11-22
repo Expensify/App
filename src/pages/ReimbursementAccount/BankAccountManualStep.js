@@ -3,7 +3,8 @@ import React, {useCallback} from 'react';
 import {Image} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -28,6 +29,9 @@ function BankAccountManualStep(props) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {reimbursementAccount, reimbursementAccountDraft} = props;
+
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -41,7 +45,7 @@ function BankAccountManualStep(props) {
             if (
                 values.accountNumber &&
                 !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
-                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
+                !(shouldDisableInputs && CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
             ) {
                 errors.accountNumber = 'bankAccount.error.accountNumber';
             } else if (values.accountNumber && values.accountNumber === routingNumber) {
@@ -56,7 +60,7 @@ function BankAccountManualStep(props) {
 
             return errors;
         },
-        [translate],
+        [translate, shouldDisableInputs],
     );
 
     const submit = useCallback(
@@ -71,8 +75,6 @@ function BankAccountManualStep(props) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -85,7 +87,7 @@ function BankAccountManualStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={props.onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 onSubmit={submit}
                 validate={validate}
@@ -98,8 +100,8 @@ function BankAccountManualStep(props) {
                     style={[styles.exampleCheckImage, styles.mb5]}
                     source={exampleCheckImage(preferredLocale)}
                 />
-                <TextInput
-                    accessibilityLabel="Text input field"
+                <InputWrapper
+                    InputComponent={TextInput}
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
@@ -112,8 +114,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <TextInput
-                    accessibilityLabel="Text input field"
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
@@ -125,7 +127,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
@@ -138,7 +141,7 @@ function BankAccountManualStep(props) {
                     defaultValue={props.getDefaultStateForField('acceptTerms', false)}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

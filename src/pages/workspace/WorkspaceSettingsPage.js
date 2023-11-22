@@ -111,7 +111,6 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     enabledWhenOffline
                 >
                     <AvatarWithImagePicker
-                        isUploading={policy.isAvatarUploading}
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
                         DefaultAvatar={() => (
