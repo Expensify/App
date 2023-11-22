@@ -4097,7 +4097,7 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID,
 }
 
 /**
- * Returns an array of the visible member Ids of a report
+ * Returns an array of the visible member accountIDs for a report
  *
  * @param {Object} report
  * @returns {Array}
