@@ -415,9 +415,12 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
         };
     }
 
-    const messageText = message?.text ?? '';
+    let messageText = message?.text ?? '';
+    if (messageText) {
+        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    }
     return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+        lastMessageText: messageText,
     };
 }
 
@@ -469,7 +472,7 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  * 4. We will get the second last action from filtered actions because the last
  *    action is always the created action
  */
-function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [], isOffline = false): string {
     if (!Array.isArray(sortedReportActions)) {
         return '';
     }
