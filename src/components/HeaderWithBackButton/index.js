@@ -97,6 +97,7 @@ function HeaderWithBackButton({
                 ) : (
                     <Header
                         title={title}
+                        isUseInWorkspaceSection
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />

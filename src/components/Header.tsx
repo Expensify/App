@@ -16,13 +16,16 @@ type HeaderProps = {
 
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
+
+    /** Check if this header is used in Workspace Section  */
+    isUseInWorkspaceSection: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false, isUseInWorkspaceSection = false}: HeaderProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.flexRow]}>
-            <View style={styles.w100}>
+            <View style={isUseInWorkspaceSection ? styles.w100 : styles.mw100}>
                 {typeof title === 'string'
                     ? Boolean(title) && (
                           <Text
