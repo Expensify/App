@@ -13,4 +13,5 @@ export default {
     canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
     canUsePolicyRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
     canUseCustomStatus: (betas: Beta[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
+    canUseViolations: (betas: Beta[]) => betas.includes(CONST.BETAS.VIOLATIONS),
 };
