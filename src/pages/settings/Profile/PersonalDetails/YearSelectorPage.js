@@ -60,7 +60,6 @@ function YearSelectorPage(props) {
     return (
         <ScreenWrapper
             style={[styles.pb0]}
-            includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={YearSelectorPage.displayName}
         >
