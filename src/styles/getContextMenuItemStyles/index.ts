@@ -1,8 +1,7 @@
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import GetContextMenuItemStyle from './types';
 
-const getContextMenuItemStyles: GetContextMenuItemStyle = (windowWidth) => {
+const getContextMenuItemStyles: GetContextMenuItemStyle = (styles, windowWidth) => {
     if (windowWidth && windowWidth > variables.mobileResponsiveWidthBreakpoint) {
         return [styles.popoverMenuItem, styles.contextMenuItemPopoverMaxWidth];
     }
