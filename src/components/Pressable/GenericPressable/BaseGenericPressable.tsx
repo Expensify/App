@@ -5,7 +5,8 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
+import Styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import PressableProps from './types';
@@ -13,7 +14,7 @@ import PressableProps from './types';
 /**
  * Returns the cursor style based on the state of Pressable
  */
-function getCursorStyle(isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> {
+function getCursorStyle(isDisabled: boolean, isText: boolean, styles: typeof Styles): Pick<ViewStyle, 'cursor'> {
     if (isDisabled) {
         return styles.cursorDisabled;
     }
@@ -51,6 +52,7 @@ function GenericPressable(
     }: PressableProps,
     ref: ForwardedRef<View>,
 ) {
+    const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
@@ -132,7 +134,7 @@ function GenericPressable(
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text')),
+                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text'), styles),
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
