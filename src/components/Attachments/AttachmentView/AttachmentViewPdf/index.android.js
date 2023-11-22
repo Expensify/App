@@ -3,11 +3,12 @@ import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
 function AttachmentViewPdf(props) {
+    const styles = useThemeStyles();
     const {onScaleChanged, ...restProps} = props;
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scaleRef = useSharedValue(1);
@@ -41,7 +42,7 @@ function AttachmentViewPdf(props) {
     return (
         <View
             collapsable={false}
-            style={[styles.flex1]}
+            style={styles.flex1}
         >
             <GestureDetector gesture={Pan}>
                 <Animated.View
