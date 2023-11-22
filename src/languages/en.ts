@@ -592,7 +592,7 @@ export default {
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             receiptFailureMessage: "The receipt didn't upload. ",
-            saveFileMessage: 'Save the file ',
+            saveFileMessage: 'Download the file ',
             loseFileMessage: 'or dismiss this error and lose it',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
