@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
-import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
@@ -304,57 +304,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-/**
- * Checks if the navigation state contains routes that are protected (over the auth wall).
- *
- * @function
- * @param {Object} state - react-navigation state object
- *
- * @returns {Boolean}
- */
-function navContainsProtectedRoutes(state) {
-    if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
-        return false;
-    }
-
-    const protectedScreensName = _.values(PROTECTED_SCREENS);
-    const difference = _.difference(protectedScreensName, state.routeNames);
-
-    return !difference.length;
-}
-
-/**
- * Waits for the navitgation state to contain protected routes specified in PROTECTED_SCREENS constant.
- * If the navigation is in a state, where protected routes are avilable, the promise resolve immediately.
- *
- * @function
- * @returns {Promise<void>} A promise that resolves when the one of the PROTECTED_SCREENS screen is available in the nav tree.
- *
- * @example
- * waitForProtectedRoutes()
- *     .then(()=> console.log('Protected routes are present!'))
- */
-function waitForProtectedRoutes() {
-    return new Promise((resolve) => {
-        isNavigationReady().then(() => {
-            const currentState = navigationRef.current.getState();
-            if (navContainsProtectedRoutes(currentState)) {
-                resolve();
-                return;
-            }
-            let unsubscribe;
-            const handleStateChange = ({data}) => {
-                const state = lodashGet(data, 'state');
-                if (navContainsProtectedRoutes(state)) {
-                    unsubscribe();
-                    resolve();
-                }
-            };
-            unsubscribe = navigationRef.current.addListener('state', handleStateChange);
-        });
-    });
-}
-
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -370,8 +319,6 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
-    waitForProtectedRoutes,
-    navContainsProtectedRoutes,
 };
 
 export {navigationRef};
