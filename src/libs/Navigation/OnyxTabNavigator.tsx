@@ -1,4 +1,5 @@
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {createMaterialTopTabNavigator, MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
@@ -16,9 +17,9 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         id: string;
 
         /** Name of the selected tab */
-        selectedTab: string;
+        selectedTab?: string;
 
-        screenListeners: Record<string, unknown>;
+        screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
     };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -26,7 +27,7 @@ export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab = '', children, ...rest}: OnyxTabNavigatorProps) {
+function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...rest}: OnyxTabNavigatorProps) {
     return (
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -36,13 +37,14 @@ function OnyxTabNavigator({id, selectedTab = '', children, ...rest}: OnyxTabNavi
             backBehavior="initialRoute"
             keyboardDismissMode="none"
             screenListeners={{
-                state: (event) => {
+                state: (e) => {
+                    const event = e as unknown as EventMapCore<NavigationState>['state'];
                     const state = event.data?.state;
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);
                 },
-                ...(rest.screenListeners || {}),
+                ...(screenListeners ?? {}),
             }}
         >
             {children}
