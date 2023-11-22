@@ -34,15 +34,6 @@ function canUseBrowserNotifications() {
     });
 }
 
-function closeNotification(notificationID) {
-    if (!notificationCache[notificationID]) {
-        return;
-    }
-
-    notificationCache[notificationID].close();
-    delete notificationCache[notificationID];
-}
-
 /**
  * Light abstraction around browser push notifications.
  * Checks for permission before determining whether to send.
@@ -51,38 +42,30 @@ function closeNotification(notificationID) {
  * @param {String} body
  * @param {String} icon Path to icon
  * @param {Function} onClick
- *
- * @return {Promise} - resolves with Notification object or undefined
  */
 function push(title, body, icon = '', onClick = () => {}) {
-    return new Promise((resolve) => {
-        if (!title || !body) {
-            throw new Error('BrowserNotification must include title and body parameter.');
+    if (!title || !body) {
+        throw new Error('BrowserNotification must include title and body parameter.');
+    }
+
+    canUseBrowserNotifications().then((canUseNotifications) => {
+        if (!canUseNotifications) {
+            return;
         }
 
-        canUseBrowserNotifications().then((canUseNotifications) => {
-            if (!canUseNotifications) {
-                resolve();
-                return;
-            }
-
-            const notificationID = Str.guid();
-            const notification = new Notification(title, {
-                body,
-                icon,
-            });
-            notificationCache[notificationID] = notification;
-
-            notification.onclick = () => {
-                onClick();
-                window.parent.focus();
-                window.focus();
-                focusApp();
-                closeNotification(notificationID);
-            };
-
-            resolve(notification);
+        const notificationID = Str.guid();
+        notificationCache[notificationID] = new Notification(title, {
+            body,
+            icon,
         });
+        notificationCache[notificationID].onclick = () => {
+            onClick();
+            window.parent.focus();
+            window.focus();
+            focusApp();
+            notificationCache[notificationID].close();
+            delete notificationCache[notificationID];
+        };
     });
 }
 
