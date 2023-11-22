@@ -267,7 +267,6 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
-                        // console.log('duke const targetId = event.nativeEvent.target ', !event.relatedTarget.contains(event.currentTarget));
 
                         setTimeout(() => {
                             if (relatedTargetId && _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)) {

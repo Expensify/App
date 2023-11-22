@@ -354,7 +354,7 @@ function Form(props) {
                             // We delay the validation in order to prevent Checkbox loss of focus when
                             // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                             // web and mobile web platforms.
-                            console.log('duke relatedTargetId', relatedTargetId);
+
                             setTimeout(() => {
                                 if (
                                     relatedTargetId &&
