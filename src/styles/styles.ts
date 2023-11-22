@@ -1442,6 +1442,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+        },
+
         popoverMenuText: {
             fontSize: variables.fontSizeNormal,
             color: theme.heading,
