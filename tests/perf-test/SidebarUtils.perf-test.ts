@@ -13,8 +13,6 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.setTimeout(120000);
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
@@ -39,9 +37,10 @@ const reportActions = createCollection<ReportAction>(
     (index) => createRandomReportAction(index),
 );
 
-const mockedResponseMap: Partial<Report> = getMockedReports(10000);
+const mockedResponseMap: Partial<Report> = getMockedReports(5000);
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('getOptionData on 10k reports', async () => {
+test('getOptionData on 5k reports', async () => {
     const report = createRandomReport(1);
     const personalDetails = LHNTestUtils.fakePersonalDetails;
     const preferredLocale = 'en';
@@ -53,10 +52,10 @@ test('getOptionData on 10k reports', async () => {
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction));
+    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
 });
 
-test('getOrderedReportIDs on 10k reports', async () => {
+test('getOrderedReportIDs on 5k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReports();
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
@@ -89,5 +88,5 @@ test('getOrderedReportIDs on 10k reports', async () => {
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions));
+    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions), {runs});
 });
