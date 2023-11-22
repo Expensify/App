@@ -3,6 +3,7 @@ type Color = string;
 type ThemeColors = {
     // Figma keys
     appBG: Color;
+    transparentAppBG: Color;
     splashBG: Color;
     highlightBG: Color;
     border: Color;
@@ -82,6 +83,7 @@ type ThemeColors = {
     loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    transparentWhite: Color;
 
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };

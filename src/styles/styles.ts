@@ -39,7 +39,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import theme from '.storybook/theme';
 
 type AnchorPosition = {
     horizontal: number;
@@ -4049,7 +4048,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.transparentWhite,
             borderRadius: 10,
             marginTop: 10,
-            alignItems: 'end',
+            alignItems: 'flex-end',
             justifyContent: 'flex-end',
         },
 
