@@ -334,10 +334,7 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
  * Determine whether a transaction is made with a card.
  */
 function isCardTransaction(transaction: Transaction): boolean {
-    if (!transaction.cardID) {
-        return false;
-    }
-    return transaction.cardID > 0;
+    return (transaction?.cardID ?? 0) > 0;
 }
 
 /**
