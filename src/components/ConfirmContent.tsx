@@ -1,7 +1,5 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import React, {ReactNode} from 'react';
+import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -11,82 +9,60 @@ import Header from './Header';
 import Icon from './Icon';
 import Text from './Text';
 
-const propTypes = {
+type ConfirmContentProps = {
     /** Title of the modal */
-    title: PropTypes.string.isRequired,
+    title: string,
 
     /** A callback to call when the form has been submitted */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: (...args: unknown[]) => unknown,
 
     /** A callback to call when the form has been closed */
-    onCancel: PropTypes.func,
+    onCancel: (...args: unknown[]) => unknown,
 
     /** Confirm button text */
-    confirmText: PropTypes.string,
+    confirmText: string,
 
     /** Cancel button text */
-    cancelText: PropTypes.string,
+    cancelText: string,
 
     /** Modal content text/element */
-    prompt: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+    prompt: string | Element,
 
     /** Whether we should use the success button color */
-    success: PropTypes.bool,
+    success: boolean,
 
     /** Whether we should use the danger button color. Use if the action is destructive */
-    danger: PropTypes.bool,
+    danger: boolean,
 
     /** Whether we should disable the confirm button when offline */
-    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+    shouldDisableConfirmButtonWhenOffline: boolean,
 
     /** Whether we should show the cancel button */
-    shouldShowCancelButton: PropTypes.bool,
+    shouldShowCancelButton: boolean,
 
     /** Icon to display above the title */
-    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    iconSource: string | ((props: unknown) => ReactNode),
 
     /** Whether to center the icon / text content */
-    shouldCenterContent: PropTypes.bool,
+    shouldCenterContent: boolean,
 
     /** Whether to stack the buttons */
-    shouldStackButtons: PropTypes.bool,
+    shouldStackButtons: boolean,
 
     /** Styles for title */
-    // eslint-disable-next-line react/forbid-prop-types
-    titleStyles: PropTypes.arrayOf(PropTypes.object),
+    titleStyles: Array<StyleProp<TextStyle>>,
 
     /** Styles for prompt */
-    // eslint-disable-next-line react/forbid-prop-types
-    promptStyles: PropTypes.arrayOf(PropTypes.object),
+    promptStyles: Array<StyleProp<ViewStyle>>,
 
     /** Styles for view */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentStyles: PropTypes.arrayOf(PropTypes.object),
+    contentStyles: Array<StyleProp<ViewStyle>>,
 
     /** Styles for icon */
-    // eslint-disable-next-line react/forbid-prop-types
-    iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
+    iconAdditionalStyles: Array<StyleProp<ViewStyle>>,
 };
 
-const defaultProps = {
-    confirmText: '',
-    cancelText: '',
-    prompt: '',
-    success: true,
-    danger: false,
-    onCancel: () => {},
-    shouldDisableConfirmButtonWhenOffline: false,
-    shouldShowCancelButton: true,
-    contentStyles: [],
-    iconSource: null,
-    shouldCenterContent: false,
-    shouldStackButtons: true,
-    titleStyles: [],
-    promptStyles: [],
-    iconAdditionalStyles: [],
-};
-
-function ConfirmContent(props) {
+function ConfirmContent(props: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -96,8 +72,8 @@ function ConfirmContent(props) {
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
             <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                {!_.isEmpty(props.iconSource) ||
-                    (_.isFunction(props.iconSource) && (
+                {(Object.keys(props.iconSource).length !== 0) ||
+                    (typeof props.iconSource === "function") && (
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={props.iconSource}
@@ -106,7 +82,7 @@ function ConfirmContent(props) {
                                 additionalStyles={[...props.iconAdditionalStyles]}
                             />
                         </View>
-                    ))}
+                    )}
 
                 <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
                     <Header
@@ -114,8 +90,7 @@ function ConfirmContent(props) {
                         textStyles={[...props.titleStyles]}
                     />
                 </View>
-
-                {_.isString(props.prompt) ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
+                {typeof props.prompt === "string" ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
             </View>
 
             {props.shouldStackButtons ? (
@@ -163,7 +138,5 @@ function ConfirmContent(props) {
     );
 }
 
-ConfirmContent.propTypes = propTypes;
-ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
 export default ConfirmContent;
