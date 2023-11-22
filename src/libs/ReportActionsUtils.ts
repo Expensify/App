@@ -123,6 +123,10 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
+function isInvitedRoom(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -648,10 +652,9 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 
 function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     const messageItems: MessageActionItemChanelLog[] = [];
-    const verb =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? Localize.translateLocal('workspace.invite.invited')
-            : Localize.translateLocal('workspace.invite.removed');
+    const isInviteRoom = isInvitedRoom(reportAction);
+
+    const verb = isInviteRoom ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
     messageItems.push({
         kind: 'text',
@@ -717,10 +720,7 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
 
     const roomName = originalMessage?.roomName;
     if (roomName) {
-        const preposition =
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ` ${Localize.translateLocal('workspace.invite.to')} `
-                : ` ${Localize.translateLocal('workspace.invite.from')} `;
+        const preposition = isInviteRoom ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
 
         messageItems.push(
             {
@@ -808,4 +808,5 @@ export {
     isChannelLogMemberAction,
     getChannelLogMemberAction,
     getActionItemFragmentChanelLog,
+    isInvitedRoom,
 };
