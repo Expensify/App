@@ -17,7 +17,6 @@ type RequestData = {
     shouldUseSecure?: boolean;
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
-    idempotencyKey?: string;
 
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
