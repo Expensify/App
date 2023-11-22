@@ -27,6 +27,7 @@ type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
 function ArchivedReportFooter({report, reportClosedAction = null, personalDetails = {}}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [report.ownerAccountID, 'displayName']);
