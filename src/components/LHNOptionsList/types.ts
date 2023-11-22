@@ -90,7 +90,7 @@ type OptionRowLHNProps = {
     isFocused?: boolean;
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<Element>) => void;
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
-    style?: StyleProp<ViewStyle>;
+    style?: ViewStyle | ViewStyle[];
     optionItem?: OptionData;
 };
 

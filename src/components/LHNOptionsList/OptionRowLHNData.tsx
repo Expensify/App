@@ -8,17 +8,6 @@ import CONST from '@src/CONST';
 import OptionRowLHN from './OptionRowLHN';
 import {OptionRowLHNDataProps} from './types';
 
-// const defaultProps = {
-//     isFocused: false,
-//     personalDetails: {},
-//     fullReport: {},
-//     policy: {},
-//     parentReportAction: {},
-//     transaction: {},
-//     preferredLocale: CONST.LOCALES.DEFAULT,
-//     ...baseDefaultProps,
-// };
-
 /*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.

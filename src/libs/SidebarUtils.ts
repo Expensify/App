@@ -231,7 +231,7 @@ type OptionData = {
     pendingAction?: OnyxCommon.PendingAction | null;
     allReportErrors?: OnyxCommon.Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
-    icons?: Icon[] | null;
+    icons?: OnyxCommon.Icon[] | null;
     tooltipText?: string | null;
     ownerAccountID?: number | null;
     subtitle?: string | null;
@@ -272,11 +272,12 @@ type OptionData = {
     notificationPreference?: string | number | null;
     displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
+    descriptiveText?: string;
 };
 
 type DisplayNamesWithTooltip = {
     displayName?: string;
-    avatar?: string;
+    avatar?: UserUtils.AvatarSource;
     login?: string;
     accountID?: number;
     pronouns?: string;
@@ -285,13 +286,6 @@ type DisplayNamesWithTooltip = {
 type ActorDetails = {
     displayName?: string;
     accountID?: number;
-};
-
-type Icon = {
-    source?: string;
-    id?: number;
-    type?: string;
-    name?: string;
 };
 
 /**

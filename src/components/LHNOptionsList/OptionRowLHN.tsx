@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleProp, StyleSheet, TextStyle, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -59,22 +59,24 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
 
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem?.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], style);
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], style ?? {});
     const alternateTextStyle = StyleUtils.combineStyles(
         viewMode === CONST.OPTION_MODE.COMPACT
             ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
             : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
-        style,
+        style ?? {},
     );
     const contentContainerStyles =
         viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(
-        viewMode === CONST.OPTION_MODE.COMPACT
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    const sidebarInnerRowStyle = StyleSheet.flatten([
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        viewMode === CONST.OPTION_MODE.COMPACT ? styles.optionRowCompact : styles.optionRow,
+        styles.justifyContentCenter,
+    ]);
     const hoveredBackgroundColor =
-        (!!hoverStyle || styles.sidebarLinkHover) && (hoverStyle || styles.sidebarLinkHover).backgroundColor ? (hoverStyle || styles.sidebarLinkHover).backgroundColor : theme.sidebar;
+        !!hoverStyle && 'backgroundColor' in hoverStyle && 'backgroundColor' in styles.sidebarLinkHover ? (hoverStyle ?? styles.sidebarLinkHover).backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -84,7 +86,7 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {Object} [event] - A press event.
+     * @param [event] - A press event.
      */
     const showPopover = (event) => {
         if (!isFocusedRef.current && isSmallScreenWidth) {
@@ -114,11 +116,10 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
+    const isStatusVisible = Permissions.canUseCustomStatus(betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem?.reportID ?? ''));
 
-    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips.length ?? 0) > 2;
-    const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
-
+    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem?.displayNamesWithTooltips?.length ?? 0) > 2;
+    const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem?.reportID ?? '')) : optionItem.text;
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -198,13 +199,17 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={fullTitle}
-                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
+                                            fullTitle={fullTitle ?? ''}
+                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
-                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                                !!optionItem.isChatRoom ||
+                                                !!optionItem.isPolicyExpenseChat ||
+                                                !!optionItem.isTaskReport ||
+                                                !!optionItem.isThread ||
+                                                !!optionItem.isMoneyRequestReport
                                             }
                                         />
                                         {isStatusVisible && (
@@ -226,9 +231,9 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
                                         </Text>
                                     ) : null}
                                 </View>
-                                {optionItem.descriptiveText ? (
+                                {optionItem?.descriptiveText ? (
                                     <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
+                                        <Text style={[styles.textLabel]}>{optionItem?.descriptiveText}</Text>
                                     </View>
                                 ) : null}
                                 {hasBrickError && (
