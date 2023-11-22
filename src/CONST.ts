@@ -1231,6 +1231,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {
@@ -2889,6 +2890,23 @@ const CONST = {
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
         LINK: 'https://join.my.expensify.com',
+    },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
     },
 } as const;
 

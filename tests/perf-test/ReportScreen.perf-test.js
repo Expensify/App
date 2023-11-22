@@ -21,8 +21,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.setTimeout(60000);
-
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
     useSharedValue: jest.fn,
@@ -125,6 +123,8 @@ function ReportScreenWrapper(args) {
     );
 }
 
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 test.skip('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
         // Query for the report list
@@ -132,7 +132,6 @@ test.skip('should render ReportScreen with composer interactions', () => {
 
         // Query for the composer
         const composer = await screen.findByTestId('composer');
-        expect(composer).toBeDefined();
 
         // Type in the composer
         fireEvent.changeText(composer, 'Test message');
@@ -141,7 +140,6 @@ test.skip('should render ReportScreen with composer interactions', () => {
 
         // Query for the send button
         const sendButton = await screen.findByLabelText(hintSendButtonText);
-        expect(sendButton).toBeDefined();
 
         // Click on the send button
         fireEvent.press(sendButton);
@@ -149,8 +147,7 @@ test.skip('should render ReportScreen with composer interactions', () => {
         const hintHeaderText = Localize.translateLocal('common.back');
 
         // Query for the header
-        const header = await screen.findByLabelText(hintHeaderText);
-        expect(header).toBeDefined();
+        await screen.findByLabelText(hintHeaderText);
     };
 
     const policy = {
@@ -176,7 +173,7 @@ test.skip('should render ReportScreen with composer interactions', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario, runs}));
 });
 
 test.skip('should press of the report item', () => {
@@ -191,8 +188,6 @@ test.skip('should press of the report item', () => {
 
         // Query for report preview buttons
         const reportPreviewButtons = await screen.findAllByLabelText(hintReportPreviewText);
-
-        expect(reportPreviewButtons.length).toBeDefined();
 
         // click on the report preview button
         fireEvent.press(reportPreviewButtons[0]);
@@ -221,5 +216,5 @@ test.skip('should press of the report item', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario, runs}));
 });
