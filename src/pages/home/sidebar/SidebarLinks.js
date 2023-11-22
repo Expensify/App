@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, StyleSheet, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
@@ -183,21 +183,16 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-            <View style={[styles.pRelative, styles.flex1]}>
-                <LHNOptionsList
-                    style={styles.flex1}
-                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
-                    data={optionListItems}
-                    onSelectRow={showReportPage}
-                    shouldDisableFocusOptions={isSmallScreenWidth}
-                    optionMode={viewMode}
-                />
-                {isLoading && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
-                        <OptionsListSkeletonView shouldAnimate />
-                    </View>
-                )}
-            </View>
+
+            <LHNOptionsList
+                style={[isLoading ? styles.flexShrink1 : styles.flex1]}
+                contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+                data={optionListItems}
+                onSelectRow={showReportPage}
+                shouldDisableFocusOptions={isSmallScreenWidth}
+                optionMode={viewMode}
+            />
+            {isLoading && <OptionsListSkeletonView shouldAnimate />}
         </View>
     );
 }
