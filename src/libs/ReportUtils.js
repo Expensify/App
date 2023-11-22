@@ -4317,6 +4317,7 @@ function shouldDisableWelcomeMessage(report, policy) {
 }
 
 /**
+ * Navigates to the appropriate screen based on the presence of a private note for the current user.
  * @param {Object} report
  * @param {Object} session
  */

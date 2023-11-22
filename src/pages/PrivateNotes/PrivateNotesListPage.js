@@ -58,6 +58,20 @@ const defaultProps = {
 function PrivateNotesListPage({report, personalDetailsList, session}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        const navigateToEditPageTimeout = setTimeout(() => {
+            if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
+                return;
+            }
+            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        }, CONST.ANIMATED_TRANSITION);
+
+        return () => {
+            clearTimeout(navigateToEditPageTimeout);
+        };
+    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
 
     /**
      * Gets the menu item for each workspace
@@ -107,23 +121,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
-    const isFocused = useIsFocused();
 
-    const navigateToEditPageTimeoutRef = React.useRef(null);
-    useEffect(() => {
-        navigateToEditPageTimeoutRef.current = setTimeout(() => {
-            if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
-                return;
-            }
-            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
-        }, CONST.ANIMATED_TRANSITION);
-        return () => {
-            if (!navigateToEditPageTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(navigateToEditPageTimeoutRef.current);
-        };
-    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
