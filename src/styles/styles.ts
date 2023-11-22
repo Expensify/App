@@ -1395,7 +1395,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                vertical: windowHeight - 75,
+                vertical: windowHeight - 87,
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
