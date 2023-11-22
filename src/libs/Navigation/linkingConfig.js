@@ -183,6 +183,10 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
                                 exact: true,
                             },
+                            Settings_PersonalDetails_DateOfBirthYear: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR,
+                                exact: true,
+                            },
                             Settings_PersonalDetails_Address: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,

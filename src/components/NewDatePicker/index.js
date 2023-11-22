@@ -33,6 +33,10 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** Params object from route object */
+    // eslint-disable-next-line react/forbid-prop-types
+    params: PropTypes.object,
+
     ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
@@ -44,7 +48,23 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function NewDatePicker({
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    isSmallScreenWidth,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    translate,
+    value,
+    params,
+}) {
     const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
@@ -93,6 +113,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     maxDate={maxDate}
                     value={selectedDate}
                     onSelected={setSelectedDate}
+                    params={params}
                 />
             </View>
         </View>
