@@ -144,20 +144,20 @@ type OriginalMessageReportPreview = {
     };
 };
 
+type CommonOriginalMessage = {
+    targetAccountIDs?: number[];
+    roomName?: string;
+    reportID?: number;
+};
+
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage?: CommonOriginalMessage;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage?: CommonOriginalMessage;
 };
 
 type OriginalMessagePolicyTask = {
@@ -196,4 +196,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, CommonOriginalMessage};

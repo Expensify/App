@@ -4171,56 +4171,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
- * Return room channel log display message
+ * Return room channel log message
  *
  * @param {Object} reportAction
- * @param {Boolean} isHtml
  * @returns {String}
  */
-function getChannelLogMemberMessage(reportAction, isHtml) {
-    const verb =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? Localize.translateLocal('workspace.invite.invited')
-            : Localize.translateLocal('workspace.invite.removed');
-
-    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
-        if (isHtml) {
-            return `<mention-user accountID=${accountID}></mention-user>`;
-        }
-        const personalDetail = lodashGet(allPersonalDetails, accountID);
-        const displayNameOrLogin =
-            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
-        return `@${displayNameOrLogin}`;
-    });
-
-    const lastMention = mentions.pop();
-    let message = isHtml ? '<muted-text>' : '';
-
-    if (mentions.length === 0) {
-        message = `${verb} ${lastMention}`;
-    } else if (mentions.length === 1) {
-        message = `${verb} ${mentions[0]} ${Localize.translateLocal('common.and')} ${lastMention}`;
-    } else {
-        message = `${verb} ${mentions.join(', ')}, ${Localize.translateLocal('common.and')} ${lastMention}`;
-    }
-
-    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
-    if (roomName) {
-        const preposition =
-            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ` ${Localize.translateLocal('workspace.invite.to')}`
-                : ` ${Localize.translateLocal('workspace.invite.from')}`;
-
-        const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-        const match = messageHtml && messageHtml.match(/<a[^>]*>(.*?)<\/a>/);
-        const extractedATag = match ? match[0] : '';
-
-        message += `${preposition} ${isHtml ? extractedATag : roomName}`;
-    }
-
-    message += isHtml ? '</muted-text>' : '';
-
-    return message;
+function getChannelLogMemberMessagePlainText(reportAction) {
+    const messageItems = ReportActionsUtils.getChannelLogMemberAction(reportAction);
+    return _.map(messageItems, (item) => item.content).join('');
 }
 
 /**
@@ -4286,6 +4244,7 @@ function shouldDisableWelcomeMessage(report, policy) {
 }
 
 export {
+    getChannelLogMemberMessagePlainText,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
@@ -4445,7 +4404,6 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
-    getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
 };

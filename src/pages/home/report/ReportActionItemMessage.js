@@ -8,6 +8,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
 
@@ -41,7 +42,17 @@ function ReportActionItemMessage(props) {
     const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     if (ReportActionsUtils.isChannelLogMemberAction(props.action)) {
-        fragments[0].html = ReportUtils.getChannelLogMemberMessage(props.action, true);
+        const fragment = ReportActionsUtils.getActionItemFragmentChanelLog(props.action);
+
+        return (
+            <TextCommentFragment
+                fragment={fragment}
+                displayAsGroup={props.displayAsGroup}
+                style={props.style}
+                source=""
+                styleAsDeleted={false}
+            />
+        );
     }
 
     let iouMessage;

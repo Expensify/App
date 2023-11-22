@@ -5,18 +5,30 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName} from '@src/types/onyx/OriginalMessage';
+import {ActionName, CommonOriginalMessage} from '@src/types/onyx/OriginalMessage';
+import PersonalDetails from '@src/types/onyx/PersonalDetails';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as Localize from './Localize';
 import Log from './Log';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
     lastMessageText: string;
     lastMessageHtml?: string;
+};
+
+type MessageActionItemChanelLog = {
+    kind: string;
+    content?: string;
+    accountID?: number;
+    isComma?: boolean;
+    roomName?: string;
+    roomID?: number;
 };
 
 const allReports: OnyxCollection<Report> = {};
@@ -43,6 +55,12 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
+});
+
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = null;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val),
 });
 
 let isNetworkOffline = false;
@@ -628,6 +646,124 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    const messageItems: MessageActionItemChanelLog[] = [];
+    const verb =
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? Localize.translateLocal('workspace.invite.invited')
+            : Localize.translateLocal('workspace.invite.removed');
+
+    messageItems.push({
+        kind: 'text',
+        content: `${verb} `,
+    });
+
+    const originalMessage = reportAction?.originalMessage as CommonOriginalMessage;
+    const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const mentions = targetAccountIDs.map((accountID) => {
+        const personalDetail = allPersonalDetails?.[accountID];
+
+        if (personalDetail) {
+            const displayNameOrLogin =
+                LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden');
+            return {content: `@${displayNameOrLogin}`, accountID};
+        }
+        return {content: '', accountID: 0};
+    });
+
+    const lastMention = mentions.pop();
+
+    if (mentions.length === 0) {
+        messageItems.push({
+            kind: 'userMention',
+            ...lastMention,
+        });
+    } else if (mentions.length === 1) {
+        messageItems.push(
+            {
+                kind: 'userMention',
+                ...mentions[0],
+            },
+            {
+                kind: 'text',
+                content: ` ${Localize.translateLocal('common.and')} `,
+            },
+            {
+                kind: 'userMention',
+                ...lastMention,
+            },
+        );
+    } else {
+        mentions.forEach((mention) => {
+            messageItems.push({
+                kind: 'userMention',
+                ...mention,
+                content: `${mention.content}, `,
+                isComma: true,
+            });
+        });
+
+        messageItems.push(
+            {
+                kind: 'text',
+                content: `${Localize.translateLocal('common.and')} `,
+            },
+            {
+                kind: 'userMention',
+                ...lastMention,
+            },
+        );
+    }
+
+    const roomName = originalMessage?.roomName;
+    if (roomName) {
+        const preposition =
+            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ` ${Localize.translateLocal('workspace.invite.to')} `
+                : ` ${Localize.translateLocal('workspace.invite.from')} `;
+
+        messageItems.push(
+            {
+                kind: 'text',
+                content: preposition,
+            },
+            {
+                kind: 'roomReference',
+                roomName,
+                roomID: originalMessage?.reportID,
+                content: roomName,
+            },
+        );
+    }
+
+    return messageItems;
+}
+
+function getActionItemFragmentChanelLog(reportAction: OnyxEntry<ReportAction>) {
+    const messageItems: MessageActionItemChanelLog[] = getChannelLogMemberAction(reportAction);
+    let html = '<muted-text>';
+    messageItems.forEach((messageItem) => {
+        switch (messageItem.kind) {
+            case 'userMention':
+                html += `<mention-user accountID=${messageItem.accountID}></mention-user>${messageItem.isComma ? ', ' : ''}`;
+                break;
+            case 'roomReference':
+                html += `<a href="${environmentURL}/r/${messageItem.roomID}">${messageItem.roomName}</a>`;
+                break;
+            default:
+                html += messageItem.content;
+        }
+    });
+
+    html += '</muted-text>';
+
+    return {
+        html,
+        text: reportAction?.message ? reportAction?.message[0].text : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -670,4 +806,6 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
+    getChannelLogMemberAction,
+    getActionItemFragmentChanelLog,
 };

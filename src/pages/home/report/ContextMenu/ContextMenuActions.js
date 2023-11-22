@@ -282,7 +282,7 @@ export default [
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
-                    const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
+                    const logMessage = ReportUtils.getChannelLogMemberMessagePlainText(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
