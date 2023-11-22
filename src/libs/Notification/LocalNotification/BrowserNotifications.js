@@ -1,4 +1,5 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -6,6 +7,8 @@ import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
 
 const DEFAULT_DELAY = 4000;
+
+const notificationCache = [];
 
 /**
  * Checks if the user has granted permission to show browser notifications
@@ -31,6 +34,15 @@ function canUseBrowserNotifications() {
             resolve(status === 'granted');
         });
     });
+}
+
+function closeNotification(notificationID) {
+    if (!notificationCache[notificationID]) {
+        return;
+    }
+
+    notificationCache[notificationID].close();
+    delete notificationCache[notificationID];
 }
 
 /**
@@ -59,16 +71,18 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
                 return;
             }
 
+            const notificationID = Str.guid();
             const notification = new Notification(title, {
                 body,
                 tag,
                 icon,
             });
+            notificationCache[notificationID] = notification;
 
             // If we pass in a delay param greater than 0 the notification
             // will auto-close after the specified time.
             if (delay > 0) {
-                setTimeout(notification.close.bind(notification), delay);
+                setTimeout(() => closeNotification(notificationID), delay);
             }
 
             notification.onclick = () => {
@@ -76,7 +90,7 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
                 window.parent.focus();
                 window.focus();
                 focusApp();
-                notification.close();
+                closeNotification(notificationID);
             };
 
             resolve(notification);
