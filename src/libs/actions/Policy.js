@@ -88,6 +88,20 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
+let allPolicyTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
 let allRecentlyUsedTags = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
@@ -1475,9 +1489,10 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
         return [];
     }
 
-    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {});
+    const policyTags = lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
     // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-    const tagListKey = _.first(_.keys(policyRecentlyUsedTags));
+    const tagListKey = _.first(_.keys(policyTags));
+    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {});
 
     return {
         ...policyRecentlyUsedTags,
