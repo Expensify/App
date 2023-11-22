@@ -1,9 +1,7 @@
-import {ValueOf} from 'type-fest';
+import {IsEqual, ValueOf} from 'type-fest';
 import CONST from './CONST';
 
-/**
- * This is a file containing constants for all the routes we want to be able to go to
- */
+// This is a file containing constants for all the routes we want to be able to go to
 
 /**
  * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
@@ -85,19 +83,19 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
         route: '/settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/name`,
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/name` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
         route: '/settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/phone`,
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/phone` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
         route: '/settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/address`,
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/address` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
         route: '/settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/confirm`,
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/confirm` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
@@ -122,7 +120,7 @@ const ROUTES = {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}` as const, backTo),
+        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
@@ -390,12 +388,20 @@ const ROUTES = {
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type RouteValue<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
+type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
-type Routes = {
-    [K in keyof typeof ROUTES]: RouteValue<(typeof ROUTES)[K]>;
-};
+type AllRoutes = {
+    [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
+}[keyof typeof ROUTES];
 
-type Route = Routes[keyof typeof ROUTES];
+type RouteIsPlainString = IsEqual<AllRoutes, string>;
 
-export type {Routes, Route};
+/**
+ * Represents all routes in the app as a union of literal strings.
+ *
+ * If this type resolves to `never`, it implies that one or more routes defined within `ROUTES` have not correctly used
+ * `as const` in their `getRoute` function return value.
+ */
+type Route = RouteIsPlainString extends true ? never : AllRoutes;
+
+export type {Route};
