@@ -283,7 +283,10 @@ declare module 'react-native' {
         enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
         readOnly?: boolean;
     }
-    interface TextInputProps extends WebTextInputProps {}
+    interface TextInputProps extends WebTextInputProps {
+        smartInsertDelete?: boolean;
+        isFullComposerAvailable?: boolean;
+    }
 
     /**
      * Image
