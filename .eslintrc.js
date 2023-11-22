@@ -14,6 +14,10 @@ const restrictedImportPaths = [
         importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
     },
+    {
+        name: 'awesome-phonenumber',
+        message: "Please use '@libs/PhoneNumber' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
