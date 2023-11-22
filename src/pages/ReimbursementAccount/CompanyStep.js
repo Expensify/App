@@ -88,12 +88,20 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
+        if (values.companyName && !ValidationUtils.isValidLegalName(values.companyName)) {
+            errors.companyName = 'bankAccount.error.companyName';
+        }
+
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'bankAccount.error.zipCode';
+        }
+
+        if (values.addressCity && !ValidationUtils.isValidLegalName(values.addressCity)) {
+            errors.addressCity = 'bankAccount.error.addressCity';
         }
 
         if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {

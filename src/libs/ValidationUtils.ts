@@ -34,7 +34,7 @@ function validateCardNumber(value: string): boolean {
  * Validating that this is a valid address (PO boxes are not allowed)
  */
 function isValidAddress(value: string): boolean {
-    if (!CONST.REGEX.ANY_VALUE.test(value)) {
+    if (!isValidLegalName(value)) {
         return false;
     }
 
