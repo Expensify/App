@@ -41,9 +41,10 @@ function canUseBrowserNotifications() {
  * @param {String} title
  * @param {String} body
  * @param {String} icon Path to icon
+ * @param {Object} data extra data to attach to the notification
  * @param {Function} onClick
  */
-function push(title, body, icon = '', onClick = () => {}) {
+function push(title, body, icon = '', data = {}, onClick = () => {}) {
     if (!title || !body) {
         throw new Error('BrowserNotification must include title and body parameter.');
     }
@@ -57,6 +58,7 @@ function push(title, body, icon = '', onClick = () => {}) {
         notificationCache[notificationID] = new Notification(title, {
             body,
             icon,
+            data,
         });
         notificationCache[notificationID].onclick = () => {
             onClick();
@@ -104,21 +106,25 @@ export default {
             body = plainTextMessage;
         }
 
-        push(title, body, icon, onClick);
+        const data = {
+            reportID: report.reportID,
+        };
+
+        push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(reportAction, onClick, usesIcon = false) {
+    pushModifiedExpenseNotification(report, reportAction, onClick, usesIcon = false) {
         const title = _.map(reportAction.person, (f) => f.text).join(', ');
         const body = ReportUtils.getModifiedExpenseMessage(reportAction);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
-        push(title, body, icon, onClick);
+        push(title, body, icon, report.reportID, onClick);
     },
 
     /**
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push('Update available', 'A new version of this app is available!', () => {
+        push('Update available', 'A new version of this app is available!', {}, () => {
             AppUpdate.triggerUpdateAvailable();
         });
     },
