@@ -192,40 +192,6 @@ function isValidWebsite(url: string): boolean {
     return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            return;
-        }
-        errors[fieldName] = true;
-    });
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
-}
-
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
@@ -294,6 +260,40 @@ function isValidAddress(value: string): boolean {
     }
 
     return !CONST.REGEX.PO_BOX.test(value);
+}
+
+function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const errors: Record<string, boolean> = {};
+
+    // Check that all required fields are filled
+    requiredFields.forEach((fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
+    if (!isValidAddress(identity.street)) {
+        errors.street = true;
+    }
+
+    if (!isValidZipCode(identity.zipCode)) {
+        errors.zipCode = true;
+    }
+
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
+        errors.dobAge = true;
+    }
+
+    if (!isValidSSNLastFour(identity.ssnLast4)) {
+        errors.ssnLast4 = true;
+    }
+
+    return errors;
 }
 
 /**
@@ -387,7 +387,6 @@ export {
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidWebsite,
-    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,
@@ -401,6 +400,7 @@ export {
     isValidDisplayName,
     isValidLegalName,
     isValidAddress,
+    validateIdentity,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
