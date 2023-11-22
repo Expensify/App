@@ -865,8 +865,15 @@ function isOneOnOneChat(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
 /**
@@ -1587,14 +1594,25 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
+    const ownerAccountID = report.ownerAccountID;
+    const personalDetails = allPersonalDetails[ownerAccountID];
+    const login = personalDetails ? personalDetails.login : null;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || login || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
+    let policyExpenseChatRole = 'user';
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
+    if (policyItem) {
+        policyExpenseChatRole = policyItem.role || 'user';
+    }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
@@ -2279,6 +2297,19 @@ function navigateToDetailsPage(report) {
         return;
     }
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+}
+
+/**
+ * Go back to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function goBackToDetailsPage(report) {
+    if (isOneOnOneChat(report)) {
+        Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
+        return;
+    }
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
 
 /**
@@ -4053,7 +4084,7 @@ function getWorkspaceChats(policyID, accountIDs) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
         return true;
     }
 
@@ -4066,6 +4097,15 @@ function shouldDisableRename(report, policy) {
     // If there is a linked workspace, that means the user is a member of the workspace the report is in.
     // Still, we only want policy owners and admins to be able to modify the name.
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
+ * @param {Object|null} report
+ * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @returns {Boolean}
+ */
+function canEditWriteCapability(report, policy) {
+    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report);
 }
 
 /**
@@ -4502,6 +4542,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
@@ -4527,4 +4568,5 @@ export {
     transactionThreadHasViolations,
     reportHasViolations,
     shouldDisableWelcomeMessage,
+    canEditWriteCapability,
 };
