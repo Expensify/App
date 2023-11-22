@@ -17,4 +17,7 @@ type Login = {
     pendingFields?: OnyxCommon.PendingFields;
 };
 
+type LoginList = Record<string, Login>;
+
 export default Login;
+export type {LoginList};

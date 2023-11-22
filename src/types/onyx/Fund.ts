@@ -36,4 +36,7 @@ type Fund = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type FundList = Record<string, Fund>;
+
 export default Fund;
+export type {FundList};
