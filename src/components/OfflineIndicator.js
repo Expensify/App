@@ -36,7 +36,7 @@ const defaultProps = {
     style: [],
 };
 
-const setStyles = (containerStyles, isSmallScreenWidth) => {
+const setStyles = (containerStyles, isSmallScreenWidth, styles) => {
     if (containerStyles.length) {
         return containerStyles;
     }
@@ -52,7 +52,7 @@ function OfflineIndicator(props) {
     }
 
     return (
-        <View style={[setStyles(props.containerStyles, props.isSmallScreenWidth), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
+        <View style={[setStyles(props.containerStyles, props.isSmallScreenWidth, styles), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
