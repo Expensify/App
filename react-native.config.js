@@ -1,7 +1,9 @@
 module.exports = {
     project: {
         ios: {sourceDir: 'ios'},
-        android: {},
+        android: {
+            manifestPath: 'app/src/main/AndroidManifest.xml',
+        },
     },
     assets: ['./assets/fonts/native'],
 };
