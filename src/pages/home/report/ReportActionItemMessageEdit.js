@@ -338,7 +338,7 @@ function ReportActionItemMessageEdit(props) {
     const addEmojiToTextBox = (emoji) => {
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
 
-        // the below evades a problem occurring on mobile devices, where onSelectionChange fires with { start: 0, end: 0 } before runAfterInteractions's callback is invoked
+        // The logic below evades a problem occurring on mobile devices, where onSelectionChange fires with { start: 0, end: 0 } before runAfterInteractions's callback is invoked
         const prevSelectionSnapshot = {...selection};
         InteractionManager.runAfterInteractions(() => {
             setSelection({
