@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigatorScreenParams} from '@react-navigation/native';
+import {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -24,6 +24,10 @@ type ActionNavigate = {
 };
 
 type StackNavigationAction = CommonActionWithoutNavigate | ActionNavigate | undefined;
+
+type NavigationStateRoute = NavigationState['routes'][number];
+type NavigationPartialRoute = PartialRoute<Route<string>>;
+type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 
 type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
@@ -321,4 +325,4 @@ type RootStackParamList = {
     SignIn_Root: undefined;
 };
 
-export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList};
+export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList, StateOrRoute};
