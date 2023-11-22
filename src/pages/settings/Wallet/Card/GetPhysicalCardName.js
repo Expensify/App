@@ -79,7 +79,7 @@ function GetPhysicalCardName({
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
-                containerStyles={[styles.mt5, styles.mh5]}
+                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
             <TextInput

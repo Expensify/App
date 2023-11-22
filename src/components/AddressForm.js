@@ -122,7 +122,6 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             submitButtonText={submitButtonText}
             enabledWhenOffline
         >
-            <View style={styles.formSpaceVertical} />
             <View>
                 <AddressSearch
                     inputID="addressLine1"
