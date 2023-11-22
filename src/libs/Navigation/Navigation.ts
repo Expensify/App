@@ -10,6 +10,7 @@ import {
     StackActions,
     StackActionType,
 } from '@react-navigation/native';
+import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -205,7 +206,7 @@ function dismissModal(targetReportID?: string) {
                 // If not-found page is in the route stack, we need to close it
             } else if (targetReportID && rootState.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
                 const lastRouteIndex = rootState.routes.length - 1;
-                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                const centralRouteIndex = findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
                 navigationRef.current?.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current?.dispatch({...StackActions.pop(), target: rootState.key});
