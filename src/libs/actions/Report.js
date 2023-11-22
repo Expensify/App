@@ -1375,11 +1375,12 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {boolean} navigate
  * @param {String} parentReportID
  * @param {String} parentReportActionID
+ * @param {Object} report
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0, report = {}) {
     if (previousValue === newValue) {
-        if (navigate) {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        if (navigate && report.reportID) {
+            ReportUtils.goBackToDetailsPage(report);
         }
         return;
     }
@@ -1411,7 +1412,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
     }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        ReportUtils.goBackToDetailsPage(report);
     }
 }
 
