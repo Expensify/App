@@ -11,6 +11,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -21,7 +22,6 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import usePrevious from '@hooks/usePrevious';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -161,7 +161,7 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedReportActions.length);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
-    const previousLastIndex = usePrevious(sortedReportActions[0].reportActionID)
+    const previousLastIndex = usePrevious(sortedReportActions[0].reportActionID);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -177,14 +177,14 @@ function ReportActionsList({
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
 
-    useEffect(()=>{
-        if(previousLastIndex === sortedReportActions[0].reportActionID || reportActionSize.current <= sortedReportActions.length){
+    useEffect(() => {
+        if (previousLastIndex === sortedReportActions[0].reportActionID || reportActionSize.current <= sortedReportActions.length) {
             return;
         }
         reportScrollManager.scrollToBottom();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [previousLastIndex, sortedReportActions[0].reportActionID])
-    
+    }, [previousLastIndex, sortedReportActions[0].reportActionID]);
+
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
         // the parent component is sending the previous reportID even when the user isn't active
