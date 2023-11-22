@@ -1,18 +1,18 @@
-import {findFocusedRoute, getActionFromState, NavigationState} from '@react-navigation/core';
-import {CommonActions, CommonNavigationAction, EventMapCore, getPathFromState, PartialRoute, Route as RouteRN, StackActions, StackActionType} from '@react-navigation/native';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
+import {CommonActions, CommonNavigationAction, EventMapCore, getPathFromState, NavigationState, StackActions, StackActionType} from '@react-navigation/native';
 import _ from 'lodash';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from '@src/types/modules/react-navigation';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import {StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: (value?: unknown) => void;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -39,35 +39,29 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
 }
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state as NavigationState<RootStackParamList>);
+const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state as NavigationState<RootStackParamList>);
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
-type NavigationRoute = NavigationState['routes'][number];
-// eslint-disable-next-line @typescript-eslint/ban-types
-type NavigationPartialRoute = PartialRoute<RouteRN<string, object | undefined>>;
-
-/**
- * Method for finding on which index in stack we are.
- */
-const getActiveRouteIndex = (route: NavigationState | NavigationRoute | NavigationPartialRoute, index?: number): number | undefined => {
-    if ('routes' in route && route.routes) {
-        const childActiveRoute = route.routes[route.index ?? 0];
-        return getActiveRouteIndex(childActiveRoute, route.index ?? 0);
+/** Method for finding on which index in stack we are. */
+function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
+    if ('routes' in stateOrRoute && stateOrRoute.routes) {
+        const childActiveRoute = stateOrRoute.routes[stateOrRoute.index ?? 0];
+        return getActiveRouteIndex(childActiveRoute, stateOrRoute.index ?? 0);
     }
 
-    if ('state' in route && route?.state?.routes) {
-        const childActiveRoute = route.state.routes[route.state.index ?? 0];
-        return getActiveRouteIndex(childActiveRoute, route.state.index ?? 0);
+    if ('state' in stateOrRoute && stateOrRoute?.state?.routes) {
+        const childActiveRoute = stateOrRoute.state.routes[stateOrRoute.state.index ?? 0];
+        return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in route && route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if ('name' in stateOrRoute && stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return 0;
     }
 
     return index;
-};
+}
 
 /**
  * Gets distance from the path in root navigator. In other words how much screen you have to pop to get to the route with this path.
