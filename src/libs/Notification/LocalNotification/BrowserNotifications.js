@@ -106,13 +106,12 @@ export default {
     /**
      * Create a report comment notification
      *
-     * @param {Object} params
-     * @param {Object} params.report
-     * @param {Object} params.reportAction
-     * @param {Function} params.onClick
+     * @param {Object} report
+     * @param {Object} reportAction
+     * @param {Function} onClick
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
+    pushReportCommentNotification(report, reportAction, onClick, usesIcon = false) {
         let title;
         let body;
 
@@ -142,7 +141,7 @@ export default {
         });
     },
 
-    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
+    pushModifiedExpenseNotification(reportAction, onClick, usesIcon = false) {
         push({
             title: _.map(reportAction.person, (f) => f.text).join(', '),
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
