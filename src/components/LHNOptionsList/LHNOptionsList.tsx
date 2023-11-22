@@ -1,20 +1,17 @@
-import {ContentStyle, FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import withCurrentReportID, {CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import {FlatList, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import withCurrentReportID from '@components/withCurrentReportID';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
-import {LHNOptionsListProps} from './types';
+import {LHNOptionsListOnyxProps, LHNOptionsListProps} from './types';
 
-const keyExtractor = (item) => `report_${item}`;
+const keyExtractor = (item: string) => `report_${item}`;
 
 function LHNOptionsList({
     style,
@@ -33,21 +30,41 @@ function LHNOptionsList({
     draftComments = {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
+
+    /**
+     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
+     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
+     * lists.
+     *
+     * @param itemData - This is the same as the data we pass into the component
+     * @param index the current item's index in the set of data
+     */
+    const getItemLayout = useCallback(
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        (_, index: number) => {
+            const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+            return {
+                length: optionHeight,
+                offset: index * optionHeight,
+                index,
+            };
+        },
+        [optionMode],
+    );
     /**
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
         ({item: reportID}: {item: string}) => {
-            const itemFullReport: Report | undefined = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
-            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
-            const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID : '';
-            const itemTransaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
+            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? null;
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
+            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
+            const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
+            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport?.participantAccountIDs ?? [], personalDetails);
-
             return (
                 <OptionRowLHNData
                     reportID={reportID}
@@ -71,17 +88,19 @@ function LHNOptionsList({
 
     return (
         <View style={style ?? styles.flex1}>
-            <FlashList
+            <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={contentContainerStyles}
+                showsVerticalScrollIndicator={false}
                 data={data}
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
-                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                extraData={[currentReportID]}
-                showsVerticalScrollIndicator={false}
+                getItemLayout={getItemLayout}
+                initialNumToRender={20}
+                maxToRenderPerBatch={5}
+                windowSize={5}
             />
         </View>
     );
@@ -90,8 +109,7 @@ function LHNOptionsList({
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default compose(
-    withCurrentReportID,
-    withOnyx({
+    withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
@@ -114,6 +132,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
     }),
+    withCurrentReportID,
 )(LHNOptionsList);
 
 export type {LHNOptionsListProps};

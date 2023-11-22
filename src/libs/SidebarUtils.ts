@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -219,6 +219,12 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
+type Status = {
+    text: string;
+    emojiCode: string;
+    clearAfter: string;
+};
+
 type OptionData = {
     text?: string | null;
     alternateText?: string | null;
@@ -235,7 +241,7 @@ type OptionData = {
     managerID?: number | null;
     reportID?: string | null;
     policyID?: string | null;
-    status?: string | null;
+    status?: Status | null;
     type?: string | null;
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM> | null;
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS> | null;
@@ -292,12 +298,12 @@ type Icon = {
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
 function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction[]>,
-    personalDetails: Record<number, PersonalDetails>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
+    report: OnyxEntry<Report>,
+    reportActions: OnyxEntry<Record<string, ReportAction>>,
+    personalDetails: OnyxEntry<Record<number, PersonalDetails>>,
+    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>,
+    policy: OnyxEntry<Policy>,
+    parentReportAction: OnyxEntry<ReportAction>,
 ): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do

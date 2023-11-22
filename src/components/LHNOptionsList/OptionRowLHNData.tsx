@@ -4,41 +4,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils, {OptionData} from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as ReportLib from '@userActions/Report';
+import CONST from '@src/CONST';
 import OptionRowLHN from './OptionRowLHN';
 import {OptionRowLHNDataProps} from './types';
-
-// const propTypes = {
-//     /** Whether row should be focused */
-//     isFocused: PropTypes.bool,
-
-//     /** List of users' personal details */
-//     personalDetails: PropTypes.objectOf(participantPropTypes),
-
-//     /** The preferred language for the app */
-//     preferredLocale: PropTypes.string,
-
-//     /** The full data of the report */
-//     // eslint-disable-next-line react/forbid-prop-types
-//     fullReport: PropTypes.object,
-
-//     /** The policy which the user has access to and which the report could be tied to */
-//     policy: PropTypes.shape({
-//         /** The ID of the policy */
-//         id: PropTypes.string,
-//         /** Name of the policy */
-//         name: PropTypes.string,
-//         /** Avatar of the policy */
-//         avatar: PropTypes.string,
-//     }),
-
-//     /** The action from the parent report */
-//     parentReportAction: PropTypes.shape(reportActionPropTypes),
-
-//     /** The transaction from the parent report action */
-//     transaction: transactionPropTypes,
-
-//     ...basePropTypes,
-// };
 
 // const defaultProps = {
 //     isFocused: false,
@@ -58,16 +26,16 @@ import {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused,
-    fullReport,
+    isFocused = false,
+    fullReport = null,
     reportActions,
-    personalDetails,
-    preferredLocale,
+    personalDetails = {},
+    preferredLocale = CONST.LOCALES.DEFAULT,
     comment,
-    policy,
+    policy = null,
     receiptTransactions,
-    parentReportAction,
-    transaction,
+    parentReportAction = null,
+    transaction = null,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -78,7 +46,7 @@ function OptionRowLHNData({
         const lastReportAction = sortedReportActions[0];
         return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport.reportID, receiptTransactions, reportActions]);
+    }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!

@@ -1,5 +1,4 @@
 import {ContentStyle} from '@shopify/flash-list';
-import {Transaction} from 'electron';
 import {RefObject} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
@@ -7,27 +6,9 @@ import {ValueOf} from 'type-fest';
 import {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import {OptionData} from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
-import {Beta, PersonalDetails, Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import {Beta, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
-type CustomLHNOptionsListProps = {
-    /** Wrapper style for the section list */
-    style?: StyleProp<ViewStyle>;
-
-    /** Extra styles for the section list container */
-    contentContainerStyles?: ContentStyle;
-
-    /** Sections for the section list */
-    data: string[];
-
-    /** Callback to fire when a row is selected */
-    onSelectRow: (reportID: string) => void;
-
-    /** Toggle between compact and default view of the option */
-    optionMode: ValueOf<typeof CONST.OPTION_MODE>;
-
-    /** Whether to allow option focus or not */
-    shouldDisableFocusOptions?: boolean;
-
+type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
     policy: OnyxEntry<Record<string, Policy>>;
 
@@ -49,8 +30,27 @@ type CustomLHNOptionsListProps = {
     /** List of draft comments */
     draftComments: OnyxEntry<Record<string, string>>;
 };
+type CustomLHNOptionsListProps = {
+    /** Wrapper style for the section list */
+    style?: StyleProp<ViewStyle>;
 
-type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue;
+    /** Extra styles for the section list container */
+    contentContainerStyles?: ContentStyle;
+
+    /** Sections for the section list */
+    data: string[];
+
+    /** Callback to fire when a row is selected */
+    onSelectRow: (reportID: string) => void;
+
+    /** Toggle between compact and default view of the option */
+    optionMode: ValueOf<typeof CONST.OPTION_MODE>;
+
+    /** Whether to allow option focus or not */
+    shouldDisableFocusOptions?: boolean;
+};
+
+type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
@@ -60,26 +60,28 @@ type OptionRowLHNDataProps = {
     personalDetails: Record<string, PersonalDetails>;
 
     /** The preferred language for the app */
-    preferredLocale: string;
+    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
 
     /** The full data of the report */
-    fullReport: Report;
+    fullReport: OnyxEntry<Report>;
 
     /** The policy which the user has access to and which the report could be tied to */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** The action from the parent report */
-    parentReportAction: ReportAction;
+    parentReportAction: OnyxEntry<ReportAction>;
 
     /** The transaction from the parent report action */
-    transaction: Transaction;
+    transaction: OnyxEntry<Transaction>;
 
     comment: string;
 
-    receiptTransactions: Transaction[];
+    receiptTransactions: OnyxEntry<Record<string, Transaction>>;
 
     reportID: string;
-} & CustomLHNOptionsListProps;
+
+    reportActions: OnyxEntry<ReportActions>;
+};
 
 type OptionRowLHNProps = {
     hoverStyle?: StyleProp<ViewStyle>;
@@ -92,4 +94,4 @@ type OptionRowLHNProps = {
     optionItem?: OptionData;
 };
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps};
