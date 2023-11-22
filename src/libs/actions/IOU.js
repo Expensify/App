@@ -63,34 +63,6 @@ Onyx.connect({
     },
 });
 
-let allRecentlyUsedTags = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allRecentlyUsedTags = {};
-            return;
-        }
-
-        allRecentlyUsedTags = value;
-    },
-});
-
-let allPolicyTags = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
 let userAccountID = '';
 let currentUserEmail = '';
 Onyx.connect({
@@ -516,15 +488,9 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     }
 
-    const optimisticPolicyRecentlyUsedTags = {};
-    const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];
-    const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
-
-    if (policyTags) {
-        // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-        const tagListKey = _.first(_.keys(policyTags));
-        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags ? _.filter(recentlyUsedPolicyTags[tagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag) : [];
-        optimisticPolicyRecentlyUsedTags[tagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
+    let optimisticPolicyRecentlyUsedTags = {};
+    if (tag) {
+        optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
     }
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -1200,10 +1166,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        let optimisticPolicyRecentlyUsedTags = [];
+        let optimisticPolicyRecentlyUsedTags = {};
         if (isPolicyExpenseChat) {
-            // TODO: Implement
-            optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, category);
+            optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
         }
 
         // STEP 5: Build Onyx Data
@@ -1307,7 +1272,6 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  */
 function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag);
-
     API.write(
         'SplitBillAndOpenReport',
         {
@@ -1847,15 +1811,9 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         updatedChatReport.lastMessageHtml = messageText;
     }
 
-    const optimisticPolicyRecentlyUsedTags = {};
+    let optimisticPolicyRecentlyUsedTags = {};
     if (_.has(transactionChanges, 'tag')) {
-        const tagListName = transactionChanges.tagListName;
-        const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
-
-        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags
-            ? _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag)
-            : [];
-        optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
+        optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
     }
 
     const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
