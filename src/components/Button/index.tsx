@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {ForwardedRef, useCallback} from 'react';
 import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
@@ -6,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
 import themeColors from '@styles/themes/default';
@@ -110,6 +110,7 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
+    isFocused: boolean;
 };
 
 function Button(
@@ -148,6 +149,7 @@ function Button(
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
+        isFocused,
 
         id = '',
         accessibilityLabel = '',
@@ -157,7 +159,6 @@ function Button(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -305,4 +306,4 @@ function Button(
 
 Button.displayName = 'Button';
 
-export default React.forwardRef(Button);
+export default withNavigationFallback(React.forwardRef(Button));
