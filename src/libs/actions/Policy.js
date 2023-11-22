@@ -1475,9 +1475,14 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
         return [];
     }
 
-    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, []);
+    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {});
+    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
+    const tagListKey = _.first(_.keys(policyRecentlyUsedTags));
 
-    return lodashUnion([tag], policyRecentlyUsedTags);
+    return {
+        ...policyRecentlyUsedTags,
+        [tagListKey]: lodashUnion([tag], lodashGet(policyRecentlyUsedTags, [tagListKey], [])),
+    };
 }
 
 export {
