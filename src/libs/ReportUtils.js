@@ -394,7 +394,7 @@ function isUserCreatedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || report.isPolicyExpenseChat;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || lodashGet(report, 'isPolicyExpenseChat', false);
 }
 
 /** Wether the provided report belongs to a Control policy and is an epxense chat
