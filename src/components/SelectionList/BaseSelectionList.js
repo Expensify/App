@@ -328,7 +328,7 @@ function BaseSelectionList({
             scrollToIndex(focusedIndex, false);
             firstLayoutRef.current = false;
         },
-        [focusedIndex, scrollToIndex],
+        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
