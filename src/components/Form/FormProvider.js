@@ -263,10 +263,15 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
+                        const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
+
                         setTimeout(() => {
+                            if (relatedTargetId && _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)) {
+                                return;
+                            }
                             setTouchedInput(inputID);
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);
@@ -317,7 +322,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );

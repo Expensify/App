@@ -22,7 +22,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -61,6 +61,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
@@ -82,11 +83,6 @@ function MoneyRequestConfirmPage(props) {
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
-
-    useEffect(() => {
-        IOU.resetMoneyRequestCategory();
-        IOU.resetMoneyRequestTag();
-    }, []);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);

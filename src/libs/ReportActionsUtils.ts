@@ -96,6 +96,15 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
+function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+    );
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -406,9 +415,12 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
         };
     }
 
-    const messageText = message?.text ?? '';
+    let messageText = message?.text ?? '';
+    if (messageText) {
+        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    }
     return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+        lastMessageText: messageText,
     };
 }
 
@@ -460,7 +472,10 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  * 4. We will get the second last action from filtered actions because the last
  *    action is always the created action
  */
-function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [], isOffline = false): string {
+    if (!Array.isArray(sortedReportActions)) {
+        return '';
+    }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
     return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
@@ -657,4 +672,5 @@ export {
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
+    isChannelLogMemberAction,
 };

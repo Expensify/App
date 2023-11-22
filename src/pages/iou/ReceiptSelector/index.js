@@ -22,8 +22,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,21 +53,19 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    isInTabNavigator: true,
 };
 
 function ReceiptSelector({route, transactionID, iou, report}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const iouType = lodashGet(route, 'params.iouType', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -81,7 +79,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
@@ -175,9 +173,10 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 )}
+
                 {cameraPermissionState === 'denied' && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
@@ -200,6 +199,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
+                    cameraTabIndex={pageIndex}
                 />
             </View>
 
@@ -221,7 +221,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
@@ -248,7 +248,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

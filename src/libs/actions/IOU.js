@@ -141,6 +141,18 @@ function resetMoneyRequestInfo(id = '') {
     });
 }
 
+/**
+ *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
+ *
+ * @param {Object} receipt
+ * @returns {Object}
+ */
+function getReceiptError(receipt) {
+    return _.isEmpty(receipt)
+        ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename: receipt.filename});
+}
+
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -254,7 +266,10 @@ function buildOnyxDataForMoneyRequest(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingAction: null,
+                pendingFields: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -301,6 +316,7 @@ function buildOnyxDataForMoneyRequest(
                 hasOutstandingIOU: chatReport.hasOutstandingIOU,
                 iouReportID: chatReport.iouReportID,
                 lastReadTime: chatReport.lastReadTime,
+                pendingFields: null,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -316,6 +332,7 @@ function buildOnyxDataForMoneyRequest(
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                       value: {
+                          pendingFields: null,
                           errorFields: {
                               createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
@@ -328,6 +345,8 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                pendingAction: null,
+                pendingFields: null,
             },
         },
         {
@@ -337,7 +356,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                           [reportPreviewAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -346,7 +365,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                       }),
             },
@@ -358,7 +377,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                           [iouAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -366,7 +385,7 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                       }),
             },
@@ -680,7 +699,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Object} [transactionChanges.waypoints]
  *
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function editDistanceMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -787,10 +806,10 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     });
 
     if (_.has(transactionChanges, 'waypoints')) {
-        // Delete the backup transaction when editing waypoints when the server responds successfully and there are no errors
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             value: null,
         });
     }
@@ -1435,7 +1454,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: getReceiptError(receipt),
                 },
             },
         });
@@ -1458,7 +1477,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: getReceiptError(receipt),
                     },
                 },
             },
@@ -1773,7 +1792,7 @@ function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
  */
-function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function editRegularMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -1985,6 +2004,19 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
         {optimisticData, successData, failureData},
     );
+}
+
+/**
+ * @param {object} transaction
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ */
+function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        editDistanceMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+    } else {
+        editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+    }
 }
 
 /**
@@ -2434,7 +2466,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        iouReport.total,
+        -iouReport.total,
         iouReport.currency,
         '',
         [recipient],
@@ -2938,6 +2970,8 @@ function navigateToNextPage(iou, iouType, report, path = '') {
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
             setMoneyRequestParticipants(participants);
+            resetMoneyRequestCategory();
+            resetMoneyRequestTag();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -2960,13 +2994,8 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
-function getPolicyTags(policyID) {
-    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
-}
-
 export {
     createDistanceRequest,
-    editMoneyRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
@@ -2996,9 +3025,8 @@ export {
     setMoneyRequestReceipt,
     setUpDistanceTransaction,
     navigateToNextPage,
-    updateDistanceRequest,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
-    getPolicyTags,
+    editMoneyRequest,
 };
