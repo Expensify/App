@@ -31,17 +31,6 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
- */
-function isValidAddress(value: string): boolean {
-    if (!isValidLegalName(value)) {
-        return false;
-    }
-
-    return !CONST.REGEX.PO_BOX.test(value);
-}
-
-/**
  * Validate date fields
  */
 function isValidDate(date: string | Date): boolean {
@@ -297,6 +286,17 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Validating that this is a valid address (PO boxes are not allowed)
+ */
+function isValidAddress(value: string): boolean {
+    if (!isValidLegalName(value)) {
+        return false;
+    }
+
+    return !CONST.REGEX.PO_BOX.test(value);
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
@@ -376,7 +376,6 @@ export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
-    isValidAddress,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -401,6 +400,7 @@ export {
     isValidValidateCode,
     isValidDisplayName,
     isValidLegalName,
+    isValidAddress,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
