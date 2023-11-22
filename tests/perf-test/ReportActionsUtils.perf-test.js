@@ -7,8 +7,6 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.setTimeout(60000);
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
