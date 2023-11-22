@@ -55,7 +55,7 @@ class ShareCodePage extends React.Component {
         }
         if (ReportUtils.isMoneyRequestReport(this.props.report)) {
             // generate subtitle from participants
-            return _.map(ReportUtils.getVisibleMembersIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
+            return _.map(ReportUtils.getVisibleMemberIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
         }
 
         if (isReport) {

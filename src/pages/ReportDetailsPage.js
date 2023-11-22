@@ -73,7 +73,7 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const participants = useMemo(() => ReportUtils.getVisibleMembersIDs(props.report), [props.report]);
+    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 

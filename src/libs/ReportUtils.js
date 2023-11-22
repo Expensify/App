@@ -4103,21 +4103,21 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID,
  * @param {Object} report
  * @returns {Array}
  */
-function getVisibleMembersIDs(report) {
+function getVisibleMemberIDs(report) {
     if (!report) {
         return [];
     }
 
-    const visibleChatMembersIDs = report.visibleChatMemberList || [];
+    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs || [];
 
     // Build visibleChatMembers list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
-        return _.chain([report.managerID, report.ownerAccountID, ...visibleChatMembersIDs])
+        return _.chain([report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs])
             .compact()
             .uniq()
             .value();
     }
-    return visibleChatMembersIDs;
+    return visibleChatMemberAccountIDs;
 }
 
 /**
@@ -4418,7 +4418,7 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
-    getVisibleMembersIDs,
+    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,

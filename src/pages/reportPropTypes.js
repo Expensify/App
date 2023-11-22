@@ -51,7 +51,7 @@ export default PropTypes.shape({
     participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** List of accountIDs of visible members of the report */
-    visibleChatMemberList: PropTypes.arrayOf(PropTypes.number),
+    visibleChatMemberAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** Linked policy's ID */
     policyID: PropTypes.string,
