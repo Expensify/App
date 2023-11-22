@@ -1815,6 +1815,7 @@ function getTransactionReportName(reportAction) {
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    // Transaction data might be empty on app's first load, if so we fallback to parent report action's message
     if (_.isEmpty(transaction)) {
         return lodashGet(reportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
     }
