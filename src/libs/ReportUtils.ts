@@ -1633,6 +1633,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = allPersonalDetails?.[ownerAccountID ?? -1];
     const login = personalDetails ? personalDetails.login : null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant(ownerAccountID) || login || report?.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
@@ -2314,10 +2315,10 @@ function navigateToDetailsPage(report: OnyxEntry<Report>) {
  */
 function goBackToDetailsPage(report: OnyxEntry<Report>) {
     if (isOneOnOneChat(report)) {
-        Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
+        Navigation.goBack(ROUTES.PROFILE.getRoute(report?.participantAccountIDs?.[0] ?? ''));
         return;
     }
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
 }
 
 /**
