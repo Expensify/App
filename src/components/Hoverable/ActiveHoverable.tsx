@@ -1,12 +1,31 @@
-import {cloneElement, forwardRef, Ref, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {cloneElement, forwardRef, MutableRefObject, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
 
+/**
+ * Assigns a ref to an element, either by setting the current property of the ref object or by calling the ref function
+ * @param ref The ref object or function.
+ * @param element The element to assign the ref to.
+ */
+function assignRef(ref: ((instance: HTMLElement | null) => void) | MutableRefObject<HTMLElement | null>, element: HTMLElement) {
+    if (!ref) {
+        return;
+    }
+    if (typeof ref === 'function') {
+        ref(element);
+    } else if ('current' in ref) {
+        // eslint-disable-next-line no-param-reassign
+        ref.current = element;
+    }
+}
+
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
-function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, ref: Ref<R>) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
     const [isHovered, setIsHovered] = useState(false);
+
+    const ref = useRef<HTMLElement | null>(null);
     const isScrolling = useRef(false);
     const isHoveredRef = useRef(false);
 
@@ -20,6 +39,9 @@ function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children
         },
         [shouldHandleScroll],
     );
+
+    // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
+    useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
 
     useEffect(() => (isHovered ? onHoverIn?.() : onHoverOut?.()), [isHovered, onHoverIn, onHoverOut]);
 
@@ -37,6 +59,30 @@ function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children
 
         return () => scrollingListener.remove();
     }, [shouldHandleScroll]);
+
+    useEffect(() => {
+        /**
+         * Checks the hover state of a component and updates it based on the event target.
+         * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+         * such as when an element is removed before the mouseleave event is triggered.
+         * @param event The hover event object.
+         */
+        const unsetHoveredIfOutside = (event: MouseEvent) => {
+            if (!ref.current || !isHovered) {
+                return;
+            }
+
+            if (ref.current.contains(event.target as Node)) {
+                return;
+            }
+
+            setIsHovered(false);
+        };
+
+        document.addEventListener('mouseover', unsetHoveredIfOutside);
+
+        return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
+    }, [isHovered, ref]);
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
@@ -64,8 +110,17 @@ function ActiveHoverable<R>({onHoverIn, onHoverOut, shouldHandleScroll, children
         [updateIsHovered, child.props],
     );
 
+    // We need to access the ref of a children from both parent and current component
+    // So we pass it to current ref and assign it once again to the child ref prop
+    const hijackRef = (el: HTMLElement) => {
+        ref.current = el;
+        if (child.ref) {
+            assignRef(child.ref, el);
+        }
+    };
+
     return cloneElement(child, {
-        ref,
+        ref: hijackRef,
         onMouseEnter,
         onMouseLeave,
     });
