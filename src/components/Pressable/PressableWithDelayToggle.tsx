@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import PressableProps from './GenericPressable/types';
@@ -66,6 +66,7 @@ function PressableWithDelayToggle(
     }: PressableWithDelayToggleProps,
     ref: ForwardedRef<RNText | View>,
 ) {
+    const styles = useThemeStyles();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
