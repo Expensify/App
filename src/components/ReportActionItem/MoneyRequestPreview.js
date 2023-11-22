@@ -333,7 +333,7 @@ function MoneyRequestPreview(props) {
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription || (shouldShowMerchant && props.isBillSplit && <Text style={[styles.colorMuted]}>{requestMerchant || description}</Text>)}
+                                    {(shouldShowDescription || (shouldShowMerchant && props.isBillSplit)) && <Text style={[styles.colorMuted]}>{shouldShowDescription ? description : requestMerchant}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
