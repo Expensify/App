@@ -7,6 +7,7 @@
 /***/ 3926:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const fs = __nccwpck_require__(7147);
 const format = __nccwpck_require__(2168);
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
@@ -15,8 +16,8 @@ const GithubUtils = __nccwpck_require__(7999);
 const GitUtils = __nccwpck_require__(669);
 
 async function run() {
-    const newVersion = core.getInput('NPM_VERSION');
-    console.log('New version found from action input:', newVersion);
+    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
+    const newVersionTag = JSON.parse(fs.readFileSync('package.json')).version;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -44,14 +45,12 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        // Note that any time we're creating a new checklist we MUST have `NPM_VERSION` passed in as an input
-        const newTag = newVersion || _.get(currentChecklistData, 'tag');
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newVersionTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(newTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            checklistBody = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.reduce(
@@ -103,9 +102,9 @@ async function run() {
                 });
             }
 
-            const didVersionChange = newVersion ? newVersion !== currentChecklistData.tag : false;
+            const didVersionChange = newVersionTag !== currentChecklistData.tag;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
-                newTag,
+                newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
@@ -191,23 +190,42 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
 
 /**
  * @param {String} tag
+ * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
-function fetchTag(tag) {
-    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                execSync(command);
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        console.error(e);
     }
 }
 
@@ -219,8 +237,10 @@ function fetchTag(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -297,16 +317,15 @@ function getValidMergedPRs(commits) {
  * @param {String} toTag
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
-        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-        // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList);
-        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
-    });
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 module.exports = {

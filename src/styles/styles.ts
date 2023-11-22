@@ -1442,6 +1442,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+        },
+
         popoverMenuText: {
             fontSize: variables.fontSizeNormal,
             color: theme.heading,
@@ -2659,7 +2664,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
             marginBottom: 0,
         },
 
@@ -3811,6 +3817,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
         },
 
         mapViewContainer: {
