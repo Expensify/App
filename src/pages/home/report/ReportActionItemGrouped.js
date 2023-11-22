@@ -1,25 +1,26 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 
     /** Styles for the outermost View */
-    // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyles: PropTypes.arrayOf(PropTypes.object),
+    wrapperStyle: stylePropTypes,
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyle: {},
 };
 
-function ReportActionItemGrouped(props) {
+function ReportActionItemGrouped({wrapperStyle, children}) {
+    const styles = useThemeStyles();
     return (
-        <View style={props.wrapperStyles}>
-            <View style={[styles.chatItemRightGrouped]}>{props.children}</View>
+        <View style={[styles.chatItem, wrapperStyle]}>
+            <View style={styles.chatItemRightGrouped}>{children}</View>
         </View>
     );
 }
