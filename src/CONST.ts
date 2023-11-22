@@ -1231,6 +1231,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {
@@ -2890,6 +2891,16 @@ const CONST = {
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
 } as const;
 
 export default CONST;

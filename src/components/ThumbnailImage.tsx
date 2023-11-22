@@ -1,51 +1,52 @@
 import lodashClamp from 'lodash/clamp';
-import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
-import {Dimensions, View} from 'react-native';
+import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
-const propTypes = {
+type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: PropTypes.string.isRequired,
+    previewSourceURL: string;
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style?: StyleProp<ViewStyle>;
 
     /** Whether the image requires an authToken */
-    isAuthTokenRequired: PropTypes.bool.isRequired,
+    isAuthTokenRequired: boolean;
 
     /** Width of the thumbnail image */
-    imageWidth: PropTypes.number,
+    imageWidth?: number;
 
     /** Height of the thumbnail image */
-    imageHeight: PropTypes.number,
+    imageHeight?: number;
 
     /** Should the image be resized on load or just fit container */
-    shouldDynamicallyResize: PropTypes.bool,
+    shouldDynamicallyResize?: boolean;
 };
 
-const defaultProps = {
-    style: {},
-    imageWidth: 200,
-    imageHeight: 200,
-    shouldDynamicallyResize: true,
+type UpdateImageSizeParams = {
+    width: number;
+    height: number;
+};
+
+type CalculateThumbnailImageSizeResult = {
+    thumbnailWidth?: number;
+    thumbnailHeight?: number;
 };
 
 /**
  * Compute the thumbnails width and height given original image dimensions.
  *
- * @param {Number} width - Width of the original image.
- * @param {Number} height - Height of the original image.
- * @param {Number} windowHeight - Height of the device/browser window.
- * @returns {Object} - Object containing thumbnails width and height.
+ * @param width - Width of the original image.
+ * @param height - Height of the original image.
+ * @param windowHeight - Height of the device/browser window.
+ * @returns - Object containing thumbnails width and height.
  */
 
-function calculateThumbnailImageSize(width, height, windowHeight) {
+function calculateThumbnailImageSize(width: number, height: number, windowHeight: number): CalculateThumbnailImageSizeResult {
     if (!width || !height) {
         return {};
     }
@@ -69,44 +70,42 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
     return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
 }
 
-function ThumbnailImage(props) {
+function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
-    const initialDimensions = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, windowHeight);
-    const [imageWidth, setImageWidth] = useState(initialDimensions.thumbnailWidth);
-    const [imageHeight, setImageHeight] = useState(initialDimensions.thumbnailHeight);
+    const initialDimensions = calculateThumbnailImageSize(imageWidth, imageHeight, windowHeight);
+    const [currentImageWidth, setCurrentImageWidth] = useState(initialDimensions.thumbnailWidth);
+    const [currentImageHeight, setCurrentImageHeight] = useState(initialDimensions.thumbnailHeight);
 
     /**
      * Update the state with the computed thumbnail sizes.
-     *
-     * @param {{ width: number, height: number }} Params - width and height of the original image.
+     * @param Params - width and height of the original image.
      */
 
     const updateImageSize = useCallback(
-        ({width, height}) => {
+        ({width, height}: UpdateImageSizeParams) => {
             const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, windowHeight);
-            setImageWidth(thumbnailWidth);
-            setImageHeight(thumbnailHeight);
+
+            setCurrentImageWidth(thumbnailWidth);
+            setCurrentImageHeight(thumbnailHeight);
         },
         [windowHeight],
     );
 
-    const sizeStyles = props.shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)] : [styles.w100, styles.h100];
+    const sizeStyles = shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(currentImageWidth ?? 0, currentImageHeight)] : [styles.w100, styles.h100];
 
     return (
-        <View style={[props.style, styles.overflowHidden]}>
+        <View style={[style, styles.overflowHidden]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
-                    url={props.previewSourceURL}
+                    url={previewSourceURL}
                     onMeasure={updateImageSize}
-                    isAuthTokenRequired={props.isAuthTokenRequired}
+                    isAuthTokenRequired={isAuthTokenRequired}
                 />
             </View>
         </View>
     );
 }
 
-ThumbnailImage.propTypes = propTypes;
-ThumbnailImage.defaultProps = defaultProps;
 ThumbnailImage.displayName = 'ThumbnailImage';
 export default React.memo(ThumbnailImage);
