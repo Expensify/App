@@ -877,6 +877,11 @@ function canModifyTask(taskReport, sessionAccountID) {
         return false;
     }
 
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    if (ReportUtils.isArchivedRoom(parentReport)) {
+        return false;
+    }
+
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
     }
@@ -884,7 +889,6 @@ function canModifyTask(taskReport, sessionAccountID) {
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    const parentReport = ReportUtils.getParentReport(taskReport);
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
