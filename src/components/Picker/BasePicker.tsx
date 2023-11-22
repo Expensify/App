@@ -128,7 +128,7 @@ function BasePicker<TPickerValue>(
 
     if (isDisabled) {
         return (
-            <View key={inputID}>
+            <View>
                 {Boolean(label) && (
                     <Text
                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -144,7 +144,7 @@ function BasePicker<TPickerValue>(
     }
 
     return (
-        <View key={inputID}>
+        <>
             <View
                 ref={root}
                 style={[styles.pickerContainer, isDisabled && styles.inputDisabled, containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
@@ -185,7 +185,7 @@ function BasePicker<TPickerValue>(
             </View>
             <FormHelpMessage message={errorText} />
             {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
-        </View>
+        </>
     );
 }
 

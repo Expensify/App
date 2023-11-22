@@ -25,6 +25,7 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
             // but doesn't open the picker (which we don't want), like it does on
             // Native.
             shouldFocusPicker
+            key={props.inputID}
             additionalPickerEvents={additionalPickerEvents}
         />
     );

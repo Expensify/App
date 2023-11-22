@@ -7,6 +7,7 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
         <BasePicker<TPickerValue>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            key={props.inputID}
             ref={ref}
         />
     );
