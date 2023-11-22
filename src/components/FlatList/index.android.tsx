@@ -30,7 +30,7 @@ function CustomFlatList(props: CustomFlatListProps) {
         if (innerRef.current && scrollPosition.offset) {
             innerRef.current.scrollToOffset({offset: scrollPosition.offset, animated: false});
         }
-    }, [scrollPosition.offset, props.innerRef]);
+    }, [scrollPosition.offset, innerRef]);
 
     useFocusEffect(
         useCallback(() => {
