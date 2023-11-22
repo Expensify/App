@@ -13,7 +13,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
 import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -392,7 +392,7 @@ function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
 
     const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo');
+    const exitTo = url.searchParams.get('exitTo') as Route | null;
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
