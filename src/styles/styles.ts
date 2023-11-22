@@ -4027,7 +4027,7 @@ const styles = (theme: ThemeColors) =>
 
         videoPlayerText: {
             textAlign: 'center',
-            fontSize: 13,
+            fontSize: variables.fontSizeLabel,
             fontWeight: '700',
             lineHeight: 16,
         },
