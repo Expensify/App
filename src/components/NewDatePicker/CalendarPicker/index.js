@@ -1,4 +1,4 @@
-import {addMonths, endOfMonth, format, getYear, isSameDay, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -8,9 +8,10 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
@@ -31,6 +32,7 @@ const propTypes = {
     onSelected: PropTypes.func,
 
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -131,19 +133,26 @@ class CalendarPicker extends React.PureComponent {
         return (
             <View>
                 <View
-                    style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}
+                    style={[
+                        this.props.themeStyles.calendarHeader,
+                        this.props.themeStyles.flexRow,
+                        this.props.themeStyles.justifyContentBetween,
+                        this.props.themeStyles.alignItemsCenter,
+                        this.props.themeStyles.ph4,
+                        this.props.themeStyles.pr1,
+                    ]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <PressableWithFeedback
                         onPress={() => this.setState({isYearPickerVisible: true})}
-                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
-                        wrapperStyle={[styles.alignItemsCenter]}
+                        style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentStart]}
+                        wrapperStyle={[this.props.themeStyles.alignItemsCenter]}
                         hoverDimmingValue={1}
                         testID="currentYearButton"
                         accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
-                            style={styles.sidebarLinkTextBold}
+                            style={this.props.themeStyles.sidebarLinkTextBold}
                             testID="currentYearText"
                             accessibilityLabel={this.props.translate('common.currentYear')}
                         >
@@ -151,9 +160,9 @@ class CalendarPicker extends React.PureComponent {
                         </Text>
                         <ArrowIcon />
                     </PressableWithFeedback>
-                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                    <View style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentEnd]}>
                         <Text
-                            style={styles.sidebarLinkTextBold}
+                            style={this.props.themeStyles.sidebarLinkTextBold}
                             testID="currentMonthText"
                             accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
@@ -184,49 +193,53 @@ class CalendarPicker extends React.PureComponent {
                         </PressableWithFeedback>
                     </View>
                 </View>
-                <View style={styles.flexRow}>
+                <View style={this.props.themeStyles.flexRow}>
                     {_.map(daysOfWeek, (dayOfWeek) => (
                         <View
                             key={dayOfWeek}
-                            style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                            style={[
+                                this.props.themeStyles.calendarDayRoot,
+                                this.props.themeStyles.flex1,
+                                this.props.themeStyles.justifyContentCenter,
+                                this.props.themeStyles.alignItemsCenter,
+                            ]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
+                            <Text style={this.props.themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
                     ))}
                 </View>
                 {_.map(calendarDaysMatrix, (week) => (
                     <View
                         key={`week-${week}`}
-                        style={styles.flexRow}
+                        style={this.props.themeStyles.flexRow}
                     >
                         {_.map(week, (day, index) => {
                             const currentDate = new Date(currentYearView, currentMonthView, day);
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(new Date(this.props.value), new Date(currentYearView, currentMonthView, day));
-
+                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
-                                    style={styles.calendarDayRoot}
+                                    style={this.props.themeStyles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
-                                    focusable={Boolean(day)}
+                                    tabIndex={day ? 0 : -1}
                                     accessible={Boolean(day)}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     {({hovered, pressed}) => (
                                         <View
                                             style={[
-                                                styles.calendarDayContainer,
-                                                isSelected ? styles.calendarDayContainerSelected : {},
+                                                this.props.themeStyles.calendarDayContainer,
+                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
                                                 !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
-                                            <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </PressableWithoutFeedback>
@@ -249,4 +262,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default withLocalize(CalendarPicker);
+export default compose(withLocalize, withThemeStyles)(CalendarPicker);

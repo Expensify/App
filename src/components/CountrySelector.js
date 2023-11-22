@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function CountrySelector({errorText, value: countryCode, onInputChange, forwardedRef}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -53,7 +54,7 @@ function CountrySelector({errorText, value: countryCode, onInputChange, forwarde
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
-                    const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+                    const activeRoute = Navigation.getActiveRouteWithoutParams();
                     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode, activeRoute));
                 }}
             />

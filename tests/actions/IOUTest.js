@@ -78,6 +78,8 @@ describe('actions/IOU', () => {
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
 
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                     // They should be linked together
                                     expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                     expect(chatReport.iouReportID).toBe(iouReport.reportID);
@@ -242,6 +244,8 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     iouReportID = iouReport.reportID;
+
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     // They should be linked together
                                     expect(chatReport.iouReportID).toBe(iouReportID);
@@ -572,6 +576,8 @@ describe('actions/IOU', () => {
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport.reportID;
 
+                                        expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                         // They should be linked together
                                         expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                         expect(chatReport.iouReportID).toBe(iouReport.reportID);
@@ -680,7 +686,7 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
-                                        expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                        expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
                                         expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
                                         resolve();
@@ -982,6 +988,7 @@ describe('actions/IOU', () => {
                                     expect(carlosChatReport.hasOutstandingIOU).toBe(true);
                                     expect(carlosChatReport.iouReportID).toBe(carlosIOUReport.reportID);
                                     expect(carlosIOUReport.chatReportID).toBe(carlosChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     expect(julesChatReport.hasOutstandingIOU).toBe(true);
                                     expect(julesChatReport.iouReportID).toBe(julesIOUReport.reportID);
@@ -990,6 +997,7 @@ describe('actions/IOU', () => {
                                     expect(vitChatReport.hasOutstandingIOU).toBe(true);
                                     expect(vitChatReport.iouReportID).toBe(vitIOUReport.reportID);
                                     expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     resolve();
                                 },
@@ -1470,7 +1478,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1605,7 +1613,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     fetch.fail();
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1749,7 +1757,7 @@ describe('actions/IOU', () => {
                                                     }),
                                                 ]),
                                                 originalMessage: expect.objectContaining({
-                                                    amount,
+                                                    amount: -amount,
                                                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                                                     type: 'pay',
                                                 }),
@@ -2171,6 +2179,8 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
@@ -2248,6 +2258,9 @@ describe('actions/IOU', () => {
 
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             jest.advanceTimersByTime(10);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
@@ -2331,6 +2344,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2545,6 +2560,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
@@ -2618,14 +2635,14 @@ describe('actions/IOU', () => {
 
             // Then we expect to navigate to the iou report
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
         });
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
             // When we delete the money request and we should delete the IOU report
             IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             // Then we expect to navigate to the chat report
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
         });
     });
 

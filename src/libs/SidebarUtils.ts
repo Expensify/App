@@ -10,6 +10,7 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import * as Task from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -38,6 +39,7 @@ Onyx.connect({
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -156,18 +158,6 @@ function getOrderedReportIDs(
         }
     }
 
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-    });
-
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
@@ -181,7 +171,18 @@ function getOrderedReportIDs(
     const draftReports: Report[] = [];
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
+
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
+
         const isPinned = report.isPinned ?? false;
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
@@ -411,10 +412,21 @@ function getOptionData(
     const reportAction = lastReportActions?.[report.reportID];
     if (result.isArchivedRoom) {
         const archiveReason = (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && reportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report, false, policy),
-        });
+
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                });
+                break;
+            }
+            default: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
@@ -423,10 +435,8 @@ function getOptionData(
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (ReportActionsUtils.isTaskAction(lastAction)) {
+            result.alternateText = Task.getTaskReportActionMessage(lastAction.actionName, report.reportID, false);
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
@@ -452,7 +462,7 @@ function getOptionData(
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
