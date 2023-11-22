@@ -1,9 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {FlashList} from '@shopify/flash-list';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
