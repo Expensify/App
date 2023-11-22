@@ -186,7 +186,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
                 />
-                {isLoading && (
+                {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
                         <OptionsListSkeletonView shouldAnimate />
                     </View>
