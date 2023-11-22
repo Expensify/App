@@ -92,6 +92,7 @@ function applyStrikeThrough(children) {
 }
 
 function OfflineWithFeedback(props) {
+    console.log('OfflineWithFeedback');
     const {isOffline} = useNetwork();
 
     const hasErrors = !_.isEmpty(props.errors);

@@ -14,6 +14,7 @@ type SelectCircleProps = {
 };
 
 function SelectCircle({isChecked = false, styles}: SelectCircleProps) {
+    console.log('SelectCircle');
     return (
         <View style={[globalStyles.selectCircle, globalStyles.alignSelfCenter, styles]}>
             {isChecked && (

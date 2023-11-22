@@ -59,6 +59,7 @@ class Icon extends PureComponent<IconProps> {
     };
 
     render() {
+        console.log('Icon');
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, this.props.additionalStyles];

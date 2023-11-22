@@ -90,6 +90,7 @@ class BaseOptionsSelector extends Component {
 
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
+        console.log('BaseOptionsSelector');
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
