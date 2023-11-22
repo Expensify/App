@@ -31,9 +31,8 @@ function getAnimationStyle(direction: AnimationDirection, styles: typeof Styles)
 }
 
 function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style = [], children}: AnimatedStepProps) {
-    
     const styles = useThemeStyles();
-    
+
     return (
         <Animatable.View
             onAnimationEnd={() => {

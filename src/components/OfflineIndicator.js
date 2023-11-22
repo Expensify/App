@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
 import stylePropTypes from '@styles/stylePropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -44,7 +44,6 @@ const setStyles = (containerStyles, isSmallScreenWidth, styles) => {
 };
 
 function OfflineIndicator(props) {
-
     const styles = useThemeStyles();
 
     if (!props.network.isOffline) {
