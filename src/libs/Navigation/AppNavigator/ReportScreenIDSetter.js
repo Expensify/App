@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
@@ -61,12 +60,6 @@ const defaultProps = {
  * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
-    // If deeplink url contains reportID params, we should show the report that has this reportID.
-    const currentRoute = Navigation.getActiveRoute();
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
-    if (reportID) {
-        return reportID;
-    }
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
     return lodashGet(lastReport, 'reportID');
 };
