@@ -113,10 +113,10 @@ function PopoverMenu(props) {
     );
 
     useEffect(() => {
-        if (menuItems.length === 0) {
-            setMenuItems(props.menuItems);
+        if (menuItems.length !== 0) {
+            return;
         }
-        return () => {};
+        setMenuItems(props.menuItems);
     }, [menuItems, props.menuItems]);
 
     return (
@@ -155,7 +155,7 @@ function PopoverMenu(props) {
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
-                        title={item.text.toString()}
+                        title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}

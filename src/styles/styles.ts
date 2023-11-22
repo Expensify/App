@@ -39,6 +39,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
+import theme from '.storybook/theme';
 
 type AnchorPosition = {
     horizontal: number;
@@ -3989,7 +3990,7 @@ const styles = (theme: ThemeColors) =>
             bottom: 8,
             left: 8,
             right: 8,
-            backgroundColor: '#061B09CC',
+            backgroundColor: theme.transparentAppBG,
             height: 48,
             borderRadius: 8,
             flexDirection: 'column',
@@ -4010,7 +4011,7 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             height: 5,
             borderRadius: 10,
-            backgroundColor: '#FFFFFF51',
+            backgroundColor: theme.transparentWhite,
         },
 
         progressBarFill: {
@@ -4045,7 +4046,7 @@ const styles = (theme: ThemeColors) =>
         volumeSliderOverlay: {
             width: 4,
             height: 60,
-            backgroundColor: '#FFFFFF51',
+            backgroundColor: theme.transparentWhite,
             borderRadius: 10,
             marginTop: 10,
             alignItems: 'end',
@@ -4075,7 +4076,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         videoThumbnailPlayButton: {
-            backgroundColor: '#061B09CC',
+            backgroundColor: theme.transparentAppBG,
             borderRadius: 100,
             width: 72,
             height: 72,
@@ -4087,7 +4088,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             top: 10,
             right: 10,
-            backgroundColor: '#061B09CC',
+            backgroundColor: theme.transparentAppBG,
             borderRadius: 5,
         },
 

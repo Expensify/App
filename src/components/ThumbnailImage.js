@@ -35,9 +35,8 @@ const defaultProps = {
 
 function ThumbnailImage(props) {
     const styles = useThemeStyles();
-    const [imageWidth, setImageWidth] = useState(props.imageWidth);
-    const [imageHeight, setImageHeight] = useState(props.imageHeight);
-    const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageWidth, imageHeight);
+    const [imagedimensions, setImageDimensions] = useState({width: props.imageWidth, height: props.imageHeight});
+    const {thumbnailDimensionsStyles} = useThumbnailDimensions(imagedimensions.width, imagedimensions.height);
 
     /**
      * Update the state with the computed thumbnail sizes.
@@ -49,8 +48,7 @@ function ThumbnailImage(props) {
             if (!props.shouldDynamicallyResize) {
                 return;
             }
-            setImageWidth(width);
-            setImageHeight(height);
+            setImageDimensions({width, height});
         },
         [props.shouldDynamicallyResize],
     );

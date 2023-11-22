@@ -51,13 +51,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const sharedVideoPlayerParentRef = useRef(null);
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
-    const onReadyForDisplay = useCallback(
-        (e) => {
-            onVideoLoaded(e);
-        },
-        [onVideoLoaded],
-    );
-
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
             updateIsPlaying(e.isPlaying);
@@ -70,7 +63,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
     const bindFunctions = useCallback(() => {
         currentVideoPlayerRef.current._onPlaybackStatusUpdate = onPlaybackStatusUpdate;
-
         // update states after binding
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
             onPlaybackStatusUpdate(status);
@@ -138,7 +130,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             useNativeControls={false}
                             resizeMode={resizeMode}
                             isLooping={isLooping}
-                            onReadyForDisplay={onReadyForDisplay}
+                            onReadyForDisplay={onVideoLoaded}
                             onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                         />
                     </View>

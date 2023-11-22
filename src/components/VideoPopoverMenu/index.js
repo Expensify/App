@@ -18,7 +18,7 @@ function VideoPopoverMenu() {
 
     const playbackSpeedSubMenuItems = _.map(playbackSpeeds, (speed) => ({
         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-        text: speed,
+        text: speed.toString(),
         onSelected: () => updatePlaybackSpeed(speed),
         shouldPutLeftPaddingWhenNoIcon: true,
     }));
