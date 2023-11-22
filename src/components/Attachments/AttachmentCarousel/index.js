@@ -41,6 +41,7 @@ function AttachmentCarousel({
     isLoadingReportData,
     reportMetadata,
     isSmallScreenWidth,
+    isLoadingApp,
 }) {
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
@@ -55,8 +56,7 @@ function AttachmentCarousel({
     const [isReceipt, setIsReceipt] = useState(false);
 
     const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
-    const isLoadingReportAction = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
-
+    const isLoadingReportAction = _.isEmpty(reportActions) || reportMetadata.isLoadingInitialReportActions;
     // For small screen, we don't call openReport API when we go to a sub report page by deeplink
     // So we need to call openReport here for small screen
     useEffect(() => {
@@ -183,7 +183,7 @@ function AttachmentCarousel({
         [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
-    if (isLoadingReport || isLoadingReportAction) {
+    if (isLoadingReport || isLoadingReportAction || isLoadingApp) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -278,6 +278,9 @@ export default compose(
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
