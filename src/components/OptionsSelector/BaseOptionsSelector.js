@@ -131,8 +131,6 @@ class BaseOptionsSelector extends Component {
             this.setState({
                 sections: newSections,
             });
-
-            return;
         }
 
         if (_.isEqual(this.props.sections, prevProps.sections)) {
