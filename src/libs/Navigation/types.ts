@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -7,15 +7,19 @@ import SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
-type CommonActionWithoutNavigate = Extract<CommonActions.Action, {type: 'GO_BACK' | 'RESET' | 'SET_PARAMS'}>;
+type NavigationRoot = NavigationHelpers<RootStackParamList>;
+
+type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
+type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
+type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
 
 type ActionNavigate = {
     type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
     payload: {
         name?: string;
         key?: string;
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        params?: object;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        params?: any;
         path?: string;
         merge?: boolean;
     };
@@ -23,7 +27,7 @@ type ActionNavigate = {
     target?: string;
 };
 
-type StackNavigationAction = CommonActionWithoutNavigate | ActionNavigate | undefined;
+type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | undefined;
 
 type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute = PartialRoute<Route<string>>;
@@ -325,4 +329,4 @@ type RootStackParamList = {
     SignIn_Root: undefined;
 };
 
-export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList, StateOrRoute};
+export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList, StateOrRoute, NavigationStateRoute, NavigationRoot};
