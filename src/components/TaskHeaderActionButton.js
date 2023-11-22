@@ -6,6 +6,7 @@ import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Button from './Button';
@@ -38,7 +39,7 @@ function TaskHeaderActionButton(props) {
                 isDisabled={!Task.canModifyTask(props.report, props.session.accountID)}
                 medium
                 text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={() => (ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report) : Task.completeTask(props.report))}
+                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report) : Task.completeTask(props.report)))}
                 style={[styles.flex1]}
             />
         </View>
