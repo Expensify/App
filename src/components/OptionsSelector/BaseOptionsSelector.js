@@ -13,6 +13,8 @@ import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import withThemeStyles from "@components/withThemeStyles";
+import withTheme from "@components/withTheme";
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
 import compose from '@libs/compose';
@@ -20,8 +22,6 @@ import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
-import colors from '@styles/colors';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -58,7 +58,7 @@ const defaultProps = {
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
-    listContainerStyles: [styles.flex1],
+    listContainerStyles: [{flex: 1}],
     listStyles: [],
     ...optionsSelectorDefaultProps,
 };
@@ -90,7 +90,6 @@ class BaseOptionsSelector extends Component {
 
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
-        console.log('BaseOptionsSelector');
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
@@ -464,8 +463,8 @@ class BaseOptionsSelector extends Component {
 
         const optionsAndInputsBelowThem = (
             <>
-                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                <View style={[this.props.themeStyles.flexGrow0, this.props.themeStyles.flexShrink1, this.props.themeStyles.flexBasisAuto, this.props.themeStyles.w100, this.props.themeStyles.flexRow]}>{optionsList}</View>
+                <View style={this.props.shouldUseStyleForChildren ? [this.props.themeStyles.ph5, this.props.themeStyles.pv5, this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink0] : []}>
                     {this.props.children}
                     {this.props.shouldShowTextInput && textInput}
                 </View>
@@ -480,18 +479,18 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
-                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
+                <View style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink1, this.props.themeStyles.flexBasisAuto]}>
                     {/*
                      * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
                      */}
                     {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
-                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <ScrollView contentContainerStyle={[this.props.themeStyles.flexGrow1]}>
                             <ScrollView
                                 horizontal
                                 bounces={false}
-                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                                contentContainerStyle={[this.props.themeStyles.flex1, this.props.themeStyles.flexColumn]}
                             >
                                 {optionsAndInputsBelowThem}
                             </ScrollView>
@@ -502,13 +501,13 @@ class BaseOptionsSelector extends Component {
 
                     {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                            <View style={this.props.shouldUseStyleForChildren ? [this.props.themeStyles.ph5, this.props.themeStyles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
                                 {Boolean(this.props.textInputAlert) && (
                                     <FormHelpMessage
                                         message={this.props.textInputAlert}
-                                        style={[styles.mb3]}
+                                        style={[this.props.themeStyles.mb3]}
                                         isError={false}
                                     />
                                 )}
@@ -518,20 +517,20 @@ class BaseOptionsSelector extends Component {
                     )}
                 </View>
                 {this.props.shouldShowReferralCTA && (
-                    <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                    <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
                             }}
-                            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                            style={[this.props.themeStyles.p5, this.props.themeStyles.w100, this.props.themeStyles.br2, this.props.themeStyles.highlightBG, this.props.themeStyles.flexRow, this.props.themeStyles.justifyContentBetween, this.props.themeStyles.alignItemsCenter, {gap: 10}]}
                             accessibilityLabel="referral"
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <Text>
                                 {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
                                 <Text
-                                    color={colors.green400}
-                                    style={styles.textStrong}
+                                    color={this.props.theme.success}
+                                    style={this.props.themeStyles.textStrong}
                                 >
                                     {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
                                 </Text>
@@ -550,7 +549,7 @@ class BaseOptionsSelector extends Component {
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
-                                style={[styles.w100]}
+                                style={[this.props.themeStyles.w100]}
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter
@@ -568,4 +567,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus, withThemeStyles, withTheme)(BaseOptionsSelector);
