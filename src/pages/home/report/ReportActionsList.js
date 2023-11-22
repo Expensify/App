@@ -179,10 +179,9 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        if (previousLastIndex.current === lastActionIndex || reportActionSize.current <= sortedReportActions.length) {
-            return;
+        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedReportActions.length) {
+            reportScrollManager.scrollToBottom();
         }
-        reportScrollManager.scrollToBottom();
         previousLastIndex.current = lastActionIndex;
     }, [lastActionIndex, sortedReportActions.length, reportScrollManager]);
 
