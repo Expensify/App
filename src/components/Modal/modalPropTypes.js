@@ -15,7 +15,7 @@ const propTypes = {
     shouldSetModalVisibility: PropTypes.bool,
 
     /** Callback method fired when the user requests to close the modal */
-    onClose: PropTypes.func,
+    onClose: PropTypes.func.isRequired,
 
     /** State that determines whether to display the modal or not */
     isVisible: PropTypes.bool.isRequired,

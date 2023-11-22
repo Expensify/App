@@ -408,7 +408,7 @@ function AttachmentModal(props) {
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={isOverlayModalVisible ? null : closeModal}
+                onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 backgroundColor={theme.componentBG}
                 onModalShow={() => {
