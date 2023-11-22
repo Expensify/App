@@ -7,25 +7,10 @@ import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import * as Growl from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-
-const types = {
-    [CONST.GROWL.SUCCESS]: {
-        icon: Expensicons.Checkmark,
-        iconColor: themeColors.success,
-    },
-    [CONST.GROWL.ERROR]: {
-        icon: Expensicons.Exclamation,
-        iconColor: themeColors.danger,
-    },
-    [CONST.GROWL.WARNING]: {
-        icon: Expensicons.Exclamation,
-        iconColor: themeColors.warning,
-    },
-};
 
 const INACTIVE_POSITION_Y = -255;
 
@@ -36,6 +21,23 @@ function GrowlNotification(_, ref) {
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState();
+    const styles = useThemeStyles();
+    const theme = useTheme();
+
+    const types = {
+        [CONST.GROWL.SUCCESS]: {
+            icon: Expensicons.Checkmark,
+            iconColor: theme.success,
+        },
+        [CONST.GROWL.ERROR]: {
+            icon: Expensicons.Exclamation,
+            iconColor: theme.danger,
+        },
+        [CONST.GROWL.WARNING]: {
+            icon: Expensicons.Exclamation,
+            iconColor: theme.warning,
+        },
+    };
 
     /**
      * Show the growl notification

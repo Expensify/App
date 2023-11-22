@@ -152,7 +152,7 @@ function SignInPageLayout(props) {
                 </View>
             ) : (
                 <ScrollView
-                    contentContainerStyle={scrollViewContentContainerStyles}
+                    contentContainerStyle={scrollViewContentContainerStyles(styles)}
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >

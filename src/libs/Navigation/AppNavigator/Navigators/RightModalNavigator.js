@@ -26,7 +26,7 @@ function RightModalNavigator(props) {
         <NoDropZone>
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={RHPScreenOptions}>
+                <Stack.Navigator screenOptions={RHPScreenOptions(styles)}>
                     <Stack.Screen
                         name="Settings"
                         component={ModalStackNavigators.SettingsModalStackNavigator}
