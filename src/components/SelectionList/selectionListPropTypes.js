@@ -182,6 +182,9 @@ const propTypes = {
 
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+				/** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
+    shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};
