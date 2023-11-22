@@ -470,6 +470,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     if (!reportID) {
         return;
     }
+
+    LocalNotification.clearReportNotifications(reportID);
+
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

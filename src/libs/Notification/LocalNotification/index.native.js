@@ -3,4 +3,5 @@ export default {
     showCommentNotification: () => {},
     showUpdateAvailableNotification: () => {},
     showModifiedExpenseNotification: () => {},
+    clearReportNotifications: () => {},
 };
