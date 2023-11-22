@@ -21,9 +21,6 @@ type TextProps = RNTextProps & {
 
     /** The family of the font to use */
     family?: keyof typeof fontFamily;
-
-    /** Pointer events property to the Text element */
-    pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto';
 };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {

@@ -69,6 +69,9 @@ type BasePickerProps<TPickerValue> = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft?: boolean;
+
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
     onInputChange: (value: TPickerValue, index?: number) => void;
 
