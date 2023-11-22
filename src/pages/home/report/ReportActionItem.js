@@ -539,7 +539,7 @@ function ReportActionItem(props) {
                 <ReportActionItemSingle
                     action={props.action}
                     showHeader={!props.draftMessage}
-                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    wrapperStyle={isWhisper ? styles.pt1 : {}}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     iouReport={props.iouReport}
@@ -581,7 +581,6 @@ function ReportActionItem(props) {
                             <ReportActionItemSingle
                                 action={parentReportAction}
                                 showHeader={!props.draftMessage}
-                                wrapperStyles={[styles.chatItem]}
                                 report={props.report}
                             >
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
