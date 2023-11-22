@@ -1377,7 +1377,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             textDecorationLine: 'none',
         },
-
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                position: 'absolute',
+                left: 0,
+                height: '100%',
+            } satisfies ViewStyle),
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,

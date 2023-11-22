@@ -212,6 +212,7 @@ function dismissModal(targetReportID?: string) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
     switch (lastRoute?.name) {
+        case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:

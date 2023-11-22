@@ -32,7 +32,23 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): Screen
             right: 0,
         },
     },
+    leftModalNavigator: {
+        ...commonScreenOptions,
+        // cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        presentation: 'transparentModal',
 
+        // We want pop in RHP since there are some flows that would work weird otherwise
+        animationTypeForReplace: 'pop',
+        cardStyle: {
+            ...getNavigationModalCardStyle(),
+
+            // This is necessary to cover translated sidebar with overlay.
+            width: isSmallScreenWidth ? '100%' : '200%',
+
+            transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
+            ...(isSmallScreenWidth ? {} : styles.borderRight),
+        },
+    },
     homeScreen: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,

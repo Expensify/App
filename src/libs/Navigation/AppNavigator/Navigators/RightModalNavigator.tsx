@@ -33,10 +33,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
                     <Stack.Screen
-                        name="Search"
-                        component={ModalStackNavigators.SearchModalStackNavigator}
-                    />
-                    <Stack.Screen
                         name="Details"
                         component={ModalStackNavigators.DetailsModalStackNavigator}
                     />

@@ -36,7 +36,15 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
-
+            [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
+                screens: {
+                    Search: {
+                        screens: {
+                            Search_Root: ROUTES.SEARCH,
+                        },
+                    },
+                },
+            },
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     Settings: {
@@ -326,11 +334,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
                             Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
-                        },
-                    },
-                    Search: {
-                        screens: {
-                            Search_Root: ROUTES.SEARCH,
                         },
                     },
                     Details: {
