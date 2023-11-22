@@ -130,11 +130,11 @@ function FloatingActionButtonAndPopover(props) {
      */
     const hideCreateMenu = useCallback(
         () => {
+            setIsCreateMenuActive(false);
             if (!isCreateMenuActive) {
                 return;
             }
             props.onHideCreateMenu();
-            setIsCreateMenuActive(false);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -187,7 +187,7 @@ function FloatingActionButtonAndPopover(props) {
         <View>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive}
+                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!props.isSmallScreenWidth}
