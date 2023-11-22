@@ -8,7 +8,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
 import themeColors from '@styles/themes/default';
-import {RootStackParamList} from '@src/types/modules/react-navigation';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -33,7 +32,7 @@ type NavigationRootProps = {
 /**
  * Intercept navigation state changes and log it
  */
-function parseAndLogRoute(state: NavigationState<RootStackParamList>) {
+function parseAndLogRoute(state: NavigationState) {
     if (!state) {
         return;
     }
@@ -124,15 +123,15 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
-            currentReport?.updateCurrentReportID(state as NavigationState<RootStackParamList>);
+            currentReport?.updateCurrentReportID(state);
         }, 0);
-        parseAndLogRoute(state as NavigationState<RootStackParamList>);
+        parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
 
     return (
         <NavigationContainer
-            onStateChange={handleStateChange}
+            onStateChange={(state) => handleStateChange(state)}
             onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}

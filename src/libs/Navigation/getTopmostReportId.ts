@@ -1,5 +1,5 @@
-import {NavigationState} from '@react-navigation/core';
-import {RootStackParamList} from '@src/types/modules/react-navigation';
+import {NavigationState, PartialState} from '@react-navigation/native';
+import {RootStackParamList} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
@@ -9,7 +9,7 @@ import {RootStackParamList} from '@src/types/modules/react-navigation';
  * @param state - The react-navigation state
  * @returns - It's possible that there is no report screen
  */
-function getTopmostReportId(state: NavigationState<RootStackParamList>): string | undefined {
+function getTopmostReportId(state: NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>): string | undefined {
     if (!state) {
         return;
     }
