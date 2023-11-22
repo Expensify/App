@@ -73,8 +73,6 @@ const propTypes = {
     shouldValidateOnBlur: PropTypes.bool,
 
     shouldValidateOnChange: PropTypes.bool,
-
-    customErrorMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -91,7 +89,6 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
-    customErrorMessage: '',
 };
 
 function getInitialValueByType(valueType) {

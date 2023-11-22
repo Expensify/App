@@ -66,8 +66,6 @@ const propTypes = {
     errors: errorsPropType.isRequired,
 
     inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
-
-    customErrorMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -81,7 +79,6 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
-    customErrorMessage: '',
 };
 
 function FormWrapper(props) {
@@ -100,17 +97,13 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
-        customErrorMessage,
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const errorMessage = useMemo(() => {
-        if (customErrorMessage) {
-            return customErrorMessage;
-        }
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
-    }, [customErrorMessage, formState]);
+    }, [formState]);
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
