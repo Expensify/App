@@ -1,5 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {Writable} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {Route} from '@src/ROUTES';
@@ -15,7 +16,7 @@ import {NavigationRoot, RootStackParamList, StackNavigationAction} from './types
  * @param state The root state
  * @returns minimalAction minimal action is the action that we should dispatch
  */
-function getMinimalAction(action: NavigationAction, state: NavigationState): NavigationAction {
+function getMinimalAction(action: NavigationAction, state: NavigationState): Writable<NavigationAction> {
     let currentAction: NavigationAction = action;
     let currentState: NavigationState | PartialState<NavigationState> | undefined = state;
     let currentTargetKey: string | undefined;
