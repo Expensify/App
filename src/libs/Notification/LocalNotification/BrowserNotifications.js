@@ -47,16 +47,14 @@ function closeNotification(notificationID) {
  * Light abstraction around browser push notifications.
  * Checks for permission before determining whether to send.
  *
- * @param {Object} params
- * @param {String} params.title
- * @param {String} params.body
- * @param {String} [params.icon] Path to icon
- * @param {Function} [params.onClick]
- * @param {String} [params.tag]
+ * @param {String} title
+ * @param {String} body
+ * @param {String} icon Path to icon
+ * @param {Function} onClick
  *
  * @return {Promise} - resolves with Notification object or undefined
  */
-function push({title, body, onClick = () => {}, tag = '', icon}) {
+function push(title, body, icon = '', onClick = () => {}) {
     return new Promise((resolve) => {
         if (!title || !body) {
             throw new Error('BrowserNotification must include title and body parameter.');
@@ -71,7 +69,6 @@ function push({title, body, onClick = () => {}, tag = '', icon}) {
             const notificationID = Str.guid();
             const notification = new Notification(title, {
                 body,
-                tag,
                 icon,
             });
             notificationCache[notificationID] = notification;
@@ -105,6 +102,7 @@ export default {
     pushReportCommentNotification(report, reportAction, onClick, usesIcon = false) {
         let title;
         let body;
+        const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
         const isChatRoom = ReportUtils.isChatRoom(report);
 
@@ -123,33 +121,22 @@ export default {
             body = plainTextMessage;
         }
 
-        push({
-            title,
-            body,
-            onClick,
-            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
-        });
+        push(title, body, icon, onClick);
     },
 
     pushModifiedExpenseNotification(reportAction, onClick, usesIcon = false) {
-        push({
-            title: _.map(reportAction.person, (f) => f.text).join(', '),
-            body: ReportUtils.getModifiedExpenseMessage(reportAction),
-            onClick,
-            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
-        });
+        const title = _.map(reportAction.person, (f) => f.text).join(', ');
+        const body = ReportUtils.getModifiedExpenseMessage(reportAction);
+        const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
+        push(title, body, icon, onClick);
     },
 
     /**
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push({
-            title: 'Update available',
-            body: 'A new version of this app is available!',
-            onClick: () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
+        push('Update available', 'A new version of this app is available!', () => {
+            AppUpdate.triggerUpdateAvailable();
         });
     },
 };
