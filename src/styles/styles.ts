@@ -1376,6 +1376,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
+            scrollbarWidth: 'none',
             paddingBottom: 4,
         },
 
@@ -1448,6 +1449,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
         },
 
         popoverMenuText: {

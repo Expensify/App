@@ -2,13 +2,16 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 const propTypes = {
@@ -19,7 +22,9 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
+    messages: PropTypes.objectOf(
+        PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    ),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -36,6 +41,19 @@ const defaultProps = {
     messages: {},
     style: [],
     textStyles: [],
+};
+
+/**
+ * Check if the error includes a receipt.
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+const isReceiptError = (message) => {
+    if (_.isString(message)) {
+        return false;
+    }
+    return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
 };
 
 function DotIndicatorMessage(props) {
@@ -71,14 +89,33 @@ function DotIndicatorMessage(props) {
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {_.map(sortedMessages, (message, i) => (
-                    <Text
-                        key={i}
-                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
-                    >
-                        {message}
-                    </Text>
-                ))}
+                {_.map(sortedMessages, (message, i) =>
+                    isReceiptError(message) ? (
+                        <PressableWithoutFeedback
+                            key={i}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                            onPress={() => {
+                                fileDownload(message.source, message.filename);
+                            }}
+                        >
+                            <Text
+                                key={i}
+                                style={styles.offlineFeedback.text}
+                            >
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                            </Text>
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <Text
+                            key={i}
+                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
+                        >
+                            {message}
+                        </Text>
+                    ),
+                )}
             </View>
         </View>
     );

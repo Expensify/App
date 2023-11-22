@@ -148,6 +148,9 @@ const propTypes = {
     /** Should render the content in HTML format */
     shouldRenderAsHTML: PropTypes.bool,
 
+    /** Label to be displayed on the right */
+    rightLabel: PropTypes.string,
+
     /** Component to be displayed on the right */
     rightComponent: PropTypes.node,
 

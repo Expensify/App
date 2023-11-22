@@ -16,7 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
+
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh
