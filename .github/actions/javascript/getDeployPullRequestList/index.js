@@ -133,9 +133,9 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
 
 /**
  * @param {String} tag
+ * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
-function fetchTag(tag) {
-    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
+function fetchTag(tag, shallowExcludeTag = '') {
     let shouldRetry = true;
     let needsRepack = false;
     while (shouldRetry) {
@@ -151,11 +151,9 @@ function fetchTag(tag) {
 
             command = `git fetch origin tag ${tag} --no-tags`;
 
-            // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-            // so that we don't have to fetch the full history
-            // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-            if (previousPatchVersion !== tag) {
-                command += ` --shallow-exclude=${previousPatchVersion}`;
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
             }
 
             console.log(`Running command: ${command}`);
@@ -182,8 +180,10 @@ function fetchTag(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {

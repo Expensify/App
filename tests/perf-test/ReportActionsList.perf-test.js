@@ -5,6 +5,7 @@ import ComposeProviders from '../../src/components/ComposeProviders';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
@@ -16,8 +17,6 @@ import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.setTimeout(60000);
 
 const mockedNavigate = jest.fn();
 
@@ -98,6 +97,8 @@ function ReportActionsListWrapper() {
     );
 }
 
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
@@ -112,7 +113,7 @@ test('should render ReportActionsList with 500 reportActions stored', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
 });
 
 test('should scroll and click some of the reports', () => {
@@ -136,8 +137,6 @@ test('should scroll and click some of the reports', () => {
 
     const scenario = async () => {
         const reportActionsList = await screen.findByTestId('report-actions-list');
-        expect(reportActionsList).toBeDefined();
-
         fireEvent.scroll(reportActionsList, eventData);
 
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
@@ -152,5 +151,5 @@ test('should scroll and click some of the reports', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
 });

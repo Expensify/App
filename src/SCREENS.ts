@@ -2,15 +2,20 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-export default {
+
+const PROTECTED_SCREENS = {
     HOME: 'Home',
+    CONCIERGE: 'Concierge',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
+} as const;
+
+export default {
+    ...PROTECTED_SCREENS,
     LOADING: 'Loading',
     REPORT: 'Report',
-    REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
-    CONCIERGE: 'Concierge',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
@@ -34,3 +39,5 @@ export default {
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
 } as const;
+
+export {PROTECTED_SCREENS};

@@ -205,6 +205,8 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
+        personalBankAccount: 'Cuenta bancaria personal',
+        businessBankAccount: 'Cuenta bancaria comercial',
         join: 'Unirse',
         leave: 'Salir',
         decline: 'Rechazar',
@@ -257,6 +259,7 @@ export default {
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
+        required: 'Obligatorio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -584,6 +587,9 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
+            receiptFailureMessage: 'El recibo no se subió. ',
+            saveFileMessage: 'Guarda el archivo ',
+            loseFileMessage: 'o descarta este error y piérdelo',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
@@ -898,6 +904,8 @@ export default {
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
             thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+            throttled:
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     // TODO: add translation
