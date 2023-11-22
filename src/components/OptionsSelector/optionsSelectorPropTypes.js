@@ -138,9 +138,6 @@ const propTypes = {
 
     /** Whether nested scroll of options is enabled, true by default */
     nestedScrollEnabled: PropTypes.bool,
-
-    /** A maximum number of items per page. Then it multiplies by page. */
-    itemsPerPage: PropTypes.number,
 };
 
 const defaultProps = {
@@ -181,7 +178,6 @@ const defaultProps = {
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
-    itemsPerPage: CONST.OPTIONS_SELECTOR_PAGE_LIMITATION,
 };
 
 export {propTypes, defaultProps};

@@ -2903,7 +2903,8 @@ const CONST = {
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
     /**
-     * The maximum count of items per page for OptionsSelector
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
      */
     OPTIONS_SELECTOR_PAGE_LIMITATION: 500,
 
