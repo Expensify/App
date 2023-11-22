@@ -141,6 +141,18 @@ function resetMoneyRequestInfo(id = '') {
     });
 }
 
+/**
+ *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
+ *
+ * @param {Object} receipt
+ * @returns {Object}
+ */
+function getReceiptError(receipt) {
+    return _.isEmpty(receipt)
+        ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename: receipt.filename});
+}
+
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -344,7 +356,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                           [reportPreviewAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -353,7 +365,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                       }),
             },
@@ -365,7 +377,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                           [iouAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -373,7 +385,7 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: getReceiptError(transaction.receipt),
                           },
                       }),
             },
@@ -1447,7 +1459,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: getReceiptError(receipt),
                 },
             },
         });
@@ -1470,7 +1482,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: getReceiptError(receipt),
                     },
                 },
             },
