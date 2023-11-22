@@ -2,7 +2,6 @@ import CONST from '@src/CONST';
 import Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: Beta[]): boolean {
-    return true;
     return betas?.includes(CONST.BETAS.ALL);
 }
 
