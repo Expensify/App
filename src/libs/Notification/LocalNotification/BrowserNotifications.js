@@ -117,7 +117,10 @@ export default {
         const title = _.map(reportAction.person, (f) => f.text).join(', ');
         const body = ReportUtils.getModifiedExpenseMessage(reportAction);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
-        push(title, body, icon, report.reportID, onClick);
+        const data = {
+            reportID: report.reportID,
+        };
+        push(title, body, icon, data, onClick);
     },
 
     /**
