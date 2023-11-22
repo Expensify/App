@@ -1,11 +1,20 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, CommonNavigationAction, EventMapCore, getPathFromState, NavigationState, StackActions, StackActionType} from '@react-navigation/native';
-import _ from 'lodash';
+import {
+    CommonActions,
+    CommonNavigationAction,
+    EventListenerCallback,
+    EventMapBase,
+    EventMapCore,
+    getPathFromState,
+    NavigationState,
+    StackActions,
+    StackActionType,
+} from '@react-navigation/native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
@@ -129,7 +138,7 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes[rootState.routes.length - 1];
+        const lastRoute = rootState.routes.at(-1);
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
         if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
             navigationRef.current.goBack();
@@ -283,6 +292,54 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * Checks if the navigation state contains routes that are protected (over the auth wall).
+ *
+ * @param state - react-navigation state object
+ */
+function navContainsProtectedRoutes(state: NavigationState | undefined) {
+    if (!state?.routeNames || !Array.isArray(state.routeNames)) {
+        return false;
+    }
+
+    const protectedScreensName = Object.values(PROTECTED_SCREENS);
+    const difference = protectedScreensName.filter((screen) => !state.routeNames.includes(screen));
+
+    return !difference.length;
+}
+
+/**
+ * Waits for the navitgation state to contain protected routes specified in PROTECTED_SCREENS constant.
+ * If the navigation is in a state, where protected routes are avilable, the promise resolve immediately.
+ *
+ * @function
+ * @returns A promise that resolves when the one of the PROTECTED_SCREENS screen is available in the nav tree.
+ *
+ * @example
+ * waitForProtectedRoutes()
+ *     .then(()=> console.log('Protected routes are present!'))
+ */
+function waitForProtectedRoutes() {
+    return new Promise<void>((resolve) => {
+        isNavigationReady().then(() => {
+            const currentState = navigationRef.current?.getState();
+            if (navContainsProtectedRoutes(currentState)) {
+                resolve();
+                return;
+            }
+            let unsubscribe: (() => void) | undefined;
+            const handleStateChange: EventListenerCallback<EventMapBase, 'state'> = ({data}) => {
+                const state = data?.state;
+                if (navContainsProtectedRoutes(state)) {
+                    unsubscribe?.();
+                    resolve();
+                }
+            };
+            unsubscribe = navigationRef.current?.addListener('state', handleStateChange);
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -298,6 +355,8 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
+    waitForProtectedRoutes,
+    navContainsProtectedRoutes,
 };
 
 export {navigationRef};
