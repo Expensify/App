@@ -64,6 +64,9 @@ const propTypes = {
     transactions: PropTypes.objectOf(transactionPropTypes),
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
+
+    /** The list of betas the user has access to */
+    betas: PropTypes.arrayOf(PropTypes.string),
     ...withCurrentReportIDPropTypes,
 };
 
@@ -77,6 +80,7 @@ const defaultProps = {
     personalDetails: {},
     transactions: {},
     draftComments: {},
+    betas: {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -97,6 +101,7 @@ function LHNOptionsList({
     transactions,
     draftComments,
     currentReportID,
+    betas,
 }) {
     const styles = useThemeStyles();
     /**
@@ -134,10 +139,11 @@ function LHNOptionsList({
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
+                    betas={betas}
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions, betas],
     );
 
     return (
@@ -185,6 +191,9 @@ export default compose(
         },
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(LHNOptionsList);

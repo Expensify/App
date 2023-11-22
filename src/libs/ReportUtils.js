@@ -8,8 +8,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-// eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +20,7 @@ import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -3361,14 +3360,15 @@ function transactionHasViolation(transactionID) {
 /**
  *
  * @param {Object} report
+ * @param {Array<String> | null} betas
  * @returns {Boolean}
  */
 
-function transactionThreadHasViolations(report) {
-    if (!Permissions.canUseViolations()) {
+function transactionThreadHasViolations(report, betas) {
+    if (!Permissions.canUseViolations(betas)) {
         return false;
     }
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
+
     if (!report.parentReportActionID) {
         return false;
     }
