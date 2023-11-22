@@ -40,9 +40,9 @@ When creating RHP flows, you have to remember a couple things:
 
 An example of adding `Settings_Workspaces` page:
 
-1. Add path to `ROUTES.js`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/ROUTES.js#L36
+1. Add path to `ROUTES.ts`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/ROUTES.js#L36
 
-2. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.js`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/linkingConfig.js#L40-L42
+2. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.ts`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/linkingConfig.js#L40-L42
 
 3. Add your page to proper navigator (it should be aligned with where you've put it in the previous step) https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/AppNavigator/ModalStackNavigators.js#L334-L338
 
