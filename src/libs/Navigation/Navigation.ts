@@ -100,7 +100,6 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         pendingRoute = route;
         return;
     }
-
     linkTo(navigationRef.current, route, type);
 }
 

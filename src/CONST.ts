@@ -218,9 +218,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -1232,6 +1231,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {
@@ -2880,8 +2880,18 @@ const CONST = {
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
 
-    /** <input /> types that will show a virtual keyboard in a mobile browser */
-    INPUT_TYPES_WITH_KEYBOARD: ['text', 'search', 'tel', 'url', 'email', 'password'],
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
+
     /**
      * native IDs for close buttons in Overlay component
      */
@@ -2891,17 +2901,6 @@ const CONST = {
     },
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
-    REFERRAL_PROGRAM: {
-        CONTENT_TYPES: {
-            MONEY_REQUEST: 'request',
-            START_CHAT: 'startChat',
-            SEND_MONEY: 'sendMoney',
-            REFER_FRIEND: 'referralFriend',
-        },
-        REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
-        LINK: 'https://join.my.expensify.com',
-    },
 } as const;
 
 export default CONST;
