@@ -203,7 +203,7 @@ function BaseOptionsList({
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
                 onSelectRow={onSelectRow}
                 isSelected={isSelected}
-                showSelectedState={canSelectMultipleOptions}
+                showSelectedState={true}
                 shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
