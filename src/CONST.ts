@@ -574,6 +574,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
@@ -1188,7 +1189,8 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
@@ -1278,7 +1280,11 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+
+            // Often referred to as "control" workspaces
             CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
         ROLE: {
