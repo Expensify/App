@@ -4098,6 +4098,31 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID,
 }
 
 /**
+ * Returns an array of the participants Ids of a report
+ *
+ * @param {Object} report
+ * @returns {Array}
+ *
+ * @deprecated Use getVisibleMemberIDs instead
+ */
+function getParticipantsIDs(report) {
+    if (!report) {
+        return [];
+    }
+
+    const participants = report.participantAccountIDs || [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        return _.chain([report.managerID, report.ownerAccountID, ...participants])
+            .compact()
+            .uniq()
+            .value();
+    }
+    return participants;
+}
+
+/**
  * Returns an array of the visible member accountIDs for a report
  *
  * @param {Object} report
@@ -4418,6 +4443,7 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    getParticipantsIDs,
     getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
