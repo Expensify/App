@@ -11,7 +11,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -161,7 +160,9 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedReportActions.length);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
-    const previousLastIndex = usePrevious(sortedReportActions[0].reportActionID);
+    const lastActionIndex = lodashGet(sortedReportActions, [0, 'reportActionID']);
+
+    const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -178,12 +179,12 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        if (previousLastIndex === sortedReportActions[0].reportActionID || reportActionSize.current <= sortedReportActions.length) {
+        if (previousLastIndex.current === lastActionIndex || reportActionSize.current <= sortedReportActions.length) {
             return;
         }
         reportScrollManager.scrollToBottom();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [previousLastIndex, sortedReportActions[0].reportActionID]);
+        previousLastIndex.current = lastActionIndex;
+    }, [lastActionIndex, sortedReportActions.length, reportScrollManager]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
