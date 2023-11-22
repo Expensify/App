@@ -181,7 +181,7 @@ const defaultProps = {
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
-    itemsPerPage: undefined,
+    itemsPerPage: CONST.OPTIONS_SELECTOR_PAGE_LIMITATION,
 };
 
 export {propTypes, defaultProps};

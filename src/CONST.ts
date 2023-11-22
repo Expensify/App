@@ -2902,7 +2902,10 @@ const CONST = {
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
-    MAX_COUNT_OF_TAGS: 500,
+    /**
+     * The maximum count of items per page for OptionsSelector
+     */
+    OPTIONS_SELECTOR_PAGE_LIMITATION: 500,
 } as const;
 
 export default CONST;

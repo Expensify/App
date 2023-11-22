@@ -80,7 +80,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
             initialFocusedIndex={initialFocusedIndex}
-            itemsPerPage={CONST.MAX_COUNT_OF_TAGS}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
