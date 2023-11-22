@@ -319,7 +319,7 @@ function BaseSelectionList({
                 const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
                 const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
 
-                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + 15);
+                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + 5);
             }
 
             if (!firstLayoutRef.current) {
