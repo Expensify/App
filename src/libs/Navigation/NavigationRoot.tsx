@@ -131,7 +131,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
     return (
         <NavigationContainer
-            onStateChange={(state) => handleStateChange(state)}
+            onStateChange={handleStateChange}
             onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}
