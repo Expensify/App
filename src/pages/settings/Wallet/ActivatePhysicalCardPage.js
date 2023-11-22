@@ -123,7 +123,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, cardID);
     }, [lastFourDigits, cardID, translate]);
 
     if (_.isEmpty(physicalCard)) {
