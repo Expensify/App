@@ -1,17 +1,16 @@
-import lodashGet from 'lodash/get';
 import {useEffect} from 'react';
 import Navigation from '@navigation/Navigation';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 export default function useStepNavigate(reimbursementAccount, onfidoToken = '') {
-    const currentStep = lodashGet(reimbursementAccount, ['achData', 'currentStep'], '');
-    const shouldShowOnfido = onfidoToken && !lodashGet(reimbursementAccount, ['achData', 'isOnfidoSetupComplete'], false);
+    const currentStep = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'currentStep', '');
+    const shouldShowOnfido = onfidoToken && !getDefaultValueForReimbursementAccountField(reimbursementAccount, 'isOnfidoSetupComplete', false);
 
     useEffect(() => {
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                // maybe we should also save different current step in BE as well here
                 Navigation.navigate(ROUTES.BANK_BUSINESS_INFO);
                 break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
@@ -33,7 +32,6 @@ export default function useStepNavigate(reimbursementAccount, onfidoToken = '') 
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
                 break;
-            // Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute());
         }
     }, [currentStep, shouldShowOnfido]);
 }

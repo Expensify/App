@@ -1,9 +1,11 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useStepNavigate from '@hooks/useStepNavigate';
@@ -72,6 +74,17 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onfidoTo
             prevScreen();
         }
     };
+
+    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
+
+    if (isLoading) {
+        return (
+            <ReimbursementAccountLoadingIndicator
+                isSubmittingVerificationsData
+                onBackButtonPress={() => {}}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper

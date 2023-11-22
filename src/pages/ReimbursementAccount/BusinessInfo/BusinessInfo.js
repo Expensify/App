@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useStepNavigate from '@hooks/useStepNavigate';
@@ -103,11 +104,22 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
             BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-            Navigation.goBack(ROUTES.BANK_BANK_INFO);
+            Navigation.navigate(ROUTES.BANK_BANK_INFO);
         } else {
             prevScreen();
         }
     };
+
+    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
+
+    if (isLoading) {
+        return (
+            <ReimbursementAccountLoadingIndicator
+                isSubmittingVerificationsData
+                onBackButtonPress={() => {}}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper

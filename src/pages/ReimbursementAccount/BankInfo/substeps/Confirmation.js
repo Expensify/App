@@ -60,7 +60,6 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
         BankAccounts.setBankAccountSubStep(null);
-        ReimbursementAccount.navigateToBankAccountRoute(reimbursementAccount.policyID);
     };
 
     return (

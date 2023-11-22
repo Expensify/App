@@ -1,9 +1,11 @@
+import lodashGet from 'lodash/get';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -35,11 +37,11 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
     const {translate} = useLocalize();
 
     const startFrom = useMemo(() => 0, []);
+    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
 
     const submit = useCallback(() => {
         Navigation.navigate(ROUTES.BANK_COMPLETE_VERIFICATION);
     }, [reimbursementAccount, reimbursementAccountDraft]);
-
     const UboForm = ({isEditing, onNext, onMove}) => (
         <>
             <Text>Company owner</Text>
@@ -51,8 +53,8 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
         </>
     );
     const bodyContent = [UboForm];
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
             Navigation.navigate(ROUTES.BANK_VERIFY_IDENTITY);
@@ -60,6 +62,15 @@ function CompanyOwner({reimbursementAccount, reimbursementAccountDraft}) {
             prevScreen();
         }
     };
+
+    if (isLoading) {
+        return (
+            <ReimbursementAccountLoadingIndicator
+                isSubmittingVerificationsData
+                onBackButtonPress={() => {}}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper testID={CompanyOwner.displayName}>

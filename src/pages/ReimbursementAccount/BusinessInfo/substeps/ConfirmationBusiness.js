@@ -52,9 +52,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
 
     const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
-
     const defaultCheckboxState = getDefaultValueForReimbursementAccountField(reimbursementAccount, businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS, false);
 
     return (
