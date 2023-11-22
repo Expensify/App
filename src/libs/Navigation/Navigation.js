@@ -111,7 +111,7 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-    linkTo(navigationRef.current, route, type);
+    linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
 /**
