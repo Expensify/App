@@ -1,5 +1,5 @@
 import GetContextMenuItemStyle from './types';
 
-const getContextMenuItemStyle: GetContextMenuItemStyle = (styles) => [styles.popoverMenuItem];
+const getContextMenuItemStyles: GetContextMenuItemStyle = (styles) => [styles.popoverMenuItem];
 
-export default getContextMenuItemStyle;
+export default getContextMenuItemStyles;
