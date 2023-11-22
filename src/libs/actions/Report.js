@@ -2016,7 +2016,9 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
-                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                if (!Navigation.isActiveRoute(route)) {
+                    Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                }
             });
         });
     });
