@@ -366,6 +366,7 @@ export default {
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY.route,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
                             Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY.route,
+                            Money_Request_Hold_Reason: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                             Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,

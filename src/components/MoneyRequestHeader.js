@@ -87,6 +87,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
+    const holdMoneyRequest = () => {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.type, lodashGet(parentReportAction, 'originalMessage.IOUTransactionID')))
+    };
+
     useEffect(() => {
         if (canModifyRequest) {
             return;
@@ -103,6 +107,11 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
             });
         }
+        threeDotsMenuItems.push({
+            icon: Expensicons.Hourglass,
+            text: "Hold request",
+            onSelected: () => holdMoneyRequest(),
+        });
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),

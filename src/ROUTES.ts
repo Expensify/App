@@ -254,6 +254,10 @@ export default {
         route: ':iouType/new/category/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}`,
     },
+    MONEY_REQUEST_HOLD_REASON: {
+        route: ':iouType/edit/reason/:transactionID?',
+        getRoute: (iouType: string, transactionID: string) => `${iouType}/edit/reason/${transactionID}`,
+    },
     MONEY_REQUEST_TAG: {
         route: ':iouType/new/tag/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,

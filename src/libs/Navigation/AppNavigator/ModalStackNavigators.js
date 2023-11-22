@@ -47,6 +47,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     Money_Request_Date: () => require('../../../pages/iou/MoneyRequestDatePage').default,
     Money_Request_Description: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default,
     Money_Request_Category: () => require('../../../pages/iou/MoneyRequestCategoryPage').default,
+    Money_Request_Hold_Reason: () => require('../../../pages/iou/HoldReasonPage').default,
     Money_Request_Tag: () => require('../../../pages/iou/MoneyRequestTagPage').default,
     Money_Request_Merchant: () => require('../../../pages/iou/MoneyRequestMerchantPage').default,
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
