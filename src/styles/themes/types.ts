@@ -1,8 +1,9 @@
-import {CONST} from 'expensify-common/lib/CONST';
+import CONST from '@src/CONST';
 
 type Color = string;
 
-type ThemePreference = typeof CONST.THEME.LIGHT;
+type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, 'system'>;
 
 type ThemeColors = {
     // Figma keys
@@ -90,4 +91,4 @@ type ThemeColors = {
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
 
-export {type ThemePreference, type ThemeColors, type Color};
+export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

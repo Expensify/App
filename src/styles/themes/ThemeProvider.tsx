@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import darkTheme from './default';
 import lightTheme from './light';
 import ThemeContext from './ThemeContext';
-import {ThemePreference} from './types';
+import {ThemePreferenceWithoutSystem} from './types';
 import useThemePreference from './useThemePreference';
 
 const propTypes = {
@@ -14,7 +14,7 @@ const propTypes = {
 };
 
 type ThemeProviderProps = React.PropsWithChildren & {
-    theme?: ThemePreference;
+    theme?: ThemePreferenceWithoutSystem;
 };
 
 function ThemeProvider({children, theme: themePreferenceProp}: ThemeProviderProps) {

@@ -2,10 +2,10 @@ import {useContext, useEffect, useState} from 'react';
 import {Appearance, ColorSchemeName} from 'react-native';
 import {PreferredThemeContext} from '@components/OnyxProvider';
 import CONST from '@src/CONST';
-import {ThemePreference} from './types';
+import {ThemePreferenceWithoutSystem} from './types';
 
 function useThemePreference() {
-    const [themePreference, setThemePreference] = useState<ThemePreference>(CONST.THEME.DEFAULT);
+    const [themePreference, setThemePreference] = useState<ThemePreferenceWithoutSystem>(CONST.THEME.DEFAULT);
     const [systemTheme, setSystemTheme] = useState<ColorSchemeName>();
     const preferredThemeFromStorage = useContext(PreferredThemeContext);
 
