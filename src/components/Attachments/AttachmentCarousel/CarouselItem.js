@@ -27,8 +27,8 @@ const propTypes = {
         /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
-            name: PropTypes.string,
-        }),
+            name: PropTypes.string.isRequired,
+        }).isRequired,
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
