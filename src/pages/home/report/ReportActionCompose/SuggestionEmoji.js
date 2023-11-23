@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -59,6 +59,7 @@ function SuggestionEmoji({
     forwardedRef,
     resetKeyboardInput,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -179,6 +180,13 @@ function SuggestionEmoji({
         },
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
+
+    useEffect(() => {
+        if (!isComposerFocused) {
+            return;
+        }
+        calculateEmojiSuggestion(selection.end);
+    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
         (e) => {
