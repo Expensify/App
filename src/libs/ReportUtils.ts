@@ -1871,7 +1871,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     const transactionDetails = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '', TransactionUtils.isDistanceRequest(transaction)) ?? '',
+        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency, TransactionUtils.isDistanceRequest(transaction)) ?? '',
         comment: transactionDetails?.comment ?? '',
     });
 }
