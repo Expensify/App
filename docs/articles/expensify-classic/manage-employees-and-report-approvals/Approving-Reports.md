@@ -79,8 +79,8 @@ This will change the report status to Reimbursed: CONFIRMED
 # How to Use Guided Review to Approve Reports
 Guided Review helps alert you to what might be out-of-Workspace for an Expense Report. You'll be guided through all report violations and warnings and given the option to Reject or Edit items that need review prior to approving a report.
 Guided Review helps approvers quickly identify reports that need more attention so they can pass over reports that can be quickly approved. Both Submitters and Approvers have actionable notifications for the following: violations, warnings, and notices. These notifications are important since they will be included in “review mode” for the approver to make clear approve or reject decisions.
-Via the Website:
 ​
+Via the Website:​
 1. Simply click Review at the top left of the report and the system will begin to walk you through the entire report.
 2. Choose to Reject, View, or skip over an item needing review. If you wish to stop the process at any time, click the X in the progress bar in the top right corner.
 Reject: This will remove the expense from the report and send it back to the submitter. An email will be sent to the submitter explaining this expense has been rejected.
@@ -89,27 +89,28 @@ Next: This will allow you to skip over the current item and move forward to revi
 Finish: Click this to finish reviewing the report! 
 3. Click the Finish button if you are done reviewing, or reject/edit the last item to finish the review process.
 4. Approve the report! Approve and Forward the report if there is another person who needs to review the report in your approval workflow, or you can Final Approve if you are the final approver. Note: When in Guided Review, you'll automatically Approve the report adhering to your Company's Approval Workflow once you Approve the final expense on the report. You'll then be immediately taken to the next report requiring your attention - making Approving multiple expenses a quick and painless process!
-Via the Mobile App:
 ​
 ​
+Via the Mobile App:​
 1. From Home, under Reports that need your attention, click Begin Review, and the system will bring you to the first expense on the oldest report in Home.
-​
 2. Edit the expense: Make any necessary edits to the expense by tapping the corresponding field. Be sure to address any Violations and Notes on the expense! Notes are indicated at the top of the expense with a yellow exclamation point, while violations appear on the expense with a red exclamation point:
 3. Choose Reject or Accept at the top of the expense.
-Reject: This will remove the expense from the report and send it back to the submitter. An email will be sent to the submitter explaining this expense has been rejected, and a comment will be added to the report it was rejected from. If this is the only expense on the report, the entire report will be rejected (and the expense will remain on the report).
-If Scheduled Submit is being used, rejected expenses will auto-report to the next Open report on the Workspace (as if it were a new expense). If an open report doesn't exist, Concierge will create a new one. 
 ​
+Reject: This will remove the expense from the report and send it back to the submitter. An email will be sent to the submitter explaining this expense has been rejected, and a comment will be added to the report it was rejected from. If this is the only expense on the report, the entire report will be rejected (and the expense will remain on the report).
+​
+If Scheduled Submit is being used, rejected expenses will auto-report to the next Open report on the Workspace (as if it were a new expense). If an open report doesn't exist, Concierge will create a new one. 
+​​
 ​
 If Scheduled Submit is not being used, any rejected expenses will be Unreported in the submitter's account and need to be manually applied to a new report. 
+​
 Accept: This will move to the next expense on the report, leaving behind any outstanding violations or notes. If this is the last expense on the report, you'll be all done! 
 Once you've made it through all of the expenses on the report, you'll be all set! 
-​
-​
 ​
 # Deep Dive
 ## Concierge Report Management
 ​
 Concierge report approval removes the need for you to manually click "Approve" on endless reports! Instead, you can set up your group Workspace to capture all the requirements you have for your team's expenses. As long as all the rules have been followed and Concierge's additional audit is passed (more below), we will automatically approve such reports on behalf of the approver after submission.
+​
 Before you start:
 Ensure are a Workspace admin on a group Workspace
 Set your workflow to Submit-and-Approve or Advanced Approval workflow
@@ -117,19 +118,24 @@ Set your workflow to Submit-and-Approve or Advanced Approval workflow
 ​
 ## Then follow these steps:
 Set up your group Workspace so that all of your expense requirements are defined. Setting automatic categories for employees and category rules (e.g., maximum amounts, receipt requirements, etc.) are great examples!
+​
 Navigate to Settings > Workspaces > Group > [Workspace Name] > Members.
+​
 Scroll down to Approval Mode and select either Submit-and-Approve or Advanced Approval.
+​
 Under Expense Approvals, select a Manual Approval Threshold greater than $0.
 ​
+​
 With this setup, manual approval will only be required:
-For reports that fail audit (i.e. there is at least one Workspace violation on the report)
-For reports that contain at least one expense over the Manual Approval Threshold
-For any percentage of reports that you'd like to spot-check (this is set at 5% or 1 in 20 by default).
-If the report meets all of the requirements you specify in your Workspace settings and all expenses are under the Manual Approval Threshold, then Concierge will automatically move your report through each step of your designated approval workflow (unless it's routed for a spot-check).
+- For reports that fail audit (i.e. there is at least one Workspace violation on the report)
+- For reports that contain at least one expense over the Manual Approval Threshold
+- For any percentage of reports that you'd like to spot-check (this is set at 5% or 1 in 20 by default).
+- If the report meets all of the requirements you specify in your Workspace settings and all expenses are under the Manual Approval Threshold, then Concierge will automatically move your report through each step of your designated approval workflow (unless it's routed for a spot-check).​
 ​
 ​
 ## Concierge Receipt Audit
 Concierge Receipt Audit is a real-time audit and compliance of receipts submitted by employees and Workspace users. Concierge checks every receipt for accuracy and compliance, flagging any expenses that seem fishy before expense reports are even submitted for approval. All risky expenses are highlighted for manual review, leaving you with more control over and visibility into employee expenses.
+​
 1. Concierge will SmartScan every receipt to verify the data input by the user matches the currency, date, and amount on the physical receipt.
 2. After the report is submitted for approval, Concierge highlights any differences between the SmartScanned values and the employee's chosen input.
 3. Each receipt that has been verified will show the "Verified" logo. 
