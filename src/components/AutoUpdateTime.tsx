@@ -15,24 +15,21 @@ type AutoUpdateTimeProps = WithLocalizeProps & {
     timezone: Timezone;
 };
 
-function AutoUpdateTime(props: AutoUpdateTimeProps) {
+function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimeProps) {
     const styles = useThemeStyles();
     /**
      * @returns {Date} Returns the locale Date object
      */
-    const getCurrentUserLocalTime = useCallback(
-        () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, undefined, props.timezone.selected),
-        [props.preferredLocale, props.timezone.selected],
-    );
+    const getCurrentUserLocalTime = useCallback(() => DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, timezone.selected), [preferredLocale, timezone.selected]);
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
     const timezoneName = useMemo(() => {
-        if (props.timezone.selected) {
-            return DateUtils.getZoneAbbreviation(currentUserLocalTime, props.timezone.selected);
+        if (timezone.selected) {
+            return DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected);
         }
         return '';
-    }, [currentUserLocalTime, props.timezone.selected]);
+    }, [currentUserLocalTime, timezone.selected]);
 
     useEffect(() => {
         // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
@@ -56,7 +53,7 @@ function AutoUpdateTime(props: AutoUpdateTimeProps) {
                 style={[styles.textLabelSupporting, styles.mb1]}
                 numberOfLines={1}
             >
-                {props.translate('detailsPage.localTime')}
+                {translate('detailsPage.localTime')}
             </Text>
             <Text numberOfLines={1}>
                 {DateUtils.formatToLocalTime(currentUserLocalTime)} {timezoneName}
