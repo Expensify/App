@@ -94,16 +94,6 @@ function getFileName(url: string): string {
     return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
-/**
- * Generate a random file name with timestamp and file extension
- */
-function getAttachmentName(url: string): string {
-    if (!url) {
-        return '';
-    }
-    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop()?.trim()}`;
-}
-
 function isImage(fileName: string): boolean {
     return CONST.FILE_TYPE_REGEX.IMAGE.test(fileName);
 }
@@ -251,7 +241,6 @@ export {
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
-    getAttachmentName,
     getFileName,
     getFileType,
     cleanFileName,
