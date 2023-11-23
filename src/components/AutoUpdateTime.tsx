@@ -10,10 +10,10 @@ import {Timezone} from '@src/types/onyx/PersonalDetails';
 import Text from './Text';
 import withLocalize, {WithLocalizeProps} from './withLocalize';
 
-type AutoUpdateTimeProps = {
+type AutoUpdateTimeProps = WithLocalizeProps & {
     /** Timezone of the user from their personal details */
-    timezone: Required<Timezone>;
-} & WithLocalizeProps;
+    timezone: Timezone;
+};
 
 function AutoUpdateTime(props: AutoUpdateTimeProps) {
     const styles = useThemeStyles();
@@ -27,7 +27,12 @@ function AutoUpdateTime(props: AutoUpdateTimeProps) {
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
-    const timezoneName = useMemo(() => DateUtils.getZoneAbbreviation(currentUserLocalTime, props.timezone.selected), [currentUserLocalTime, props.timezone.selected]);
+    const timezoneName = useMemo(() => {
+        if (props.timezone.selected) {
+            return DateUtils.getZoneAbbreviation(currentUserLocalTime, props.timezone.selected);
+        }
+        return '';
+    }, [currentUserLocalTime, props.timezone.selected]);
 
     useEffect(() => {
         // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
