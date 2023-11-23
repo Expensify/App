@@ -16,15 +16,6 @@ type SingleChoiceQuestionProps = {
 function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref: ForwardedRef<RNText>) {
     const styles = useThemeStyles();
 
-    useEffect(() => {
-        if (!ref || !('current' in ref) || !ref.current) {
-            return;
-        }
-        // To prevent crashes after pressing fix the errors we need to add focus property to the ref
-        // eslint-disable-next-line no-param-reassign
-        ref.current.focus = () => {};
-    }, [ref]);
-
     return (
         <>
             <Text
