@@ -422,14 +422,19 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
-            allSortedReportActions[iouReport.reportID],
-            (reportAction, key) =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                ReportActionUtils.isMoneyRequestAction(reportAction),
-        );
-        lastMessageTextFromReport = getReportPreviewMessageForOptionList(iouReport, lastIOUMoneyReport, ReportUtils.isChatReport(report));
+        if (_.isEmpty(iouReport)) {
+            // IOUReport has not loaded yet
+            lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+        } else {
+            const lastIOUMoneyReport = _.find(
+                allSortedReportActions[iouReport.reportID],
+                (reportAction, key) =>
+                    ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
+                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    ReportActionUtils.isMoneyRequestAction(reportAction),
+            );
+            lastMessageTextFromReport = getReportPreviewMessageForOptionList(iouReport, lastIOUMoneyReport, ReportUtils.isChatReport(report));
+        }
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
