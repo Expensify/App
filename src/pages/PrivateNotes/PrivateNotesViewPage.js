@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +51,7 @@ const defaultProps = {
 };
 
 function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
