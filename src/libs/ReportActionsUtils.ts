@@ -745,13 +745,14 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
 function getActionItemFragmentChanelLog(reportAction: OnyxEntry<ReportAction>) {
     const messageItems: MessageActionItemChanelLog[] = getChannelLogMemberAction(reportAction);
     let html = '<muted-text>';
+
     messageItems.forEach((messageItem) => {
         switch (messageItem.kind) {
             case 'userMention':
                 html += `<mention-user accountID=${messageItem.accountID}></mention-user>${messageItem.isComma ? ', ' : ''}`;
                 break;
             case 'roomReference':
-                html += `<a href="${environmentURL}/r/${messageItem.roomID}">${messageItem.roomName}</a>`;
+                html += `<a href="${environmentURL}/r/${messageItem.roomID}" target="_blank">${messageItem.roomName}</a>`;
                 break;
             default:
                 html += messageItem.content;
