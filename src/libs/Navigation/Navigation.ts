@@ -1,15 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {
-    CommonActions,
-    CommonNavigationAction,
-    EventListenerCallback,
-    EventMapBase,
-    EventMapCore,
-    getPathFromState,
-    NavigationState,
-    StackActions,
-    StackActionType,
-} from '@react-navigation/native';
+import {CommonActions, EventListenerCallback, EventMapBase, EventMapCore, getPathFromState, NavigationState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -22,7 +12,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StateOrRoute} from './types';
+import {StackNavigationAction, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: (value?: unknown) => void;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -230,8 +220,9 @@ function dismissModal(targetReportID?: string) {
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
                 const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
 
-                const action: CommonNavigationAction | StackActionType | undefined = getActionFromState(state, linkingConfig.config);
+                const action: StackNavigationAction = getActionFromState(state, linkingConfig.config);
                 if (action) {
+                    action.type = 'REPLACE';
                     navigationRef.current?.dispatch(action);
                 }
                 // If not-found page is in the route stack, we need to close it
