@@ -5,26 +5,10 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableProps from './types';
-
-/**
- * Returns the cursor style based on the state of Pressable
- */
-function getCursorStyle(isDisabled: boolean, isText: boolean, styles: typeof Styles): Pick<ViewStyle, 'cursor'> {
-    if (isDisabled) {
-        return styles.cursorDisabled;
-    }
-
-    if (isText) {
-        return styles.cursorText;
-    }
-
-    return styles.cursorPointer;
-}
 
 function GenericPressable(
     {
@@ -56,6 +40,23 @@ function GenericPressable(
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
+
+    /**
+    * Returns the cursor style based on the state of Pressable
+    */
+    const cursorStyle = useMemo(() => {
+        return (isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> => {
+            if (isDisabled) {
+                return styles.cursorDisabled;
+            }
+
+            if (isText) {
+                return styles.cursorText;
+            }
+
+            return styles.cursorPointer;
+        };
+    }, [styles]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -134,7 +135,7 @@ function GenericPressable(
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text'), styles),
+                cursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text'), styles),
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
