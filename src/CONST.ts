@@ -2915,6 +2915,8 @@ const CONST = {
         POPOVER_Y_OFFSET: -30,
         PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
         HIDE_TIME_TEXT_WIDTH: 250,
+        MIN_WIDTH: 170,
+        MIN_HEIGHT: 120,
     },
 } as const;
 

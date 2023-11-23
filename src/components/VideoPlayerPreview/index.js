@@ -78,6 +78,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         style={styles.videoExpandButton}
                         accessibilityLabel={translate('videoPlayer.openInAttachmentModal')}
                         onPress={showModal}
+                        small
                     />
                 </>
             )}

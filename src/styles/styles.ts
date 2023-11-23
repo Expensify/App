@@ -194,6 +194,8 @@ const webViewStyles = (theme: ThemeColors) =>
             },
 
             video: {
+                minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
+                minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
                 borderColor: theme.border,
                 borderRadius: variables.componentBorderRadiusNormal,
                 borderWidth: 1,
@@ -4089,7 +4091,8 @@ const styles = (theme: ThemeColors) =>
             top: 10,
             right: 10,
             backgroundColor: theme.transparentAppBG,
-            borderRadius: 5,
+            borderRadius: 8,
+            padding: 8,
         },
 
         videoPlayerTimeComponentWidth: {
