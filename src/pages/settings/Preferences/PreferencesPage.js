@@ -47,6 +47,7 @@ function PreferencesPage(props) {
             title={translate('common.preferences')}
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
+            shouldShowBackButtonOnlyOnMobile
         >
             <View style={styles.mb6}>
                 <Text

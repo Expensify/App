@@ -116,6 +116,7 @@ function ProfilePage(props) {
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                shouldShowBackButtonOnlyOnMobile
             />
             <ScrollView>
                 <AvatarWithImagePicker

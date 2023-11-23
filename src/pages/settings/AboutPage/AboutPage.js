@@ -104,6 +104,7 @@ function AboutPage(props) {
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                        shouldShowBackButtonOnlyOnMobile
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>

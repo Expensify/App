@@ -1,5 +1,5 @@
 import React from 'react';
-import {Keyboard, View} from 'react-native';
+import { Keyboard, View } from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -18,6 +18,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 
 function HeaderWithBackButton({
@@ -40,6 +41,7 @@ function HeaderWithBackButton({
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldShowBackButtonOnlyOnMobile = false,
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -59,6 +61,7 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
+    const {isSmallScreenWidth} = useWindowDimensions();
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
@@ -67,7 +70,7 @@ function HeaderWithBackButton({
             style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {shouldShowBackButton && (
+                {shouldShowBackButton && (!shouldShowBackButtonOnlyOnMobile || isSmallScreenWidth) && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
