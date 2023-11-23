@@ -1,4 +1,4 @@
-import React, {ForwardedRef, forwardRef, useEffect} from 'react';
+import React, {ForwardedRef, forwardRef} from 'react';
 import {Text as RNText} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
