@@ -36,6 +36,178 @@ export default {
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
+                    Settings: {
+                        screens: {
+                            Settings_Preferences_PriorityMode: {
+                                path: ROUTES.SETTINGS_PRIORITY_MODE,
+                                exact: true,
+                            },
+                            Settings_Preferences_Language: {
+                                path: ROUTES.SETTINGS_LANGUAGE,
+                                exact: true,
+                            },
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
+                                exact: true,
+                            },
+                            Settings_Close: {
+                                path: ROUTES.SETTINGS_CLOSE,
+                                exact: true,
+                            },
+                            Settings_Wallet_DomainCards: {
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_ReportVirtualCardFraud: {
+                                path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_EnablePayments: {
+                                path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                                exact: true,
+                            },
+                            Settings_Wallet_Transfer_Balance: {
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
+                                exact: true,
+                            },
+                            Settings_Wallet_Choose_Transfer_Account: {
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
+                                exact: true,
+                            },
+                            Settings_ReportCardLostOrDamaged: {
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_Card_Activate: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
+                                exact: true,
+                            },
+                            Settings_Add_Debit_Card: {
+                                path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
+                                exact: true,
+                            },
+                            Settings_Add_Bank_Account: {
+                                path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                                exact: true,
+                            },
+                            Settings_Pronouns: {
+                                path: ROUTES.SETTINGS_PRONOUNS,
+                                exact: true,
+                            },
+                            Settings_Display_Name: {
+                                path: ROUTES.SETTINGS_DISPLAY_NAME,
+                                exact: true,
+                            },
+                            Settings_Timezone: {
+                                path: ROUTES.SETTINGS_TIMEZONE,
+                                exact: true,
+                            },
+                            Settings_Timezone_Select: {
+                                path: ROUTES.SETTINGS_TIMEZONE_SELECT,
+                                exact: true,
+                            },
+                            Settings_App_Download_Links: {
+                                path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
+                                exact: true,
+                            },
+                            Settings_ContactMethods: {
+                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
+                                exact: true,
+                            },
+                            Settings_ContactMethodDetails: {
+                                path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
+                            },
+                            Settings_Lounge_Access: {
+                                path: ROUTES.SETTINGS_LOUNGE_ACCESS,
+                            },
+                            Settings_NewContactMethod: {
+                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                                exact: true,
+                            },
+                            Settings_PersonalDetails_Initial: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS,
+                                exact: true,
+                            },
+                            Settings_PersonalDetails_LegalName: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                                exact: true,
+                            },
+                            Settings_PersonalDetails_DateOfBirth: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                                exact: true,
+                            },
+                            Settings_PersonalDetails_Address: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
+                                exact: true,
+                            },
+                            Settings_PersonalDetails_Address_Country: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
+                                exact: true,
+                            },
+                            Settings_TwoFactorAuth: {
+                                path: ROUTES.SETTINGS_2FA,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.STATUS]: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
+                            },
+                            Workspace_Initial: {
+                                path: ROUTES.WORKSPACE_INITIAL.route,
+                            },
+                            Workspace_Settings: {
+                                path: ROUTES.WORKSPACE_SETTINGS.route,
+                            },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                            },
+                            Workspace_Card: {
+                                path: ROUTES.WORKSPACE_CARD.route,
+                            },
+                            Workspace_Reimburse: {
+                                path: ROUTES.WORKSPACE_REIMBURSE.route,
+                            },
+                            Workspace_RateAndUnit: {
+                                path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
+                            },
+                            Workspace_Bills: {
+                                path: ROUTES.WORKSPACE_BILLS.route,
+                            },
+                            Workspace_Invoices: {
+                                path: ROUTES.WORKSPACE_INVOICES.route,
+                            },
+                            Workspace_Travel: {
+                                path: ROUTES.WORKSPACE_TRAVEL.route,
+                            },
+                            Workspace_Members: {
+                                path: ROUTES.WORKSPACE_MEMBERS.route,
+                            },
+                            Workspace_Invite: {
+                                path: ROUTES.WORKSPACE_INVITE.route,
+                            },
+                            Workspace_Invite_Message: {
+                                path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
+                            },
+                            ReimbursementAccount: {
+                                path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
+                                exact: true,
+                            },
+                            GetAssistance: {
+                                path: ROUTES.GET_ASSISTANCE.route,
+                            },
+                            KeyboardShortcuts: {
+                                path: ROUTES.KEYBOARD_SHORTCUTS,
+                            },
+                        }
+                    },
                     Private_Notes: {
                         screens: {
                             PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW.route,
@@ -234,28 +406,20 @@ export default {
                     },
                     SettingsCentralPane: {
                         screens: {
+                            Settings_Share_Code: {
+                                path: ROUTES.SETTINGS_SHARE_CODE,
+                                exact: true,
+                            },
                             [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
+                            [SCREENS.SETTINGS.PROFILE]: {
+                                path: ROUTES.SETTINGS_PROFILE,
+                                exact: true,
+                            },
                             [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
-                                exact: true,
-                            },
-                            Settings_Preferences_PriorityMode: {
-                                path: ROUTES.SETTINGS_PRIORITY_MODE,
-                                exact: true,
-                            },
-                            Settings_Preferences_Language: {
-                                path: ROUTES.SETTINGS_LANGUAGE,
-                                exact: true,
-                            },
-                            Settings_Preferences_Theme: {
-                                path: ROUTES.SETTINGS_THEME,
-                                exact: true,
-                            },
-                            Settings_Close: {
-                                path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.SECURITY]: {
@@ -266,180 +430,12 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Wallet_DomainCards: {
-                                path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
-                                exact: true,
-                            },
-                            Settings_Wallet_ReportVirtualCardFraud: {
-                                path: ROUTES.SETTINGS_REPORT_FRAUD.route,
-                                exact: true,
-                            },
-                            Settings_Wallet_EnablePayments: {
-                                path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
-                                exact: true,
-                            },
-                            Settings_Wallet_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
-                                exact: true,
-                            },
-                            Settings_Wallet_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
-                                exact: true,
-                            },
-                            Settings_ReportCardLostOrDamaged: {
-                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
-                                exact: true,
-                            },
-                            Settings_Wallet_Card_Activate: {
-                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
-                                exact: true,
-                            },
-                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
-                                path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
-                                exact: true,
-                            },
-                            Settings_Add_Debit_Card: {
-                                path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
-                                exact: true,
-                            },
-                            Settings_Add_Bank_Account: {
-                                path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.PROFILE]: {
-                                path: ROUTES.SETTINGS_PROFILE,
-                                exact: true,
-                            },
-                            Settings_Pronouns: {
-                                path: ROUTES.SETTINGS_PRONOUNS,
-                                exact: true,
-                            },
-                            Settings_Display_Name: {
-                                path: ROUTES.SETTINGS_DISPLAY_NAME,
-                                exact: true,
-                            },
-                            Settings_Timezone: {
-                                path: ROUTES.SETTINGS_TIMEZONE,
-                                exact: true,
-                            },
-                            Settings_Timezone_Select: {
-                                path: ROUTES.SETTINGS_TIMEZONE_SELECT,
-                                exact: true,
-                            },
                             Settings_About: {
                                 path: ROUTES.SETTINGS_ABOUT,
                                 exact: true,
                             },
-                            Settings_App_Download_Links: {
-                                path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                                exact: true,
-                            },
-                            Settings_ContactMethods: {
-                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
-                                exact: true,
-                            },
-                            Settings_ContactMethodDetails: {
-                                path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
-                            },
-                            Settings_Lounge_Access: {
-                                path: ROUTES.SETTINGS_LOUNGE_ACCESS,
-                            },
-                            Settings_NewContactMethod: {
-                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
-                                exact: true,
-                            },
-                            Settings_PersonalDetails_Initial: {
-                                path: ROUTES.SETTINGS_PERSONAL_DETAILS,
-                                exact: true,
-                            },
-                            Settings_PersonalDetails_LegalName: {
-                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
-                                exact: true,
-                            },
-                            Settings_PersonalDetails_DateOfBirth: {
-                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
-                                exact: true,
-                            },
-                            Settings_PersonalDetails_Address: {
-                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
-                                exact: true,
-                            },
-                            Settings_PersonalDetails_Address_Country: {
-                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuth: {
-                                path: ROUTES.SETTINGS_2FA,
-                                exact: true,
-                            },
-                            Settings_Share_Code: {
-                                path: ROUTES.SETTINGS_SHARE_CODE,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.STATUS]: {
-                                path: ROUTES.SETTINGS_STATUS,
-                                exact: true,
-                            },
-                            Settings_Status_Set: {
-                                path: ROUTES.SETTINGS_STATUS_SET,
-                                exact: true,
-                            },
-                            Workspace_Initial: {
-                                path: ROUTES.WORKSPACE_INITIAL.route,
-                            },
-                            Workspace_Settings: {
-                                path: ROUTES.WORKSPACE_SETTINGS.route,
-                            },
-                            Workspace_Settings_Currency: {
-                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
-                            },
-                            Workspace_Card: {
-                                path: ROUTES.WORKSPACE_CARD.route,
-                            },
-                            Workspace_Reimburse: {
-                                path: ROUTES.WORKSPACE_REIMBURSE.route,
-                            },
-                            Workspace_RateAndUnit: {
-                                path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
-                            },
-                            Workspace_Bills: {
-                                path: ROUTES.WORKSPACE_BILLS.route,
-                            },
-                            Workspace_Invoices: {
-                                path: ROUTES.WORKSPACE_INVOICES.route,
-                            },
-                            Workspace_Travel: {
-                                path: ROUTES.WORKSPACE_TRAVEL.route,
-                            },
-                            Workspace_Members: {
-                                path: ROUTES.WORKSPACE_MEMBERS.route,
-                            },
-                            Workspace_Invite: {
-                                path: ROUTES.WORKSPACE_INVITE.route,
-                            },
-                            Workspace_Invite_Message: {
-                                path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
-                            },
-                            ReimbursementAccount: {
-                                path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
-                                exact: true,
-                            },
-                            GetAssistance: {
-                                path: ROUTES.GET_ASSISTANCE.route,
-                            },
-                            KeyboardShortcuts: {
-                                path: ROUTES.KEYBOARD_SHORTCUTS,
-                            },
                         },
                     },
-                    // Settings: {
-                    //     screens: {
-                    //         [SCREENS.SETTINGS_NEW_PROFILE]: {
-                    //             path: ROUTES.SETTINGS_NEW_PROFILE,
-                    //             exact: true,
-                    //         },
-                    //     }
-                    // }
                 },
             }
         },
