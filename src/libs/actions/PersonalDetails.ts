@@ -1,9 +1,10 @@
 import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
+import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,16 +100,20 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
         return {firstName: '', lastName: ''};
     }
 
-    const firstSpaceIndex = displayName.indexOf(' ');
-    const lastSpaceIndex = displayName.lastIndexOf(' ');
-    if (firstSpaceIndex === -1) {
-        return {firstName: displayName, lastName: ''};
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
     }
 
-    return {
-        firstName: displayName.substring(0, firstSpaceIndex).trim(),
-        lastName: displayName.substring(lastSpaceIndex).trim(),
-    };
+    return {firstName: '', lastName: ''};
 }
 
 /**
@@ -263,7 +268,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     address: {
-                        street: `${street}\n${street2}`,
+                        street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                         city,
                         state,
                         zip,
@@ -440,7 +445,7 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
+function updateAvatar(file: File | CustomRNImageManipulatorResult) {
     if (!currentUserAccountID) {
         return;
     }
@@ -496,7 +501,7 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
     ];
 
     type UpdateUserAvatarParams = {
-        file: FileWithUri | CustomRNImageManipulatorResult;
+        file: File | CustomRNImageManipulatorResult;
     };
 
     const parameters: UpdateUserAvatarParams = {file};
