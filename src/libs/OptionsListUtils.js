@@ -375,14 +375,14 @@ function getAllReportErrors(report, reportActions) {
 
 /**
  * Get the preview message to be displayed in the option list.
+ *
  * @param {Object} report
  * @param {Object} reportAction
  * @param {Boolean} [isPreviewMessageForParentChatReport]
  * @returns {String}
  */
-
 function getReportPreviewMessageForOptionList(report, reportAction, isPreviewMessageForParentChatReport = false) {
-    // for the request action preview we want to show the requestor instead of the user who owes the money
+    // For the request action preview we want to show the requestor instead of the user who owes the money
     if (!isPreviewMessageForParentChatReport && reportAction.originalMessage && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
         const amount = Math.abs(reportAction.originalMessage.amount);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, report.currency);

@@ -1838,10 +1838,9 @@ function getTransactionReportName(reportAction) {
  * @param {Number} actorID
  * @param {Boolean} [shouldShowWorkspaceName]
  * @param {Boolean} [shouldUseShortForm]
- * @param {Object} [policy]
- * @returns  {String}
+ * @param {Object|undefined} [policy]
+ * @returns {String}
  */
-
 function getActorNameForPreviewMessage({report, actorID, shouldShowWorkspaceName = false, shouldUseShortForm = false, policy = undefined}) {
     return shouldShowWorkspaceName ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(actorID, shouldUseShortForm);
 }
