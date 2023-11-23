@@ -197,10 +197,6 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...transaction,
                 isLoading: true,
-                comment: {
-                    ...transaction.comment,
-                    isLoading: true,
-                },
             },
         },
         {
@@ -276,10 +272,6 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 isLoading: false,
-                comment: {
-                    ...transaction.comment,
-                    isLoading: false,
-                },
                 pendingFields: null,
             },
         },
@@ -358,10 +350,6 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 isLoading: false,
-                comment: {
-                    ...transaction.comment,
-                    isLoading: false,
-                },
                 pendingAction: null,
                 pendingFields: null,
             },
