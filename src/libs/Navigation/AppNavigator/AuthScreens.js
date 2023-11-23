@@ -14,7 +14,6 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -34,13 +33,14 @@ import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
+const loadRightModalNavigator = () => require('./Navigators/RightModalNavigator').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default;
+const loadDesktopSignInRedirectPage = () => require('../../../pages/signin/DesktopSignInRedirectPage').default;
 
 let timezone;
 let currentAccountID;
@@ -332,13 +332,13 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={screenOptions.rightModalNavigator}
-                    component={RightModalNavigator}
+                    component={loadRightModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
+                    component={loadDesktopSignInRedirectPage}
                 />
             </RootStack.Navigator>
         </View>
