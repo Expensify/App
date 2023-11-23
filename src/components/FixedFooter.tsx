@@ -1,6 +1,6 @@
 import React, {ReactNode} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type FixedFooterProps = {
     /** Children to wrap in FixedFooter. */
@@ -11,6 +11,7 @@ type FixedFooterProps = {
 };
 
 function FixedFooter({style = [], children}: FixedFooterProps) {
+    const styles = useThemeStyles();
     return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, ...style]}>{children}</View>;
 }
 

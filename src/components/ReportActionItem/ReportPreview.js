@@ -25,8 +25,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +107,8 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const managerID = props.iouReport.managerID || 0;
@@ -129,17 +131,24 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
-    const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    const previewSubtitle = hasOnlyOneReceiptRequest
-        ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
-        : props.translate('iou.requestCount', {
-              count: numberOfRequests,
-              scanningReceipts: numberOfScanningReceipts,
-          });
+    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
+    if (hasPendingWaypoints) {
+        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
+    }
+    const previewSubtitle =
+        formattedMerchant ||
+        props.translate('iou.requestCount', {
+            count: numberOfRequests,
+            scanningReceipts: numberOfScanningReceipts,
+        });
 
     const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
+        if (hasPendingWaypoints) {
+            return props.translate('common.tbd');
+        }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
@@ -192,7 +201,7 @@ function ReportPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                accessibilityRole="button"
+                role="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
@@ -212,7 +221,7 @@ function ReportPreview(props) {
                             {hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    fill={themeColors.danger}
+                                    fill={theme.danger}
                                 />
                             )}
                         </View>
@@ -223,7 +232,7 @@ function ReportPreview(props) {
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
@@ -245,7 +254,6 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
-                                shouldShowPaymentOptions
                                 style={[styles.mt3]}
                                 kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,

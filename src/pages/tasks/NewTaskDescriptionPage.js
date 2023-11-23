@@ -1,8 +1,10 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -13,7 +15,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +41,10 @@ const defaultProps = {
     },
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDescriptionPage(props) {
+    const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const onSubmit = (values) => {
@@ -63,7 +68,7 @@ function NewTaskDescriptionPage(props) {
                     onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                 />
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                     submitButtonText={props.translate('common.next')}
                     style={[styles.mh5, styles.flexGrow1]}
@@ -71,12 +76,13 @@ function NewTaskDescriptionPage(props) {
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
-                        <TextInput
-                            defaultValue={props.task.description}
+                        <InputWrapperWithRef
+                            InputComponent={TextInput}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);
@@ -84,10 +90,10 @@ function NewTaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            textAlignVertical="top"
+                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </>
         </ScreenWrapper>
     );

@@ -10,6 +10,7 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import * as Task from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -38,6 +39,7 @@ Onyx.connect({
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -156,6 +158,20 @@ function getOrderedReportIDs(
         }
     }
 
+    // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned/GBR - Always sorted by reportDisplayName
+    // 2. Drafts - Always sorted by reportDisplayName
+    // 3. Non-archived reports and settled IOUs
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 4. Archived reports
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    const pinnedAndGBRReports: Report[] = [];
+    const draftReports: Report[] = [];
+    const nonArchivedReports: Report[] = [];
+    const archivedReports: Report[] = [];
+
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
@@ -166,28 +182,10 @@ function getOrderedReportIDs(
 
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-    });
 
-    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned - Always sorted by reportDisplayName
-    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
-    // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports and settled IOUs
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    // 5. Archived reports
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedReports: Report[] = [];
-    const outstandingIOUReports: Report[] = [];
-    const draftReports: Report[] = [];
-    const nonArchivedReports: Report[] = [];
-    const archivedReports: Report[] = [];
-    reportsToDisplay.forEach((report) => {
-        if (report.isPinned) {
-            pinnedReports.push(report);
-        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
-            outstandingIOUReports.push(report);
+        const isPinned = report.isPinned ?? false;
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
+            pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
@@ -198,12 +196,7 @@ function getOrderedReportIDs(
     });
 
     // Sort each group of reports accordingly
-    pinnedReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
-    outstandingIOUReports.sort((a, b) => {
-        const compareAmounts = a?.iouReportAmount && b?.iouReportAmount ? b.iouReportAmount - a.iouReportAmount : 0;
-        const compareDisplayNames = a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0;
-        return compareAmounts || compareDisplayNames;
-    });
+    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
 
     if (isInDefaultMode) {
@@ -221,7 +214,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedReports, ...outstandingIOUReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
     setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
@@ -254,6 +247,7 @@ type OptionData = {
     searchText?: string | null;
     isPinned?: boolean | null;
     hasOutstandingIOU?: boolean | null;
+    hasOutstandingChildRequest?: boolean | null;
     iouReportID?: string | null;
     isIOUReportOwner?: boolean | null;
     iouReportAmount?: number | null;
@@ -267,8 +261,8 @@ type OptionData = {
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
-    isWaitingForTaskCompleteFromAssignee?: boolean | null;
     parentReportID?: string | null;
+    parentReportAction?: ReportAction;
     notificationPreference?: string | number | null;
     displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
@@ -338,6 +332,7 @@ function getOptionData(
         searchText: null,
         isPinned: false,
         hasOutstandingIOU: false,
+        hasOutstandingChildRequest: false,
         iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -357,9 +352,7 @@ function getOptionData(
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
-    if (result.isTaskReport) {
-        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
-    }
+    result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
@@ -382,10 +375,11 @@ function getOptionData(
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
+    result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference ?? null;
-    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
@@ -418,10 +412,21 @@ function getOptionData(
     const reportAction = lastReportActions?.[report.reportID];
     if (result.isArchivedRoom) {
         const archiveReason = (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && reportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report, false, policy),
-        });
+
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                });
+                break;
+            }
+            default: {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
@@ -430,10 +435,8 @@ function getOptionData(
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (ReportActionsUtils.isTaskAction(lastAction)) {
+            result.alternateText = Task.getTaskReportActionMessage(lastAction.actionName, report.reportID, false);
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
@@ -459,7 +462,7 @@ function getOptionData(
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
