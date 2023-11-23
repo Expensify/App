@@ -7,7 +7,6 @@ import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import refPropTypes from './refPropTypes';
 import Text from './Text';
 
 /**
@@ -54,9 +53,6 @@ const propTypes = {
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
-    /** React ref being forwarded to the Checkbox input */
-    forwardedRef: refPropTypes,
-
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     inputID: PropTypes.string,
@@ -79,11 +75,10 @@ const defaultProps = {
     isChecked: false,
     value: false,
     defaultValue: false,
-    forwardedRef: () => {},
     accessibilityLabel: undefined,
 };
 
-function CheckboxWithLabel(props) {
+const CheckboxWithLabel = React.forwardRef((props, ref) => {
     const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
@@ -106,7 +101,7 @@ function CheckboxWithLabel(props) {
                     label={props.label}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
-                    forwardedRef={props.forwardedRef}
+                    ref={ref}
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
@@ -126,20 +121,10 @@ function CheckboxWithLabel(props) {
             <FormHelpMessage message={props.errorText} />
         </View>
     );
-}
+});
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-const CheckboxWithLabelWithRef = React.forwardRef((props, ref) => (
-    <CheckboxWithLabel
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-CheckboxWithLabelWithRef.displayName = 'CheckboxWithLabelWithRef';
-
-export default CheckboxWithLabelWithRef;
+export default CheckboxWithLabel;
