@@ -166,7 +166,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || isDistanceRequestTab}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}

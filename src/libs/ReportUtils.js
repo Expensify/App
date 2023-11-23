@@ -1661,6 +1661,14 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
 }
 
 /**
+ * @param {Object} moneyRequestReport
+ * @returns  {Boolean}
+ */
+function isAdminOfMoneyRequestReport(moneyRequestReport) {
+    return isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Can only edit if:
  *
  * - in case of IOU report
@@ -1693,7 +1701,7 @@ function canEditMoneyRequest(reportAction, fieldToEdit = '') {
 
     const moneyRequestReport = getReport(moneyRequestReportID);
     const isReportSettled = isSettled(moneyRequestReport.reportID);
-    const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
+    const isAdmin = isAdminOfMoneyRequestReport(moneyRequestReport);
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
     if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return false;
@@ -4533,4 +4541,5 @@ export {
     getRoom,
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
+    isAdminOfMoneyRequestReport,
 };

@@ -159,6 +159,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
+    const isAdmin = ReportUtils.isAdminOfMoneyRequestReport(moneyRequestReport);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
@@ -190,8 +191,8 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEdit && !isSettled && (isDistanceRequest ? isAdmin : true)}
+                        shouldShowRightIcon={canEdit && !isSettled && (isDistanceRequest ? isAdmin : true)}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}

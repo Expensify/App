@@ -598,7 +598,7 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!props.isReadOnly}
+                    interactive={!props.isReadOnly && !props.isDistanceRequest}
                     onPress={() => {
                         if (props.isDistanceRequest) {
                             return;
