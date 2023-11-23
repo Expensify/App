@@ -139,19 +139,14 @@ function IdologyQuestions({questions, idNumber}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.saveAndContinue')}
             >
-                <View
-                    style={styles.m5}
-                    key={currentQuestion.type}
-                >
-                    <InputWrapper
-                        InputComponent={SingleChoiceQuestion}
-                        inputID="answer"
-                        prompt={currentQuestion.prompt}
-                        possibleAnswers={possibleAnswers}
-                        currentQuestionIndex={currentQuestionIndex}
-                        onValueChange={chooseAnswer}
-                    />
-                </View>
+                <InputWrapper
+                    InputComponent={SingleChoiceQuestion}
+                    inputID="answer"
+                    prompt={currentQuestion.prompt}
+                    possibleAnswers={possibleAnswers}
+                    currentQuestionIndex={currentQuestionIndex}
+                    onValueChange={chooseAnswer}
+                />
             </FormProvider>
         </View>
     );
