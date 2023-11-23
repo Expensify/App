@@ -18,7 +18,7 @@ type AutoUpdateTimeProps = WithLocalizeProps & {
 function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimeProps) {
     const styles = useThemeStyles();
     /**
-     * @returns {Date} Returns the locale Date object
+     * @returns Returns the locale Date object
      */
     const getCurrentUserLocalTime = useCallback(() => DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, timezone.selected), [preferredLocale, timezone.selected]);
 
