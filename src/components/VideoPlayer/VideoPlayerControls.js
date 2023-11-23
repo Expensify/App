@@ -25,6 +25,8 @@ const propTypes = {
 
     videoPlayerRef: refPropTypes.isRequired,
 
+    isPlaying: PropTypes.bool.isRequired,
+
     // Defines if component should have small icons and tighter spacing inline
     small: PropTypes.bool,
 };
@@ -33,16 +35,13 @@ const defaultProps = {
     small: false,
 };
 
-function VideoPlayerControls({duration, position, url, videoPlayerRef, small}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small}) {
     const {translate} = useLocalize();
-    const {togglePlay, isPlaying, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {togglePlay, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
     const [shouldShowTime, setShouldShowTime] = useState(false);
-
     const isCurrentlyURLSet = currentlyPlayingURL === url;
-    const isCurrentlyPlaying = isCurrentlyURLSet && isPlaying;
-
     const iconSpacing = small ? spacing.mr3 : spacing.mr4;
 
     const togglePlayCurrentVideo = useCallback(() => {
@@ -81,8 +80,8 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, small}) {
             <View style={[styles.videoPlayerControlsButtonContainer, !small && spacing.mb4]}>
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
-                        src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
-                        tooltipText={isCurrentlyPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
+                        src={isPlaying ? Expensicons.Pause : Expensicons.Play}
+                        tooltipText={isPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
                         onPress={togglePlayCurrentVideo}
                         style={spacing.mr2}
                         small={small}

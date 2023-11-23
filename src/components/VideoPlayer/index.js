@@ -47,6 +47,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
     const [duration, setDuration] = useState(0);
     const [position, setPosition] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const videoPlayerRef = useRef(null);
     const videoPlayerElementParentRef = useRef(null);
@@ -56,7 +57,9 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
-            updateIsPlaying(e.isPlaying || false);
+            const isVideoPlaying = e.isPlaying || false;
+            setIsPlaying(isVideoPlaying);
+            updateIsPlaying(isVideoPlaying);
             setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setDuration(e.durationMillis || 0);
             setPosition(e.positionMillis || 0);
@@ -148,6 +151,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                     position={position}
                     url={url}
                     videoPlayerRef={videoPlayerRef}
+                    isPlaying={isPlaying}
                     small={shouldUseSmallVideoControls}
                 />
             )}
