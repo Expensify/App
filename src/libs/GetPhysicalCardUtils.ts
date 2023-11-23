@@ -82,7 +82,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
     }
 
     // Redirect the user if he's not allowed to be on the current step
-    Navigation.navigate(expectedRoute, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+    Navigation.goBack(expectedRoute);
 }
 
 /**
