@@ -343,7 +343,6 @@ function waitForProtectedRoutes() {
 
 export default {
     setShouldPopAllStateOnUP,
-    canNavigate,
     navigate,
     setParams,
     dismissModal,
@@ -357,7 +356,6 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
-    navContainsProtectedRoutes,
 };
 
 export {navigationRef};
