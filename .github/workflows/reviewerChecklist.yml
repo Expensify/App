@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
+      - uses: actions/checkout@v4
+
       - name: reviewerChecklist.js
-        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@main
+        uses: ./.github/actions/javascript/reviewerChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

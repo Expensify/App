@@ -37,7 +37,7 @@ function ChooseTransferAccountPage(props) {
      * @param {Object} account of the selected account data
      */
     const selectAccountAndNavigateBack = (event, accountType, account) => {
-        PaymentMethods.saveWalletTransferAccountTypeAndID(accountType, accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? account.bankAccountID : account.fundID);
+        PaymentMethods.saveWalletTransferAccountTypeAndID(accountType, accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account.bankAccountID : account.fundID);
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
@@ -70,7 +70,7 @@ function ChooseTransferAccountPage(props) {
             <MenuItem
                 onPress={navigateToAddPaymentMethodPage}
                 title={
-                    props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                    props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                         ? props.translate('paymentMethodList.addNewBankAccount')
                         : props.translate('paymentMethodList.addNewDebitCard')
                 }
