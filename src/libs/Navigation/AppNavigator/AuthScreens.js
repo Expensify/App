@@ -40,7 +40,7 @@ const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScre
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default;
-const loadDesktopSignInRedirectPage = () => require('../../../pages/signin/DesktopSignInRedirectPage').default;
+const LoadDesktopSignInRedirectPage = () => require('../../../pages/signin/DesktopSignInRedirectPage').default;
 
 let timezone;
 let currentAccountID;
@@ -338,7 +338,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
-                    component={loadDesktopSignInRedirectPage}
+                    component={LoadDesktopSignInRedirectPage}
                 />
             </RootStack.Navigator>
         </View>
