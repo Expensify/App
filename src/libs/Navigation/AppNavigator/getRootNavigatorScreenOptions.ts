@@ -15,6 +15,8 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
+const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
+
 export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): ScreenOptions => ({
     rightModalNavigator: {
         ...commonScreenOptions,
@@ -34,7 +36,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): Screen
     },
     leftModalNavigator: {
         ...commonScreenOptions,
-        // cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
         presentation: 'transparentModal',
 
         // We want pop in RHP since there are some flows that would work weird otherwise
