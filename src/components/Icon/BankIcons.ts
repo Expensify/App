@@ -1,46 +1,8 @@
 import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
-import AmericanExpress from '@assets/images/bankicons/american-express.svg';
-import BankOfAmerica from '@assets/images/bankicons/bank-of-america.svg';
-import BB_T from '@assets/images/bankicons/bb-t.svg';
-import CapitalOne from '@assets/images/bankicons/capital-one.svg';
-import CharlesSchwab from '@assets/images/bankicons/charles-schwab.svg';
-import Chase from '@assets/images/bankicons/chase.svg';
-import CitiBank from '@assets/images/bankicons/citibank.svg';
-import CitizensBank from '@assets/images/bankicons/citizens-bank.svg';
-import Discover from '@assets/images/bankicons/discover.svg';
-import Fidelity from '@assets/images/bankicons/fidelity.svg';
 import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
-import HuntingtonBank from '@assets/images/bankicons/huntington-bank.svg';
-import NavyFederalCreditUnion from '@assets/images/bankicons/navy-federal-credit-union.svg';
-import PNC from '@assets/images/bankicons/pnc.svg';
-import RegionsBank from '@assets/images/bankicons/regions-bank.svg';
-import SunTrust from '@assets/images/bankicons/suntrust.svg';
-import TdBank from '@assets/images/bankicons/td-bank.svg';
-import USBank from '@assets/images/bankicons/us-bank.svg';
-import USAA from '@assets/images/bankicons/usaa.svg';
-// Card Icons
-import AmericanExpressCard from '@assets/images/cardicons/american-express.svg';
-import BankOfAmericaCard from '@assets/images/cardicons/bank-of-america.svg';
-import BB_TCard from '@assets/images/cardicons/bb-t.svg';
-import CapitalOneCard from '@assets/images/cardicons/capital-one.svg';
-import CharlesSchwabCard from '@assets/images/cardicons/charles-schwab.svg';
-import ChaseCard from '@assets/images/cardicons/chase.svg';
-import CitiBankCard from '@assets/images/cardicons/citibank.svg';
-import CitizensBankCard from '@assets/images/cardicons/citizens.svg';
-import DiscoverCard from '@assets/images/cardicons/discover.svg';
-import ExpensifyCardImage from '@assets/images/cardicons/expensify-card-dark.svg';
-import FidelityCard from '@assets/images/cardicons/fidelity.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
-import HuntingtonBankCard from '@assets/images/cardicons/huntington-bank.svg';
-import NavyFederalCreditUnionCard from '@assets/images/cardicons/navy-federal-credit-union.svg';
-import PNCCard from '@assets/images/cardicons/pnc.svg';
-import RegionsBankCard from '@assets/images/cardicons/regions-bank.svg';
-import SunTrustCard from '@assets/images/cardicons/suntrust.svg';
-import TdBankCard from '@assets/images/cardicons/td-bank.svg';
-import USBankCard from '@assets/images/cardicons/us-bank.svg';
-import USAACard from '@assets/images/cardicons/usaa.svg';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 
@@ -52,101 +14,84 @@ type BankIcon = {
     iconStyles?: Array<ViewStyle | CSSProperties>;
 };
 
+const BANK_NAMES = {
+    EXPENSIFY: 'expensify',
+    AMERICAN_EXPRESS: 'americanexpress',
+    BANK_OF_AMERICA: 'bank of america',
+    BB_T: 'bbt',
+    CAPITAL_ONE: 'capital one',
+    CHASE: 'chase',
+    CHARLES_SCHWAB: 'charles schwab',
+    CITIBANK: 'citibank',
+    CITIZENS_BANK: 'citizens bank',
+    DISCOVER: 'discover',
+    FIDELITY: 'fidelity',
+    GENERIC_BANK: 'generic bank',
+    HUNTINGTON_BANK: 'huntington bank',
+    NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+    PNC: 'pnc',
+    REGIONS_BANK: 'regions bank',
+    SUNTRUST: 'suntrust',
+    TD_BANK: 'td bank',
+    US_BANK: 'us bank',
+    USAA: 'usaa',
+};
+
+type BankName = keyof typeof BANK_NAMES;
+
 /**
  * Returns matching asset icon for bankName
  */
 
-function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
-    if (bankName.includes('expensify')) {
-        return ExpensifyCardImage;
-    }
+function getAssetIcon(bankName: BankName, isCard: boolean): React.FC<SvgProps> {
+    // Mapping bank names to their respective icon paths
+    const iconMappings = {
+        [BANK_NAMES.EXPENSIFY]: isCard ? require('@assets/images/cardicons/expensify-card-dark.svg') : require('@assets/images/bankicons/expensify.svg'),
+        [BANK_NAMES.AMERICAN_EXPRESS]: isCard ? require('@assets/images/cardicons/american-express.svg') : require('@assets/images/bankicons/american-express.svg'),
+        [BANK_NAMES.BANK_OF_AMERICA]: isCard ? require('@assets/images/cardicons/bank-of-america.svg') : require('@assets/images/bankicons/bank-of-america.svg'),
+        [BANK_NAMES.BB_T]: isCard ? require('@assets/images/cardicons/bb-t.svg') : require('@assets/images/bankicons/bb-t.svg'),
+        [BANK_NAMES.CAPITAL_ONE]: isCard ? require('@assets/images/cardicons/capital-one.svg') : require('@assets/images/bankicons/capital-one.svg'),
+        [BANK_NAMES.CHASE]: isCard ? require('@assets/images/cardicons/chase.svg') : require('@assets/images/bankicons/chase.svg'),
+        [BANK_NAMES.CHARLES_SCHWAB]: isCard ? require('@assets/images/cardicons/charles-schwab.svg') : require('@assets/images/bankicons/charles-schwab.svg'),
+        [BANK_NAMES.CITIBANK]: isCard ? require('@assets/images/cardicons/citibank.svg') : require('@assets/images/bankicons/citibank.svg'),
+        [BANK_NAMES.CITIZENS_BANK]: isCard ? require('@assets/images/cardicons/citizens.svg') : require('@assets/images/bankicons/citizens-bank.svg'),
+        [BANK_NAMES.DISCOVER]: isCard ? require('@assets/images/cardicons/discover.svg') : require('@assets/images/bankicons/discover.svg'),
+        [BANK_NAMES.FIDELITY]: isCard ? require('@assets/images/cardicons/fidelity.svg') : require('@assets/images/bankicons/fidelity.svg'),
+        [BANK_NAMES.GENERIC_BANK]: isCard ? require('@assets/images/cardicons/generic-bank-card.svg') : require('@assets/images/bankicons/generic-bank-account.svg'),
+        [BANK_NAMES.HUNTINGTON_BANK]: isCard ? require('@assets/images/cardicons/huntington-bank.svg') : require('@assets/images/bankicons/huntington-bank.svg'),
+        [BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: isCard
+            ? require('@assets/images/cardicons/navy-federal-credit-union.svg')
+            : require('@assets/images/bankicons/navy-federal-credit-union.svg'),
+        [BANK_NAMES.PNC]: isCard ? require('@assets/images/cardicons/pnc.svg') : require('@assets/images/bankicons/pnc.svg'),
+        [BANK_NAMES.REGIONS_BANK]: isCard ? require('@assets/images/cardicons/regions-bank.svg') : require('@assets/images/bankicons/regions-bank.svg'),
+        [BANK_NAMES.SUNTRUST]: isCard ? require('@assets/images/cardicons/suntrust.svg') : require('@assets/images/bankicons/suntrust.svg'),
+        [BANK_NAMES.TD_BANK]: isCard ? require('@assets/images/cardicons/td-bank.svg') : require('@assets/images/bankicons/td-bank.svg'),
+        [BANK_NAMES.US_BANK]: isCard ? require('@assets/images/cardicons/us-bank.svg') : require('@assets/images/bankicons/us-bank.svg'),
+        [BANK_NAMES.USAA]: isCard ? require('@assets/images/cardicons/usaa.svg') : require('@assets/images/bankicons/usaa.svg'),
+    };
 
-    if (bankName.includes('americanexpress')) {
-        return isCard ? AmericanExpressCard : AmericanExpress;
-    }
+    // Fallback to generic bank/card icon
+    const iconModule = iconMappings[bankName] || (isCard ? '@assets/images/cardicons/generic-bank-card.svg' : '@assets/images/bankicons/generic-bank-account.svg');
+    return iconModule as React.FC<SvgProps>;
+}
 
-    if (bankName.includes('bank of america') || bankName.includes('bankofamerica')) {
-        return isCard ? BankOfAmericaCard : BankOfAmerica;
-    }
-
-    if (bankName.startsWith('bbt')) {
-        return isCard ? BB_TCard : BB_T;
-    }
-
-    if (bankName.startsWith('capital one') || bankName.includes('capitalone')) {
-        return isCard ? CapitalOneCard : CapitalOne;
-    }
-
-    if (bankName.startsWith('chase') || bankName.includes('chase')) {
-        return isCard ? ChaseCard : Chase;
-    }
-
-    if (bankName.includes('charles schwab') || bankName.includes('charlesschwab')) {
-        return isCard ? CharlesSchwabCard : CharlesSchwab;
-    }
-
-    if (bankName.startsWith('citibank') || bankName.includes('citibank')) {
-        return isCard ? CitiBankCard : CitiBank;
-    }
-
-    if (bankName.startsWith('citizens bank') || bankName.includes('citizensbank')) {
-        return isCard ? CitizensBankCard : CitizensBank;
-    }
-
-    if (bankName.startsWith('discover ') || bankName.includes('discover.') || bankName === 'discover') {
-        return isCard ? DiscoverCard : Discover;
-    }
-
-    if (bankName.startsWith('fidelity')) {
-        return isCard ? FidelityCard : Fidelity;
-    }
-
-    if (bankName.startsWith('huntington bank') || bankName.includes('huntingtonnational') || bankName.includes('huntington national')) {
-        return isCard ? HuntingtonBankCard : HuntingtonBank;
-    }
-
-    if (bankName.startsWith('navy federal credit union') || bankName.includes('navy federal credit union')) {
-        return isCard ? NavyFederalCreditUnionCard : NavyFederalCreditUnion;
-    }
-
-    if (bankName.startsWith('pnc') || bankName.includes('pnc')) {
-        return isCard ? PNCCard : PNC;
-    }
-
-    if (bankName.startsWith('regions bank') || bankName.includes('regionsbank')) {
-        return isCard ? RegionsBankCard : RegionsBank;
-    }
-
-    if (bankName.startsWith('suntrust') || bankName.includes('suntrust')) {
-        return isCard ? SunTrustCard : SunTrust;
-    }
-
-    if (bankName.startsWith('td bank') || bankName.startsWith('tdbank') || bankName.includes('tdbank')) {
-        return isCard ? TdBankCard : TdBank;
-    }
-
-    if (bankName.startsWith('us bank') || bankName.startsWith('usbank')) {
-        return isCard ? USBankCard : USBank;
-    }
-
-    if (bankName.includes('usaa')) {
-        return isCard ? USAACard : USAA;
-    }
-
-    return isCard ? GenericBankCard : GenericBank;
+function getBankNameKey(bankName: string): BankName | undefined {
+    return Object.keys(BANK_NAMES).find((key) => BANK_NAMES[key as BankName].toLowerCase() === bankName) as BankName | undefined;
 }
 
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 
-export default function getBankIcon(bankName: string, isCard = false): BankIcon {
+export default function getBankIcon(bankName: BankName, isCard = false): BankIcon {
+    const bankNameKey = getBankNameKey(bankName.toLowerCase());
+
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
 
-    if (bankName) {
-        bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
+    if (bankNameKey && Object.keys(BANK_NAMES).includes(bankNameKey)) {
+        bankIcon.icon = getAssetIcon(bankNameKey, isCard);
     }
 
     // For default Credit Card icon the icon size should not be set.
