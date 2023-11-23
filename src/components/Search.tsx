@@ -15,18 +15,21 @@ type SearchProps = {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     // Text explaining what the user can search for
-    text: string;
+    prompt: string;
+
+    // Text showing up in a tooltip when component is hovered
+    tooltip?: string;
 
     // Styles to apply on the outer element
     style?: StyleProp<ViewStyle>;
 };
 
-function Search({ onPress, text, style }: SearchProps) {
+function Search({ onPress, prompt, tooltip, style }: SearchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <Tooltip text={translate('common.search')}>
+        <Tooltip text={tooltip ?? translate('common.search')}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonSearchLabel')}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -38,7 +41,7 @@ function Search({ onPress, text, style }: SearchProps) {
                     style={styles.searchInputStyle}
                     numberOfLines={1}
                 >
-                    {text}
+                    {prompt}
                 </Text>
             </PressableWithoutFeedback>
         </Tooltip>
