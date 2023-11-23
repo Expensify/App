@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,22 +10,14 @@ import SCREENS from '@src/SCREENS';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default;
 
-const propTypes = {
-    /* Navigation functions provided by React Navigation */
-    navigation: PropTypes.shape({
-        goBack: PropTypes.func.isRequired,
-        getState: PropTypes.func.isRequired,
-    }).isRequired,
-};
+const propTypes = {};
 
 const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
 
-function SettingsNavigator({navigation}) {
+function SettingsNavigator() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
-
-    console.log('navigation state', navigation.getState());
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
@@ -40,7 +31,7 @@ function SettingsNavigator({navigation}) {
                     getComponent={loadPage}
                 />
                 <RootStack.Screen
-                    name="SettingsCentralPane"
+                    name={SCREENS.SETTINGS_CENTRAL_PANE}
                     options={screenOptions.centralPaneNavigator}
                     component={ModalStackNavigators.AccountSettingsModalStackNavigator}
                 />

@@ -62,6 +62,24 @@ const addCentralPaneNavigatorRoute = (state) => {
     state.index = state.routes.length - 1;
 };
 
+const handleSettingsOpened = (state) => {
+    const rhpNav = _.find(state.routes, (r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    if (!rhpNav || !rhpNav.state || !rhpNav.state.routes || !rhpNav.state.routes[0]) {
+        return;
+    }
+    if (rhpNav.state.routes[0].name !== 'Settings') {
+        return;
+    }
+    const fullScreenRoute = {
+        name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+    };
+    state.routes.splice(2, 0, fullScreenRoute);
+    // eslint-disable-next-line no-param-reassign
+    state.index = state.routes.length - 1;
+    // eslint-disable-next-line no-param-reassign
+    state.stale = true;
+}
+
 function CustomRouter(options) {
     const stackRouter = StackRouter(options);
 
@@ -75,6 +93,7 @@ function CustomRouter(options) {
                 partialState.stale = true;
                 addCentralPaneNavigatorRoute(partialState);
             }
+            handleSettingsOpened(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList});
             return state;
         },

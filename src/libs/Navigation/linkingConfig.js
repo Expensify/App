@@ -405,7 +405,7 @@ export default {
                     [SCREENS.SETTINGS_HOME]: {
                         path: ROUTES.SETTINGS_HOME,
                     },
-                    SettingsCentralPane: {
+                    [SCREENS.SETTINGS_CENTRAL_PANE]: {
                         screens: {
                             Settings_Share_Code: {
                                 path: ROUTES.SETTINGS_SHARE_CODE,

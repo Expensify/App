@@ -7,7 +7,7 @@ import SCREENS from '@src/SCREENS';
  * @param {String} centralRoute - name of the central route
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === 'SettingsCentralPane');
+const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === SCREENS.SETTINGS_CENTRAL_PANE);
 
 /**
  * Adds report route without any specific reportID to the state.
@@ -17,7 +17,7 @@ const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, 
  */
 const addCentralPaneNavigatorRoute = (state) => {
     const centralPaneNavigatorRoute = {
-        name: 'SettingsCentralPane',
+        name: SCREENS.SETTINGS_CENTRAL_PANE,
         state: {
             routes: [
                 {

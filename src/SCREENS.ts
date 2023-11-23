@@ -17,7 +17,7 @@ export default {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     SETTINGS_HOME: 'SettingsHome',
-    SETTINGS_NEW_PROFILE: 'SettingsNewProfile',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
