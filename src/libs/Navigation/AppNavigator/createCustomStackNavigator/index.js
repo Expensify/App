@@ -29,7 +29,7 @@ const defaultProps = {
     centralRoute: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
 };
 
-function reduceReportRoutes(routes, centralRoute=NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+function reduceReportRoutes(routes, centralRoute = NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
     const result = [];
     let count = 0;
     const reverseRoutes = [...routes].reverse();
@@ -97,7 +97,6 @@ function ResponsiveStackNavigatorFactory(customRouter) {
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
     return ResponsiveStackNavigator;
-
 }
 
 export default (customRouter) => createNavigatorFactory(ResponsiveStackNavigatorFactory(customRouter))();

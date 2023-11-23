@@ -1,4 +1,4 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import _ from 'underscore';
 import styles from '@styles/styles';
@@ -7,22 +7,22 @@ import SCREENS from '@src/SCREENS';
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
-    // TODO: Can remove it 
-    // cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param {Object} screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
+ * @param {Object} screenOptions options to pass to the navigator
  * @returns {Function}
  */
-function createModalStackNavigator(screens) {
+function createModalStackNavigator(screens, screenOptions = defaultSubRouteOptions) {
     const ModalStackNavigator = createStackNavigator();
 
     function ModalStack() {
         return (
-            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={screenOptions}>
                 {_.map(screens, (getComponent, name) => (
                     <ModalStackNavigator.Screen
                         key={name}
@@ -131,10 +131,21 @@ const NewTeachersUniteNavigator = createModalStackNavigator({
     I_Am_A_Teacher: () => require('../../../pages/TeachersUnite/ImTeacherPage').default,
 });
 
+// should it be merged with SettingsModalStackNavigator?
+const AccountSettingsModalStackNavigator = createModalStackNavigator(
+    {
+        [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default,
+        [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default,
+        [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default,
+        Settings_Profile: () => require('../../../pages/settings/Profile/ProfilePage').default,
+        Settings_Share_Code: () => require('../../../pages/ShareCodePage').default,
+        Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
+        Settings_About: () => require('../../../pages/settings/AboutPage/AboutPage').default,
+    },
+    {cardStyle: styles.navigationScreenCardStyle, headerShown: false},
+);
+
 const SettingsModalStackNavigator = createModalStackNavigator({
-    Settings_Share_Code: () => require('../../../pages/ShareCodePage').default,
-    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default,
-    Settings_Profile: () => require('../../../pages/settings/Profile/ProfilePage').default,
     Settings_Pronouns: () => require('../../../pages/settings/Profile/PronounsPage').default,
     Settings_Display_Name: () => require('../../../pages/settings/Profile/DisplayNamePage').default,
     Settings_Timezone: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default,
@@ -147,17 +158,13 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_ContactMethods: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default,
     Settings_ContactMethodDetails: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
     Settings_NewContactMethod: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
-    [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default,
     Settings_Preferences_PriorityMode: () => require('../../../pages/settings/Preferences/PriorityModePage').default,
     Settings_Preferences_Language: () => require('../../../pages/settings/Preferences/LanguagePage').default,
     // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
     // Settings_Preferences_Theme: () => require('../../../pages/settings/Preferences/ThemePage').default,
     Settings_Close: () => require('../../../pages/settings/Security/CloseAccountPage').default,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default,
-    Settings_About: () => require('../../../pages/settings/AboutPage/AboutPage').default,
     Settings_App_Download_Links: () => require('../../../pages/settings/AppDownloadLinks').default,
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
-    Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
     Settings_Wallet_Cards_Digital_Details_Update_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
     Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
     Settings_Wallet_ReportVirtualCardFraud: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
@@ -239,6 +246,7 @@ export {
     SearchModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
+    AccountSettingsModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,

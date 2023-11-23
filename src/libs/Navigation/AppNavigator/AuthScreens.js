@@ -31,12 +31,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
+import CustomRouter from './createCustomStackNavigator/CustomRouter';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import SettingsNavigator from './Navigators/SettingsNavigator';
-import CustomRouter from './createCustomStackNavigator/CustomRouter';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;

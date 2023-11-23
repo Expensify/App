@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, View } from 'react-native';
+import {Keyboard, View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -12,13 +12,13 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 
 function HeaderWithBackButton({

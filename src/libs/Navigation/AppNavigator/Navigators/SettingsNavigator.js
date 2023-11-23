@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { View } from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
-import SCREENS from '@src/SCREENS';
+import CustomFullScreenRouter from '@libs/Navigation/AppNavigator/createCustomStackNavigator/CustomFullScreenRouter';
+import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import CustomRouter from '@libs/Navigation/AppNavigator/createCustomStackNavigator/CustomRouter';
+import useThemeStyles from '@styles/useThemeStyles';
+import SCREENS from '@src/SCREENS';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default;
 
@@ -19,7 +19,7 @@ const propTypes = {
     }).isRequired,
 };
 
-const RootStack = createCustomStackNavigator(CustomRouter);
+const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
 
 function SettingsNavigator({navigation}) {
     const styles = useThemeStyles();
@@ -33,7 +33,6 @@ function SettingsNavigator({navigation}) {
             <RootStack.Navigator
                 isSmallScreenWidth={isSmallScreenWidth}
                 mode="modal"
-                centralRoute='SettingsCentralPane'
             >
                 <RootStack.Screen
                     name={SCREENS.SETTINGS_HOME}
@@ -41,9 +40,9 @@ function SettingsNavigator({navigation}) {
                     getComponent={loadPage}
                 />
                 <RootStack.Screen
-                    name='SettingsCentralPane'
+                    name="SettingsCentralPane"
                     options={screenOptions.centralPaneNavigator}
-                    component={ModalStackNavigators.SettingsModalStackNavigator}
+                    component={ModalStackNavigators.AccountSettingsModalStackNavigator}
                 />
             </RootStack.Navigator>
         </View>

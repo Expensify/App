@@ -1,41 +1,14 @@
 import {StackRouter} from '@react-navigation/native';
-import lodashFindLast from 'lodash/findLast';
 import _ from 'underscore';
-import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} state - react-navigation state
+ * @param {String} centralRoute - name of the central route
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === 'SettingsCentralPane');
 
-/**
- * @param {Object} state - react-navigation state
- * @returns {String}
- */
-const getTopMostReportIDFromRHP = (state) => {
-    if (!state) {
-        return '';
-    }
-    const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-    if (topmostRightPane) {
-        return getTopMostReportIDFromRHP(topmostRightPane.state);
-    }
-
-    const topmostRoute = lodashFindLast(state.routes);
-
-    if (topmostRoute.state) {
-        return getTopMostReportIDFromRHP(topmostRoute.state);
-    }
-
-    if (topmostRoute.params && topmostRoute.params.reportID) {
-        return topmostRoute.params.reportID;
-    }
-
-    return '';
-};
 /**
  * Adds report route without any specific reportID to the state.
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
@@ -43,16 +16,12 @@ const getTopMostReportIDFromRHP = (state) => {
  * @param {Object} state - react-navigation state
  */
 const addCentralPaneNavigatorRoute = (state) => {
-    const reportID = getTopMostReportIDFromRHP(state);
     const centralPaneNavigatorRoute = {
-        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+        name: 'SettingsCentralPane',
         state: {
             routes: [
                 {
-                    name: SCREENS.REPORT,
-                    params: {
-                        reportID,
-                    },
+                    name: SCREENS.SETTINGS.PROFILE,
                 },
             ],
         },
@@ -62,11 +31,30 @@ const addCentralPaneNavigatorRoute = (state) => {
     state.index = state.routes.length - 1;
 };
 
-function CustomRouter(options) {
+const addLHPRoute = (state) => {
+    if (state.routes[0].name === SCREENS.SETTINGS_HOME) {
+        return;
+    }
+    const settingsHomeRoute = {
+        name: SCREENS.SETTINGS_HOME,
+    };
+    state.routes.splice(0, 0, settingsHomeRoute);
+    // eslint-disable-next-line no-param-reassign
+    state.index = state.routes.length - 1;
+};
+
+function CustomFullScreenRouter(options) {
     const stackRouter = StackRouter(options);
 
     return {
         ...stackRouter,
+        getInitialState({routeNames, routeParamList, routeGetIdList}) {
+            const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
+            if (!isAtLeastOneCentralPaneNavigatorInState(initialState) && !options.getIsSmallScreenWidth()) {
+                addCentralPaneNavigatorRoute(initialState);
+            }
+            return initialState;
+        },
         getRehydratedState(partialState, {routeNames, routeParamList}) {
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
             if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
@@ -75,10 +63,11 @@ function CustomRouter(options) {
                 partialState.stale = true;
                 addCentralPaneNavigatorRoute(partialState);
             }
+            addLHPRoute(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList});
             return state;
         },
     };
 }
 
-export default CustomRouter;
+export default CustomFullScreenRouter;

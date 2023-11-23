@@ -206,7 +206,7 @@ export default {
                             KeyboardShortcuts: {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
-                        }
+                        },
                     },
                     Private_Notes: {
                         screens: {
@@ -438,7 +438,7 @@ export default {
                         },
                     },
                 },
-            }
+            },
         },
     },
 };
