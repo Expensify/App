@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
 import callOrReturn from '@src/types/utils/callOrReturn';
+import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
 import {TooltipProps} from './types';
 
@@ -100,7 +101,7 @@ function TooltipRenderedOnPageBody({
             >
                 <Text
                     style={textStyle}
-                    ref={viewRef(contentRef)}
+                    ref={textRef(contentRef)}
                 >
                     {text}
                 </Text>
