@@ -6,15 +6,15 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionName, CommonOriginalMessage} from '@src/types/onyx/OriginalMessage';
-import PersonalDetails from '@src/types/onyx/PersonalDetails';
 import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import Log from './Log';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -22,14 +22,29 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-type MessageActionItemChanelLog = {
-    kind: string;
+type MessageActionItemChanelLogBase = {
+    readonly kind: string;
     content?: string;
+};
+
+type MessageActionItemChanelLogText = {
+    readonly kind: 'text';
+    content?: string;
+};
+
+type MessageActionItemChanelLogUserMention = {
+    readonly kind: 'userMention';
     accountID?: number;
     isComma?: boolean;
+} & MessageActionItemChanelLogBase;
+
+type MessageActionItemChanelLogRoomReference = {
+    readonly kind: 'roomReference';
     roomName?: string;
     roomID?: number;
-};
+} & MessageActionItemChanelLogBase;
+
+type MessageActionItemChanelLog = MessageActionItemChanelLogText | MessageActionItemChanelLogUserMention | MessageActionItemChanelLogRoomReference;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -55,12 +70,6 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
-});
-
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = null;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
 });
 
 let isNetworkOffline = false;
@@ -653,7 +662,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): MessageActionItemChanelLog[] {
     const messageItems: MessageActionItemChanelLog[] = [];
     const isInviteRoom = isInvitedRoom(reportAction);
 
@@ -666,12 +675,14 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
 
     const originalMessage = reportAction?.originalMessage as CommonOriginalMessage;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+
     const mentions = targetAccountIDs.map((accountID) => {
-        const personalDetail = allPersonalDetails?.[accountID];
+        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
 
         if (personalDetail) {
             const displayNameOrLogin =
-                LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden');
+                LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
             return {content: `@${displayNameOrLogin}`, accountID};
         }
         return {content: '', accountID: 0};
@@ -742,9 +753,9 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return messageItems;
 }
 
-function getActionItemFragmentChanelLog(reportAction: OnyxEntry<ReportAction>) {
+function getActionItemFragmentChanelLogFragment(reportAction: OnyxEntry<ReportAction>): Message {
     const messageItems: MessageActionItemChanelLog[] = getChannelLogMemberAction(reportAction);
-    let html = '<muted-text>';
+    let html = '';
 
     messageItems.forEach((messageItem) => {
         switch (messageItem.kind) {
@@ -759,10 +770,8 @@ function getActionItemFragmentChanelLog(reportAction: OnyxEntry<ReportAction>) {
         }
     });
 
-    html += '</muted-text>';
-
     return {
-        html,
+        html: `<muted-text>${html}</muted-text>`,
         text: reportAction?.message ? reportAction?.message[0].text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
@@ -832,6 +841,6 @@ export {
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
     getChannelLogMemberAction,
-    getActionItemFragmentChanelLog,
+    getActionItemFragmentChanelLogFragment,
     isInvitedRoom,
 };

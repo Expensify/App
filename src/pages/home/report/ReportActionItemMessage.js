@@ -42,7 +42,7 @@ function ReportActionItemMessage(props) {
     const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     if (ReportActionsUtils.isChannelLogMemberAction(props.action)) {
-        const fragment = ReportActionsUtils.getActionItemFragmentChanelLog(props.action);
+        const fragment = ReportActionsUtils.getActionItemFragmentChanelLogFragment(props.action);
 
         return (
             <TextCommentFragment
