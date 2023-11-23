@@ -67,8 +67,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, 
     }, [initialIsActive]);
 
     const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
-    const [isImageLoading, setIsImageLoading] = useState(false);
-    const [isFallbackLoading, setIsFallbackLoading] = useState(false);
+    const [isImageLoading, setIsImageLoading] = useState(true);
+    const [isFallbackLoading, setIsFallbackLoading] = useState(true);
     const [showFallback, setShowFallback] = useState(true);
 
     const isFallbackVisible = showFallback || !isActive;
