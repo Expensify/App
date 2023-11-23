@@ -17,9 +17,7 @@ type AutoUpdateTimeProps = WithLocalizeProps & {
 
 function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimeProps) {
     const styles = useThemeStyles();
-    /**
-     * @returns Returns the locale Date object
-     */
+    /** @returns Returns the locale Date object */
     const getCurrentUserLocalTime = useCallback(() => DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, timezone.selected), [preferredLocale, timezone.selected]);
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
@@ -32,7 +30,7 @@ function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimePr
     }, [currentUserLocalTime, timezone.selected]);
 
     useEffect(() => {
-        // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
+        // If any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
         setCurrentUserLocalTime(getCurrentUserLocalTime());
 
         // Also, if the user leaves this page open, we want to make sure the displayed time is updated every minute when the clock changes
