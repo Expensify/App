@@ -3,7 +3,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
-import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
@@ -31,9 +30,6 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Popover anchor ref */
     anchorRef: refPropTypes,
 
@@ -46,7 +42,6 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-    betas: [],
     anchorRef: () => {},
 };
 
