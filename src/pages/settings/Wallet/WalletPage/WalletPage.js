@@ -207,6 +207,11 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
 
+        if (paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+            return;
+        }
+
         throw new Error('Invalid payment method type selected');
     };
 
