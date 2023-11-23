@@ -195,6 +195,16 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageMoved = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
+    originalMessage: {
+        fromPolicyID: string;
+        toPolicyID: string;
+        newParentReportID: string;
+        movedReportID: string;
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -209,7 +219,8 @@ type OriginalMessage =
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
-    | OriginalMessageReimbursementQueued;
+    | OriginalMessageReimbursementQueued
+    | OriginalMessageMoved;
 
 export default OriginalMessage;
 export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};

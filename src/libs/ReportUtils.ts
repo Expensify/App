@@ -1884,6 +1884,7 @@ function getReportPreviewMessage(
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
+    policy: OnyxEntry<Policy> = null,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
     if (isEmptyObject(report) || !report?.reportID) {
@@ -1911,7 +1912,7 @@ function getReportPreviewMessage(
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true) ?? '';
+    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1938,7 +1939,7 @@ function getReportPreviewMessage(
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName});
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName ?? ''});
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -1947,7 +1948,7 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 
 /**
@@ -2741,6 +2742,49 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED report action with a randomly generated reportActionID.
+ * This action is used when we move reports across workspaces.
+ */
+function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: string, newParentReportID: string, movedReportID: string): ReportAction {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+        newParentReportID,
+        movedReportID,
+    };
+
+    const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
+    const movedActionMessage = [
+        {
+            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+            text: `moved the report to the ${policyName} workspace`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        isAttachment: false,
+        originalMessage,
+        message: movedActionMessage,
         person: [
             {
                 style: 'strong',
@@ -4238,6 +4282,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
