@@ -33,9 +33,9 @@ import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
-const loadRightModalNavigator = () => require('./Navigators/RightModalNavigator').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
@@ -332,7 +332,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={screenOptions.rightModalNavigator}
-                    component={loadRightModalNavigator}
+                    component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
