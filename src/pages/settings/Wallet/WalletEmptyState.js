@@ -38,7 +38,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
         <IllustratedHeaderPageLayout
             backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WALLET]}
             illustration={LottieAnimations.FastMoney}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
             title={translate('common.wallet')}
             footer={
                 <Button

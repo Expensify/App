@@ -81,7 +81,7 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper testID={ShareCodePage.displayName}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS_HOME)}
                     shouldShowBackButtonOnlyOnMobile
                 />
 
