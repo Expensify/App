@@ -151,6 +151,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 item={item}
                 isFocused={activeSource === item.source}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                isModalHovered={shouldShowArrows}
             />
         ),
         [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],

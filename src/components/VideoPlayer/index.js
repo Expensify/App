@@ -29,6 +29,8 @@ const propTypes = {
     shouldUseSharedVideoElement: PropTypes.bool,
 
     shouldUseSmallVideoControls: PropTypes.bool,
+
+    isHovered: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,9 +42,10 @@ const defaultProps = {
     videoStyle: [styles.w100, styles.h100],
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
+    isHovered: false,
 };
 
-function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls}) {
+function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isHovered}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
     const [duration, setDuration] = useState(0);
@@ -107,10 +110,16 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     return (
         <View style={[styles.w100, styles.h100]}>
             {shouldUseSharedVideoElement ? (
-                <View
-                    ref={sharedVideoPlayerParentRef}
-                    style={[styles.flex1]}
-                />
+                <>
+                    <View
+                        ref={sharedVideoPlayerParentRef}
+                        style={[styles.flex1]}
+                    />
+                    {/* We are adding transaprent absolute View between appended video component and conttrol buttons to enable
+                      catching onMosue events from Attachment Carousel. Due to late appending React doesn't handle
+                       element's events properly.  */}
+                    <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
+                </>
             ) : (
                 <View
                     style={styles.flex1}
@@ -145,7 +154,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
             {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-            {!isLoading && (
+            {!isLoading && isHovered && (
                 <VideoPlayerControls
                     duration={duration}
                     position={position}

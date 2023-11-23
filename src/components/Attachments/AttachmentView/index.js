@@ -50,6 +50,8 @@ const propTypes = {
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
+
+    isHovered: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,6 +62,7 @@ const defaultProps = {
     containerStyles: [],
     isWorkspaceAvatar: false,
     transactionID: '',
+    isHovered: false,
 };
 
 function AttachmentView({
@@ -79,6 +82,7 @@ function AttachmentView({
     fallbackSource,
     transaction,
     isUsedInAttachmentModal,
+    isHovered,
 }) {
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
@@ -198,6 +202,7 @@ function AttachmentView({
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
+                isHovered={isHovered}
             />
         );
     }

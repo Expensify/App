@@ -42,13 +42,15 @@ const propTypes = {
 
     /** onPress callback */
     onPress: PropTypes.func,
+
+    isModalHovered: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     onPress: undefined,
 };
 
-function CarouselItem({item, isFocused, onPress}) {
+function CarouselItem({item, isFocused, onPress, isModalHovered}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -102,6 +104,7 @@ function CarouselItem({item, isFocused, onPress}) {
                     onPress={onPress}
                     isUsedInCarousel
                     transactionID={item.transactionID}
+                    isHovered={isModalHovered}
                 />
             </View>
 
