@@ -46,7 +46,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
     return currentAction;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (navigation === undefined || navigation === null) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -91,7 +91,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // There are situations where a route already exists on the current navigation stack
             // But we want to push the same route instead of going back in the stack
             // Which would break the user navigation history
-            if (type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+            if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
                 minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             }
             // There are situations when the user is trying to access a route which he has no access to

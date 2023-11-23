@@ -98,6 +98,37 @@ function getDistanceFromPathInRootNavigator(path: string): number {
     return -1;
 }
 
+/** Returns the current active route */
+function getActiveRoute(): string {
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = currentRoute?.name ?? false;
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+
+    if (routeFromState) {
+        return routeFromState;
+    }
+
+    return '';
+}
+
+/**
+ * Check whether the passed route is currently Active or not.
+ *
+ * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
+ * is undefined in the first navigation.
+ *
+ * @param routePath Path to check
+ * @return is active
+ */
+function isActiveRoute(routePath: Route): boolean {
+    // We remove First forward slash from the URL before matching
+    return getActiveRoute().substring(1) === routePath;
+}
+
 /**
  * Main navigation method for redirecting to a route.
  * @param [type] - Type of action to perform. Currently UP is supported.
@@ -110,7 +141,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         pendingRoute = route;
         return;
     }
-    linkTo(navigationRef.current, route, type);
+    linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
 /**
@@ -161,7 +192,7 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
         return;
     }
 
-    // Add posibility to go back more than one screen in root navigator if that screen is on the stack.
+    // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
         navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
         return;
@@ -219,25 +250,6 @@ function dismissModal(targetReportID?: string) {
 }
 
 /**
- * Returns the current active route
- */
-function getActiveRoute(): string {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = currentRoute?.name ?? false;
-    if (!currentRouteHasName) {
-        return '';
-    }
-
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
-
-    if (routeFromState) {
-        return routeFromState;
-    }
-
-    return '';
-}
-
-/**
  * Returns the current active route without the URL params
  */
 function getActiveRouteWithoutParams(): string {
@@ -255,20 +267,6 @@ function getRouteNameFromStateEvent(event: EventMapCore<NavigationState>['state'
     if (currentRouteName) {
         return currentRouteName;
     }
-}
-
-/**
- * Check whether the passed route is currently Active or not.
- *
- * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
- * is undefined in the first navigation.
- *
- * @param routePath Path to check
- * @return is active
- */
-function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
 }
 
 /**
@@ -310,8 +308,8 @@ function navContainsProtectedRoutes(state: NavigationState | undefined) {
 }
 
 /**
- * Waits for the navitgation state to contain protected routes specified in PROTECTED_SCREENS constant.
- * If the navigation is in a state, where protected routes are avilable, the promise resolve immediately.
+ * Waits for the navigation state to contain protected routes specified in PROTECTED_SCREENS constant.
+ * If the navigation is in a state, where protected routes are available, the promise resolve immediately.
  *
  * @function
  * @returns A promise that resolves when the one of the PROTECTED_SCREENS screen is available in the nav tree.
