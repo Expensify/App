@@ -104,10 +104,6 @@ function DebitCardPage(props) {
         return errors;
     };
 
-    if (!Permissions.canUseWallet(props.betas)) {
-        return <NotFoundPage />;
-    }
-
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}

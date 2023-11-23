@@ -140,11 +140,6 @@ function NewTaskPage(props) {
         );
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}

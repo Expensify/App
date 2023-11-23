@@ -289,7 +289,7 @@ function InitialSettingsPage(props) {
          * @returns {Number} the user wallet balance
          */
         const getWalletBalance = (isPaymentItem) =>
-            isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
+            isPaymentItem && CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
 
         return (
             <>

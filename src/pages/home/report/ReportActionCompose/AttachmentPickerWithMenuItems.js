@@ -152,7 +152,7 @@ function AttachmentPickerWithMenuItems({
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        if (!Permissions.canUseTasks(betas) || !ReportUtils.canCreateTaskInReport(report)) {
+        if (!ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
 

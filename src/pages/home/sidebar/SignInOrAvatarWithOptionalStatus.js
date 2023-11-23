@@ -32,9 +32,8 @@ const defaultProps = {
     },
 };
 
-function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateMenuOpen, betas}) {
-    const statusEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
-    const emojiStatus = Permissions.canUseCustomStatus(betas) ? statusEmojiCode : '';
+function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateMenuOpen}) {
+    const emojiStatus = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
 
     if (Session.isAnonymousUser()) {
         return <SignInButton />;

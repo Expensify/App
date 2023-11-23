@@ -205,7 +205,7 @@ function ReportActionItemSingle(props) {
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status && status.emojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasEmojiStatus = !displayAllActors && status && status.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
     const statusText = lodashGet(status, 'text', '');
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;

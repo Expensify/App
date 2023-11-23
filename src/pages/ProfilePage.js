@@ -133,7 +133,7 @@ function ProfilePage(props) {
 
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
-    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);

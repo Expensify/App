@@ -112,14 +112,13 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseWallet} = usePermissions();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
     function getWalletBalance(isPaymentItem) {
-        return isPaymentItem && canUseWallet ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
+        return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
     }
 
     /**

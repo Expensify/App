@@ -155,7 +155,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(betas) && Permissions.canUseWallet(betas);
+        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.

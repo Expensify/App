@@ -207,15 +207,13 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...(Permissions.canUseTasks(props.betas)
-                        ? [
+                    ...([
                               {
                                   icon: Expensicons.Task,
                                   text: props.translate('newTaskPage.assignTask'),
                                   onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                               },
-                          ]
-                        : []),
+                          ]),
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
