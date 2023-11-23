@@ -3467,13 +3467,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Hide the canceled task report with no visible actions
-    if (isTaskReport(report)) {
-        const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
-        if (shouldHideCanceledTaskReport(report, parentReportAction)) {
-            return false;
-        }
-    }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
