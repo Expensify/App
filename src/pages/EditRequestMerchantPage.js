@@ -3,7 +3,7 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapperWithRef from '@components/Form/InputWrapper';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -52,7 +52,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <InputWrapperWithRef
+                    <InputWrapper
                         InputComponent={TextInput}
                         inputID="merchant"
                         name="merchant"
