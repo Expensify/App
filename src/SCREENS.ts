@@ -16,6 +16,7 @@ export default {
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',

@@ -1,4 +1,6 @@
 import {NavigationState, PartialState} from '@react-navigation/native';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import {RootStackParamList} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
@@ -14,7 +16,7 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    const topmostCentralPane = state.routes.filter((route) => route.name === 'CentralPaneNavigator').at(-1);
+    const topmostCentralPane = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR).at(-1);
     if (!topmostCentralPane) {
         return;
     }
@@ -28,7 +30,7 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return directReportIdParam;
     }
 
-    const topmostReport = topmostCentralPane.state?.routes.filter((route) => route.name === 'Report').at(-1);
+    const topmostReport = topmostCentralPane.state?.routes.filter((route) => route.name === SCREENS.REPORT).at(-1);
     if (!topmostReport) {
         return;
     }

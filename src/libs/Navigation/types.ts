@@ -41,19 +41,19 @@ type CentralPaneNavigatorParamList = {
 };
 
 type RootStackParamList = {
-    ValidateLogin: {
+    [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
     };
-    UnlinkLogin: {
+    [SCREENS.UNLINK_LOGIN]: {
         accountID: string;
         validateCode: string;
     };
     [SCREENS.TRANSITION_BETWEEN_APPS]: undefined;
     [SCREENS.CONCIERGE]: undefined;
-    AppleSignInDesktop: undefined;
-    GoogleSignInDesktop: undefined;
-    SAMLSignIn: undefined;
+    [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
+    [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
+    [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;

@@ -26,27 +26,27 @@ function PublicScreens() {
                 component={LogInWithShortLivedAuthTokenPage}
             />
             <RootStack.Screen
-                name="ValidateLogin"
+                name={SCREENS.VALIDATE_LOGIN}
                 options={defaultScreenOptions}
                 component={ValidateLoginPage}
             />
             <RootStack.Screen
-                name="UnlinkLogin"
+                name={SCREENS.UNLINK_LOGIN}
                 options={defaultScreenOptions}
                 component={UnlinkLoginPage}
             />
             <RootStack.Screen
-                name="AppleSignInDesktop"
+                name={SCREENS.SIGN_IN_WITH_APPLE_DESKTOP}
                 options={defaultScreenOptions}
                 component={AppleSignInDesktopPage}
             />
             <RootStack.Screen
-                name="GoogleSignInDesktop"
+                name={SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP}
                 options={defaultScreenOptions}
                 component={GoogleSignInDesktopPage}
             />
             <RootStack.Screen
-                name="SAMLSignIn"
+                name={SCREENS.SAML_SIGN_IN}
                 options={defaultScreenOptions}
                 component={SAMLSignInPage}
             />
