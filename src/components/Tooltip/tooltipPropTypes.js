@@ -35,6 +35,9 @@ const propTypes = {
 
     /** Reference to the tooltip container */
     tooltipRef: refPropTypes,
+
+    /** Forces the tooltip to render below a component */
+    forceRenderingBelow: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
     renderTooltipContentKey: [],
     shouldHandleScroll: false,
     tooltipRef: () => {},
+    forceRenderingBelow: false,
 };
 
 export {propTypes, defaultProps};

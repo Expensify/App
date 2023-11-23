@@ -52,7 +52,19 @@ function chooseBoundingBox(target, clientX, clientY) {
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical, tooltipRef}) {
+function Tooltip({
+    children,
+    numberOfLines,
+    maxWidth,
+    text,
+    renderTooltipContent,
+    renderTooltipContentKey,
+    shouldHandleScroll,
+    shiftHorizontal,
+    shiftVertical,
+    tooltipRef,
+    forceRenderingBelow,
+}) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -192,6 +204,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale]}
+                    forceRenderingBelow={forceRenderingBelow}
                 />
             )}
             <BoundsObserver

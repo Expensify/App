@@ -82,7 +82,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, small}) {
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
-                        accessibilityLabel={translate('videoPlayer.tooglePlay')}
+                        tooltipText={isCurrentlyPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
                         onPress={togglePlayCurrentVideo}
                         style={spacing.mr2}
                         small={small}
@@ -99,14 +99,14 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, small}) {
                     <VolumeButton style={iconSpacing} />
                     <IconButton
                         src={Expensicons.Fullscreen}
-                        accessibilityLabel={translate('videoPlayer.enterFullScreen')}
+                        tooltipText={translate('videoPlayer.fullscreen')}
                         onPress={enterFullScreenMode}
                         style={iconSpacing}
                         small={small}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}
-                        accessibilityLabel={translate('videoPlayer.moreOptions')}
+                        tooltipText={translate('common.more')}
                         onPress={(e) => showPopover(e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX)}
                         small={small}
                     />

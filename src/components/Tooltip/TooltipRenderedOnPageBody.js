@@ -98,6 +98,7 @@ function TooltipRenderedOnPageBody(props) {
                 wrapperMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
+                props.forceRenderingBelow,
             ),
         [
             props.animation,
@@ -111,6 +112,7 @@ function TooltipRenderedOnPageBody(props) {
             wrapperMeasuredHeight,
             props.shiftHorizontal,
             props.shiftVertical,
+            props.forceRenderingBelow,
         ],
     );
 

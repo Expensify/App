@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
@@ -13,12 +14,14 @@ const propTypes = {
 
     fill: PropTypes.string,
 
-    accessibilityLabel: PropTypes.string.isRequired,
+    tooltipText: PropTypes.string,
 
     // eslint-disable-next-line react/forbid-prop-types,
     style: PropTypes.object,
 
     small: PropTypes.bool,
+
+    forceRenderingTooltipBelow: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -26,22 +29,29 @@ const defaultProps = {
     onPress: () => {},
     style: {},
     small: false,
+    tooltipText: '',
+    forceRenderingTooltipBelow: false,
 };
 
-function IconButton({src, fill, onPress, style, accessibilityLabel, small}) {
+function IconButton({src, fill, onPress, style, tooltipText, small, forceRenderingTooltipBelow}) {
     return (
-        <PressableWithoutFeedback
-            accessibilityLabel={accessibilityLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            onPress={onPress}
-            style={[styles.videoIconButton, style]}
+        <Tooltip
+            text={tooltipText}
+            forceRenderingBelow={forceRenderingTooltipBelow}
         >
-            <Icon
-                src={src}
-                fill={fill}
-                small={small}
-            />
-        </PressableWithoutFeedback>
+            <PressableWithoutFeedback
+                accessibilityLabel={tooltipText}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                onPress={onPress}
+                style={[styles.videoIconButton, style]}
+            >
+                <Icon
+                    src={src}
+                    fill={fill}
+                    small={small}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 

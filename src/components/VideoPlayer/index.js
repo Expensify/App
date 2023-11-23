@@ -56,7 +56,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
-            updateIsPlaying(e.isPlaying);
+            updateIsPlaying(e.isPlaying || false);
             setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setDuration(e.durationMillis || 0);
             setPosition(e.positionMillis || 0);

@@ -81,11 +81,12 @@ function ProgressBar({style, small}) {
                     )}
 
                     <IconButton
-                        accessibilityLabel={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
+                        tooltipText={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
                         onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
                         src={volumeIcon.icon}
                         fill={colors.white}
                         small={small}
+                        forceRenderingTooltipBelow
                     />
                 </Animated.View>
             )}

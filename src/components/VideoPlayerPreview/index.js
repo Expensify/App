@@ -76,7 +76,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     <IconButton
                         src={Expensicons.Expand}
                         style={styles.videoExpandButton}
-                        accessibilityLabel={translate('videoPlayer.openInAttachmentModal')}
+                        tooltipText={translate('videoPlayer.expand')}
                         onPress={showModal}
                         small
                     />
