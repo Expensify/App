@@ -1,3 +1,4 @@
+import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -76,8 +77,11 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.sendInvitation = this.sendInvitation.bind(this);
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
+        this.debouncedSaveDraf = _.debounce((newDraft) => {
+            Policy.setWorkspaceInviteMessageDraft(this.props.route.params.policyID, newDraft);
+        }, 2000);
         this.state = {
-            welcomeNote: this.props.savedWelcomeMessage || this.getDefaultWelcomeNote(),
+            welcomeNote: this.props.workspaceInviteMessageDraft || this.getDefaultWelcomeNote(),
         };
     }
 
@@ -229,8 +233,10 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 containerStyles={[this.props.themeStyles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
-                                onChangeText={(text) => this.setState({welcomeNote: text})}
-                                shouldSaveDraft
+                                onChangeText={(text) => {
+                                    this.debouncedSaveDraf(text);
+                                    this.setState({welcomeNote: text});
+                                }}
                             />
                         </View>
                     </Form>
@@ -254,9 +260,9 @@ export default compose(
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
-        savedWelcomeMessage: {
-            key: `${ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}Draft`,
-            selector: (draft) => (draft ? draft.welcomeMessage : ''),
+        workspaceInviteMessageDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
+            selector: (draft) => (isEmpty(draft) ? '' : draft),
         },
     }),
     withNavigationFocus,
