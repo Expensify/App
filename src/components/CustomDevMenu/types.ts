@@ -1,5 +1,7 @@
+import {ReactElement} from 'react';
+
 type CustomDevMenuElement = {
-    (): null | void;
+    (): ReactElement;
     displayName: string;
 };
 
