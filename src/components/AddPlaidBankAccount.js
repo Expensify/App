@@ -9,8 +9,8 @@ import useNetwork from '@hooks/useNetwork';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -83,6 +83,8 @@ function AddPlaidBankAccount({
     allowDebit,
     isPlaidDisabled,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
@@ -186,7 +188,7 @@ function AddPlaidBankAccount({
                 {lodashGet(plaidData, 'isLoading') && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             size="large"
                         />
                     </View>
@@ -240,7 +242,7 @@ function AddPlaidBankAccount({
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View>
                 <Picker
                     label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
                     onInputChange={onSelect}

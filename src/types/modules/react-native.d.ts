@@ -35,7 +35,7 @@ declare module 'react-native' {
         'aria-haspopup'?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
         'aria-hidden'?: boolean;
         'aria-invalid'?: boolean;
-        'aria-keyshortcuts'?: string[];
+        'aria-keyshortcuts'?: string;
         'aria-label'?: string;
         'aria-labelledby'?: idRef;
         'aria-level'?: number;
@@ -85,7 +85,7 @@ declare module 'react-native' {
         accessibilityInvalid?: boolean;
         accessibilityKeyShortcuts?: string[];
         accessibilityLabel?: string;
-        accessibilityLabelledBy?: idRefList;
+        accessibilityLabelledBy?: idRef;
         accessibilityLevel?: number;
         accessibilityLiveRegion?: 'assertive' | 'none' | 'polite';
         accessibilityModal?: boolean;
@@ -312,7 +312,10 @@ declare module 'react-native' {
         readonly hovered: boolean;
         readonly pressed: boolean;
     }
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {}
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+        readonly isScreenReaderActive: boolean;
+        readonly isDisabled: boolean;
+    }
 
     // Extracted from react-native-web, packages/react-native-web/src/exports/Pressable/index.js
     interface WebPressableProps extends WebSharedProps {
@@ -333,6 +336,7 @@ declare module 'react-native' {
         // Exclusive to react-native-web, "pointerEvents" already included on RN
         animationKeyframes?: string | Record<string, ViewStyle>;
         writingDirection?: 'auto' | 'ltr' | 'rtl';
+        enableBackground?: string;
     }
 
     interface ViewStyle extends WebStyle {}

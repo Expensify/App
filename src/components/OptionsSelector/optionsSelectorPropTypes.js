@@ -40,8 +40,8 @@ const propTypes = {
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
-    /** Optional keyboard type for the input */
-    keyboardType: PropTypes.string,
+    /** Optional input mode precedence over keyboardType */
+    inputMode: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -127,8 +127,8 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
 
-    /** Initial focused index value */
-    initialFocusedIndex: PropTypes.number,
+    /** Index for option to focus on */
+    focusedIndex: PropTypes.number,
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
@@ -144,7 +144,7 @@ const defaultProps = {
     onSelectRow: undefined,
     textInputLabel: '',
     placeholderText: '',
-    keyboardType: 'default',
+    inputMode: CONST.INPUT_MODE.TEXT,
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -174,7 +174,7 @@ const defaultProps = {
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
-    initialFocusedIndex: undefined,
+    focusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
