@@ -8,10 +8,10 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
-import { AvatarType } from '@src/types/onyx/OnyxCommon';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
