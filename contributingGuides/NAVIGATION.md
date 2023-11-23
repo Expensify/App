@@ -40,7 +40,20 @@ When creating RHP flows, you have to remember a couple things:
 
 An example of adding `Settings_Workspaces` page:
 
-1. Add path to `ROUTES.ts`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/ROUTES.js#L36
+1. Add path to `ROUTES.ts`: https://github.com/Expensify/App/blob/main/src/ROUTES.ts
+
+```ts
+export const ROUTES = {
+    // static route
+    SETTINGS_WORKSPACES: 'settings/workspaces',
+    // dynamic route
+    SETTINGS_WORKSPACES: {
+        route: 'settings/:accountID',
+        getRoute: (accountID:  number) => `settings/${accountID}` as const,
+    },
+};
+
+```
 
 2. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.ts`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/linkingConfig.js#L40-L42
 
