@@ -46,58 +46,58 @@ function reduceReportRoutes(routes, centralRoute=NAVIGATORS.CENTRAL_PANE_NAVIGAT
         }
     });
 
-    console.log('reduceReportRoutes', centralRoute, routes, result);
-
     return result.reverse();
 }
 
-function ResponsiveStackNavigator(props) {
-    console.log('ResponsiveStackNavigator', props.centralRoute)
-    const {isSmallScreenWidth} = useWindowDimensions();
+function ResponsiveStackNavigatorFactory(customRouter) {
+    function ResponsiveStackNavigator(props) {
+        const {isSmallScreenWidth} = useWindowDimensions();
 
-    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
+        const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
 
-    isSmallScreenWidthRef.current = isSmallScreenWidth;
+        isSmallScreenWidthRef.current = isSmallScreenWidth;
 
-    const centralRouteRef = useRef(props.centralRoute);
-    centralRouteRef.current = props.centralRoute;
+        const centralRouteRef = useRef(props.centralRoute);
+        centralRouteRef.current = props.centralRoute;
 
-    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
-        children: props.children,
-        screenOptions: props.screenOptions,
-        initialRouteName: props.initialRouteName,
-        // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
-        getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
-        centralRoute: () => centralRouteRef.current,
-    });
+        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(customRouter, {
+            children: props.children,
+            screenOptions: props.screenOptions,
+            initialRouteName: props.initialRouteName,
+            // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
+            getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
+            centralRoute: () => centralRouteRef.current,
+        });
 
-    const stateToRender = useMemo(() => {
-        const result = reduceReportRoutes(state.routes, props.centralRoute);
+        const stateToRender = useMemo(() => {
+            const result = reduceReportRoutes(state.routes, props.centralRoute);
 
-        return {
-            ...state,
-            index: result.length - 1,
-            routes: [...result],
-        };
-    }, [props.centralRoute, state]);
+            return {
+                ...state,
+                index: result.length - 1,
+                routes: [...result],
+            };
+        }, [props.centralRoute, state]);
 
-    console.log('ResponsiveStackNavigator', props.centralRoute);
+        return (
+            <NavigationContent>
+                <StackView
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    state={stateToRender}
+                    descriptors={descriptors}
+                    navigation={navigation}
+                />
+            </NavigationContent>
+        );
+    }
 
-    return (
-        <NavigationContent>
-            <StackView
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                state={stateToRender}
-                descriptors={descriptors}
-                navigation={navigation}
-            />
-        </NavigationContent>
-    );
+    ResponsiveStackNavigator.defaultProps = defaultProps;
+    ResponsiveStackNavigator.propTypes = propTypes;
+    ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
+
+    return ResponsiveStackNavigator;
+
 }
 
-ResponsiveStackNavigator.defaultProps = defaultProps;
-ResponsiveStackNavigator.propTypes = propTypes;
-ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
-
-export default createNavigatorFactory(ResponsiveStackNavigator);
+export default (customRouter) => createNavigatorFactory(ResponsiveStackNavigatorFactory(customRouter))();

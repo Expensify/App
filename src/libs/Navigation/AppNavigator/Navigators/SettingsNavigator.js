@@ -7,6 +7,7 @@ import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRoot
 import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
 import SCREENS from '@src/SCREENS';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import CustomRouter from '@libs/Navigation/AppNavigator/createCustomStackNavigator/CustomRouter';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default;
 
@@ -18,7 +19,7 @@ const propTypes = {
     }).isRequired,
 };
 
-const RootStack = createCustomStackNavigator();
+const RootStack = createCustomStackNavigator(CustomRouter);
 
 function SettingsNavigator({navigation}) {
     const styles = useThemeStyles();

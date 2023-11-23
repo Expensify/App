@@ -25,6 +25,7 @@ const defaultProps = {
     screenOptions: undefined,
 };
 
+// TODO: Add the same as in index.js
 function ResponsiveStackNavigator(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
 

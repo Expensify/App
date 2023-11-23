@@ -36,6 +36,7 @@ import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import SettingsNavigator from './Navigators/SettingsNavigator';
+import CustomRouter from './createCustomStackNavigator/CustomRouter';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
@@ -94,7 +95,7 @@ Onyx.connect({
     },
 });
 
-const RootStack = createCustomStackNavigator();
+const RootStack = createCustomStackNavigator(CustomRouter);
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx

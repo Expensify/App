@@ -400,6 +400,7 @@ export default {
             },
 
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+                initialRouteName: SCREENS.SETTINGS_HOME,
                 screens: {
                     [SCREENS.SETTINGS_HOME]: {
                         path: ROUTES.SETTINGS_HOME,
