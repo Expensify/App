@@ -1375,9 +1375,9 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // console.log(personalDetails);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
-
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
@@ -1385,9 +1385,10 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
-    const longName = personalDetails.displayName ?? formattedLogin;
+    const longName = personalDetails.displayName ? personalDetails.displayName : formattedLogin;
 
-    const shortName = personalDetails.firstName ?? longName;
+    const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
+
     if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
@@ -2220,6 +2221,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const participantsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    if (report?.reportID === '7379653634604316') {
+        console.log(participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', '));
+    }
 
     return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
