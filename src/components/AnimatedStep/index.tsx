@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import useNativeDriver from '@libs/useNativeDriver';

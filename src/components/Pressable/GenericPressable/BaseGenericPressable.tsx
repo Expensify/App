@@ -42,21 +42,23 @@ function GenericPressable(
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
 
     /**
-    * Returns the cursor style based on the state of Pressable
-    */
-    const cursorStyle = useMemo(() => {
-        return (isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> => {
-            if (isDisabled) {
-                return styles.cursorDisabled;
-            }
+     * Returns the cursor style based on the state of Pressable
+     */
+    const cursorStyle = useMemo(
+        () =>
+            (isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> => {
+                if (isDisabled) {
+                    return styles.cursorDisabled;
+                }
 
-            if (isText) {
-                return styles.cursorText;
-            }
+                if (isText) {
+                    return styles.cursorText;
+                }
 
-            return styles.cursorPointer;
-        };
-    }, [styles]);
+                return styles.cursorPointer;
+            },
+        [styles],
+    );
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -135,7 +137,7 @@ function GenericPressable(
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                cursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text'), styles),
+                cursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text')),
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
