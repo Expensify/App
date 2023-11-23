@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import styles from '@styles/styles';
+import spacing from '@styles/utilities/spacing';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -47,12 +49,14 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
 
     return (
         <GestureDetector gesture={pan}>
-            <Animated.View
-                style={[styles.progressBarOutline]}
-                onLayout={onSliderLayout}
-            >
-                <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
-            </Animated.View>
+            <View style={[styles.w100, styles.h100, spacing.pv2]}>
+                <View
+                    style={[styles.progressBarOutline]}
+                    onLayout={onSliderLayout}
+                >
+                    <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
+                </View>
+            </View>
         </GestureDetector>
     );
 }

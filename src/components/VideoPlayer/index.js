@@ -27,6 +27,8 @@ const propTypes = {
     videoStyle: stylePropTypes,
 
     shouldUseSharedVideoElement: PropTypes.bool,
+
+    shouldUseSmallVideoControls: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -37,9 +39,10 @@ const defaultProps = {
     style: [styles.w100, styles.h100],
     videoStyle: [styles.w100, styles.h100],
     shouldUseSharedVideoElement: false,
+    shouldUseSmallVideoControls: false,
 };
 
-function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
+function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
     const [duration, setDuration] = useState(0);
@@ -145,6 +148,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                     position={position}
                     url={url}
                     videoPlayerRef={videoPlayerRef}
+                    small={shouldUseSmallVideoControls}
                 />
             )}
         </View>

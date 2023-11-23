@@ -3996,17 +3996,12 @@ const styles = (theme: ThemeColors) =>
             left: 8,
             right: 8,
             backgroundColor: theme.transparentAppBG,
-            height: 48,
             borderRadius: 8,
             flexDirection: 'column',
             overflow: 'visible',
-            padding: 4,
-            paddingBottom: 8,
         },
 
         videoPlayerControlsButtonContainer: {
-            height: 24,
-            marginBottom: 8,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',

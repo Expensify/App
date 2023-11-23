@@ -70,11 +70,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         shouldPlay={false}
                         onOpenInModalButtonPress={showModal}
                         onVideoLoaded={onVideoLoaded}
+                        shouldUseSmallVideoControls
                     />
 
                     <IconButton
                         src={Expensicons.Expand}
-                        fill="white"
                         style={styles.videoExpandButton}
                         accessibilityLabel={translate('videoPlayer.openInAttachmentModal')}
                         onPress={showModal}

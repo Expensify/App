@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import useLocalize from '@hooks/useLocalize';
 import colors from '@styles/colors';
@@ -15,9 +15,12 @@ import spacing from '@styles/utilities/spacing';
 
 const propTypes = {
     style: stylePropTypes.isRequired,
+    small: PropTypes.bool,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    small: false,
+};
 
 const getVolumeIcon = (volume) => {
     if (volume === 0) {
@@ -29,7 +32,7 @@ const getVolumeIcon = (volume) => {
     return Expensicons.VolumeHigh;
 };
 
-function ProgressBar({style}) {
+function ProgressBar({style, small}) {
     const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
@@ -61,7 +64,7 @@ function ProgressBar({style}) {
     return (
         <Hoverable>
             {(isHovered) => (
-                <Animated.View style={[styles.videoIconButton, style]}>
+                <Animated.View style={[style]}>
                     {(isSliderBeingUsed || isHovered) && (
                         <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>
@@ -77,16 +80,13 @@ function ProgressBar({style}) {
                         </View>
                     )}
 
-                    <PressableWithoutFeedback
+                    <IconButton
                         accessibilityLabel={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
                         onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
-                    >
-                        <Icon
-                            src={volumeIcon.icon}
-                            fill={colors.white}
-                            small
-                        />
-                    </PressableWithoutFeedback>
+                        src={volumeIcon.icon}
+                        fill={colors.white}
+                        small={small}
+                    />
                 </Animated.View>
             )}
         </Hoverable>

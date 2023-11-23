@@ -24,11 +24,16 @@ const propTypes = {
     url: PropTypes.string.isRequired,
 
     videoPlayerRef: refPropTypes.isRequired,
+
+    // Defines if component should have small icons and tighter spacing inline
+    small: PropTypes.bool,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    small: false,
+};
 
-function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, small}) {
     const {translate} = useLocalize();
     const {togglePlay, isPlaying, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
@@ -37,6 +42,8 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
 
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isCurrentlyPlaying = isCurrentlyURLSet && isPlaying;
+
+    const iconSpacing = small ? spacing.mr3 : spacing.mr4;
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -47,7 +54,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
     }, [isCurrentlyURLSet, togglePlay, updateCurrentlyPlayingURL, url]);
 
     const onLayout = (e) => {
-        setShouldShowTime(e.nativeEvent.layout.width > 250);
+        setShouldShowTime(e.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);
     };
 
     const enterFullScreenMode = useCallback(() => {
@@ -68,16 +75,17 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
 
     return (
         <Animated.View
-            style={[styles.videoPlayerControlsContainer]}
+            style={[styles.videoPlayerControlsContainer, small ? [spacing.p2, spacing.pb0] : [spacing.p3, spacing.pb1]]}
             onLayout={onLayout}
         >
-            <View style={[styles.videoPlayerControlsButtonContainer]}>
+            <View style={[styles.videoPlayerControlsButtonContainer, !small && spacing.mb4]}>
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
                         accessibilityLabel={translate('videoPlayer.tooglePlay')}
                         onPress={togglePlayCurrentVideo}
                         style={spacing.mr2}
+                        small={small}
                     />
                     {shouldShowTime && (
                         <View style={[styles.videoPlayerControlsRow]}>
@@ -88,21 +96,23 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
                     )}
                 </View>
                 <View style={[styles.videoPlayerControlsRow]}>
-                    <VolumeButton style={spacing.mr3} />
+                    <VolumeButton style={iconSpacing} />
                     <IconButton
                         src={Expensicons.Fullscreen}
                         accessibilityLabel={translate('videoPlayer.enterFullScreen')}
                         onPress={enterFullScreenMode}
-                        style={spacing.mr3}
+                        style={iconSpacing}
+                        small={small}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}
                         accessibilityLabel={translate('videoPlayer.moreOptions')}
                         onPress={(e) => showPopover(e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX)}
+                        small={small}
                     />
                 </View>
             </View>
-            <View style={[styles.videoPlayerControlsRow, spacing.mh1]}>
+            <View style={[styles.videoPlayerControlsRow]}>
                 <ProgressBar
                     duration={duration}
                     position={position}

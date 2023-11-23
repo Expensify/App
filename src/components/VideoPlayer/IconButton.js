@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import colors from '@styles/colors';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
@@ -19,32 +17,31 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types,
     style: PropTypes.object,
+
+    small: PropTypes.bool,
 };
 
 const defaultProps = {
     fill: 'white',
     onPress: () => {},
     style: {},
+    small: false,
 };
 
-function IconButton({src, fill, onPress, style, accessibilityLabel}) {
+function IconButton({src, fill, onPress, style, accessibilityLabel, small}) {
     return (
-        <Hoverable>
-            {(isHovered) => (
-                <PressableWithoutFeedback
-                    accessibilityLabel={accessibilityLabel}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    onPress={onPress}
-                    style={[styles.videoIconButton, {backgroundColor: isHovered ? colors.green700 : colors.transparent}, style]}
-                >
-                    <Icon
-                        src={src}
-                        fill={fill}
-                        small
-                    />
-                </PressableWithoutFeedback>
-            )}
-        </Hoverable>
+        <PressableWithoutFeedback
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            onPress={onPress}
+            style={[styles.videoIconButton, style]}
+        >
+            <Icon
+                src={src}
+                fill={fill}
+                small={small}
+            />
+        </PressableWithoutFeedback>
     );
 }
 
