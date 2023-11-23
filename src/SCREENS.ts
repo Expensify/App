@@ -9,9 +9,8 @@ const PROTECTED_SCREENS = {
     REPORT_ATTACHMENTS: 'ReportAttachments',
 } as const;
 
-export default {
+const SCREENS = {
     ...PROTECTED_SCREENS,
-    LOADING: 'Loading',
     REPORT: 'Report',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -41,4 +40,5 @@ export default {
     SAML_SIGN_IN: 'SAMLSignIn',
 } as const;
 
+export default SCREENS;
 export {PROTECTED_SCREENS};
