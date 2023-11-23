@@ -190,7 +190,6 @@ function OptionRow(props) {
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             props.shouldHaveOptionSeparator && styles.borderTop,
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
-                            props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}

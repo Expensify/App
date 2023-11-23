@@ -173,6 +173,7 @@ function InitialSettingsPage(props) {
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, props.network.isOffline))
             .sortBy((policy) => policy.name.toLowerCase())
             .map((policy) => ({
+                id: policy.id,
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
                 type: CONST.ICON_TYPE_WORKSPACE,
