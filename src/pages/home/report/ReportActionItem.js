@@ -428,7 +428,12 @@ function ReportActionItem(props) {
                                 isHidden={isHidden}
                                 style={[
                                     _.contains(
-                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        [
+                                            ..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+                                            CONST.REPORT.ACTIONS.TYPE.IOU,
+                                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                            CONST.REPORT.ACTIONS.TYPE.MOVED,
+                                        ],
                                         props.action.actionName,
                                     )
                                         ? styles.colorMuted

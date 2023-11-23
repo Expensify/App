@@ -40,9 +40,6 @@ const propTypes = {
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: PropTypes.string.isRequired,
 
-    /** Should we show the payment options? */
-    shouldShowPaymentOptions: PropTypes.bool,
-
     /** The last payment method used per policy */
     nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
 
@@ -97,7 +94,6 @@ const defaultProps = {
     betas: CONST.EMPTY_ARRAY,
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
-    shouldShowPaymentOptions: false,
     style: [],
     policyID: '',
     formattedAmount: '',
@@ -130,7 +126,6 @@ function SettlementButton({
     onPress,
     pressOnEnter,
     policyID,
-    shouldShowPaymentOptions,
     style,
 }) {
     const {translate} = useLocalize();
@@ -164,34 +159,11 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        let paymentMethod = nvp_lastPaymentMethod[policyID] || '';
-        if (!shouldShowPaymentOptions) {
-            if (!paymentMethod) {
-                // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
-                if (isExpenseReport) {
-                    paymentMethod = CONST.IOU.PAYMENT_TYPE.VBBA;
-                } else if (canUseWallet) {
-                    // If they have Wallet set up, use that payment method as default
-                    paymentMethod = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-                } else {
-                    paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-                }
-            }
-
-            // In case of the settlement button in the report preview component, we do not show payment options and the label for Wallet and ACH type is simply "Pay".
-            return [
-                {
-                    ...paymentMethods[paymentMethod],
-                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? translate('iou.payElsewhere') : translate('iou.pay'),
-                },
-            ];
-        }
+        const paymentMethod = nvp_lastPaymentMethod[policyID] || '';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
-        }
+        buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         // Put the preferred payment method to the front of the array so its shown as default
@@ -199,7 +171,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate]);
+    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
