@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
+import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
@@ -41,7 +41,7 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-};
+} & ThemeStylesProps;
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
@@ -59,16 +59,15 @@ class Icon extends PureComponent<IconProps> {
     };
 
     render() {
-        console.log('Icon');
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, this.props.additionalStyles];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, this.props.additionalStyles];
 
         if (this.props.inline) {
             return (
                 <View
                     testID={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
                 >
                     <View style={iconStyles}>
                         <this.props.src
@@ -100,4 +99,4 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
-export default Icon;
+export default withThemeStyles(Icon);
