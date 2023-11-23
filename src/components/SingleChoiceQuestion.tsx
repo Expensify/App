@@ -1,4 +1,5 @@
-import React, {forwardRef, useEffect} from 'react';
+import React, {ForwardedRef, forwardRef, useEffect} from 'react';
+import {Text as RNText} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtons, {Choice} from './RadioButtons';
@@ -12,10 +13,13 @@ type SingleChoiceQuestionProps = {
     onInputChange: (value: string) => void;
 };
 
-function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref) {
+function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref: ForwardedRef<RNText>) {
     const styles = useThemeStyles();
 
     useEffect(() => {
+        if (!ref || !('current' in ref) || !ref.current) {
+            return;
+        }
         // To prevent crashes after pressing fix the errors we need to add focus property to the ref
         // eslint-disable-next-line no-param-reassign
         ref.current.focus = () => {};
