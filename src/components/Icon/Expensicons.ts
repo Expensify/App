@@ -106,6 +106,7 @@ import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
+import Stopwatch from '@assets/images/stopwatch.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import Facebook from '@assets/images/social-facebook.svg';
@@ -240,6 +241,7 @@ export {
     RotateLeft,
     Send,
     Shield,
+    Stopwatch,
     Sync,
     Task,
     ThreeDots,

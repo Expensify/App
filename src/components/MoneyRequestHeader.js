@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Text from '@components/Text';
+import TextPill from '@components/TextPill';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -72,6 +74,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isHold = true;
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -87,8 +90,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
+    // console.log('MYTRANSACTION', transaction);
+
     const holdMoneyRequest = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.type, lodashGet(parentReportAction, 'originalMessage.IOUTransactionID')))
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.type, lodashGet(parentReportAction, 'originalMessage.IOUTransactionID')));
     };
 
     useEffect(() => {
@@ -100,6 +105,11 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [canModifyRequest]);
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (canModifyRequest) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Stopwatch,
+            text: !isHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
+            onSelected: () => holdMoneyRequest(),
+        });
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
@@ -107,11 +117,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
             });
         }
-        threeDotsMenuItems.push({
-            icon: Expensicons.Hourglass,
-            text: "Hold request",
-            onSelected: () => holdMoneyRequest(),
-        });
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
@@ -123,7 +128,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!isScanning && !isPending}
+                    shouldShowBorderBottom={!isScanning && !isPending && !isHold}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
@@ -152,6 +157,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         shouldShowBorderBottom
                     />
                 )}
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.pb3, styles.ph5, styles.borderBottom]}>
+                    <TextPill>{translate('iou.hold')}</TextPill>
+                    <Text style={[styles.textLabel, styles.pl3]}>{translate('iou.requestOnHold')}</Text>
+                </View>
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}

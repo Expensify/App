@@ -1,23 +1,22 @@
 // import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Form from "@components/Form";
-import {View} from "react-native";
-import TextInput from "@components/TextInput";
-import CONST from "@src/CONST";
-import lodashGet from "lodash/get";
-import _ from "underscore";
-import * as API from '@libs/API';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -30,7 +29,7 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
-    }).isRequired
+    }).isRequired,
 };
 
 function HoldReasonPage({route}) {
@@ -38,7 +37,7 @@ function HoldReasonPage({route}) {
     const {translate} = useLocalize();
     const reasonRef = useRef();
 
-    const transactionID = lodashGet(route, 'params.transactionID', '');
+    // const transactionID = lodashGet(route, 'params.transactionID', '');
     // const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
@@ -46,17 +45,15 @@ function HoldReasonPage({route}) {
     };
 
     const onSubmit = (values) => {
+        // TODO - add a helper function for API call
         // eslint-disable-next-line rulesdir/no-api-in-views
-        API.write('HoldRequest', {
-            transactionID,
-            comment: values.reason
-        })
-    }
+        console.log(values);
+    };
 
     const validate = useCallback((value) => {
         const errors = {};
 
-        if (_.isEmpty(value.reason)) {
+        if (_.isEmpty(value.comment)) {
             errors.reason = 'common.error.fieldRequired';
         }
 
@@ -70,24 +67,32 @@ function HoldReasonPage({route}) {
             testID={HoldReasonPage.displayName}
         >
             <HeaderWithBackButton
-                title="Hold Request"
+                title={translate('iou.holdRequest')}
                 onBackButtonPress={navigateBack}
             />
-            <Form formID="moneyHoldReason" submitButtonText="Hold request" style={[styles.flexGrow1, styles.ph5]} onSubmit={onSubmit} validate={validate}>
-                <Text style={[styles.textHeadline, styles.mb6]}>Explain why you're holding this request</Text>
+            <FormProvider
+                formID="moneyHoldReason"
+                submitButtonText={translate('iou.holdRequest')}
+                style={[styles.flexGrow1, styles.ph5]}
+                onSubmit={onSubmit}
+                validate={validate}
+            >
+                <Text style={[styles.textHeadline, styles.mb6]}>{translate('iou.explainHold')}</Text>
                 <View>
-                    <TextInput
-                        inputID="reason"
-                        name="reason"
-                        defaultValue=''
-                        label='Reason'
-                        accessibilityLabel={translate('common.merchant')}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="comment"
+                        valueType="string"
+                        name="comment"
+                        defaultValue=""
+                        label="Reason"
+                        accessibilityLabel={translate('iou.reason')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (reasonRef.current = e)}
                         autoFocus
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

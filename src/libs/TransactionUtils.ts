@@ -450,6 +450,14 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
         .slice(0, size);
 }
 
+/**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: Transaction): boolean {
+    // TODO  - add logic
+    return !!transaction;
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -477,6 +485,7 @@ export {
     isExpensifyCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,

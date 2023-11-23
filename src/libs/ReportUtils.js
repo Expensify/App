@@ -4315,6 +4315,18 @@ function shouldDisableWelcomeMessage(report, policy) {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+/**
+ * Put money request on HOLD
+ * @param transactionID
+ * @param comment
+ */
+function putOnHold(transactionID, comment) {
+    API.write('HoldRequest', {
+        transactionID, // the money request being held
+        comment, // the reason given for the hold
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
