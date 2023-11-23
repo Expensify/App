@@ -8,7 +8,7 @@ import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import emojisTrie from './EmojiTrie';
+import {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -322,6 +322,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    // emojisTrie importing the emoji json file on app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
@@ -396,7 +399,10 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+    // emojisTrie importing the emoji json file on app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];
