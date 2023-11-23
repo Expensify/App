@@ -250,10 +250,7 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        THREADS: 'threads',
-        NEW_DOT_SAML: 'newDotSAML',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
