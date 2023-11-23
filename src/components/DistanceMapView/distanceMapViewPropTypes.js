@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     // Public access token to be used to fetch map data from Mapbox.
-    accessToken: PropTypes.string,
+    accessToken: PropTypes.string.isRequired,
 
     // Style applied to MapView component. Note some of the View Style props are not available on ViewMap
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
