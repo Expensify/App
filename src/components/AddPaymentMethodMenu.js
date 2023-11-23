@@ -40,9 +40,6 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Popover anchor ref */
     anchorRef: refPropTypes,
 
@@ -60,12 +57,11 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-    betas: [],
     anchorRef: () => {},
     session: {},
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, betas}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
     const {translate} = useLocalize();
 
     return (
@@ -117,9 +113,6 @@ AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 export default compose(
     withWindowDimensions,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

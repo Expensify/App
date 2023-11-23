@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';

@@ -53,7 +53,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
     personalDetails: {},
     reports: {},
