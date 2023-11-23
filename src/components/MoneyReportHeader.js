@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +68,7 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
@@ -118,7 +119,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
                         />
@@ -163,7 +163,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
                             formattedAmount={formattedAmount}
                         />
                     </View>

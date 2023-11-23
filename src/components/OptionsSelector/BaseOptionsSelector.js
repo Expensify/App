@@ -7,16 +7,23 @@ import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
+import colors from '@styles/colors';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -35,12 +42,20 @@ const propTypes = {
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Whether referral CTA should be displayed */
+    shouldShowReferralCTA: PropTypes.bool,
+
+    /** Referral content type */
+    referralContentType: PropTypes.string,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    shouldShowReferralCTA: false,
+    referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -55,6 +70,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -67,6 +83,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            shouldShowReferralModal: false,
             errorMessage: '',
         };
     }
@@ -120,7 +137,7 @@ class BaseOptionsSelector extends Component {
         this.setState(
             {
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
+                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -151,14 +168,14 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
-        if (_.isNumber(this.props.initialFocusedIndex)) {
-            return this.props.initialFocusedIndex;
+        let defaultIndex;
+        if (this.props.shouldTextInputAppearBelowOptions) {
+            defaultIndex = allOptions.length;
+        } else if (this.props.focusedIndex >= 0) {
+            defaultIndex = this.props.focusedIndex;
+        } else {
+            defaultIndex = this.props.selectedOptions.length;
         }
-
-        if (this.props.selectedOptions.length > 0) {
-            return this.props.selectedOptions.length;
-        }
-        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
         if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
             return defaultIndex;
         }
@@ -178,6 +195,10 @@ class BaseOptionsSelector extends Component {
         });
 
         this.props.onChangeText(value);
+    }
+
+    handleReferralModal() {
+        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     subscribeToKeyboardShortcut() {
@@ -495,6 +516,34 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
+                {this.props.shouldShowReferralCTA && (
+                    <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
+                            }}
+                            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                            accessibilityLabel="referral"
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        >
+                            <Text>
+                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
+                                <Text
+                                    color={colors.green400}
+                                    style={styles.textStrong}
+                                >
+                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
+                                </Text>
+                            </Text>
+                            <Icon
+                                src={Info}
+                                height={20}
+                                width={20}
+                            />
+                        </PressableWithoutFeedback>
+                    </View>
+                )}
+
                 {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowDefaultConfirmButton && (

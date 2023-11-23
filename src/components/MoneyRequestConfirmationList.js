@@ -8,6 +8,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -21,8 +22,8 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -203,11 +204,14 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmationList(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
@@ -221,7 +225,6 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
-
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -506,7 +509,6 @@ function MoneyRequestConfirmationList(props) {
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
-                shouldShowPaymentOptions
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -539,7 +541,20 @@ function MoneyRequestConfirmationList(props) {
                 {button}
             </>
         );
-    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
+    }, [
+        props.isReadOnly,
+        props.iouType,
+        props.bankAccountRoute,
+        props.iouCurrencyCode,
+        props.policyID,
+        selectedParticipants.length,
+        confirm,
+        splitOrRequestOptions,
+        formError,
+        styles.ph1,
+        styles.mb2,
+        translate,
+    ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
@@ -628,9 +643,10 @@ function MoneyRequestConfirmationList(props) {
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
-                        iconFill={themeColors.icon}
+                        iconFill={theme.icon}
                         style={styles.mh0}
                     />
+
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
@@ -699,6 +715,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -711,11 +728,13 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
+
                     {shouldShowBillable && (
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text color={!props.iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
                                 isOn={props.iouIsBillable}

@@ -4,12 +4,13 @@ import LocalePicker from '@components/LocalePicker';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const currentYear = new Date().getFullYear();
 
 function Licenses(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>
