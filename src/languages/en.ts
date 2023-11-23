@@ -215,6 +215,8 @@ export default {
         more: 'More',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
+        personalBankAccount: 'Personal bank account',
+        businessBankAccount: 'Business bank account',
         join: 'Join',
         leave: 'Leave',
         decline: 'Decline',
@@ -591,6 +593,9 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            receiptFailureMessage: "The receipt didn't upload. ",
+            saveFileMessage: 'Download the file ',
+            loseFileMessage: 'or dismiss this error and lose it',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
@@ -903,6 +908,8 @@ export default {
         activatePhysicalCard: 'Activate physical card',
         error: {
             thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+            throttled:
+                "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
     },
     getPhysicalCard: {
