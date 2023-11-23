@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {Login} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
