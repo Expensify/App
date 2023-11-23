@@ -36,9 +36,7 @@ const signinUser = ({email}: SigninParams): Response => ({
         {
             onyxMethod: 'set',
             key: 'betas',
-            value: [
-                'all',
-            ],
+            value: ['all'],
         },
         {
             onyxMethod: 'merge',
