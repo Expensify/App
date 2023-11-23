@@ -38,6 +38,8 @@ type IndicatorOnyxProps = {
     loginList: OnyxEntry<LoginList>;
 };
 
+type IndicatorProps = IndicatorOnyxProps;
+
 function Indicator({
     reimbursementAccount = {},
     allPolicyMembers = {},
@@ -83,7 +85,7 @@ function Indicator({
 
 Indicator.displayName = 'Indicator';
 
-export default withOnyx<IndicatorOnyxProps, IndicatorOnyxProps>({
+export default withOnyx<IndicatorProps, IndicatorOnyxProps>({
     allPolicyMembers: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     },
