@@ -126,8 +126,12 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
-    return String(lodashGet(route, 'params.reportID', null));
+    // The report ID is used in an onyx key. If it's an empty string, onyx will return
+    // a collection instead of an individual report.
+    // We can't use the default value functionality of `lodash.get()` because it only
+    // provides a default value on `undefined`, and will return an empty string.
+    // Placing the default value outside of `lodash.get()` is intentional.
+    return String(lodashGet(route, 'params.reportID') || 0);
 }
 
 function ReportScreen({
@@ -374,6 +378,7 @@ function ReportScreen({
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
