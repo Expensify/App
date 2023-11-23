@@ -207,7 +207,6 @@ function WorkspaceNewRoomPage(props) {
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
-                                    textAlignVertical="top"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
                             </View>

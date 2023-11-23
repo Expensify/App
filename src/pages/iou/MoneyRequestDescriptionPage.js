@@ -142,7 +142,6 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>
