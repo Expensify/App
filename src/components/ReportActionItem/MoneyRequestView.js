@@ -289,14 +289,13 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         />
                     </OfflineWithFeedback>
                 )}
-
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                         />
                     </View>
                 )}
