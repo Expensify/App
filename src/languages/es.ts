@@ -478,7 +478,8 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Buscar',
+        buttonSearch: 'Busca algo...',
+        buttonSearchLabel: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',

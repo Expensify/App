@@ -3008,6 +3008,21 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        searchPressableContainer: {
+            backgroundColor: colors.darkAppBackground,
+            borderRadius: 999,
+            height: 40,
+            minHeight: 40,
+            maxHeight: 40,
+        },
+
+        searchInputStyle: {
+            color: colors.darkSupportingText,
+            fontSize: 13,
+            lineHeight: 16,
+            width: '100%',
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),

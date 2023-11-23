@@ -486,7 +486,8 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search',
+        buttonSearch: 'Search for something...',
+        buttonSearchLabel: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
