@@ -13,7 +13,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
@@ -22,9 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Grab the Share description of the Task */
     task: PropTypes.shape({
         /** Description of the Task */
@@ -35,7 +31,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {
         description: '',
     },
@@ -101,9 +96,6 @@ NewTaskDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

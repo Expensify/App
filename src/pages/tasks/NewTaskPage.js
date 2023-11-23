@@ -15,7 +15,6 @@ import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -32,9 +31,6 @@ const propTypes = {
         description: PropTypes.string,
         parentReportID: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(
@@ -226,9 +222,6 @@ NewTaskPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

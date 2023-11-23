@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -18,7 +17,6 @@ import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -26,7 +24,6 @@ import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -267,11 +264,4 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(ReportActionItemSingle);
+export default withLocalize(ReportActionItemSingle);

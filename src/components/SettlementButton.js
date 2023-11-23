@@ -5,7 +5,6 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -33,9 +32,6 @@ const propTypes = {
 
     /** The IOU/Expense report we are paying */
     iouReport: iouReportPropTypes,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: PropTypes.string.isRequired,
@@ -89,9 +85,8 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     chatReportID: '',
 
-    // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
+    // The "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
-    betas: CONST.EMPTY_ARRAY,
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
     style: [],
@@ -113,7 +108,6 @@ function SettlementButton({
     addBankAccountRoute,
     kycWallAnchorAlignment,
     paymentMethodDropdownAnchorAlignment,
-    betas,
     buttonSize,
     chatReportID,
     currency,
@@ -171,7 +165,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate]);
+    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
@@ -219,9 +213,6 @@ SettlementButton.displayName = 'SettlementButton';
 export default compose(
     withNavigation,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         nvp_lastPaymentMethod: {
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         },

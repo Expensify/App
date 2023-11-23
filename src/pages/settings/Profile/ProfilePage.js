@@ -15,7 +15,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as UserUtils from '@libs/UserUtils';
 import userPropTypes from '@pages/settings/userPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -181,9 +180,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

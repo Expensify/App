@@ -20,7 +20,6 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
@@ -35,9 +34,6 @@ const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -65,7 +61,6 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
-    betas: [],
 };
 
 function OptionRowLHN(props) {
