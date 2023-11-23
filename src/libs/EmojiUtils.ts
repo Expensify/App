@@ -322,7 +322,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    // emojisTrie importing the emoji json file on app starting and we want to avoid it
+    // emojisTrie importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
     const trie = emojisTrie[lang];
@@ -400,7 +400,7 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    // emojisTrie importing the emoji json file on app starting and we want to avoid it
+    // emojisTrie importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
     const trie = emojisTrie[lang];
