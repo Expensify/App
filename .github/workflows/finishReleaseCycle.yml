@@ -18,7 +18,7 @@ jobs:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup Git for OSBotify
+      - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
@@ -83,7 +83,7 @@ jobs:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup Git for OSBotify
+      - name: Setup git for OSBotify
         id: setupGitForOSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
@@ -125,7 +125,7 @@ jobs:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup Git for OSBotify
+      - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}

@@ -6,7 +6,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             {key: 'ref', value: 'main'},
             {key: 'token', value: '***'},
         ]),
-        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'VALIDATE', 'Setup Git for OSBotify', [
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'VALIDATE', 'Setup git for OSBotify', [
             {key: 'GPG_PASSPHRASE', value: '***'},
             {key: 'OS_BOTIFY_APP_ID', value: '***'},
             {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
@@ -113,7 +113,7 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, is
             ],
             [],
         ),
-        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
         utils.createStepAssertion('Update production branch', true, null, 'UPDATEPRODUCTION', 'Updating production branch', [], []),
     ];
 
@@ -164,7 +164,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
             ],
             [],
         ),
-        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATESTAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATESTAGING', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
         utils.createStepAssertion('Update staging branch to trigger staging deploy', true, null, 'UPDATESTAGING', 'Updating staging branch', [], []),
     ];
 

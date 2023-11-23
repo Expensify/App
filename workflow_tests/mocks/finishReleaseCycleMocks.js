@@ -3,8 +3,8 @@ const utils = require('../utils/utils');
 // validate
 const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'VALIDATE', ['ref', 'token']);
 const FINISHRELEASECYCLE__VALIDATE__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
-    'Setup Git for OSBotify',
-    'Setup Git for OSBotify',
+    'Setup git for OSBotify',
+    'Setup git for OSBotify',
     'VALIDATE',
     ['GPG_PASSPHRASE', 'OS_BOTIFY_APP_ID', 'OS_BOTIFY_PRIVATE_KEY'],
     [],
@@ -106,8 +106,8 @@ const FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_BLOCKERS__STEP_MOCKS = [
 // updateproduction
 const FINISHRELEASECYCLE__UPDATEPRODUCTION__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'UPDATEPRODUCTION', ['ref', 'token'], []);
 const FINISHRELEASECYCLE__UPDATEPRODUCTION__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
-    'Setup Git for OSBotify',
-    'Setup Git for OSBotify',
+    'Setup git for OSBotify',
+    'Setup git for OSBotify',
     'UPDATEPRODUCTION',
     ['GPG_PASSPHRASE'],
     [],
@@ -144,8 +144,8 @@ const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS = [FINISHRELEASECYCL
 // updatestaging
 const FINISHRELEASECYCLE__UPDATESTAGING__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'UPDATESTAGING', ['ref', 'token'], []);
 const FINISHRELEASECYCLE__UPDATESTAGING__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
-    'Setup Git for OSBotify',
-    'Setup Git for OSBotify',
+    'Setup git for OSBotify',
+    'Setup git for OSBotify',
     'UPDATESTAGING',
     ['GPG_PASSPHRASE'],
     [],
