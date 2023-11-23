@@ -68,7 +68,7 @@ type SettingsNavigatorParamList = {
     Settings_Lounge_Access: undefined;
     Settings_Wallet: undefined;
     Settings_Wallet_Cards_Digital_Details_Update_Address: undefined;
-    Settings_Wallet_DomainCards: undefined;
+    Settings_Wallet_DomainCard: undefined;
     Settings_Wallet_ReportVirtualCardFraud: undefined;
     Settings_Wallet_Card_Activate: undefined;
     [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: undefined;
@@ -388,6 +388,7 @@ type AuthScreensParamList = {
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
