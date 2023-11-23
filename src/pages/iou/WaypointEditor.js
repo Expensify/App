@@ -264,7 +264,7 @@ export default withOnyx({
         // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
-            _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+            _.map(waypoints ? waypoints.slice(0, 20) : [], (waypoint) => ({
                 name: waypoint.name,
                 description: waypoint.address,
                 geometry: {
