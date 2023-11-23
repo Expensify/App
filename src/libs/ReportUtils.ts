@@ -441,7 +441,7 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> = null): string {
+function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -454,7 +454,8 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
 
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    const policyName = finalPolicy?.name ?? report?.policyName ?? report?.oldPolicyName ?? noPolicyFound;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
