@@ -25,14 +25,12 @@ const fileDownload: FileDownload = (url, fileName) => {
 
             // creating anchor tag to initiate download
             const link = document.createElement('a');
+            const name = fileName.length > 0 ? fileName : FileUtils.getFileName(url);
 
             // adding href to anchor
             link.href = href;
             link.style.display = 'none';
-            link.setAttribute(
-                'download',
-                FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url), // generating the file name
-            );
+            link.setAttribute('download', FileUtils.appendTimeToFileName(name));
 
             // Append to html link element page
             document.body.appendChild(link);
