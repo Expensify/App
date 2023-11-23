@@ -1857,7 +1857,14 @@ function getActorNameForPreviewMessage({report, actorID, shouldShowWorkspaceName
  * @param {Object} [policy]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false, shouldHideParticipantName = false, policy = undefined) {
+function getReportPreviewMessage(
+    report,
+    reportAction = {},
+    shouldConsiderReceiptBeingScanned = false,
+    isPreviewMessageForParentChatReport = false,
+    shouldHideParticipantName = false,
+    policy = undefined,
+) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1886,7 +1893,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         actorID: report.managerID,
         shouldUseShortForm: true,
         shouldShowWorkspaceName: isExpenseReport(report),
-        policy
+        policy,
     });
     const payerName = shouldHideParticipantName ? '' : payerDisplayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
