@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
+import { AvatarType } from '@src/types/onyx/OnyxCommon';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -40,7 +41,7 @@ type AvatarProps = {
     fallbackIcon?: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    type?: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
