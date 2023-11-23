@@ -1,4 +1,4 @@
-import {CropOptions, CropOrRotateImage, CropOrRotateImageOptions} from './types';
+import {CropOptions, CropOrRotateImage, CropOrRotateImageOptions, FileWithUri} from './types';
 
 type SizeFromAngle = {
     width: number;
@@ -71,13 +71,13 @@ function cropCanvas(canvas: HTMLCanvasElement, options: CropOptions) {
     return result;
 }
 
-function convertCanvasToFile(canvas: HTMLCanvasElement, options: CropOrRotateImageOptions): Promise<File> {
+function convertCanvasToFile(canvas: HTMLCanvasElement, options: CropOrRotateImageOptions): Promise<FileWithUri> {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
             if (!blob) {
                 return;
             }
-            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
+            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'}) as FileWithUri;
             file.uri = URL.createObjectURL(file);
             resolve(file);
         });

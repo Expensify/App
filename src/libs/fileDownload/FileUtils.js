@@ -2,7 +2,6 @@ import {Alert, Linking, Platform} from 'react-native';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
-import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
@@ -44,9 +43,7 @@ function showPermissionErrorAlert() {
         },
         {
             text: Localize.translateLocal('common.settings'),
-            onPress: () => {
-                Linking.openSettings();
-            },
+            onPress: () => Linking.openSettings(),
         },
     ]);
 }
@@ -65,9 +62,7 @@ function showCameraPermissionsAlert() {
             },
             {
                 text: Localize.translateLocal('common.settings'),
-                onPress: () => {
-                    Linking.openSettings();
-                },
+                onPress: () => Linking.openSettings(),
             },
         ],
         {cancelable: false},
@@ -76,36 +71,42 @@ function showCameraPermissionsAlert() {
 
 /**
  * Generate a random file name with timestamp and file extension
+ * @param {String} url
+ * @returns {String}
  */
-function getAttachmentName(url: string): string {
+function getAttachmentName(url) {
     if (!url) {
         return '';
     }
-    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop()?.trim()}`;
+    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
 }
 
-function isImage(fileName: string): boolean {
+/**
+ * @param {String} fileName
+ * @returns {Boolean}
+ */
+function isImage(fileName) {
     return CONST.FILE_TYPE_REGEX.IMAGE.test(fileName);
 }
 
-function isVideo(fileName: string): boolean {
+/**
+ * @param {String} fileName
+ * @returns {Boolean}
+ */
+function isVideo(fileName) {
     return CONST.FILE_TYPE_REGEX.VIDEO.test(fileName);
 }
 
 /**
  * Returns file type based on the uri
+ * @param {String} fileUrl
+ * @returns {String}
  */
-function getFileType(fileUrl: string): string | undefined {
+function getFileType(fileUrl) {
     if (!fileUrl) {
         return;
     }
-
-    const fileName = fileUrl.split('/').pop()?.split('?')[0].split('#')[0];
-
-    if (!fileName) {
-        return;
-    }
-
+    const fileName = fileUrl.split('/').pop().split('?')[0].split('#')[0];
     if (isImage(fileName)) {
         return CONST.ATTACHMENT_FILE_TYPE.IMAGE;
     }
@@ -117,22 +118,32 @@ function getFileType(fileUrl: string): string | undefined {
 
 /**
  * Returns the filename split into fileName and fileExtension
+ *
+ * @param {String} fullFileName
+ * @returns {Object}
  */
-const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) => {
+function splitExtensionFromFileName(fullFileName) {
     const fileName = fullFileName.trim();
     const splitFileName = fileName.split('.');
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
-    return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
-};
+    return {fileName: splitFileName.join('.'), fileExtension};
+}
 
 /**
  * Returns the filename replacing special characters with underscore
+ *
+ * @param {String} fileName
+ * @returns {String}
  */
-function cleanFileName(fileName: string): string {
+function cleanFileName(fileName) {
     return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
-function appendTimeToFileName(fileName: string): string {
+/**
+ * @param {String} fileName
+ * @returns {String}
+ */
+function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
     // Replace illegal characters before trying to download the attachment.
@@ -145,17 +156,21 @@ function appendTimeToFileName(fileName: string): string {
 
 /**
  * Reads a locally uploaded file
- * @param path - the blob url of the locally uploaded file
- * @param fileName - name of the file to read
+ *
+ * @param {String} path - the blob url of the locally uplodaded file
+ * @param {String} fileName
+ * @param {Function} onSuccess
+ * @param {Function} onFailure
+ *
+ * @returns {Promise}
  */
-const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
+const readFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
-            onFailure('[FileUtils] Path not specified');
-            return;
         }
-        fetch(path)
+
+        return fetch(path)
             .then((res) => {
                 // For some reason, fetch is "Unable to read uploaded file"
                 // on Android even though the blob is returned, so we'll ignore
@@ -163,26 +178,19 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                 if (!res.ok && Platform.OS !== 'android') {
                     throw Error(res.statusText);
                 }
-                res.blob()
-                    .then((blob) => {
-                        const file = new File([blob], cleanFileName(fileName));
-                        file.source = path;
-                        // For some reason, the File object on iOS does not have a uri property
-                        // so images aren't uploaded correctly to the backend
-                        file.uri = path;
-                        onSuccess(file);
-                        resolve(file);
-                    })
-                    .catch((e) => {
-                        console.debug('[FileUtils] Could not read uploaded file', e);
-                        onFailure(e);
-                        resolve();
-                    });
+                return res.blob();
+            })
+            .then((blob) => {
+                const file = new File([blob], cleanFileName(fileName), {type: blob.type});
+                file.source = path;
+                // For some reason, the File object on iOS does not have a uri property
+                // so images aren't uploaded correctly to the backend
+                file.uri = path;
+                onSuccess(file);
             })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
                 onFailure(e);
-                resolve();
             });
     });
 
@@ -190,16 +198,16 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
  * Converts a base64 encoded image string to a File instance.
  * Adds a `uri` property to the File instance for accessing the blob as a URI.
  *
- * @param base64 - The base64 encoded image string.
- * @param filename - Desired filename for the File instance.
- * @returns The File instance created from the base64 string with an additional `uri` property.
+ * @param {string} base64 - The base64 encoded image string.
+ * @param {string} filename - Desired filename for the File instance.
+ * @returns {File} The File instance created from the base64 string with an additional `uri` property.
  *
  * @example
  * const base64Image = "data:image/png;base64,..."; // your base64 encoded image
  * const imageFile = base64ToFile(base64Image, "example.png");
  * console.log(imageFile.uri); // Blob URI
  */
-function base64ToFile(base64: string, filename: string): File {
+function base64ToFile(base64, filename) {
     // Decode the base64 string
     const byteString = atob(base64.split(',')[1]);
 

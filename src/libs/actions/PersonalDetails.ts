@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -445,7 +445,7 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: File | CustomRNImageManipulatorResult) {
+function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
     if (!currentUserAccountID) {
         return;
     }
@@ -501,7 +501,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
     ];
 
     type UpdateUserAvatarParams = {
-        file: File | CustomRNImageManipulatorResult;
+        file: FileWithUri | CustomRNImageManipulatorResult;
     };
 
     const parameters: UpdateUserAvatarParams = {file};

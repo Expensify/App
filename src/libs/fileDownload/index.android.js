@@ -1,15 +1,15 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-import RNFetchBlob, {FetchBlobResponse} from 'react-native-blob-util';
+import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
-import type {FileDownload} from './types';
 
 /**
  * Android permission check to store images
+ * @returns {Promise<Boolean>}
  */
-function hasAndroidPermission(): Promise<boolean> {
+function hasAndroidPermission() {
     // On Android API Level 33 and above, these permissions do nothing and always return 'never_ask_again'
     // More info here: https://stackoverflow.com/a/74296799
-    if (Number(Platform.Version) >= 33) {
+    if (Platform.Version >= 33) {
         return Promise.resolve(true);
     }
 
@@ -31,8 +31,11 @@ function hasAndroidPermission(): Promise<boolean> {
 
 /**
  * Handling the download
+ * @param {String} url
+ * @param {String} fileName
+ * @returns {Promise<Void>}
  */
-function handleDownload(url: string, fileName: string): Promise<void> {
+function handleDownload(url, fileName) {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
@@ -43,7 +46,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
         const isLocalFile = url.startsWith('file://');
 
         let attachmentPath = isLocalFile ? url : undefined;
-        let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
+        let fetchedAttachment = Promise.resolve();
 
         if (!isLocalFile) {
             // Fetching the attachment
@@ -66,7 +69,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
                 }
 
                 if (!isLocalFile) {
-                    attachmentPath = (attachment as FetchBlobResponse).path();
+                    attachmentPath = attachment.path();
                 }
 
                 return RNFetchBlob.MediaCollection.copyToMediaStore(
@@ -76,13 +79,11 @@ function handleDownload(url: string, fileName: string): Promise<void> {
                         mimeType: null,
                     },
                     'Download',
-                    attachmentPath ?? '',
+                    attachmentPath,
                 );
             })
             .then(() => {
-                if (attachmentPath) {
-                    RNFetchBlob.fs.unlink(attachmentPath);
-                }
+                RNFetchBlob.fs.unlink(attachmentPath);
                 FileUtils.showSuccessAlert();
             })
             .catch(() => {
@@ -94,9 +95,12 @@ function handleDownload(url: string, fileName: string): Promise<void> {
 
 /**
  * Checks permission and downloads the file for Android
+ * @param {String} url
+ * @param {String} fileName
+ * @returns {Promise<Void>}
  */
-const fileDownload: FileDownload = (url, fileName) =>
-    new Promise((resolve) => {
+export default function fileDownload(url, fileName) {
+    return new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
@@ -109,5 +113,4 @@ const fileDownload: FileDownload = (url, fileName) =>
             })
             .finally(() => resolve());
     });
-
-export default fileDownload;
+}
