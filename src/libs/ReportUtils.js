@@ -3467,7 +3467,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
         return true;
