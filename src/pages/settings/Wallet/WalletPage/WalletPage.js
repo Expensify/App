@@ -202,13 +202,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
 
-        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
-            return;
-        }
-
-        if (paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
             return;
         }
 
