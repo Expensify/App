@@ -9,10 +9,7 @@ import SCREENS from '@src/SCREENS';
  * @param {String} centralRoute - name of the central route
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = (state, centralRoute) => {
-    console.log('isAtLeastOneCentralPaneNavigatorInState', centralRoute);
-    return _.find(state.routes, (r) => r.name === centralRoute)
-};
+const isAtLeastOneCentralPaneNavigatorInState = (state, centralRoute) => _.find(state.routes, (r) => r.name === centralRoute);
 
 /**
  * @param {Object} state - react-navigation state
@@ -48,9 +45,9 @@ const getTopMostReportIDFromRHP = (state) => {
  * @param {String} centralRoute - name of the central route
  */
 const addCentralPaneNavigatorRoute = (state, centralRoute) => {
-    const reportID = getTopMostReportIDFromRHP(state);
     let centralPaneNavigatorRoute;
     if (centralRoute === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        const reportID = getTopMostReportIDFromRHP(state);
         centralPaneNavigatorRoute = {
             name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
             state: {
@@ -81,6 +78,17 @@ const addCentralPaneNavigatorRoute = (state, centralRoute) => {
     state.index = state.routes.length - 1;
 };
 
+const addLHPRoute = (state, centralRoute) => {
+    const settingsHomeRoute = {
+        name: SCREENS.SETTINGS_HOME,
+    };
+    if (state.routes[0].name !== SCREENS.SETTINGS_HOME && centralRoute === 'SettingsCentralPane') {
+        state.routes.splice(0, 0, settingsHomeRoute);
+        // eslint-disable-next-line no-param-reassign
+        state.index = state.routes.length - 1;
+    }
+}
+
 function CustomRouter(options) {
     const stackRouter = StackRouter(options);
 
@@ -106,6 +114,7 @@ function CustomRouter(options) {
                 partialState.stale = true;
                 addCentralPaneNavigatorRoute(partialState, centralRoute);
             }
+            addLHPRoute(partialState, centralRoute);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList});
             return state;
         },
