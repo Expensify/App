@@ -1,6 +1,7 @@
 import {Alert, Linking, Platform} from 'react-native';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
@@ -72,6 +73,25 @@ function showCameraPermissionsAlert() {
         ],
         {cancelable: false},
     );
+}
+
+/**
+ * Extracts a filename from a given URL and sanitizes it for file system usage.
+ *
+ * This function takes a URL as input and performs the following operations:
+ * 1. Extracts the last segment of the URL, which could be a file name, a path segment,
+ *    or a query string parameter.
+ * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
+ * 3. Replaces any characters in the decoded string that are illegal in file names
+ *    with underscores.
+ */
+function getFileName(url: string): string {
+    const fileName = url.split(/[#?/]/).pop() ?? '';
+    if (!fileName) {
+        Log.warn('[FileUtils] Could not get attachment name', {url});
+    }
+
+    return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 /**
@@ -232,6 +252,7 @@ export {
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
     getAttachmentName,
+    getFileName,
     getFileType,
     cleanFileName,
     appendTimeToFileName,
