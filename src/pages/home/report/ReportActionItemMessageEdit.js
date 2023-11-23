@@ -365,6 +365,16 @@ function ReportActionItemMessageEdit(props) {
      */
     const focus = focusComposerWithDelay(textInputRef.current);
 
+    useEffect(() => {
+        if (ReportUtils.getCommentLength(draft) <= CONST.MAX_COMMENT_LENGTH) {
+            if (hasExceededMaxCommentLength) {
+                setHasExceededMaxCommentLength(false);
+            }
+            return;
+        }
+        setHasExceededMaxCommentLength(true);
+    }, [draft, hasExceededMaxCommentLength]);
+
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
@@ -466,11 +476,7 @@ function ReportActionItemMessageEdit(props) {
                     </View>
                 </View>
             </View>
-            <ExceededCommentLength
-                comment={draft}
-                reportID={props.reportID}
-                onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
-            />
+            <ExceededCommentLength shouldShowError={hasExceededMaxCommentLength} />
         </>
     );
 }

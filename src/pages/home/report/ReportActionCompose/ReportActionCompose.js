@@ -416,6 +416,8 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
+                                        setExceededMaxCommentLength={setExceededMaxCommentLength}
+                                        hasExceededMaxCommentLength={hasExceededMaxCommentLength}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {
@@ -452,10 +454,7 @@ function ReportActionCompose({
                     >
                         {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        <ExceededCommentLength
-                            reportID={reportID}
-                            onExceededMaxCommentLength={setExceededMaxCommentLength}
-                        />
+                        <ExceededCommentLength shouldShowError={hasExceededMaxCommentLength} />
                     </View>
                 </OfflineWithFeedback>
             </View>

@@ -104,6 +104,8 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
+    setExceededMaxCommentLength,
+    hasExceededMaxCommentLength,
     // For testing
     children,
 }) {
@@ -525,6 +527,16 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
+            if (hasExceededMaxCommentLength) {
+                setExceededMaxCommentLength(false);
+            }
+            return;
+        }
+        setExceededMaxCommentLength(true);
+    }, [value, setExceededMaxCommentLength, hasExceededMaxCommentLength]);
 
     return (
         <>
