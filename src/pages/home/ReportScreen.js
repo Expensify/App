@@ -160,6 +160,14 @@ function ReportScreen({
     const [listHeight, setListHeight] = useState(0);
 
     const reportID = getReportID(route);
+
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
+        Report.updateLastVisitTime(reportID);
+    }, [reportID]);
+
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
