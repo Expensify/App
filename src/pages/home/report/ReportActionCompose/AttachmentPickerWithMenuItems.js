@@ -1,5 +1,6 @@
+import withNavigationFocus from '@components/withNavigationFocus';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,8 +11,10 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -84,6 +87,9 @@ const propTypes = {
         // eslint-disable-next-line react/forbid-prop-types
         current: PropTypes.object,
     }).isRequired,
+
+    /** Whether or not the screen is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -116,6 +122,7 @@ function AttachmentPickerWithMenuItems({
     onAddActionPressed,
     onItemSelected,
     actionButtonRef,
+    isFocused,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -165,10 +172,28 @@ function AttachmentPickerWithMenuItems({
         ];
     }, [betas, report, reportID, translate]);
 
-    const onPopoverMenuClose = () => {
+    const onPopoverMenuClose = useCallback(() => {
         setMenuVisibility(false);
         onMenuClosed();
-    };
+    }, [onMenuClosed, setMenuVisibility]);
+
+    const prevIsFocused = usePrevious(isFocused);
+
+    /**
+     * Check if current screen is inactive and previous screen is active.
+     * Used to close already opened popover menu when any other page is opened over current page.
+     *
+     * @return {Boolean}
+     */
+    const didScreenBecomeInactive = useCallback(() => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
+
+    // When the navigation is focused, we want to close the popover menu.
+    useEffect(() => {
+        if (!didScreenBecomeInactive() || !isMenuVisible) {
+            return;
+        }
+        onPopoverMenuClose();
+    }, [didScreenBecomeInactive, onPopoverMenuClose, isMenuVisible]);
 
     return (
         <AttachmentPicker>
@@ -240,6 +265,9 @@ function AttachmentPickerWithMenuItems({
                                     ref={actionButtonRef}
                                     onPress={(e) => {
                                         e.preventDefault();
+                                        if (!isFocused) {
+                                            return;
+                                        }
                                         onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
@@ -257,7 +285,7 @@ function AttachmentPickerWithMenuItems({
                         </View>
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
-                            isVisible={isMenuVisible}
+                            isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
@@ -287,8 +315,11 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(AttachmentPickerWithMenuItems);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(AttachmentPickerWithMenuItems);
