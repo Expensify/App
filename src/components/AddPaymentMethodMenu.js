@@ -93,13 +93,13 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
                           },
                       ]
                     : []),
-                ...([
-                          {
-                              text: translate('common.debitCard'),
-                              icon: Expensicons.CreditCard,
-                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-                          },
-                      ]),
+                ...[
+                    {
+                        text: translate('common.debitCard'),
+                        icon: Expensicons.CreditCard,
+                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                    },
+                ],
             ]}
             withoutOverlay
         />

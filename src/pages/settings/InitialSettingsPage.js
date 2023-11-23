@@ -283,8 +283,7 @@ function InitialSettingsPage(props) {
          * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
          * @returns {Number} the user wallet balance
          */
-        const getWalletBalance = (isPaymentItem) =>
-            isPaymentItem && CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
+        const getWalletBalance = (isPaymentItem) => isPaymentItem && CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
 
         return (
             <>

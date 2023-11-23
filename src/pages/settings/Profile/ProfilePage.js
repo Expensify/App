@@ -82,13 +82,13 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
-        ...([
-                  {
-                      description: props.translate('statusPage.status'),
-                      title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
-                      pageRoute: ROUTES.SETTINGS_STATUS,
-                  },
-              ]),
+        ...[
+            {
+                description: props.translate('statusPage.status'),
+                title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
+                pageRoute: ROUTES.SETTINGS_STATUS,
+            },
+        ],
         {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
