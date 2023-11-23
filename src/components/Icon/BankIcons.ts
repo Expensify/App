@@ -37,13 +37,14 @@ const BANK_NAMES = {
     USAA: 'usaa',
 };
 
+type BankNameAndEmptyString = keyof typeof BANK_NAMES | '';
 type BankName = keyof typeof BANK_NAMES;
 
 /**
  * Returns matching asset icon for bankName
  */
 
-function getAssetIcon(bankName: BankName, isCard: boolean): React.FC<SvgProps> {
+function getAssetIcon(bankName: BankNameAndEmptyString, isCard: boolean): React.FC<SvgProps> {
     // Mapping bank names to their respective icon paths
     const iconMappings = {
         [BANK_NAMES.EXPENSIFY]: isCard ? require('@assets/images/cardicons/expensify-card-dark.svg') : require('@assets/images/bankicons/expensify.svg'),
@@ -75,15 +76,15 @@ function getAssetIcon(bankName: BankName, isCard: boolean): React.FC<SvgProps> {
     return iconModule as React.FC<SvgProps>;
 }
 
-function getBankNameKey(bankName: string): BankName | undefined {
-    return Object.keys(BANK_NAMES).find((key) => BANK_NAMES[key as BankName].toLowerCase() === bankName) as BankName | undefined;
+function getBankNameKey(bankName: string): BankNameAndEmptyString | undefined {
+    return Object.keys(BANK_NAMES).find((key) => BANK_NAMES[key as BankName].toLowerCase() === bankName) as BankNameAndEmptyString | undefined;
 }
 
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 
-export default function getBankIcon(bankName: BankName, isCard = false): BankIcon {
+export default function getBankIcon(bankName: BankNameAndEmptyString, isCard = false): BankIcon {
     const bankNameKey = getBankNameKey(bankName.toLowerCase());
 
     const bankIcon: BankIcon = {
@@ -106,3 +107,5 @@ export default function getBankIcon(bankName: BankName, isCard = false): BankIco
 
     return bankIcon;
 }
+
+export type {BankName};

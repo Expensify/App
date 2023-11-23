@@ -1,3 +1,4 @@
+import {BankName} from '@components/Icon/BankIcons';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
@@ -21,7 +22,7 @@ type AccountData = {
     created?: string;
     currency?: string;
     fundID?: number;
-    bank?: string;
+    bank?: BankName;
 };
 
 type Fund = {

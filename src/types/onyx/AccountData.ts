@@ -1,10 +1,11 @@
+import {BankName} from '@components/Icon/BankIcons';
 import * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isP2PDebitCard?: boolean;
     beneficialOwners?: string[];
     currency?: string;
-    bankName?: string;
+    bankName?: BankName;
     fieldsType?: string;
     country?: string;
 };
