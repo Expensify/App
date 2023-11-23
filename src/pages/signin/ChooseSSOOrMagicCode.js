@@ -1,16 +1,13 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -19,36 +16,18 @@ import ROUTES from '@src/ROUTES';
 import ValidateCodeForm from './ValidateCodeForm';
 
 const propTypes = {
-    /* Onyx Props */
-
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether or not a sign on form is loading (being submitted) */
-        isLoading: PropTypes.bool,
-
-        /** Form that is being loaded */
-        loadingForm: PropTypes.oneOf(_.values(CONST.FORMS)),
-
-        /** Whether this account has 2FA enabled or not */
-        requiresTwoFactorAuth: PropTypes.bool,
-
-        /** Server-side errors in the submitted authentication code */
-        errors: PropTypes.objectOf(PropTypes.string),
-    }),
-
     /** Function that returns whether the user is using SAML or magic codes to log in */
     setIsUsingMagicCode: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    account: {},
-};
+const defaultProps = {};
 
-function ChooseSSOOrMagicCode({account, setIsUsingMagicCode}) {
+function ChooseSSOOrMagicCode({setIsUsingMagicCode}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
     return (
         <>
@@ -59,7 +38,6 @@ function ChooseSSOOrMagicCode({account, setIsUsingMagicCode}) {
                     success
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
-                    isLoading={account.isLoading}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
@@ -73,10 +51,9 @@ function ChooseSSOOrMagicCode({account, setIsUsingMagicCode}) {
 
                 <ValidateCodeForm
                     setIsUsingMagicCode={setIsUsingMagicCode}
-                    isUsingRecoveryCode={false}
-                    setIsUsingRecoveryCode={() => undefined}
+                    isUsingRecoveryCode={isUsingRecoveryCode}
+                    setIsUsingRecoveryCode={setIsUsingRecoveryCode}
                 />
-                {Boolean(account) && !_.isEmpty(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
             </View>
         </>
     );
@@ -86,7 +63,4 @@ ChooseSSOOrMagicCode.propTypes = propTypes;
 ChooseSSOOrMagicCode.defaultProps = defaultProps;
 ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ChooseSSOOrMagicCode);
+export default withOnyx()(ChooseSSOOrMagicCode);
