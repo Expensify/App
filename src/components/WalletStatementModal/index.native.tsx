@@ -1,31 +1,29 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {WebView} from 'react-native-webview';
-import _ from 'underscore';
+import {WebView, WebViewNavigation} from 'react-native-webview';
+import {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
+import type {WalletStatementOnyxProps, WalletStatementProps} from './types';
+
+type WebViewNavigationEvent = WebViewNavigation & {type?: ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>};
 
 const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
-function WalletStatementModal({statementPageURL, session}) {
-    const webViewRef = useRef();
-    const authToken = lodashGet(session, 'authToken', null);
+function WalletStatementModal({statementPageURL, session}: WalletStatementProps) {
+    const webViewRef = useRef<WebView>(null);
+    const authToken = session?.authToken ?? null;
 
     /**
      * Handles in-app navigation for webview links
-     *
-     * @param {String} params.type
-     * @param {String} params.url
      */
     const handleNavigationStateChange = useCallback(
-        ({type, url}) => {
+        ({type, url}: WebViewNavigationEvent) => {
             if (!webViewRef.current || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
                 return;
             }
@@ -36,7 +34,7 @@ function WalletStatementModal({statementPageURL, session}) {
             }
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
-                const iouRoute = _.find(IOU_ROUTES, (item) => url.includes(item));
+                const iouRoute = IOU_ROUTES.find((item) => url.includes(item));
 
                 if (iouRoute) {
                     webViewRef.current.stopLoading();
@@ -66,10 +64,8 @@ function WalletStatementModal({statementPageURL, session}) {
 }
 
 WalletStatementModal.displayName = 'WalletStatementModal';
-WalletStatementModal.propTypes = walletStatementPropTypes;
-WalletStatementModal.defaultProps = walletStatementDefaultProps;
 
-export default withOnyx({
+export default withOnyx<WalletStatementProps, WalletStatementOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },

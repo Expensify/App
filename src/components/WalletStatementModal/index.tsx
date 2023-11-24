@@ -1,31 +1,25 @@
-import lodashGet from 'lodash/get';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import withLocalize from '@components/withLocalize';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
+import type {WalletStatementOnyxProps, WalletStatementProps} from './types';
 
-function WalletStatementModal({statementPageURL, session}) {
+function WalletStatementModal({statementPageURL, session}: WalletStatementProps) {
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
-    const authToken = lodashGet(session, 'authToken', null);
+    const authToken = session?.authToken ?? null;
 
     /**
      * Handles in-app navigation for iframe links
-     *
-     * @param {MessageEvent} event
      */
-    const navigate = (event) => {
-        if (!event.data || !event.data.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
+    const navigate = (event: MessageEvent) => {
+        if (!event.data?.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
             return;
         }
 
@@ -35,7 +29,7 @@ function WalletStatementModal({statementPageURL, session}) {
 
         if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
-            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
+            const navigateToIOURoute = iouRoutes.find((iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {
                 Navigation.navigate(navigateToIOURoute);
             }
@@ -51,7 +45,7 @@ function WalletStatementModal({statementPageURL, session}) {
                     title="Statements"
                     height="100%"
                     width="100%"
-                    seamless="seamless"
+                    seamless
                     frameBorder="0"
                     onLoad={() => {
                         setIsLoading(false);
@@ -66,15 +60,10 @@ function WalletStatementModal({statementPageURL, session}) {
     );
 }
 
-WalletStatementModal.propTypes = walletStatementPropTypes;
-WalletStatementModal.defaultProps = walletStatementDefaultProps;
 WalletStatementModal.displayName = 'WalletStatementModal';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(WalletStatementModal);
+export default withOnyx<WalletStatementProps, WalletStatementOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(WalletStatementModal);
