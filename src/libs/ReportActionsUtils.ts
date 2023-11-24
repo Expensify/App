@@ -69,7 +69,7 @@ function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
-    return (reportAction?.message?.[0].isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -94,6 +94,15 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
+function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+    );
 }
 
 /**
@@ -372,7 +381,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
     return updatedReportAction;
 }
 
@@ -406,9 +415,12 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
         };
     }
 
-    const messageText = message?.text ?? '';
+    let messageText = message?.text ?? '';
+    if (messageText) {
+        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    }
     return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+        lastMessageText: messageText,
     };
 }
 
@@ -460,7 +472,10 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  * 4. We will get the second last action from filtered actions because the last
  *    action is always the created action
  */
-function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [], isOffline = false): string {
+    if (!Array.isArray(sortedReportActions)) {
+        return '';
+    }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
     return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
@@ -616,6 +631,26 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+/**
+ * Helper method to determine if the provided accountID has made a request on the specified report.
+ *
+ * @param reportID
+ * @param currentAccountID
+ * @returns
+ */
+function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    const reportActions = Object.values(getAllReportActions(reportID));
+    if (reportActions.length === 0) {
+        return false;
+    }
+
+    return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -656,5 +691,7 @@ export {
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
+    isChannelLogMemberAction,
 };

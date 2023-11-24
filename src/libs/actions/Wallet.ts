@@ -1,6 +1,7 @@
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {WalletAdditionalQuestionsDetails} from '@src/types/onyx';
@@ -350,6 +351,58 @@ function answerQuestionsForWallet(answers: WalletQuestion[], idNumber: string) {
     });
 }
 
+function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
+    const {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        address: {city, country, state, street, zip},
+    } = privatePersonalDetails;
+
+    type RequestPhysicalExpensifyCardParams = {
+        authToken: string;
+        legalFirstName: string;
+        legalLastName: string;
+        phoneNumber: string;
+        addressCity: string;
+        addressCountry: string;
+        addressState: string;
+        addressStreet: string;
+        addressZip: string;
+    };
+
+    const requestParams: RequestPhysicalExpensifyCardParams = {
+        authToken,
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        addressCity: city,
+        addressCountry: country,
+        addressState: state,
+        addressStreet: street,
+        addressZip: zip,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    state: 4, // NOT_ACTIVATED
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: privatePersonalDetails,
+        },
+    ];
+
+    API.write('RequestPhysicalExpensifyCard', requestParams, {optimisticData});
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -363,4 +416,5 @@ export {
     verifyIdentity,
     acceptWalletTerms,
     setKYCWallSource,
+    requestPhysicalExpensifyCard,
 };

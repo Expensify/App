@@ -5,18 +5,35 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.ts', '**.tsx', 'package.json', 'package-lock.json', 'tsconfig.json']
+    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   typecheck:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: ./.github/actions/composite/setupNode
 
       - name: Type check with TypeScript
         run: npm run typecheck
         env:
           CI: true
+
+      - name: Check for new JavaScript files
+        run: |
+          git fetch origin main --no-tags --depth=1
+
+          # Explanation:
+          #  - comm is used to get the intersection between two bash arrays
+          #    - git diff is used to see the files that were added on this branch
+          #    - gh pr view is used to list files touched by this PR. Git diff may give false positives if the branch isn't up-to-date with main
+          #  - wc counts the words in the result of the intersection
+          count_new_js=$(comm -1 -2 <(git diff --name-only --diff-filter=A origin/main HEAD -- 'src/libs/*.js' 'src/hooks/*.js' 'src/styles/*.js' 'src/languages/*.js') <(gh pr view ${{ github.event.pull_request.number }} --json files | jq -r '.files | map(.path) | .[]') | wc -l)
+          if [ "$count_new_js" -gt "0" ]; then
+            echo "ERROR: Found new JavaScript files in the /src/libs, /src/hooks, /src/styles, or /src/languages directories; use TypeScript instead."
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
