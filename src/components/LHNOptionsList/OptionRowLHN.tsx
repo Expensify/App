@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {StyleProp, StyleSheet, TextStyle, View} from 'react-native';
+import {ColorValue, StyleProp, StyleSheet, TextStyle, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -17,7 +17,6 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
@@ -29,7 +28,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
+function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = () => {}, optionItem = null, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<Element>(null);
@@ -75,8 +74,8 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
         viewMode === CONST.OPTION_MODE.COMPACT ? styles.optionRowCompact : styles.optionRow,
         styles.justifyContentCenter,
     ]);
-    const hoveredBackgroundColor =
-        !!hoverStyle && 'backgroundColor' in hoverStyle && 'backgroundColor' in styles.sidebarLinkHover ? (hoverStyle ?? styles.sidebarLinkHover).backgroundColor : theme.sidebar;
+    const hoveredBackgroundColor: ColorValue =
+        !!hoverStyle && 'backgroundColor' in hoverStyle && 'backgroundColor' in styles.sidebarLinkHover ? (hoverStyle ?? styles.sidebarLinkHover).backgroundColor ?? '' : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -116,7 +115,7 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem?.reportID ?? ''));
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem?.reportID ?? ''));
 
     const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem?.displayNamesWithTooltips?.length ?? 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem?.reportID ?? '')) : optionItem.text;
@@ -174,7 +173,7 @@ function OptionRowLHN({hoverStyle, betas = [], reportID, isFocused = false, onSe
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {!_.isEmpty(optionItem.icons) &&
+                                {(optionItem.icons?.length ?? 0) > 0 &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={isFocused ? theme.activeComponentBG : theme.sidebar}
