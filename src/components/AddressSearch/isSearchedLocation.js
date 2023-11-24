@@ -1,4 +1,5 @@
-import { some } from 'lodash';
+import {some} from 'lodash';
+
 /**
  * Check if it is the location by searching for the location
  *
@@ -15,10 +16,10 @@ function isSearchedLocation(search, location) {
     }
     let result = false;
     if (location.name) {
-        result = some(search.split(" "), (searchTerm) => location.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = some(search.split(' '), (searchTerm) => location.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     if (location.description) {
-        result = result || some(search.split(" "), (searchTerm) => location.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = result || some(search.split(' '), (searchTerm) => location.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     return result;
 }
