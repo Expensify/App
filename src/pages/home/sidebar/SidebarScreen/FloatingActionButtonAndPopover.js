@@ -13,7 +13,6 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -54,9 +53,6 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
@@ -74,7 +70,6 @@ const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
     allPolicies: {},
-    betas: [],
     isLoading: false,
     innerRef: null,
     demoInfo: {},
@@ -207,15 +202,13 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...(Permissions.canUseTasks(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Task,
-                                  text: props.translate('newTaskPage.assignTask'),
-                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                              },
-                          ]
-                        : []),
+                    ...[
+                        {
+                            icon: Expensicons.Task,
+                            text: props.translate('newTaskPage.assignTask'),
+                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                        },
+                    ],
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
@@ -277,9 +270,6 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,
