@@ -56,6 +56,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
+            Modal.willAlertModalBecomeVisible(false);
             if (shouldSetModalVisibility) {
                 Modal.setModalVisibility(false);
             }
@@ -77,8 +78,6 @@ function BaseModal(
             Modal.willAlertModalBecomeVisible(true);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             removeOnCloseListener = Modal.setCloseModal(onClose);
-        } else if (wasVisible && !isVisible) {
-            Modal.willAlertModalBecomeVisible(false);
         }
 
         return () => {
@@ -96,7 +95,6 @@ function BaseModal(
                 return;
             }
             hideModal(true);
-            Modal.willAlertModalBecomeVisible(false);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],

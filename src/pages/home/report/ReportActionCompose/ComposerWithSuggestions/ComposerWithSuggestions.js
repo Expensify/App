@@ -506,7 +506,7 @@ function ComposerWithSuggestions({
             InputFocus.inputFocusChange(false);
             return;
         }
-        focus();
+        focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
