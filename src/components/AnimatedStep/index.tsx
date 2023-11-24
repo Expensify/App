@@ -18,7 +18,7 @@ type AnimatedStepProps = ChildrenProps & {
     onAnimationEnd: () => void;
 };
 
-function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style = [], children}: AnimatedStepProps) {
+function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
     const styles = useThemeStyles();
 
     const animationStyle = useMemo(() => {
