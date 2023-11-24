@@ -56,7 +56,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
-    if (navigation === undefined || navigation === null) {
+    if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 

@@ -273,7 +273,7 @@ function goToPendingRoute() {
     pendingRoute = null;
 }
 
-function isNavigationReady() {
+function isNavigationReady(): Promise<unknown> {
     return navigationIsReadyPromise;
 }
 
@@ -287,7 +287,7 @@ function setIsNavigationReady() {
  *
  * @param state - react-navigation state object
  */
-function navContainsProtectedRoutes(state: NavigationState | undefined) {
+function navContainsProtectedRoutes(state: NavigationState | undefined): boolean {
     if (!state?.routeNames || !Array.isArray(state.routeNames)) {
         return false;
     }
