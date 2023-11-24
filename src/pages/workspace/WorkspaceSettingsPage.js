@@ -16,6 +16,7 @@ import TextInput from '@components/TextInput';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -42,6 +43,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** The policyID that is being configured */
             policyID: PropTypes.string.isRequired,
+
+            /** Selected currency code */
+            currency: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -56,8 +60,10 @@ const defaultProps = {
 
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
     const {translate} = useLocalize();
+    const currencyParam = lodashGet(route, 'params.currency', '').toUpperCase();
+    const currencyCode = CurrencyUtils.isValidCurrencyCode(currencyParam) ? currencyParam : policy.outputCurrency;
 
-    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${currencyCode} - ${currencyList[currencyCode].symbol}` : '';
 
     const submit = useCallback(
         (values) => {
@@ -65,11 +71,11 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                 return;
             }
 
-            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
+            Policy.updateGeneralSettings(policy.id, values.name.trim(), currencyCode);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
         },
-        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
+        [policy.id, policy.isPolicyUpdating, currencyCode],
     );
 
     const validate = useCallback((values) => {
@@ -87,7 +93,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         return errors;
     }, []);
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id, policy.outputCurrency)), [policy.id, policy.outputCurrency]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id, currencyCode)), [policy.id, currencyCode]);
 
     const policyName = lodashGet(policy, 'name', '');
 

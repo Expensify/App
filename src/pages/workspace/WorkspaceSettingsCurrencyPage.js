@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy';
 import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -39,12 +38,11 @@ const defaultProps = {
 function WorkspaceSettingsCurrencyPage({route, policy, isLoadingReportData}) {
     const {translate} = useLocalize();
     const currencyParam = lodashGet(route, 'params.currency', '').toUpperCase();
-    const focusedCurrencyCode = CurrencyUtils.isValidCurrencyCode(currencyParam) ? currencyParam : policy.outputCurrency;
-    const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)), [policy.id]);
+    const selectedCurrencyCode = CurrencyUtils.isValidCurrencyCode(currencyParam) ? currencyParam : policy.outputCurrency;
+    const onBackButtonPress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, selectedCurrencyCode)), [policy.id, selectedCurrencyCode]);
 
     const onSelectCurrency = (item) => {
-        Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
-        Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, item.currencyCode));
     };
 
     return (
@@ -65,8 +63,7 @@ function WorkspaceSettingsCurrencyPage({route, policy, isLoadingReportData}) {
                 <CurrencySelectionList
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     onSelect={onSelectCurrency}
-                    initiallyFocusedCurrencyCode={focusedCurrencyCode}
-                    initiallySelectedCurrencyCode={policy.outputCurrency}
+                    initiallySelectedCurrencyCode={selectedCurrencyCode}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
