@@ -12,6 +12,10 @@ env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -32,24 +36,10 @@ jobs:
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
     name: Create or update deploy checklist
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/createDeployChecklist.yml
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
-
-      - name: Set version
-        id: getVersion
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_OUTPUT"
-
-      - name: Create or update staging deploy
-        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ steps.getVersion.outputs.VERSION }}
+    secrets: inherit
 
   android:
     name: Build and deploy Android
@@ -58,13 +48,13 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
@@ -142,10 +132,10 @@ jobs:
     runs-on: macos-12-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -181,13 +171,13 @@ jobs:
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
@@ -293,16 +283,16 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -352,7 +342,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Post Slack message on failure
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -363,7 +353,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -420,28 +410,28 @@ jobs:
   postGithubComment:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/App/.github/actions/javascript/getDeployPullRequestList@main
+        uses: ./.github/actions/javascript/getDeployPullRequestList
         with:
           TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
 
       - name: Comment on issues
-        uses: Expensify/App/.github/actions/javascript/markPullRequestsAsDeployed@main
+        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

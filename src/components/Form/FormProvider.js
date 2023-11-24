@@ -6,6 +6,7 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
@@ -46,6 +47,9 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    /** Contains draft values for each input in the form */
+    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
+
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
@@ -76,6 +80,7 @@ const defaultProps = {
     formState: {
         isLoading: false,
     },
+    draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
@@ -99,7 +104,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -108,14 +113,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
     const onValidate = useCallback(
         (values, shouldClearServerError = true) => {
-            const trimmedStringValues = {};
-            _.each(values, (inputValue, inputID) => {
-                if (_.isString(inputValue)) {
-                    trimmedStringValues[inputID] = inputValue.trim();
-                } else {
-                    trimmedStringValues[inputID] = inputValue;
-                }
-            });
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -186,11 +184,14 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
+        // Prepare values before submitting
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -199,7 +200,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             return;
         }
 
-        onSubmit(inputValues);
+        onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
@@ -211,7 +212,9 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            } else if (propsToParse.shouldUseDefaultValue) {
+            } else if (propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
+                inputValues[inputID] = draftValues[inputID];
+            } else if (propsToParse.shouldUseDefaultValue && _.isUndefined(inputValues[inputID])) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
             } else if (_.isUndefined(inputValues[inputID])) {
@@ -266,10 +269,15 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
+                        const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
+
                         setTimeout(() => {
+                            if (relatedTargetId && _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)) {
+                                return;
+                            }
                             setTouchedInput(inputID);
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);
@@ -296,7 +304,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: value});
+                        FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
@@ -305,7 +313,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 },
             };
         },
-        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -320,7 +328,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );
@@ -335,6 +343,9 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
+        },
+        draftValues: {
+            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(FormProvider);

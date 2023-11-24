@@ -4,7 +4,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const defaultProps = {
 };
 
 function MoneyReportHeaderStatusBar({nextStep}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const messageContent = useMemo(() => {

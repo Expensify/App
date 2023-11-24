@@ -6,7 +6,7 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import ControlSelection from '@libs/ControlSelection';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
@@ -26,6 +26,7 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 function Slider(props) {
+    const styles = useThemeStyles();
     const sliderValue = props.sliderValue;
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
 

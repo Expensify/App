@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import avatarPropTypes from '@components/avatarPropTypes';
@@ -8,16 +7,13 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import ZeroWidthView from '@components/ZeroWidthView';
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import editedLabelStyles from '@styles/editedLabelStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
+import TextCommentFragment from './comment/TextCommentFragment';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 const propTypes = {
@@ -65,6 +61,10 @@ const propTypes = {
 
     /** Moderation decision of the report action */
     moderationDecision: PropTypes.string,
+
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool,
+
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
     isApprovedOrSubmittedReportAction: PropTypes.bool,
 
@@ -75,9 +75,6 @@ const propTypes = {
 
     /** localization props */
     ...withLocalizePropTypes,
-
-    /** Should the comment have the appearance of being grouped with the previous comment? */
-    displayAsGroup: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -101,74 +98,44 @@ const defaultProps = {
 };
 
 function ReportActionItemFragment(props) {
-    switch (props.fragment.type) {
+    const styles = useThemeStyles();
+    const fragment = props.fragment;
+
+    switch (fragment.type) {
         case 'COMMENT': {
-            const {html, text} = props.fragment;
-            const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
+            const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
 
-            if ((!props.network.isOffline && props.isThreadParentMessage && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
+            if ((!props.network.isOffline && props.isThreadParentMessage && isPendingDelete) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
             if (props.isThreadParentMessage && props.moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.hiddenMessage')}</comment>`} />;
             }
-
-            // If the only difference between fragment.text and fragment.html is <br /> tags
-            // we render it as text, not as html.
-            // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
-
-            // Only render HTML if we have html in the fragment
-            if (!differByLineBreaksOnly) {
-                const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
-                const htmlContent = isPendingDelete ? `<del>${html}</del>` : html;
-
-                const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
-
-                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlWithTag}</email-comment>` : `<comment>${htmlWithTag}</comment>`} />;
+             
+            if (ReportUtils.isReportMessageAttachment(fragment)) {
+                return (
+                    <AttachmentCommentFragment
+                        source={props.source}
+                        html={fragment.html}
+                        addExtraMargin={!props.displayAsGroup}
+                    />
+                );
             }
-            const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
             return (
-                <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
-                    <ZeroWidthView
-                        text={text}
-                        displayAsGroup={props.displayAsGroup}
-                    />
-                    <Text
-                        style={[
-                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                            styles.ltr,
-                            ...props.style,
-                            isPendingDelete ? styles.offlineFeedback.deleted : undefined,
-                            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                        ]}
-                    >
-                        {convertToLTR(props.iouMessage || text)}
-                    </Text>
-                    {Boolean(props.fragment.isEdited) && (
-                        <>
-                            <Text
-                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >
-                                {' '}
-                            </Text>
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                                style={[editedLabelStyles, isPendingDelete ? styles.offlineFeedback.deleted : undefined, ...props.style]}
-                            >
-                                {props.translate('reportActionCompose.edited')}
-                            </Text>
-                        </>
-                    )}
-                </Text>
+                <TextCommentFragment
+                    source={props.source}
+                    fragment={fragment}
+                    styleAsDeleted={isPendingDelete && props.network.isOffline}
+                    iouMessage={props.iouMessage}
+                    displayAsGroup={props.displayAsGroup}
+                    style={props.style}
+                />
             );
         }
         case 'TEXT': {
@@ -189,7 +156,7 @@ function ReportActionItemFragment(props) {
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
-                        {props.fragment.text}
+                        {fragment.text}
                     </Text>
                 </UserDetailsTooltip>
             );
