@@ -2748,10 +2748,11 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
  * @param {String} toPolicyID
  * @param {Number} newParentReportID
  * @param {Number} movedReportID
+ * @param {String} policyName
  *
  * @returns {Object}
  */
-function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentReportID, movedReportID) {
+function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentReportID, movedReportID, policyName) {
     const originalMessage = {
         fromPolicyID,
         toPolicyID,
@@ -2759,7 +2760,6 @@ function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentRep
         movedReportID,
     };
 
-    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
     const movedActionMessage = [
         {
             html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
