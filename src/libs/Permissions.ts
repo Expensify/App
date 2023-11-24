@@ -10,16 +10,8 @@ function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
 }
 
-function canUsePayWithExpensify(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
-}
-
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseWallet(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.BETA_EXPENSIFY_WALLET) || canUseAllBetas(betas);
 }
 
 function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
@@ -35,14 +27,6 @@ function canUsePolicyRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseTasks(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.TASKS) || canUseAllBetas(betas);
-}
-
-function canUseCustomStatus(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
-}
-
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
@@ -56,13 +40,9 @@ function canUseLinkPreviews(): boolean {
 
 export default {
     canUseChronos,
-    canUsePayWithExpensify,
     canUseDefaultRooms,
-    canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
-    canUseTasks,
-    canUseCustomStatus,
     canUseLinkPreviews,
     canUseViolations,
 };
