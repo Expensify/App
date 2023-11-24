@@ -9,7 +9,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import Navigation from '@libs/Navigation/Navigation';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Url from '@libs/Url';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -18,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function AnchorRenderer(props) {
+    const styles = useThemeStyles();
     const htmlAttribs = props.tnode.attributes;
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
@@ -70,7 +71,7 @@ function AnchorRenderer(props) {
         Link.openExternalLink(attrHref);
     };
 
-    if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
+    if (!HTMLEngineUtils.isChildOfComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.

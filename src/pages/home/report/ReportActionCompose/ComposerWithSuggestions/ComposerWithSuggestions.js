@@ -28,8 +28,8 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -107,6 +107,8 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -207,6 +209,7 @@ function ComposerWithSuggestions({
         [],
     );
 
+    
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
      *
@@ -223,6 +226,14 @@ function ComposerWithSuggestions({
             let endIndex = -1;
             let currentIndex = 0;
 
+            const getCommonSuffixLength=(str1, str2) =>{
+                let i = 0;
+                while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
+                    i++;
+                }
+                return i;
+            }
+
             // Find the first character mismatch with newText
             while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
                 currentIndex++;
@@ -231,7 +242,7 @@ function ComposerWithSuggestions({
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
 
-                const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
+                const commonSuffixLength = getCommonSuffixLength(prevText, newText);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
@@ -262,11 +273,7 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
-                isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
-                preferredSkinTone,
-                preferredLocale,
-            );
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -279,14 +286,20 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
+            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            /** Only update isCommentEmpty state if it's different from previous one */
+            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+                setIsCommentEmpty(isNewCommentEmpty);
+            }
             emojisPresentBefore.current = emojis;
-            setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
 
@@ -320,6 +333,7 @@ function ComposerWithSuggestions({
             debouncedUpdateFrequentlyUsedEmojis,
             reportID,
             debouncedSaveReportComment,
+            selection.end,
         ],
     );
 
@@ -548,7 +562,7 @@ function ComposerWithSuggestions({
             InputFocus.inputFocusChange(false);
             return;
         }
-        focus();
+        focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -588,10 +602,11 @@ function ComposerWithSuggestions({
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
-                    placeholderTextColor={themeColors.placeholderText}
+                    placeholderTextColor={theme.placeholderText}
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4, styles.verticalAlignTop]}
+                    textAlignVertical="top"
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}

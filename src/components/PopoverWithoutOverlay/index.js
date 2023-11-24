@@ -5,11 +5,12 @@ import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
+    const styles = useThemeStyles();
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
@@ -24,15 +25,15 @@ function Popover(props) {
     );
 
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(null),
-                onOpenCallback: () => Modal.setCloseModal(() => props.onClose(props.anchorRef)),
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -40,6 +41,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);

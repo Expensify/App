@@ -116,3 +116,4 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
 }
 
 export {policyPropTypes, policyDefaultProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};
