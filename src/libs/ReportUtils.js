@@ -839,8 +839,15 @@ function isOneOnOneChat(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
 /**
@@ -1561,14 +1568,25 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
+    const ownerAccountID = report.ownerAccountID;
+    const personalDetails = allPersonalDetails[ownerAccountID];
+    const login = personalDetails ? personalDetails.login : null;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || login || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
+    let policyExpenseChatRole = 'user';
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
+    if (policyItem) {
+        policyExpenseChatRole = policyItem.role || 'user';
+    }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
@@ -1814,15 +1832,38 @@ function getTransactionReportName(reportAction) {
 }
 
 /**
+ * Get actor name to display in the message preview
+ *
+ * @param {Object} report
+ * @param {Number} actorID
+ * @param {Boolean} [shouldShowWorkspaceName]
+ * @param {Boolean} [shouldUseShortForm]
+ * @param {Object|undefined} [policy]
+ * @returns {String}
+ */
+function getActorNameForPreviewMessage({report, actorID, shouldShowWorkspaceName = false, shouldUseShortForm = false, policy = undefined}) {
+    return shouldShowWorkspaceName ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(actorID, shouldUseShortForm);
+}
+
+/**
  * Get money request message for an IOU report
  *
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
- * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Boolean} [isPreviewMessageForParentChatReport]
+ * @param {Boolean} [shouldHideParticipantName]
+ * @param {Object} [policy]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
+function getReportPreviewMessage(
+    report,
+    reportAction = {},
+    shouldConsiderReceiptBeingScanned = false,
+    isPreviewMessageForParentChatReport = false,
+    shouldHideParticipantName = false,
+    policy = undefined,
+) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1846,7 +1887,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerDisplayName = getActorNameForPreviewMessage({
+        report,
+        actorID: report.managerID,
+        shouldUseShortForm: true,
+        shouldShowWorkspaceName: isExpenseReport(report),
+        policy,
+    });
+    const payerName = shouldHideParticipantName ? '' : payerDisplayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1906,7 +1954,11 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
     if (!newValue) {
         return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
-    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+    return Localize.translateLocal('iou.updatedTheRequest', {
+        valueName: displayValueName,
+        newValueToDisplay,
+        oldValueToDisplay,
+    });
 }
 
 /**
@@ -1921,7 +1973,10 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 
 function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, newAmount, oldAmount) {
     if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+        return Localize.translateLocal('iou.setTheDistance', {
+            newDistanceToDisplay: newDistance,
+            newAmountToDisplay: newAmount,
+        });
     }
     return Localize.translateLocal('iou.updatedTheDistance', {
         newDistanceToDisplay: newDistance,
@@ -2253,6 +2308,19 @@ function navigateToDetailsPage(report) {
         return;
     }
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+}
+
+/**
+ * Go back to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function goBackToDetailsPage(report) {
+    if (isOneOnOneChat(report)) {
+        Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
+        return;
+    }
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
 
 /**
@@ -2669,6 +2737,7 @@ function buildOptimisticIOUReportAction(
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
+
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  *
@@ -2693,6 +2762,56 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED report action with a randomly generated reportActionID.
+ * This action is used when we move reports across workspaces.
+ *
+ * @param {String} fromPolicyID
+ * @param {String} toPolicyID
+ * @param {Number} newParentReportID
+ * @param {Number} movedReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentReportID, movedReportID) {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+        newParentReportID,
+        movedReportID,
+    };
+
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
+    const movedActionMessage = [
+        {
+            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+            text: `moved the report to the ${policyName} workspace`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: movedActionMessage,
         person: [
             {
                 style: 'strong',
@@ -3308,6 +3427,7 @@ function canAccessReport(report, policies, betas, allReportActions) {
 
     return true;
 }
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  * @param {Object} report
@@ -4351,6 +4471,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
@@ -4424,6 +4545,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
@@ -4446,6 +4568,7 @@ export {
     getPersonalDetailsForAccountID,
     getChannelLogMemberMessage,
     getRoom,
+    getActorNameForPreviewMessage,
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
 };
