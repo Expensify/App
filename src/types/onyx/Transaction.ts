@@ -66,7 +66,7 @@ type Transaction = {
     modifiedMerchant?: string;
     modifiedWaypoints?: WaypointCollection;
     pendingAction: OnyxCommon.PendingAction;
-    receipt: Receipt;
+    receipt?: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;
