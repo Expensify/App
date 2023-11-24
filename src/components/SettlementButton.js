@@ -163,7 +163,9 @@ function SettlementButton({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+        if (isExpenseReport) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+        }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         // Put the preferred payment method to the front of the array so its shown as default
