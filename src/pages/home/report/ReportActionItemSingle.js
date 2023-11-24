@@ -61,7 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyle: {},
+    wrapperStyle: undefined,
     showHeader: true,
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,

@@ -13,7 +13,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyle: {},
+    wrapperStyle: undefined,
 };
 
 function ReportActionItemGrouped({wrapperStyle, children}) {
