@@ -40,16 +40,7 @@ type IndicatorOnyxProps = {
 
 type IndicatorProps = IndicatorOnyxProps;
 
-function Indicator({
-    reimbursementAccount = {},
-    allPolicyMembers = {},
-    policies = {},
-    bankAccountList = {},
-    fundList = {},
-    userWallet = null,
-    walletTerms = {},
-    loginList = {},
-}: IndicatorOnyxProps) {
+function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccountList, fundList, userWallet, walletTerms, loginList}: IndicatorOnyxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
