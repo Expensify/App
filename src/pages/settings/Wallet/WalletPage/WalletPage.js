@@ -25,7 +25,6 @@ import compose from '@libs/compose';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import useTheme from '@styles/themes/useTheme';
@@ -38,7 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './walletPagePropTypes';
 
-function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
+function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -309,7 +308,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
-        Permissions.canUseWallet(betas) &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
@@ -565,9 +563,6 @@ WalletPage.displayName = 'WalletPage';
 export default compose(
     withNetwork(),
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },

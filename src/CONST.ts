@@ -248,18 +248,9 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_SAML: 'newDotSAML',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
