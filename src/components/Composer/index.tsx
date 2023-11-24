@@ -1,9 +1,11 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef, useState, CLipboardEvent} from 'react';
+import React, {BaseSyntheticEvent, ForwardedRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {
+    DimensionValue,
     NativeSyntheticEvent,
+    Text as RNText,
     StyleProp,
     StyleSheet,
     TextInput,
@@ -154,10 +156,7 @@ function Composer(
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const navigation = useNavigation();
-    // const textRef = useRef<HTMLElement>(null);
-    const textRef = useRef<HTMLElement>(null);
-    // const textInput = useRef<TextInput>(null);
-    // const textInput = useRef<HTMLTextAreaElement & TextInput>(null);
+    const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<HTMLTextAreaElement & TextInput>();
     const initialValue = defaultValue ? `${defaultValue}` : `${value ?? ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
@@ -198,32 +197,33 @@ function Composer(
      *
      * @param event
      */
-    // const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    // const addCursorPositionToSelectionChange = (event: BaseSyntheticEvent) => {
-    // const addCursorPositionToSelectionChange = (event: SyntheticEvent) => {
-    // const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    const addCursorPositionToSelectionChange = (event: React.ChangeEvent<HTMLTextAreaElement> & NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
+
         if (shouldCalculateCaretPosition) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
-                setCaretContent(getNextChars(value ?? '', event.nativeEvent.selection.start));
+                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {
-                start: event.nativeEvent.selection.start,
-                end: event.nativeEvent.selection.end,
+                start: webEvent.nativeEvent.selection.start,
+                end: webEvent.nativeEvent.selection.end,
                 positionX: (textRef.current?.offsetLeft ?? 0) - CONST.SPACE_CHARACTER_WIDTH,
                 positionY: textRef.current?.offsetTop,
             };
+
             onSelectionChange({
+                ...webEvent,
                 nativeEvent: {
+                    ...webEvent.nativeEvent,
                     selection: selectionValue,
                 },
             });
             setSelection(selectionValue);
         } else {
-            onSelectionChange(event);
-            setSelection(event.nativeEvent.selection);
+            onSelectionChange(webEvent);
+            setSelection(webEvent.nativeEvent.selection);
         }
     };
 
@@ -270,13 +270,9 @@ function Composer(
     /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
-     *
-     * @param {ClipboardEvent} event
      */
     const handlePaste = useCallback(
-        // (event: ClipboardEvent<HTMLTextAreaElement>) => {
-        (event: any) => {
-            console.log('*** PASTE EVENT ***', event);
+        (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
             const isFocused = textInput.current?.isFocused();
 
@@ -285,9 +281,11 @@ function Composer(
             }
 
             if (textInput.current !== event.target) {
+                const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = event.target?.nodeName === 'INPUT' || event.target?.nodeName === 'TEXTAREA' || event.target?.contentEditable === 'true';
+                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
                     return;
                 }
@@ -334,7 +332,7 @@ function Composer(
      * divide by line height to get the total number of rows for the textarea.
      */
     const updateNumberOfLines = useCallback(() => {
-        if (textInput.current === null) {
+        if (!textInput.current) {
             return;
         }
         // we reset the height to 0 to get the correct scrollHeight
@@ -364,7 +362,7 @@ function Composer(
         const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
         const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
 
-        if (typeof ref === 'function') {
+        if (typeof ref === 'function' && textInput.current) {
             ref(textInput.current);
         }
 
@@ -386,7 +384,7 @@ function Composer(
     const handleKeyPress = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-            if (!onKeyPress || isEnterWhileComposition(e)) {
+            if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                 return;
             }
             onKeyPress(e);
@@ -404,7 +402,7 @@ function Composer(
         >
             <Text
                 multiline
-                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth}]}
+                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth as DimensionValue}]}
             >
                 {`${valueBeforeCaret} `}
                 <Text
