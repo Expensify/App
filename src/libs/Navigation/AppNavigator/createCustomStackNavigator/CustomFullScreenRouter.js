@@ -1,7 +1,6 @@
 import {StackRouter} from '@react-navigation/native';
 import _ from 'underscore';
 import SCREENS from '@src/SCREENS';
-import Navigation from '@libs/Navigation/Navigation';
 
 /**
  * @param {Object} state - react-navigation state
@@ -10,11 +9,6 @@ import Navigation from '@libs/Navigation/Navigation';
  */
 const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === SCREENS.SETTINGS_CENTRAL_PANE);
 
-const getCorrectRoute = (state) => {
-    // TODO: add logic to determine which route to show
-    return SCREENS.SETTINGS.PROFILE;
-};
-
 /**
  * Adds report route without any specific reportID to the state.
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
@@ -22,31 +16,17 @@ const getCorrectRoute = (state) => {
  * @param {Object} state - react-navigation state
  */
 const addCentralPaneNavigatorRoute = (state) => {
-    const activeRoute = Navigation.getActiveRouteWithoutParams();
-    console.log('activeRoute!', activeRoute, '!');
     const centralPaneNavigatorRoute = {
         name: SCREENS.SETTINGS_CENTRAL_PANE,
         state: {
             routes: [
                 {
-                    name: getCorrectRoute(state),
+                    name: SCREENS.SETTINGS.PROFILE,
                 },
             ],
         },
     };
     state.routes.splice(1, 0, centralPaneNavigatorRoute);
-    // eslint-disable-next-line no-param-reassign
-    state.index = state.routes.length - 1;
-};
-
-const addLHPRoute = (state) => {
-    if (state.routes[0].name === SCREENS.SETTINGS_HOME) {
-        return;
-    }
-    const settingsHomeRoute = {
-        name: SCREENS.SETTINGS_HOME,
-    };
-    state.routes.splice(0, 0, settingsHomeRoute);
     // eslint-disable-next-line no-param-reassign
     state.index = state.routes.length - 1;
 };
@@ -71,7 +51,6 @@ function CustomFullScreenRouter(options) {
                 partialState.stale = true;
                 addCentralPaneNavigatorRoute(partialState);
             }
-            // addLHPRoute(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList});
             return state;
         },

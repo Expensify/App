@@ -121,7 +121,6 @@ function navigate(route = ROUTES.HOME, type) {
  * @param {Boolean} shouldPopToTop - Should we navigate to LHN on back press
  */
 function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
-    console.log('goBack', 1, navigationRef.current.state);
     if (!canNavigate('goBack')) {
         return;
     }
@@ -133,17 +132,14 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
             return;
         }
     }
-    console.log('goBack', 2);
 
     if (!navigationRef.current.canGoBack()) {
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
-    console.log('goBack', 3);
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (isFirstRouteInNavigator) {
-        console.log('goBack', 4);
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
@@ -151,21 +147,12 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
             navigationRef.current.goBack();
             return;
         }
-
-        // if(lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-        //     console.log('lastRoute', lastRoute);
-        //     navigationRef.current.goBack();
-        //     return;
-        // }
     }
-    console.log('goBack', 5);
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
-
-    console.log('goBack', 6);
 
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
     const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
@@ -176,8 +163,6 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
         return;
     }
 
-    console.log('goBack', 7);
-
     // Add posibility to go back more than one screen in root navigator if that screen is on the stack.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
         navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
@@ -185,8 +170,6 @@ function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = f
     }
 
     navigationRef.current.goBack();
-
-    console.log('goBack', 8);
 }
 
 /**

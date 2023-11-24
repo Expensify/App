@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import NAVIGATORS from '@src/NAVIGATORS';
-import CustomRouter from './CustomRouter';
 
 const propTypes = {
     /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
@@ -19,23 +18,20 @@ const propTypes = {
     /* Screen options defined for this navigator */
     // eslint-disable-next-line react/forbid-prop-types
     screenOptions: PropTypes.object,
-
-    centralRoute: PropTypes.string,
 };
 
 const defaultProps = {
     initialRouteName: undefined,
     screenOptions: undefined,
-    centralRoute: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
 };
 
-function reduceReportRoutes(routes, centralRoute = NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+function reduceReportRoutes(routes) {
     const result = [];
     let count = 0;
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === centralRoute) {
+        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
             // Remove all report routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
@@ -57,27 +53,23 @@ function ResponsiveStackNavigatorFactory(customRouter) {
 
         isSmallScreenWidthRef.current = isSmallScreenWidth;
 
-        const centralRouteRef = useRef(props.centralRoute);
-        centralRouteRef.current = props.centralRoute;
-
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(customRouter, {
             children: props.children,
             screenOptions: props.screenOptions,
             initialRouteName: props.initialRouteName,
             // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
             getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
-            centralRoute: () => centralRouteRef.current,
         });
 
         const stateToRender = useMemo(() => {
-            const result = reduceReportRoutes(state.routes, props.centralRoute);
+            const result = reduceReportRoutes(state.routes);
 
             return {
                 ...state,
                 index: result.length - 1,
                 routes: [...result],
             };
-        }, [props.centralRoute, state]);
+        }, [state]);
 
         return (
             <NavigationContent>

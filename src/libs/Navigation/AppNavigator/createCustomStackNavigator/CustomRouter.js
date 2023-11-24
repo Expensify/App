@@ -64,14 +64,14 @@ const addCentralPaneNavigatorRoute = (state) => {
 };
 
 const mapScreenNameToSettingsScreenName = {
-    "Settings_Display_Name": SCREENS.PROFILE,
-    "Settings_ContactMethods": SCREENS.PROFILE,
-    "Settings_ContactMethodDetails": SCREENS.PROFILE,
-    "Settings_TwoFactorAuth": SCREENS.SETTINGS.SECURITY,
-    "Settings_Preferences_Language": SCREENS.SETTINGS.PREFERENCES,
-    "Settings_Preferences_Theme": SCREENS.SETTINGS.PREFERENCES,
-    "Settings_Preferences_PriorityMode": SCREENS.SETTINGS.PREFERENCES,
-}
+    Settings_Display_Name: SCREENS.PROFILE,
+    Settings_ContactMethods: SCREENS.PROFILE,
+    Settings_ContactMethodDetails: SCREENS.PROFILE,
+    Settings_TwoFactorAuth: SCREENS.SETTINGS.SECURITY,
+    Settings_Preferences_Language: SCREENS.SETTINGS.PREFERENCES,
+    Settings_Preferences_Theme: SCREENS.SETTINGS.PREFERENCES,
+    Settings_Preferences_PriorityMode: SCREENS.SETTINGS.PREFERENCES,
+};
 
 const handleSettingsOpened = (state) => {
     const rhpNav = _.find(state.routes, (r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -106,9 +106,9 @@ const handleSettingsOpened = (state) => {
                             {
                                 name: settingsHomeRouteName,
                             },
-                        ]
-                    }
-                }
+                        ],
+                    },
+                },
             ],
         },
     };
@@ -117,7 +117,7 @@ const handleSettingsOpened = (state) => {
     state.index = state.routes.length - 1;
     // eslint-disable-next-line no-param-reassign
     state.stale = true;
-}
+};
 
 function CustomRouter(options) {
     const stackRouter = StackRouter(options);
