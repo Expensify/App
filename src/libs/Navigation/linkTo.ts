@@ -41,8 +41,6 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
 
         const payload = currentAction.payload as unknown as ActionPayload;
 
-        console.log(`payload = `, payload);
-
         // Creating new smaller action
         currentAction = {
             type: currentAction.type,
