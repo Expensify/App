@@ -7,7 +7,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
@@ -63,6 +63,7 @@ const defaultProps = {
 };
 
 function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldSaveDraft, state, street1, street2, submitButtonText, zip}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [country, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
