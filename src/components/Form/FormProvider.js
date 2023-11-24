@@ -47,6 +47,9 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    /** Contains draft values for each input in the form */
+    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
+
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
@@ -77,6 +80,7 @@ const defaultProps = {
     formState: {
         isLoading: false,
     },
+    draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
@@ -100,251 +104,263 @@ function getInitialValueByType(valueType) {
     }
 }
 
-const FormProvider = forwardRef(({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}, forwardedRef) => {
-    const inputRefs = useRef({});
-    const touchedInputs = useRef({});
-    const [inputValues, setInputValues] = useState({});
-    const [errors, setErrors] = useState({});
-    const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
+const FormProvider = forwardRef(
+    ({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}, forwardedRef) => {
+        const inputRefs = useRef({});
+        const touchedInputs = useRef({});
+        const [inputValues, setInputValues] = useState({});
+        const [errors, setErrors] = useState({});
+        const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
-    const onValidate = useCallback(
-        (values, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values);
+        const onValidate = useCallback(
+            (values, shouldClearServerError = true) => {
+                const trimmedStringValues = ValidationUtils.prepareValues(values);
 
-            if (shouldClearServerError) {
-                FormActions.setErrors(formID, null);
-            }
-            FormActions.setErrorFields(formID, null);
-
-            const validateErrors = validate(values) || {};
-
-            // Validate the input for html tags. It should supercede any other error
-            _.each(trimmedStringValues, (inputValue, inputID) => {
-                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
-                if (!inputValue || !_.isString(inputValue)) {
-                    return;
+                if (shouldClearServerError) {
+                    FormActions.setErrors(formID, null);
                 }
-                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+                FormActions.setErrorFields(formID, null);
 
-                // Return early if there are no HTML characters
-                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                    return;
-                }
+                const validateErrors = validate(values) || {};
 
-                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
-                // Check for any matches that the original regex (foundHtmlTagIndex) matched
-                if (matchedHtmlTags) {
-                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for (let i = 0; i < matchedHtmlTags.length; i++) {
-                        const htmlTag = matchedHtmlTags[i];
-                        isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
-                        if (!isMatch) {
-                            break;
-                        }
+                // Validate the input for html tags. It should supercede any other error
+                _.each(trimmedStringValues, (inputValue, inputID) => {
+                    // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                    if (!inputValue || !_.isString(inputValue)) {
+                        return;
                     }
-                }
-                // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = 'common.error.invalidCharacter';
-            });
+                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
-            if (!_.isObject(validateErrors)) {
-                throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
-            }
-
-            const touchedInputErrors = _.pick(validateErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
-
-            if (!_.isEqual(errors, touchedInputErrors)) {
-                setErrors(touchedInputErrors);
-            }
-
-            return touchedInputErrors;
-        },
-        [errors, formID, validate],
-    );
-
-    /**
-     * @param {String} inputID - The inputID of the input being touched
-     */
-    const setTouchedInput = useCallback(
-        (inputID) => {
-            touchedInputs.current[inputID] = true;
-        },
-        [touchedInputs],
-    );
-
-    const submit = useCallback(() => {
-        // Return early if the form is already submitting to avoid duplicate submission
-        if (formState.isLoading) {
-            return;
-        }
-
-        // Prepare values before submitting
-        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
-
-        // Touches all form inputs so we can validate the entire form
-        _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
-
-        // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(trimmedStringValues))) {
-            return;
-        }
-
-        // Do not submit form if network is offline and the form is not enabled when offline
-        if (network.isOffline && !enabledWhenOffline) {
-            return;
-        }
-
-        onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
-
-    /**
-     * Resets the form
-     */
-    const resetForm = useCallback(
-        (optionalValue) => {
-            _.each(inputValues, (inputRef, inputID) => {
-                setInputValues((prevState) => {
-                    const copyPrevState = _.clone(prevState);
-
-                    touchedInputs.current[inputID] = false;
-                    copyPrevState[inputID] = optionalValue[inputID] || '';
-
-                    return copyPrevState;
-                });
-            });
-            setErrors({});
-        },
-        [inputValues],
-    );
-    useImperativeHandle(forwardedRef, () => ({
-        resetForm,
-    }));
-
-    const registerInput = useCallback(
-        (inputID, propsToParse = {}) => {
-            const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
-            if (inputRefs.current[inputID] !== newRef) {
-                inputRefs.current[inputID] = newRef;
-            }
-
-            if (!_.isUndefined(propsToParse.value)) {
-                inputValues[inputID] = propsToParse.value;
-            } else if (propsToParse.shouldUseDefaultValue) {
-                // We force the form to set the input value from the defaultValue props if there is a saved valid value
-                inputValues[inputID] = propsToParse.defaultValue;
-            } else if (_.isUndefined(inputValues[inputID])) {
-                // We want to initialize the input value if it's undefined
-                inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
-            }
-
-            const errorFields = lodashGet(formState, 'errorFields', {});
-            const fieldErrorMessage =
-                _.chain(errorFields[inputID])
-                    .keys()
-                    .sortBy()
-                    .reverse()
-                    .map((key) => errorFields[inputID][key])
-                    .first()
-                    .value() || '';
-
-            return {
-                ...propsToParse,
-                ref:
-                    typeof propsToParse.ref === 'function'
-                        ? (node) => {
-                              propsToParse.ref(node);
-                              newRef.current = node;
-                          }
-                        : newRef,
-                inputID,
-                key: propsToParse.key || inputID,
-                errorText: errors[inputID] || fieldErrorMessage,
-                value: inputValues[inputID],
-                // As the text input is controlled, we never set the defaultValue prop
-                // as this is already happening by the value prop.
-                defaultValue: undefined,
-                onTouched: (event) => {
-                    setTouchedInput(inputID);
-                    if (_.isFunction(propsToParse.onTouched)) {
-                        propsToParse.onTouched(event);
+                    // Return early if there are no HTML characters
+                    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+                        return;
                     }
-                },
-                onPress: (event) => {
-                    setTouchedInput(inputID);
-                    if (_.isFunction(propsToParse.onPress)) {
-                        propsToParse.onPress(event);
-                    }
-                },
-                onPressIn: (event) => {
-                    setTouchedInput(inputID);
-                    if (_.isFunction(propsToParse.onPressIn)) {
-                        propsToParse.onPressIn(event);
-                    }
-                },
-                onBlur: (event) => {
-                    // Only run validation when user proactively blurs the input.
-                    if (Visibility.isVisible() && Visibility.hasFocus()) {
-                        // We delay the validation in order to prevent Checkbox loss of focus when
-                        // the user is focusing a TextInput and proceeds to toggle a CheckBox in
-                        // web and mobile web platforms.
-                        setTimeout(() => {
-                            setTouchedInput(inputID);
-                            if (shouldValidateOnBlur) {
-                                onValidate(inputValues, !hasServerError);
+
+                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
+                    // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                    if (matchedHtmlTags) {
+                        // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                        for (let i = 0; i < matchedHtmlTags.length; i++) {
+                            const htmlTag = matchedHtmlTags[i];
+                            isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
+                            if (!isMatch) {
+                                break;
                             }
-                        }, 200);
-                    }
-
-                    if (_.isFunction(propsToParse.onBlur)) {
-                        propsToParse.onBlur(event);
-                    }
-                },
-                onInputChange: (value, key) => {
-                    const inputKey = key || inputID;
-                    setInputValues((prevState) => {
-                        const newState = {
-                            ...prevState,
-                            [inputKey]: value,
-                        };
-
-                        if (shouldValidateOnChange) {
-                            onValidate(newState);
                         }
-                        return newState;
+                    }
+                    // Add a validation error here because it is a string value that contains HTML characters
+                    validateErrors[inputID] = 'common.error.invalidCharacter';
+                });
+
+                if (!_.isObject(validateErrors)) {
+                    throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
+                }
+
+                const touchedInputErrors = _.pick(validateErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
+
+                if (!_.isEqual(errors, touchedInputErrors)) {
+                    setErrors(touchedInputErrors);
+                }
+
+                return touchedInputErrors;
+            },
+            [errors, formID, validate],
+        );
+
+        /**
+         * @param {String} inputID - The inputID of the input being touched
+         */
+        const setTouchedInput = useCallback(
+            (inputID) => {
+                touchedInputs.current[inputID] = true;
+            },
+            [touchedInputs],
+        );
+
+        const submit = useCallback(() => {
+            // Return early if the form is already submitting to avoid duplicate submission
+            if (formState.isLoading) {
+                return;
+            }
+
+            // Prepare values before submitting
+            const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
+            // Touches all form inputs so we can validate the entire form
+            _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
+
+            // Validate form and return early if any errors are found
+            if (!_.isEmpty(onValidate(trimmedStringValues))) {
+                return;
+            }
+
+            // Do not submit form if network is offline and the form is not enabled when offline
+            if (network.isOffline && !enabledWhenOffline) {
+                return;
+            }
+
+            onSubmit(trimmedStringValues);
+        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
+
+        /**
+         * Resets the form
+         */
+        const resetForm = useCallback(
+            (optionalValue) => {
+                _.each(inputValues, (inputRef, inputID) => {
+                    setInputValues((prevState) => {
+                        const copyPrevState = _.clone(prevState);
+
+                        touchedInputs.current[inputID] = false;
+                        copyPrevState[inputID] = optionalValue[inputID] || '';
+
+                        return copyPrevState;
                     });
+                });
+                setErrors({});
+            },
+            [inputValues],
+        );
+        useImperativeHandle(forwardedRef, () => ({
+            resetForm,
+        }));
 
-                    if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: value});
-                    }
+        const registerInput = useCallback(
+            (inputID, propsToParse = {}) => {
+                const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
+                if (inputRefs.current[inputID] !== newRef) {
+                    inputRefs.current[inputID] = newRef;
+                }
 
-                    if (_.isFunction(propsToParse.onValueChange)) {
-                        propsToParse.onValueChange(value, inputKey);
-                    }
-                },
-            };
-        },
-        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
-    );
-    const value = useMemo(() => ({registerInput}), [registerInput]);
+                if (!_.isUndefined(propsToParse.value)) {
+                    inputValues[inputID] = propsToParse.value;
+                } else if (propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
+                    inputValues[inputID] = draftValues[inputID];
+                } else if (propsToParse.shouldUseDefaultValue && _.isUndefined(inputValues[inputID])) {
+                    // We force the form to set the input value from the defaultValue props if there is a saved valid value
+                    inputValues[inputID] = propsToParse.defaultValue;
+                } else if (_.isUndefined(inputValues[inputID])) {
+                    // We want to initialize the input value if it's undefined
+                    inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
+                }
 
-    return (
-        <FormContext.Provider value={value}>
-            {/* eslint-disable react/jsx-props-no-spreading */}
-            <FormWrapper
-                {...rest}
-                formID={formID}
-                onSubmit={submit}
-                inputRefs={inputRefs}
-                errors={errors}
-                enabledWhenOffline={enabledWhenOffline}
-            >
-                {_.isFunction(children) ? children({inputValues}) : children}
-            </FormWrapper>
-        </FormContext.Provider>
-    );
-});
+                const errorFields = lodashGet(formState, 'errorFields', {});
+                const fieldErrorMessage =
+                    _.chain(errorFields[inputID])
+                        .keys()
+                        .sortBy()
+                        .reverse()
+                        .map((key) => errorFields[inputID][key])
+                        .first()
+                        .value() || '';
+
+                return {
+                    ...propsToParse,
+                    ref:
+                        typeof propsToParse.ref === 'function'
+                            ? (node) => {
+                                  propsToParse.ref(node);
+                                  newRef.current = node;
+                              }
+                            : newRef,
+                    inputID,
+                    key: propsToParse.key || inputID,
+                    errorText: errors[inputID] || fieldErrorMessage,
+                    value: inputValues[inputID],
+                    // As the text input is controlled, we never set the defaultValue prop
+                    // as this is already happening by the value prop.
+                    defaultValue: undefined,
+                    onTouched: (event) => {
+                        setTouchedInput(inputID);
+                        if (_.isFunction(propsToParse.onTouched)) {
+                            propsToParse.onTouched(event);
+                        }
+                    },
+                    onPress: (event) => {
+                        setTouchedInput(inputID);
+                        if (_.isFunction(propsToParse.onPress)) {
+                            propsToParse.onPress(event);
+                        }
+                    },
+                    onPressIn: (event) => {
+                        setTouchedInput(inputID);
+                        if (_.isFunction(propsToParse.onPressIn)) {
+                            propsToParse.onPressIn(event);
+                        }
+                    },
+                    onBlur: (event) => {
+                        // Only run validation when user proactively blurs the input.
+                        if (Visibility.isVisible() && Visibility.hasFocus()) {
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                            // We delay the validation in order to prevent Checkbox loss of focus when
+                            // the user is focusing a TextInput and proceeds to toggle a CheckBox in
+                            // web and mobile web platforms.
+
+                            setTimeout(() => {
+                                if (
+                                    relatedTargetId &&
+                                    _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)
+                                ) {
+                                    return;
+                                }
+                                setTouchedInput(inputID);
+                                if (shouldValidateOnBlur) {
+                                    onValidate(inputValues, !hasServerError);
+                                }
+                            }, 200);
+                        }
+
+                        if (_.isFunction(propsToParse.onBlur)) {
+                            propsToParse.onBlur(event);
+                        }
+                    },
+                    onInputChange: (value, key) => {
+                        const inputKey = key || inputID;
+                        setInputValues((prevState) => {
+                            const newState = {
+                                ...prevState,
+                                [inputKey]: value,
+                            };
+
+                            if (shouldValidateOnChange) {
+                                onValidate(newState);
+                            }
+                            return newState;
+                        });
+
+                        if (propsToParse.shouldSaveDraft) {
+                            FormActions.setDraftValues(formID, {[inputKey]: value});
+                        }
+
+                        if (_.isFunction(propsToParse.onValueChange)) {
+                            propsToParse.onValueChange(value, inputKey);
+                        }
+                    },
+                };
+            },
+            [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        );
+        const value = useMemo(() => ({registerInput}), [registerInput]);
+
+        return (
+            <FormContext.Provider value={value}>
+                {/* eslint-disable react/jsx-props-no-spreading */}
+                <FormWrapper
+                    {...rest}
+                    formID={formID}
+                    onSubmit={submit}
+                    inputRefs={inputRefs}
+                    errors={errors}
+                    enabledWhenOffline={enabledWhenOffline}
+                >
+                    {_.isFunction(children) ? children({inputValues}) : children}
+                </FormWrapper>
+            </FormContext.Provider>
+        );
+    },
+);
 
 FormProvider.displayName = 'Form';
 FormProvider.propTypes = propTypes;
@@ -355,6 +371,9 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
+        },
+        draftValues: {
+            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(FormProvider);

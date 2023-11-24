@@ -25,15 +25,15 @@ function Popover(props) {
     );
 
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(null),
-                onOpenCallback: () => Modal.setCloseModal(() => props.onClose(props.anchorRef)),
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -41,6 +41,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);

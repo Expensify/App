@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -13,7 +14,6 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -21,9 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Task title and description data */
     task: PropTypes.shape({
         title: PropTypes.string,
@@ -34,9 +31,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
 };
+
+const parser = new ExpensiMark();
 
 function NewTaskDetailsPage(props) {
     const styles = useThemeStyles();
@@ -47,7 +45,7 @@ function NewTaskDetailsPage(props) {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description || '');
+        setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
     }, [props.task]);
 
     /**
@@ -72,10 +70,6 @@ function NewTaskDetailsPage(props) {
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -118,6 +112,8 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
@@ -134,9 +130,6 @@ NewTaskDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

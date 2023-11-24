@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -34,6 +35,7 @@ const defaultProps = {
     report: {},
 };
 
+const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
     const styles = useThemeStyles();
     const validate = useCallback(() => ({}), []);
@@ -99,7 +101,7 @@ function TaskDescriptionPage(props) {
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={(props.report && props.report.description) || ''}
+                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
                             ref={(el) => {
                                 if (!el) {
                                     return;
