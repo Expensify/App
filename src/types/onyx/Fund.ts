@@ -1,5 +1,5 @@
-import {BankName} from '@components/Icon/BankIcons';
 import CONST from '@src/CONST';
+import {BankName} from './Bank';
 import * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {

@@ -12,8 +12,7 @@ type BankIcon = {
     iconStyles?: Array<ViewStyle | CSSProperties>;
 };
 
-type BankNameAndEmptyString = keyof typeof CONST.BANK_NAMES | '';
 type BankName = ValueOf<typeof CONST.BANK_NAMES>;
 type BankNameKey = keyof typeof CONST.BANK_NAMES;
 
-export type {BankIcon, BankNameAndEmptyString, BankName, BankNameKey};
+export type {BankIcon, BankName, BankNameKey};
