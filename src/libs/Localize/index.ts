@@ -102,6 +102,7 @@ type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?
  * Return translated string for given error.
  */
 function translateIfPhraseKey(message: MaybePhraseKey): string {
+    debugger;
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }

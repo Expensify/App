@@ -42,14 +42,6 @@ function getMicroSecondOnyxError(error: string): Record<number, string> {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
-/**
- * Method used to get an error object with microsecond as the key and an object as the value.
- * @param error - error key or message to be saved
- */
-function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
-    return {[DateUtils.getMicroseconds()]: error};
-}
-
 type OnyxDataWithErrors = {
     errors?: Errors;
 };
@@ -119,4 +111,4 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};

@@ -1,18 +1,13 @@
 /* eslint-disable react/no-array-index-key */
 import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
-
-type ReceiptError = {error?: string; source: string; filename: string};
 
 type DotIndicatorMessageProps = {
     /**
@@ -33,14 +28,6 @@ type DotIndicatorMessageProps = {
     /** Additional styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
 };
-
-/** Check if the error includes a receipt. */
-function isReceiptError(message: string | ReceiptError): message is ReceiptError {
-    if (typeof message === 'string') {
-        return false;
-    }
-    return (message?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
-}
 
 function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
     const theme = useTheme();
@@ -69,35 +56,14 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {uniqueMessages.map((message, i) =>
-                    isReceiptError(message) ? (
-                        <PressableWithoutFeedback
-                            accessibilityLabel={Localize.translateLocal('iou.error.saveFileMessage')}
-                            key={i}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename);
-                            }}
-                        >
-                            <Text
-                                key={i}
-                                style={styles.offlineFeedback.text}
-                            >
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
-                            </Text>
-                        </PressableWithoutFeedback>
-                    ) : (
-                        <Text
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={i}
-                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
-                        >
-                            {message}
-                        </Text>
-                    ),
-                )}
+                {uniqueMessages.map((message, i) => (
+                    <Text
+                        key={i}
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                    >
+                        {message}
+                    </Text>
+                ))}
             </View>
         </View>
     );
