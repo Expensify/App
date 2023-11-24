@@ -19,9 +19,10 @@ import utils from './utils';
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({style, styleURL, waypoints, mapPadding, accessToken, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
+        const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
-        useEffect(() => {
+        const resetBoundaries = useCallback(() => {
             if (!waypoints || waypoints.length === 0) {
                 return;
             }
@@ -47,6 +48,18 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             map.fitBounds([northEast, southWest], {padding: mapPadding});
         }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
+        useEffect(resetBoundaries, [resetBoundaries]);
+
+        useEffect(() => {
+            if (!shouldResetBoundaries) {
+                return;
+            }
+
+            resetBoundaries();
+            setShouldResetBoundaries(false);
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
+        }, [shouldResetBoundaries]);
+
         useEffect(() => {
             if (!mapRef) {
                 return;
@@ -54,6 +67,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             const resizeObserver = new ResizeObserver(() => {
                 mapRef.resize();
+                setShouldResetBoundaries(true);
             });
             resizeObserver.observe(mapRef.getContainer());
 

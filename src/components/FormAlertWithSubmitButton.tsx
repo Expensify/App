@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -22,6 +22,9 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
+
+    /** Submit function */
+    onSubmit: () => void;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
@@ -49,17 +52,19 @@ function FormAlertWithSubmitButton({
     message = '',
     isDisabled = false,
     isMessageHtml = false,
-    containerStyles = [],
+    containerStyles,
     isLoading = false,
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
     footerContent = null,
-    buttonStyles = [],
+    buttonStyles,
     buttonText,
     isAlertVisible,
+    onSubmit,
 }: FormAlertWithSubmitButtonProps) {
+    const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
 
     return (
@@ -70,7 +75,7 @@ function FormAlertWithSubmitButton({
             message={message}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
         >
-            {(isOffline) => (
+            {(isOffline: boolean) => (
                 <View>
                     {isOffline && !enabledWhenOffline ? (
                         <Button
