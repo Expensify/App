@@ -13,7 +13,7 @@ import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -113,7 +113,7 @@ const defaultProps = {
     session: {},
     loginList: {},
     isConfirmation: false,
-    renderContent: (onSubmit, submitButtonText, children = () => {}, onValidate = () => ({})) => (
+    renderContent: (onSubmit, submitButtonText, styles, children = () => {}, onValidate = () => ({})) => (
         <Form
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
@@ -144,6 +144,7 @@ function BaseGetPhysicalCard({
     title,
     onValidate,
 }) {
+    const styles = useThemeStyles();
     const isRouteSet = useRef(false);
 
     useEffect(() => {
@@ -208,7 +209,7 @@ function BaseGetPhysicalCard({
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
             <Text style={[styles.textHeadline, styles.mh5]}>{headline}</Text>
-            {renderContent(onSubmit, submitButtonText, children, onValidate)}
+            {renderContent(onSubmit, submitButtonText, styles, children, onValidate)}
         </ScreenWrapper>
     );
 }
