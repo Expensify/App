@@ -1,6 +1,6 @@
 import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
@@ -76,13 +76,16 @@ function NavigationRoot(props) {
     const statusBarAnimation = useSharedValue(0);
 
     // https://reactnavigation.org/docs/themes
-    const navigationTheme = {
-        ...DefaultTheme,
-        colors: {
-            ...DefaultTheme.colors,
-            background: theme.appBG,
-        },
-    };
+    const navigationTheme = useMemo(
+        () => ({
+            ...DefaultTheme,
+            colors: {
+                ...DefaultTheme.colors,
+                background: theme.appBG,
+            },
+        }),
+        [theme],
+    );
 
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
