@@ -32,7 +32,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ github.event.issue.html_url }}|${{ github.event.issue.title }}>'.replace(/[&<>"'|]/g, function(m) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '|': '&verbar;'}[m]; }),
+                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ github.event.issue.html_url }}|${{ github.event.issue.title | escape }}>'
               }]
             }
         env:
