@@ -3,7 +3,6 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
