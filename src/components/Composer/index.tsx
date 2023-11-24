@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef, useState, ClipboardEvent} from 'react';
+import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef, useState, CLipboardEvent} from 'react';
 import {flushSync} from 'react-dom';
 import {
     NativeSyntheticEvent,
@@ -150,7 +150,6 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
 ) {
-    console.log('*** REF ***', ref)
     const theme = useTheme();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -158,8 +157,9 @@ function Composer(
     // const textRef = useRef<HTMLElement>(null);
     const textRef = useRef<HTMLElement>(null);
     // const textInput = useRef<TextInput>(null);
-    const textInput = useRef<HTMLTextAreaElement & TextInput>(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
+    // const textInput = useRef<HTMLTextAreaElement & TextInput>(null);
+    const textInput = useRef<HTMLTextAreaElement & TextInput>();
+    const initialValue = defaultValue ? `${defaultValue}` : `${value ?? ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
@@ -275,7 +275,7 @@ function Composer(
      */
     const handlePaste = useCallback(
         // (event: ClipboardEvent<HTMLTextAreaElement>) => {
-        (event: unknown) => {
+        (event: any) => {
             console.log('*** PASTE EVENT ***', event);
             const isVisible = checkComposerVisibility();
             const isFocused = textInput.current?.isFocused();
@@ -438,13 +438,10 @@ function Composer(
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                // ref={(el) => (textInput.current = el)}
-                // ref={textInput}
-                ref={ref}
+                ref={(el: TextInput & HTMLTextAreaElement) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}
-                // forwardedRef={ref}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
