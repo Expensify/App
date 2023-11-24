@@ -9,12 +9,22 @@ const propTypes = {
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
-const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}) => {
+const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}, ref) => {
     if (shouldShowOnfido) {
-        return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
+        return (
+            <VerifyIdentity
+                ref={ref}
+                onBackButtonPress={onBackButtonPress}
+            />
+        );
     }
 
-    return <PersonalInfo onBackButtonPress={onBackButtonPress} />;
+    return (
+        <PersonalInfo
+            ref={ref}
+            onBackButtonPress={onBackButtonPress}
+        />
+    );
 });
 
 RequestorStep.propTypes = propTypes;

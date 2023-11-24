@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +14,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -38,6 +40,7 @@ const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
     const {translate} = useLocalize();
 
+    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
@@ -117,6 +120,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     )}
                     <Button
                         success
+                        isLoading={isLoading}
                         style={[styles.w100, styles.mt2, styles.pb5]}
                         onPress={onNext}
                         text={translate('common.confirm')}

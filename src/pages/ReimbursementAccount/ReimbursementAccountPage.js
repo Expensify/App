@@ -494,6 +494,7 @@ class ReimbursementAccountPage extends React.Component {
             const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
+                    ref={this.requestorStepRef}
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                 />
