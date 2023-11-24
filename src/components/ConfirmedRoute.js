@@ -6,8 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
+import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@styles/themes/useTheme';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +40,8 @@ const defaultProps = {
 const getWaypointMarkers = (waypoints) => {
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
+    const theme = useTheme();
+    
     return _.filter(
         _.map(waypoints, (waypoint, key) => {
             if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
@@ -78,6 +80,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
     const waypointMarkers = getWaypointMarkers(waypoints);
+    const styles = useThemeStyles();
 
     useEffect(() => {
         MapboxToken.init();
