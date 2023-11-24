@@ -9,6 +9,16 @@ import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import {NavigationRoot, RootStackParamList, StackNavigationAction} from './types';
 
+type ActionPayloadParams = {
+    screen?: string;
+    params?: unknown;
+    path?: string;
+};
+
+type ActionPayload = {
+    params?: ActionPayloadParams;
+};
+
 /**
  * Motivation for this function is described in NAVIGATION.md
  *
@@ -29,8 +39,9 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
         currentState = currentState?.routes[currentState?.index ?? -1].state;
         currentTargetKey = currentState?.key;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const payload = currentAction.payload as Record<string, any>;
+        const payload = currentAction.payload as unknown as ActionPayload;
+
+        console.log(`payload = `, payload);
 
         // Creating new smaller action
         currentAction = {
