@@ -209,7 +209,6 @@ function ComposerWithSuggestions({
         [],
     );
 
-    
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
      *
@@ -226,14 +225,6 @@ function ComposerWithSuggestions({
             let endIndex = -1;
             let currentIndex = 0;
 
-            const getCommonSuffixLength=(str1, str2) =>{
-                let i = 0;
-                while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
-                    i++;
-                }
-                return i;
-            }
-
             // Find the first character mismatch with newText
             while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
                 currentIndex++;
@@ -241,8 +232,7 @@ function ComposerWithSuggestions({
 
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-
-                const commonSuffixLength = getCommonSuffixLength(prevText, newText);
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
@@ -260,8 +250,6 @@ function ComposerWithSuggestions({
         [selection.end, selection.start],
     );
 
-    const insertWhiteSpace = (text, index) => `${text.slice(0, index)} ${text.slice(index)}`;
-
     /**
      * Update the value of the comment in Onyx
      *
@@ -273,7 +261,11 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
+            const {
+                text: newComment,
+                emojis,
+                cursorPosition,
+            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
