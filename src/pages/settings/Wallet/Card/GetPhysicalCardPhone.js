@@ -7,7 +7,7 @@ import _ from 'underscore';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import FormUtils from '@libs/FormUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +42,7 @@ function GetPhysicalCardPhone({
         params: {domain},
     },
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onValidate = (values) => {
