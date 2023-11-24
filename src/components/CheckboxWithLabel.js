@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import refPropTypes from './refPropTypes';
 import Text from './Text';
 
 /**
@@ -53,6 +54,9 @@ const propTypes = {
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
+    /** React ref being forwarded to the Checkbox input */
+    forwardedRef: refPropTypes,
+
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     inputID: PropTypes.string,
@@ -75,10 +79,11 @@ const defaultProps = {
     isChecked: false,
     value: false,
     defaultValue: false,
+    forwardedRef: () => {},
     accessibilityLabel: undefined,
 };
 
-const CheckboxWithLabel = React.forwardRef((props, ref) => {
+function CheckboxWithLabel(props) {
     const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
@@ -101,7 +106,7 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
                     label={props.label}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
-                    ref={ref}
+                    ref={props.forwardedRef}
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
@@ -121,10 +126,20 @@ const CheckboxWithLabel = React.forwardRef((props, ref) => {
             <FormHelpMessage message={props.errorText} />
         </View>
     );
-});
+}
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default CheckboxWithLabel;
+const CheckboxWithLabelWithRef = React.forwardRef((props, ref) => (
+    <CheckboxWithLabel
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+CheckboxWithLabelWithRef.displayName = 'CheckboxWithLabelWithRef';
+
+export default CheckboxWithLabelWithRef;
