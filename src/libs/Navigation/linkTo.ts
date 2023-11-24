@@ -39,7 +39,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
         currentState = currentState?.routes[currentState?.index ?? -1].state;
         currentTargetKey = currentState?.key;
 
-        const payload = currentAction.payload as unknown as ActionPayload;
+        const payload = currentAction.payload as ActionPayload;
 
         // Creating new smaller action
         currentAction = {

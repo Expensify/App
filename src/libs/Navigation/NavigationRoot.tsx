@@ -102,6 +102,8 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         const backgroundColorFromRoute =
             currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
         const backgroundColorFallback = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS] || themeColors.appBG;
+
+        // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currentScreenBackgroundColor = backgroundColorFromRoute || backgroundColorFallback;
 
@@ -146,4 +148,5 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 }
 
 NavigationRoot.displayName = 'NavigationRoot';
+
 export default NavigationRoot;
