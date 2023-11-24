@@ -23,7 +23,13 @@ export default {
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
         WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
+        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+        WALLET_CARD_GET_PHYSICAL: {
+            NAME: 'Settings_Card_Get_Physical_Name',
+            PHONE: 'Settings_Card_Get_Physical_Phone',
+            ADDRESS: 'Settings_Card_Get_Physical_Address',
+            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
