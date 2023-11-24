@@ -1,10 +1,8 @@
 import {some} from 'lodash';
-
 /**
  * Check if it is the location by searching for the location
- *
- * @param   {string} search  the string to search for a location
- * @param   {object} location  the location data consisted of name, description and geometry
+ * @param {string} search the string to search for a location
+ * @param {object} location the location data consisted of name, description and geometry
  * @returns {boolean} related or not.
  */
 function isSearchedLocation(search, location) {
