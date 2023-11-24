@@ -14,7 +14,6 @@ import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
@@ -45,7 +44,6 @@ const propTypes = {
 };
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
@@ -108,15 +106,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const showSearchPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH);
-    }, [isCreateMenuOpen]);
-
     /**
      * Show Report page with selected report id
      *
@@ -149,7 +138,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
                 <Search
-                    prompt='Search for something...'
+                    prompt={translate('sidebarScreen.buttonSearch')}
                     onPress={() => alert('Roger that')}
                 />
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
