@@ -96,10 +96,12 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
+type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: string | [string, Record<string, unknown> & {isTranslated?: true}] | []): string {
+function translateIfPhraseKey(message: MaybePhraseKey): string {
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
@@ -138,3 +140,4 @@ function getDevicePreferredLocale(): string {
 }
 
 export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
+export type {PhraseParameters, Phrase, MaybePhraseKey};

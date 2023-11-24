@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
@@ -29,6 +29,7 @@ const defaultProps = {
 };
 
 function AnonymousReportFooter(props) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.anonymousRoomFooter(props.isSmallSizeLayout)}>
             <View style={[styles.flexRow, styles.flexShrink1]}>
