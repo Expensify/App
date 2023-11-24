@@ -67,7 +67,7 @@ function MultipleAvatars({
     fallbackIcon,
     icons = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle = undefined,
+    secondAvatarStyle,
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,

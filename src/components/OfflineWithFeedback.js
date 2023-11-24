@@ -73,6 +73,25 @@ const defaultProps = {
     canDismissError: true,
 };
 
+/**
+ * This method applies the strikethrough to all the children passed recursively
+ * @param {Array} children
+ * @param {Object} styles
+ * @return {Array}
+ */
+function applyStrikeThrough(children, styles) {
+    return React.Children.map(children, (child) => {
+        if (!React.isValidElement(child)) {
+            return child;
+        }
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
+        if (child.props.children) {
+            props.children = applyStrikeThrough(child.props.children, styles);
+        }
+        return React.cloneElement(child, props);
+    });
+}
+
 function OfflineWithFeedback(props) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -90,29 +109,9 @@ function OfflineWithFeedback(props) {
     const hideChildren = props.shouldHideOnDelete && !isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 
-    /**
-     * This method applies the strikethrough to all the children passed recursively
-     * @param {Array} children
-     * @return {Array}
-     */
-    const applyStrikeThrough = useCallback(
-        (childrenToStyle) =>
-            React.Children.map(childrenToStyle, (child) => {
-                if (!React.isValidElement(child)) {
-                    return child;
-                }
-                const elementProps = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
-                if (child.props.children) {
-                    elementProps.children = applyStrikeThrough(child.props.children);
-                }
-                return React.cloneElement(child, elementProps);
-            }),
-        [styles],
-    );
-
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
-        children = applyStrikeThrough(children);
+        children = applyStrikeThrough(children, styles);
     }
     return (
         <View style={props.style}>

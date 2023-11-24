@@ -58,7 +58,7 @@ const defaultProps = {
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
-    listContainerStyles: [{flex: 1}],
+    listContainerStyles: undefined,
     listStyles: [],
     ...optionsSelectorDefaultProps,
 };
@@ -191,7 +191,13 @@ class BaseOptionsSelector extends Component {
 
     updateSearchValue(value) {
         this.setState({
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage:
+                value.length > this.props.maxLength
+                    ? this.props.translate('common.error.characterLimitExceedCounter', {
+                          length: value.length,
+                          limit: this.props.maxLength,
+                      })
+                    : '',
         });
 
         this.props.onChangeText(value);
@@ -393,6 +399,8 @@ class BaseOptionsSelector extends Component {
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
+        const listContainerStyles = this.props.listContainerStyles || [{flex: 1}];
+
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
@@ -449,7 +457,7 @@ class BaseOptionsSelector extends Component {
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 sectionHeaderStyle={this.props.sectionHeaderStyle}
-                listContainerStyles={this.props.listContainerStyles}
+                listContainerStyles={listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
