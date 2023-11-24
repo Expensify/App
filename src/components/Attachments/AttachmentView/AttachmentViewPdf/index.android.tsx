@@ -5,10 +5,9 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import styles from '@styles/styles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
-import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
+import AttachmentViewPdfProps from './types';
 
-function AttachmentViewPdf(props) {
-    const {onScaleChanged, ...restProps} = props;
+function AttachmentViewPdf({onScaleChanged, ...props}: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scaleRef = useSharedValue(1);
     const offsetX = useSharedValue(0);
@@ -22,8 +21,10 @@ function AttachmentViewPdf(props) {
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
                 if (Math.abs(evt.allTouches[0].absoluteX - offsetX.value) > Math.abs(evt.allTouches[0].absoluteY - offsetY.value) && scaleRef.value === 1) {
-                    attachmentCarouselPagerContext.shouldPagerScroll.value = true;
-                } else {
+                    if (attachmentCarouselPagerContext) {
+                        attachmentCarouselPagerContext.shouldPagerScroll.value = true;
+                    }
+                } else if (attachmentCarouselPagerContext) {
                     attachmentCarouselPagerContext.shouldPagerScroll.value = false;
                 }
             }
@@ -32,7 +33,7 @@ function AttachmentViewPdf(props) {
         });
 
     const updateScale = useCallback(
-        (scale) => {
+        (scale: number) => {
             scaleRef.value = scale;
         },
         [scaleRef],
@@ -41,7 +42,7 @@ function AttachmentViewPdf(props) {
     return (
         <View
             collapsable={false}
-            style={[styles.flex1]}
+            style={styles.flex1}
         >
             <GestureDetector gesture={Pan}>
                 <Animated.View
@@ -50,9 +51,9 @@ function AttachmentViewPdf(props) {
                 >
                     <BaseAttachmentViewPdf
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...restProps}
+                        {...props}
                         onScaleChanged={(scale) => {
-                            updateScale(scale);
+                            updateScale(scale ?? 0);
                             onScaleChanged();
                         }}
                     />
@@ -61,8 +62,5 @@ function AttachmentViewPdf(props) {
         </View>
     );
 }
-
-AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
 
 export default memo(AttachmentViewPdf);

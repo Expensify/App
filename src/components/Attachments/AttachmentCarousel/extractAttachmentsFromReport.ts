@@ -1,22 +1,25 @@
 import {Parser as HtmlParser} from 'htmlparser2';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
+import {OnyxEntry} from 'react-native-onyx';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
-/**
- * Constructs the initial component state from report actions
- * @param {Object} parentReportAction
- * @param {Object} reportActions
- * @param {Object} transaction
- * @returns {Array}
- */
-function extractAttachmentsFromReport(parentReportAction, reportActions, transaction) {
-    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
-    const attachments = [];
+type Attachment = {
+    reportActionID?: string;
+    source: string;
+    isAuthTokenRequired: boolean;
+    file: {name: string};
+    isReceipt: boolean;
+    hasBeenFlagged?: boolean;
+    transactionID?: string;
+};
+
+function extractAttachmentsFromReport(parentReportAction: OnyxEntry<ReportAction>, reportActions: OnyxEntry<ReportActions>, transaction: OnyxEntry<Transaction>) {
+    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
+    const attachments: Attachment[] = [];
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
@@ -39,26 +42,26 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
         },
     });
 
-    _.forEach(actions, (action, key) => {
+    actions.forEach((action, key) => {
         if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
             return;
         }
 
         // We're handling receipts differently here because receipt images are not
         // part of the report action message, the images are constructed client-side
-        if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transactionID = lodashGet(action, ['originalMessage', 'IOUTransactionID']);
+        if (ReportActionsUtils.isMoneyRequestAction(action) && action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            const transactionID = action?.originalMessage?.IOUTransactionID;
             if (!transactionID) {
                 return;
             }
 
-            if (TransactionUtils.hasReceipt(transaction)) {
+            if (TransactionUtils.hasReceipt(transaction) && transaction) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-                const isLocalFile = typeof image === 'string' && _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => image.startsWith(prefix));
+                const isLocalFile = typeof image === 'string' && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => image.startsWith(prefix));
                 attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(image),
+                    source: tryResolveUrlFromApiRoot(image as string),
                     isAuthTokenRequired: !isLocalFile,
-                    file: {name: transaction.filename},
+                    file: {name: transaction.filename ?? ''},
                     isReceipt: true,
                     transactionID,
                 });
@@ -66,9 +69,9 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
             }
         }
 
-        const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
+        const decision = action?.message?.[0].moderationDecision?.decision ?? '';
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = (action?.message?.[0].html ?? '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action?.reportActionID}"/>`);
         htmlParser.write(html);
     });
     htmlParser.end();

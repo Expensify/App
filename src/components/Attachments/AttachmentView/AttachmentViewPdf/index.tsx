@@ -1,8 +1,8 @@
 import React, {memo} from 'react';
 import PDFView from '@components/PDFView';
-import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
+import AttachmentViewPdfProps from './types';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
+function AttachmentViewPdf({file = {name: ''}, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}: AttachmentViewPdfProps) {
     return (
         <PDFView
             onPress={onPress}
@@ -17,8 +17,5 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScal
         />
     );
 }
-
-AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
 
 export default memo(AttachmentViewPdf);

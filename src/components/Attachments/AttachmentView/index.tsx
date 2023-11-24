@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator, ImageSourcePropType, ScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
@@ -21,77 +22,73 @@ import useThemeStyles from '@styles/useThemeStyles';
 import cursor from '@styles/utilities/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
-import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
+import AttachmentProps from './types';
 
-const propTypes = {
-    ...attachmentViewPropTypes,
-    ...withLocalizePropTypes,
+type AttachmentViewOnyxProps = {
+    /** The transaction currently being looked at */
+    transaction: OnyxEntry<Transaction>;
+};
 
+type AttachmentViewProps = {
     /** Flag to show/hide download icon */
-    shouldShowDownloadIcon: PropTypes.bool,
+    shouldShowDownloadIcon?: boolean;
 
     /** Flag to show the loading indicator */
-    shouldShowLoadingSpinnerIcon: PropTypes.bool,
+    shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard: PropTypes.func,
+    onToggleKeyboard?: () => void;
 
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Denotes whether it is a workspace avatar or not */
-    isWorkspaceAvatar: PropTypes.bool,
+    isWorkspaceAvatar?: boolean;
 
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: PropTypes.string,
-};
+    transactionID?: string;
 
-const defaultProps = {
-    ...attachmentViewDefaultProps,
-    shouldShowDownloadIcon: false,
-    shouldShowLoadingSpinnerIcon: false,
-    onToggleKeyboard: () => {},
-    containerStyles: [],
-    isWorkspaceAvatar: false,
-    transactionID: '',
-};
+    fallbackSource?: string | ImageSourcePropType;
+} & AttachmentProps &
+    AttachmentViewOnyxProps;
 
 function AttachmentView({
     source,
-    file,
-    isAuthTokenRequired,
+    file = {name: ''} as File,
+    isAuthTokenRequired = false,
     isUsedInCarousel,
     onPress,
-    shouldShowLoadingSpinnerIcon,
-    shouldShowDownloadIcon,
+    shouldShowLoadingSpinnerIcon = false,
+    shouldShowDownloadIcon = false,
     containerStyles,
-    onScaleChanged,
-    onToggleKeyboard,
-    translate,
-    isFocused,
-    isWorkspaceAvatar,
+    onScaleChanged = () => {},
+    onToggleKeyboard = () => {},
+    isFocused = false,
+    isWorkspaceAvatar = false,
     fallbackSource,
     transaction,
-    isUsedInAttachmentModal,
-}) {
+    isUsedInAttachmentModal = false,
+}: AttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const {translate} = useLocalize();
 
     useNetwork({onReconnect: () => setImageError(false)});
 
     // Handles case where source is a component (ex: SVG)
-    if (_.isFunction(source)) {
+    if (typeof source === 'function') {
         let iconFillColor = '';
-        let additionalStyles = [];
+        let additionalStyles: StyleProp<ViewStyle> = [];
         if (isWorkspaceAvatar) {
             const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
-            iconFillColor = defaultWorkspaceAvatarColor.fill;
+            iconFillColor = defaultWorkspaceAvatarColor.fill ?? '';
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
@@ -113,7 +110,7 @@ function AttachmentView({
                     style={styles.w100}
                     contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
                 >
-                    <EReceipt transactionID={transaction.transactionID} />
+                    <EReceipt transactionID={transaction?.transactionID ?? ''} />
                 </ScrollView>
             </View>
         );
@@ -121,7 +118,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         // We need the following View component on android native
@@ -175,7 +172,7 @@ function AttachmentView({
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, ...containerStyles]}>
+        <View style={[styles.defaultAttachmentView, containerStyles]}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
@@ -202,14 +199,11 @@ function AttachmentView({
     );
 }
 
-AttachmentView.propTypes = propTypes;
-AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
 export default compose(
     memo,
-    withLocalize,
-    withOnyx({
+    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },

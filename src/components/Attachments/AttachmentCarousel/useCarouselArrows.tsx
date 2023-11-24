@@ -5,12 +5,12 @@ import CONST from '@src/CONST';
 function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const [shouldShowArrows, setShouldShowArrowsInternal] = useState(canUseTouchScreen);
-    const autoHideArrowTimeout = useRef(null);
+    const autoHideArrowTimeout = useRef<NodeJS.Timeout | null>(null);
 
     /**
      * Cancels the automatic hiding of the arrows.
      */
-    const cancelAutoHideArrows = useCallback(() => clearTimeout(autoHideArrowTimeout.current), []);
+    const cancelAutoHideArrows = useCallback(() => clearTimeout(autoHideArrowTimeout.current ?? undefined), []);
 
     /**
      * Automatically hide the arrows if there is no interaction for 3 seconds.
