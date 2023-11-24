@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {memo} from 'react';
-import {View} from 'react-native';
-import compose from '@libs/compose';
+import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -13,54 +12,41 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
-const propTypes = {
+type BannerProps = {
     /** Text to display in the banner. */
-    text: PropTypes.string.isRequired,
+    text: string;
 
     /** Should this component render the left-aligned exclamation icon? */
-    shouldShowIcon: PropTypes.bool,
+    shouldShowIcon?: boolean;
 
     /** Should this component render a close button? */
-    shouldShowCloseButton: PropTypes.bool,
+    shouldShowCloseButton?: boolean;
 
     /** Should this component render the text as HTML? */
-    shouldRenderHTML: PropTypes.bool,
+    shouldRenderHTML?: boolean;
 
     /** Callback called when the close button is pressed */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 
     /** Callback called when the message is pressed */
-    onPress: PropTypes.func,
+    onPress?: () => void;
 
     /** Styles to be assigned to the Banner container */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Styles to be assigned to the Banner text */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
+    textStyles?: StyleProp<TextStyle>;
 };
 
-const defaultProps = {
-    shouldRenderHTML: false,
-    shouldShowIcon: false,
-    shouldShowCloseButton: false,
-    onClose: undefined,
-    onPress: undefined,
-    containerStyles: [],
-    textStyles: [],
-};
-
-function Banner(props) {
+function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     return (
         <Hoverable>
             {(isHovered) => {
-                const isClickable = props.onClose || props.onPress;
+                const isClickable = onClose ?? onPress;
                 const shouldHighlight = isClickable && isHovered;
                 return (
                     <View
@@ -71,11 +57,11 @@ function Banner(props) {
                             styles.borderRadiusNormal,
                             shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
                             styles.breakAll,
-                            ...props.containerStyles,
+                            containerStyles,
                         ]}
                     >
                         <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
-                            {props.shouldShowIcon && (
+                            {shouldShowIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={Expensicons.Exclamation}
@@ -83,24 +69,24 @@ function Banner(props) {
                                     />
                                 </View>
                             )}
-                            {props.shouldRenderHTML ? (
-                                <RenderHTML html={props.text} />
+                            {shouldRenderHTML ? (
+                                <RenderHTML html={text} />
                             ) : (
                                 <Text
-                                    style={[...props.textStyles]}
-                                    onPress={props.onPress}
+                                    style={textStyles}
+                                    onPress={onPress}
                                     suppressHighlighting
                                 >
-                                    {props.text}
+                                    {text}
                                 </Text>
                             )}
                         </View>
-                        {props.shouldShowCloseButton && (
-                            <Tooltip text={props.translate('common.close')}>
+                        {shouldShowCloseButton && !!onClose && (
+                            <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
-                                    onPress={props.onClose}
+                                    onPress={onClose}
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                    accessibilityLabel={props.translate('common.close')}
+                                    accessibilityLabel={translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />
                                 </PressableWithFeedback>
@@ -113,8 +99,6 @@ function Banner(props) {
     );
 }
 
-Banner.propTypes = propTypes;
-Banner.defaultProps = defaultProps;
 Banner.displayName = 'Banner';
 
-export default compose(withLocalize, memo)(Banner);
+export default memo(Banner);
