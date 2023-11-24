@@ -22,12 +22,8 @@ function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN,
     const styles = useThemeStyles();
 
     const animationStyle = useMemo(() => {
-        let transitionValue;
-        if (direction === 'in') {
-            transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
-        } else {
-            transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
-        }
+        const transitionValue = direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+
         return styles.makeSlideInTranslation('translateX', transitionValue);
     }, [direction, styles]);
 
