@@ -25,7 +25,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             fontWeightTitle: fontWeightBold,
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-            colorContentTitle: themeColors.text,\
+            colorContentTitle: themeColors.text,
             colorContentSubtitle: themeColors.text,
             colorContentBody: themeColors.text,
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
