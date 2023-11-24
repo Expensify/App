@@ -6,6 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -27,8 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The accountID of the person */
