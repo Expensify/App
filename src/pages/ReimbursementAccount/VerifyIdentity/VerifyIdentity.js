@@ -10,10 +10,10 @@ import useSubStep from '@hooks/useSubStep';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import OnfidoInitialize from '@pages/ReimbursementAccount/VerifyIdentity/substeps/OnfidoInitialize';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import OnfidoInitialize from './substeps/OnfidoInitialize';
 
 const propTypes = {
     /** Reimbursement account from ONYX */

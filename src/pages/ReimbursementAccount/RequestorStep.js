@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import VerifyIdentity from '@pages/ReimbursementAccount/VerifyIdentity/VerifyIdentity';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
+import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
