@@ -78,13 +78,11 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
                           {
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
-                              onSelected: () => {
-                                  onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-                              },
+                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT),
                           },
                       ]
                     : []),
-                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0))
+                ...(ReportUtils.isExpenseReport(iouReport)
                     ? [
                           {
                               text: translate('common.businessBankAccount'),
