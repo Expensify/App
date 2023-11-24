@@ -553,6 +553,10 @@ export default {
         gap: 20,
     },
 
+    gap6: {
+        gap: 24,
+    },
+
     gap7: {
         gap: 28,
     },

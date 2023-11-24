@@ -33,7 +33,7 @@ function Search({ onPress, prompt, tooltip, style }: SearchProps) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonSearchLabel')}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph7, styles.alignItemsCenter, styles.searchPressableContainer, style]}
+                style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchPressableContainer, style]}
                 onPress={onPress}
             >
                 <Icon src={Expensicons.MagnifyingGlass} width={variables.iconSizeSmall} height={variables.iconSizeSmall} />

@@ -3,14 +3,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
-import LogoComponent from '@assets/images/expensify-wordmark.svg';
-import Header from '@components/Header';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -22,12 +16,11 @@ import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import variables from '@styles/variables';
 import * as App from '@userActions/App';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Search from '@components/Search';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -151,30 +144,14 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View
-                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
+                style={[styles.gap6, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                 dataSet={{dragArea: true}}
             >
-                <Header
-                    title={
-                        <LogoComponent
-                            fill={theme.text}
-                            width={variables.lhnLogoWidth}
-                            height={variables.lhnLogoHeight}
-                        />
-                    }
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    shouldShowEnvironmentBadge
+                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
+                <Search
+                    prompt='Search for something...'
+                    onPress={() => alert('Roger that')}
                 />
-                <Tooltip text={translate('common.search')}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={Session.checkIfActionIsAllowed(showSearchPage)}
-                    >
-                        <Icon src={Expensicons.MagnifyingGlass} />
-                    </PressableWithoutFeedback>
-                </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
             <View style={[styles.pRelative, styles.flex1]}>
