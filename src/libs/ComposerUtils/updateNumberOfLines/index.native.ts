@@ -1,6 +1,5 @@
 import getNumberOfLines from '@libs/ComposerUtils/getNumberOfLines';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-// import styles from '@styles/styles';
 import UpdateNumberOfLines from './types';
 
 /**
