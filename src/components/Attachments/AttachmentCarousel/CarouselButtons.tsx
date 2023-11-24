@@ -10,36 +10,23 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import {Attachment} from './CarouselItem';
 
-const propTypes = {
-    /** Where the arrows should be visible */
-    shouldShowArrows: PropTypes.bool.isRequired,
-
-    /** The current page index */
-    page: PropTypes.number.isRequired,
-
-    /** The attachments from the carousel */
-    attachments: AttachmentCarouselViewPropTypes.attachmentsPropType.isRequired,
-
-    /** Callback to go one page back */
-    onBack: PropTypes.func.isRequired,
-    /** Callback to go one page forward */
-    onForward: PropTypes.func.isRequired,
-
-    autoHideArrow: PropTypes.func,
-    cancelAutoHideArrow: PropTypes.func,
+type CarouselButtonsProps = {
+    shouldShowArrows: boolean;
+    page: number;
+    attachments: Attachment[];
+    onBack: () => void;
+    onForward: () => void;
+    autoHideArrow?: () => void;
+    cancelAutoHideArrow?: () => void;
 };
 
-const defaultProps = {
-    autoHideArrow: () => {},
-    cancelAutoHideArrow: () => {},
-};
-
-function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}) {
+function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow = () => {}, autoHideArrow = () => {}}: CarouselButtonsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isBackDisabled = page === 0;
-    const isForwardDisabled = page === _.size(attachments) - 1;
+    const isForwardDisabled = page === attachments.length - 1;
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -82,8 +69,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     ) : null;
 }
 
-CarouselButtons.propTypes = propTypes;
-CarouselButtons.defaultProps = defaultProps;
 CarouselButtons.displayName = 'CarouselButtons';
 
 export default CarouselButtons;

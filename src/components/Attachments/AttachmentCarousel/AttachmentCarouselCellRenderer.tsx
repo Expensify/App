@@ -1,19 +1,14 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {PixelRatio, View} from 'react-native';
+import {PixelRatio, StyleProp, View, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useThemeStyles from '@styles/useThemeStyles';
 
-const propTypes = {
+type AttachmentCarouselCellRendererProps = {
     /** Cell Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: StyleProp<ViewStyle>;
 };
 
-const defaultProps = {
-    style: [],
-};
-
-function AttachmentCarouselCellRenderer(props) {
+function AttachmentCarouselCellRenderer(props: AttachmentCarouselCellRendererProps) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
@@ -28,8 +23,6 @@ function AttachmentCarouselCellRenderer(props) {
     );
 }
 
-AttachmentCarouselCellRenderer.propTypes = propTypes;
-AttachmentCarouselCellRenderer.defaultProps = defaultProps;
 AttachmentCarouselCellRenderer.displayName = 'AttachmentCarouselCellRenderer';
 
 export default React.memo(AttachmentCarouselCellRenderer);

@@ -6,16 +6,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-
-type Attachment = {
-    reportActionID?: string;
-    source: string;
-    isAuthTokenRequired: boolean;
-    file: {name: string};
-    isReceipt: boolean;
-    hasBeenFlagged?: boolean;
-    transactionID?: string;
-};
+import {Attachment} from './CarouselItem';
 
 function extractAttachmentsFromReport(parentReportAction: OnyxEntry<ReportAction>, reportActions: OnyxEntry<ReportActions>, transaction: OnyxEntry<Transaction>) {
     const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];

@@ -7,7 +7,7 @@ type AttachmentProps = {
     isFocused?: boolean;
     isUsedInCarousel?: boolean;
     onPress?: () => void;
-    onScaleChanged: (scale?: number) => void;
+    onScaleChanged?: (scale?: number) => void;
     isUsedInAttachmentModal?: boolean;
 };
 

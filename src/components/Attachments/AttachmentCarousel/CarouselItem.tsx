@@ -1,8 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
-import {View} from 'react-native';
+import {Role, StyleProp, View, ViewStyle} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -12,50 +10,34 @@ import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContex
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type Attachment = {
+    reportActionID?: string;
+    source: string;
+    isAuthTokenRequired: boolean;
+    file: {name: string};
+    isReceipt: boolean;
+    hasBeenFlagged?: boolean;
+    transactionID?: string;
+};
+
+type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
-    item: PropTypes.shape({
-        /** Report action ID of the attachment */
-        reportActionID: PropTypes.string,
-
-        /** Whether source URL requires authentication */
-        isAuthTokenRequired: PropTypes.bool,
-
-        /** URL to full-sized attachment or SVG function */
-        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-        /** Additional information about the attachment file */
-        file: PropTypes.shape({
-            /** File name of the attachment */
-            name: PropTypes.string,
-        }),
-
-        /** Whether the attachment has been flagged */
-        hasBeenFlagged: PropTypes.bool,
-
-        /** The id of the transaction related to the attachment */
-        transactionID: PropTypes.string,
-    }).isRequired,
+    item: Attachment;
 
     /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+    isFocused: boolean;
 
     /** onPress callback */
-    onPress: PropTypes.func,
+    onPress?: () => void;
 };
 
-const defaultProps = {
-    onPress: undefined,
-};
-
-function CarouselItem({item, isFocused, onPress}) {
+function CarouselItem({item, isFocused, onPress = undefined}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState<boolean>(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
 
-    const renderButton = (style) => (
+    const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
             small
             style={style}
@@ -81,7 +63,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON as Role}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}
@@ -114,8 +96,7 @@ function CarouselItem({item, isFocused, onPress}) {
     );
 }
 
-CarouselItem.propTypes = propTypes;
-CarouselItem.defaultProps = defaultProps;
 CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;
+export type {Attachment};

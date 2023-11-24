@@ -17,7 +17,7 @@ import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
+import CarouselItem from './CarouselItem.tsx';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import useCarouselArrows from './useCarouselArrows';
 

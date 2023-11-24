@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
+import CarouselItem from './CarouselItem.tsx';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
