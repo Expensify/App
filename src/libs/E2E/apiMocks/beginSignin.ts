@@ -17,11 +17,6 @@ const beginSignin = ({email}: SigninParams): Response => ({
                 validated: true,
             },
         },
-        {
-            onyxMethod: 'set',
-            key: 'betas',
-            value: ['passwordless'],
-        },
     ],
     jsonCode: 200,
     requestID: '783e54ef4b38cff5-SJC',
