@@ -35,7 +35,6 @@ type MessageActionItemChanelLogText = {
 type MessageActionItemChanelLogUserMention = {
     readonly kind: 'userMention';
     accountID?: number;
-    isComma?: boolean;
 } & MessageActionItemChanelLogBase;
 
 type MessageActionItemChanelLogRoomReference = {
@@ -712,12 +711,17 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
         );
     } else {
         mentions.forEach((mention) => {
-            messageItems.push({
-                kind: 'userMention',
-                ...mention,
-                content: `${mention.content}, `,
-                isComma: true,
-            });
+            messageItems.push(
+                {
+                    kind: 'userMention',
+                    ...mention,
+                    content: `${mention.content}`,
+                },
+                {
+                    kind: 'text',
+                    content: `, `,
+                },
+            );
         });
 
         messageItems.push(
@@ -760,7 +764,7 @@ function getActionItemFragmentChanelLogFragment(reportAction: OnyxEntry<ReportAc
     messageItems.forEach((messageItem) => {
         switch (messageItem.kind) {
             case 'userMention':
-                html += `<mention-user accountID=${messageItem.accountID}></mention-user>${messageItem.isComma ? ', ' : ''}`;
+                html += `<mention-user accountID=${messageItem.accountID}></mention-user>`;
                 break;
             case 'roomReference':
                 html += `<a href="${environmentURL}/r/${messageItem.roomID}" target="_blank">${messageItem.roomName}</a>`;
