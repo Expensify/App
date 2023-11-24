@@ -1,23 +1,17 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
-const propTypes = {
-    ...withLocalizePropTypes,
+type ExpiredValidateCodeModalProps = WithLocalizeProps;
 
-    /** Whether the 2FA is needed to get fully authenticated. */
-    is2FARequired: PropTypes.bool.isRequired,
-};
-
-function JustSignedInModal(props) {
+function ExpiredValidateCodeModal(props: ExpiredValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (
@@ -26,17 +20,13 @@ function JustSignedInModal(props) {
                 <View style={styles.mb2}>
                     <Icon
                         width={variables.modalTopIconWidth}
-                        height={props.is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight}
-                        src={props.is2FARequired ? Illustrations.SafeBlue : Illustrations.Abracadabra}
+                        height={variables.modalTopIconHeight}
+                        src={Illustrations.ToddBehindCloud}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                    {props.translate(props.is2FARequired ? 'validateCodeModal.tfaRequiredTitle' : 'validateCodeModal.successfulSignInTitle')}
-                </Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
-                    <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                        {props.translate(props.is2FARequired ? 'validateCodeModal.tfaRequiredDescription' : 'validateCodeModal.successfulSignInDescription')}
-                    </Text>
+                    <Text style={styles.textAlignCenter}>{props.translate('validateCodeModal.expiredCodeDescription')}</Text>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
@@ -51,7 +41,5 @@ function JustSignedInModal(props) {
     );
 }
 
-JustSignedInModal.propTypes = propTypes;
-JustSignedInModal.displayName = 'JustSignedInModal';
-
-export default withLocalize(JustSignedInModal);
+ExpiredValidateCodeModal.displayName = 'ExpiredValidateCodeModal';
+export default withLocalize(ExpiredValidateCodeModal);
