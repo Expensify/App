@@ -535,7 +535,7 @@ function ComposerWithSuggestions({
 
     return (
         <>
-            <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+            <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}

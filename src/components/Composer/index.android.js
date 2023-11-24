@@ -1,10 +1,11 @@
+import {useTheme} from '@storybook/theming/dist/ts3.9/_modules/@emotion-react-types-theming';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import themeColors from '@styles/themes/default';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -65,6 +66,8 @@ const defaultProps = {
 
 function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
+    const theme = useTheme();
+    const styles = useThemeStyles();
 
     /**
      * Set the TextInput Ref
@@ -110,9 +113,9 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
     return (
         <RNTextInput
             autoComplete="off"
-            placeholderTextColor={themeColors.placeholderText}
+            placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
             // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)

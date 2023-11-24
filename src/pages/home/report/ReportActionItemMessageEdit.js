@@ -397,7 +397,7 @@ function ReportActionItemMessageEdit(props) {
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+                    <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
