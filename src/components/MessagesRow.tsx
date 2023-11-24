@@ -9,43 +9,27 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-// const propTypes = {
-//     /** The messages to display */
-//     messages: PropTypes.objectOf(
-//         PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
-//     ),
-
-//     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
-//     type: PropTypes.oneOf(['error', 'success']).isRequired,
-
-//     /** A function to run when the X button next to the message is clicked */
-//     onClose: PropTypes.func,
-
-//     /** Additional style object for the container */
-//     containerStyles: stylePropTypes,
-
-//     /** Whether we can dismiss the messages */
-//     canDismiss: PropTypes.bool,
-// };
-
-// const defaultProps = {
-//     messages: {},
-//     onClose: () => {},
-//     containerStyles: [],
-//     canDismiss: true,
-// };
-
 type MessagesRowProps = {
+    /** The messages to display */
     messages: Record<string, string>;
+
+    /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
-    onClose: () => void;
-    containerStyles: StyleProp<ViewStyle>;
-    canDismiss: boolean;
+
+    /** A function to run when the X button next to the message is clicked */
+    onClose?: () => void;
+
+    /** Additional style object for the container */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether we can dismiss the messages */
+    canDismiss?: boolean;
 };
 
 function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     if (Object.keys(messages).length === 0) {
         return null;
     }
@@ -53,7 +37,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
-                style={[styles.flex1]}
+                style={styles.flex1}
                 messages={messages}
                 type={type}
             />

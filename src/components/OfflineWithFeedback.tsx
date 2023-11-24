@@ -57,20 +57,24 @@ type OfflineWithFeedbackProps = {
     canDismissError?: boolean;
 };
 
+type StrikethroughProps = {style: Array<ViewStyle | TextStyle | ImageStyle>; children?: React.ReactNode};
 /**
  * This method applies the strikethrough to all the children passed recursively
  */
-function applyStrikeThrough(children: React.ReactNode) {
+function applyStrikeThrough(children: React.ReactNode): React.ReactNode {
     return React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) {
             return child;
         }
-        const props: {style: Array<ViewStyle | TextStyle | ImageStyle>; children?: React.ReactNode} = {
+
+        const props: StrikethroughProps = {
             style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
         };
+
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
         }
+
         return React.cloneElement(child, props);
     });
 }
@@ -78,8 +82,8 @@ function applyStrikeThrough(children: React.ReactNode) {
 function OfflineWithFeedback({
     pendingAction = null,
     canDismissError = true,
-    contentContainerStyle = [],
-    errorRowStyles = [],
+    contentContainerStyle,
+    errorRowStyles,
     errors = null,
     needsOffscreenAlphaCompositing = false,
     onClose = () => {},
@@ -87,7 +91,7 @@ function OfflineWithFeedback({
     shouldDisableStrikeThrough = false,
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
-    style = [],
+    style,
     ...props
 }: OfflineWithFeedbackProps) {
     const {isOffline} = useNetwork();
