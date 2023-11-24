@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 import LogoWordmark from '@assets/images/expensify-wordmark.svg';
@@ -15,17 +16,21 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import AppDownloadLinksView from '@pages/settings/AppDownloadLinksView';
 import ErrorBodyText from './ErrorBodyText';
 
 const propTypes = {
+    /** Error object handled by the boundary */
+    error: PropTypes.instanceOf(Error).isRequired,
+
     ...withLocalizePropTypes,
 };
 
-function GenericErrorPage({translate}) {
+function GenericErrorPage({translate, error}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {resetBoundary} = useErrorBoundary();
-
+    const upgradeRequired = error.message === CONST.ERROR.UPGRADE_REQUIRED;
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
@@ -34,46 +39,50 @@ function GenericErrorPage({translate}) {
                         <View>
                             <View style={styles.mb5}>
                                 <Icon
-                                    src={Expensicons.Bug}
+                                    src={upgradeRequired ? Expensicons.Gear : Expensicons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={theme.iconSuccessFill}
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
+                                <Text style={[styles.textHeadline]}>{upgradeRequired ? 'Upgrade required. Get the latest version now!' : translate('genericErrorPage.title')}</Text>
                             </View>
-                            <View style={styles.mb5}>
-                                <ErrorBodyText />
-                                <Text>
-                                    {`${translate('genericErrorPage.body.helpTextConcierge')} `}
-                                    <TextLink
-                                        href={`mailto:${CONST.EMAIL.CONCIERGE}`}
-                                        style={[styles.link]}
-                                    >
-                                        {CONST.EMAIL.CONCIERGE}
-                                    </TextLink>
-                                </Text>
-                            </View>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow]}>
-                                    <Button
-                                        success
-                                        medium
-                                        onPress={resetBoundary}
-                                        text={translate('genericErrorPage.refresh')}
-                                        style={styles.mr3}
-                                    />
-                                    <Button
-                                        medium
-                                        onPress={() => {
-                                            Session.signOutAndRedirectToSignIn();
-                                            resetBoundary();
-                                        }}
-                                        text={translate('initialSettingsPage.signOut')}
-                                    />
-                                </View>
-                            </View>
+                            {!upgradeRequired ? (
+                                <>
+                                    <View style={styles.mb5}>
+                                        <ErrorBodyText />
+                                        <Text>
+                                            {`${translate('genericErrorPage.body.helpTextConcierge')} `}
+                                            <TextLink
+                                                href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                                                style={[styles.link]}
+                                            >
+                                                {CONST.EMAIL.CONCIERGE}
+                                            </TextLink>
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flexRow]}>
+                                        <View style={[styles.flex1, styles.flexRow]}>
+                                            <Button
+                                                success
+                                                medium
+                                                onPress={resetBoundary}
+                                                text={translate('genericErrorPage.refresh')}
+                                                style={styles.mr3}
+                                            />
+                                            <Button
+                                                medium
+                                                onPress={() => {
+                                                    Session.signOutAndRedirectToSignIn();
+                                                    resetBoundary();
+                                                }}
+                                                text={translate('initialSettingsPage.signOut')}
+                                            />
+                                        </View>
+                                    </View>
+                                </>
+                            ) : <AppDownloadLinksView />}
                         </View>
                     </View>
                     <View styles={styles.alignSelfEnd}>

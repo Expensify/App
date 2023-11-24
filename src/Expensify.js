@@ -36,6 +36,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from './CONST';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -76,6 +77,9 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
+    /** True when the user must update to the latest minimum version of the app */
+    upgradeRequired: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -88,6 +92,7 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
+    upgradeRequired: false,
 };
 
 const SplashScreenHiddenContext = React.createContext({});
@@ -201,6 +206,10 @@ function Expensify(props) {
         return null;
     }
 
+    if (props.upgradeRequired) {
+        throw new Error(CONST.ERROR.UPGRADE_REQUIRED);
+    }
+
     return (
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
@@ -261,6 +270,10 @@ export default compose(
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
+        upgradeRequired: {
+            key: ONYXKEYS.UPGRADE_REQUIRED,
+            initWithStoredValues: false,
+        }
     }),
 )(Expensify);
 

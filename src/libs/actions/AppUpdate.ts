@@ -9,4 +9,8 @@ function setIsAppInBeta(isBeta: boolean) {
     Onyx.set(ONYXKEYS.IS_BETA, isBeta);
 }
 
-export {triggerUpdateAvailable, setIsAppInBeta};
+function triggerUpgradeRequired() {
+    Onyx.set(ONYXKEYS.UPGRADE_REQUIRED, true);
+}
+
+export {triggerUpdateAvailable, setIsAppInBeta, triggerUpgradeRequired};
