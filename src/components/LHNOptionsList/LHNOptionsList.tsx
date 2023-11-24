@@ -1,5 +1,6 @@
+import {FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import compose from '@libs/compose';
@@ -31,26 +32,6 @@ function LHNOptionsList({
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
 
-    /**
-     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
-     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
-     * lists.
-     *
-     * @param itemData - This is the same as the data we pass into the component
-     * @param index the current item's index in the set of data
-     */
-    const getItemLayout = useCallback(
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        (_, index: number) => {
-            const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-            return {
-                length: optionHeight,
-                offset: index * optionHeight,
-                index,
-            };
-        },
-        [optionMode],
-    );
     /**
      * Function which renders a row in the list
      */
@@ -88,19 +69,17 @@ function LHNOptionsList({
 
     return (
         <View style={style ?? styles.flex1}>
-            <FlatList
+            <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={contentContainerStyles}
-                showsVerticalScrollIndicator={false}
                 data={data}
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
-                getItemLayout={getItemLayout}
-                initialNumToRender={20}
-                maxToRenderPerBatch={5}
-                windowSize={5}
+                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                extraData={[currentReportID]}
+                showsVerticalScrollIndicator={false}
             />
         </View>
     );

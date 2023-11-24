@@ -425,7 +425,7 @@ function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number)
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: ColorValue): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -435,7 +435,7 @@ function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
 /**
  * Returns a style with the specified backgroundColor
  */
-function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
+function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     return {
         backgroundColor,
     };

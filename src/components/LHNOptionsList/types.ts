@@ -85,13 +85,12 @@ type OptionRowLHNDataProps = {
 
 type OptionRowLHNProps = {
     hoverStyle?: StyleProp<ViewStyle>;
-    betas?: Beta[];
     reportID: string;
     isFocused?: boolean;
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<Element>) => void;
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
     style?: ViewStyle | ViewStyle[];
-    optionItem?: OptionData;
+    optionItem?: OptionData | null;
 };
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps};
