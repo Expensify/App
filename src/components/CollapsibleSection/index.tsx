@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Collapsible from './Collapsible';
@@ -15,8 +15,8 @@ type CollapsibleSectionProps = ChildrenProps & {
 };
 
 function CollapsibleSection({title, children}: CollapsibleSectionProps) {
+    const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
-
     /**
      * Expands/collapses the section
      */
