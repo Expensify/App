@@ -166,7 +166,8 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan &&
         transaction?.receipt &&
         Object.keys(transaction.receipt).length > 0 &&
-        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN
+        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN &&
+        updatedTransaction.receipt
     ) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -351,7 +352,7 @@ function isPosted(transaction: Transaction): boolean {
 }
 
 function isReceiptBeingScanned(transaction: Transaction): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction.receipt.state);
+    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
 /**
