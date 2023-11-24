@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import _ from 'underscore';
@@ -9,8 +9,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import {ScrollContext} from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** A forwarded ref */
@@ -97,19 +97,16 @@ const defaultProps = {
     value: undefined,
     placeholder: {},
     size: 'normal',
-    icon: (size) => (
-        <Icon
-            src={Expensicons.DownArrow}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
-        />
-    ),
+    icon: undefined,
     shouldFocusPicker: false,
     onBlur: () => {},
     additionalPickerEvents: () => {},
 };
 
 function BasePicker(props) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -124,7 +121,7 @@ function BasePicker(props) {
         ? {}
         : {
               ...props.placeholder,
-              color: themeColors.pickerOptionsTextColor,
+              color: theme.pickerOptionsTextColor,
           };
 
     useEffect(() => {
@@ -163,6 +160,25 @@ function BasePicker(props) {
     const disableHighlight = () => {
         setIsHighlighted(false);
     };
+
+    const iconToRender = useMemo(
+        () =>
+            props.icon
+                ? () => props.icon(props.size)
+                : () => (
+                      <Icon
+                          src={Expensicons.DownArrow}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...(props.size === 'small'
+                              ? {
+                                    width: styles.pickerSmall().icon.width,
+                                    height: styles.pickerSmall().icon.height,
+                                }
+                              : {})}
+                      />
+                  ),
+        [props.icon, props.size, styles],
+    );
 
     useImperativeHandle(props.forwardedRef, () => ({
         /**
@@ -236,12 +252,12 @@ function BasePicker(props) {
                 <RNPickerSelect
                     onValueChange={onInputChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={_.map(props.items, (item) => ({...item, color: themeColors.pickerOptionsTextColor}))}
+                    items={_.map(props.items, (item) => ({...item, color: theme.pickerOptionsTextColor}))}
                     style={props.size === 'normal' ? styles.picker(props.isDisabled, props.backgroundColor) : styles.pickerSmall(props.backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={placeholder}
                     value={props.value}
-                    Icon={() => props.icon(props.size)}
+                    Icon={iconToRender}
                     disabled={props.isDisabled}
                     fixAndroidTouchableBug
                     onOpen={enableHighlight}

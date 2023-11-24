@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +77,7 @@ const validate = (values) => {
  */
 const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultValues = useMemo(
         () => ({
