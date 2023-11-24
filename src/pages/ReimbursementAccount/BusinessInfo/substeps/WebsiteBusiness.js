@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
 import Text from '@components/Text';
@@ -12,6 +12,7 @@ import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -60,6 +61,10 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const defaultWebsiteExample = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
     const defaultCompanyWebsite = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyWebsiteKey, defaultWebsiteExample);
+
+    useEffect(() => {
+        BankAccounts.addBusinessWebstieForDraft(defaultCompanyWebsite);
+    }, [defaultCompanyWebsite]);
 
     return (
         <Form

@@ -125,7 +125,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
-                    startStep={2}
+                    startStep={1}
                     stepNames={STEP_NAMES}
                 />
             </View>

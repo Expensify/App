@@ -55,8 +55,8 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                     <TextInput
                         inputID={personalInfoStepKey.FIRST_NAME}
                         label={translate('personalInfoStep.legalFirstName')}
-                        accessibilityLabel={translate('personalInfoStep.legalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('personalInfoStep.legalFirstName')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={defaultValues.firstName}
                         shouldSaveDraft
                     />
@@ -65,8 +65,8 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                     <TextInput
                         inputID={personalInfoStepKey.LAST_NAME}
                         label={translate('personalInfoStep.legalLastName')}
-                        accessibilityLabel={translate('personalInfoStep.legalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('personalInfoStep.legalLastName')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={defaultValues.lastName}
                         shouldSaveDraft
                     />

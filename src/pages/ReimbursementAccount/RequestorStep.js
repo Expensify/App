@@ -1,29 +1,20 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import VerifyIdentity from '@pages/ReimbursementAccount/VerifyIdentity/VerifyIdentity';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
-import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
-import RequestorOnfidoStep from './RequestorOnfidoStep';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
-const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress}, ref) => {
+const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}) => {
     if (shouldShowOnfido) {
-        return (
-            <RequestorOnfidoStep
-                ref={ref}
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={onBackButtonPress}
-            />
-        );
+        return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
     }
 
-    return <PersonalInfo />;
+    return <PersonalInfo onBackButtonPress={onBackButtonPress} />;
 });
 
 RequestorStep.propTypes = propTypes;

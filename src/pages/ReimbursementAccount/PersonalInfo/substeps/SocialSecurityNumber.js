@@ -57,8 +57,8 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
                     <TextInput
                         inputID={personalInfoStepKey.SSN_LAST_4}
                         label={translate('personalInfoStep.last4SSN')}
-                        accessibilityLabel={translate('personalInfoStep.last4SSN')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={translate('personalInfoStep.last4SSN')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         defaultValue={defaultSsnLast4}

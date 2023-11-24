@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -30,6 +31,8 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    onBackButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -44,7 +47,7 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
+function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}) {
     const {translate} = useLocalize();
 
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -63,7 +66,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            onBackButtonPress();
         } else {
             prevScreen();
         }
@@ -84,7 +87,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
-                    startStep={1}
+                    startStep={2}
                     stepNames={STEP_NAMES}
                 />
             </View>
