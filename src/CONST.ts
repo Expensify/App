@@ -196,6 +196,18 @@ const CONST = {
                 HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
             },
         },
+        BENEFICIAL_OWNER_INFO_STEP: {
+            INPUT_KEY: {
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {

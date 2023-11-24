@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
 type Choice = {
@@ -12,12 +12,16 @@ type RadioButtonsProps = {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
+    /** Default checked value */
+    defaultCheckedValue?: string;
+
     /** Callback to fire when selecting a radio button */
     onPress: (value: string) => void;
 };
 
-function RadioButtons({items, onPress}: RadioButtonsProps) {
-    const [checkedValue, setCheckedValue] = useState('');
+function RadioButtons({items, onPress, defaultCheckedValue = ''}: RadioButtonsProps) {
+    const styles = useThemeStyles();
+    const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
 
     return (
         <View>

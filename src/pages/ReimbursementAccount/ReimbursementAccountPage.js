@@ -382,7 +382,8 @@ class ReimbursementAccountPage extends React.Component {
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        // const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const currentStep = CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
         const policyName = lodashGet(this.props.policy, 'name');
         const policyID = lodashGet(this.props.route.params, 'policyID');
 
