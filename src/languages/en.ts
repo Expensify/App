@@ -1671,6 +1671,7 @@ export default {
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
+        title: (year, monthName) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
     keyboardShortcutsPage: {

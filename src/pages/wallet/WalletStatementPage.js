@@ -88,7 +88,7 @@ function WalletStatementPage(props) {
     const year = yearMonth.substring(0, 4) || getYear(new Date());
     const month = yearMonth.substring(4) || getMonth(new Date());
     const monthName = format(new Date(year, month - 1), CONST.DATE.MONTH_FORMAT);
-    const title = `${monthName} ${year} statement`;
+    const title = props.translate('statementPage.title', year, monthName);
     const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
 
     return (

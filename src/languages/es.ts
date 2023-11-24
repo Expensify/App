@@ -1695,6 +1695,7 @@ export default {
         genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
     },
     statementPage: {
+        title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
