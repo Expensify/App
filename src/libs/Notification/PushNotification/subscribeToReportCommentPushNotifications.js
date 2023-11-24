@@ -23,18 +23,20 @@ export default function subscribeToReportCommentPushNotifications() {
         }
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
-        Navigation.isNavigationReady().then(() => {
-            try {
-                // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                    Navigation.goBack(ROUTES.HOME);
-                }
+        Navigation.isNavigationReady()
+            .then(Navigation.waitForProtectedRoutes)
+            .then(() => {
+                try {
+                    // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                    if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                        Navigation.goBack(ROUTES.HOME);
+                    }
 
-                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            } catch (error) {
-                Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
-            }
-        });
+                    Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                } catch (error) {
+                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
+                }
+            });
     });
 }

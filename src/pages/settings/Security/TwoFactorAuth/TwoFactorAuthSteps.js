@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -17,20 +17,30 @@ import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 function TwoFactorAuthSteps({account = defaultAccount}) {
     const route = useRoute();
     const backTo = lodashGet(route.params, 'backTo', '');
-    const currentStep = useMemo(() => {
-        if (account.twoFactorAuthStep) {
-            return account.twoFactorAuthStep;
-        }
-        return account.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
-    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
+    const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
     const {setAnimationDirection} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
+
+    useEffect(() => {
+        if (account.twoFactorAuthStep) {
+            setCurrentStep(account.twoFactorAuthStep);
+            return;
+        }
+
+        if (account.requiresTwoFactorAuth) {
+            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
+        } else {
+            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
+        }
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
+
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
             setAnimationDirection(animationDirection);
             TwoFactorAuthActions.setTwoFactorAuthStep(step);
+            setCurrentStep(step);
         },
         [setAnimationDirection],
     );
