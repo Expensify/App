@@ -24,7 +24,7 @@ type RadioButtonProps = {
     disabled?: boolean;
 };
 
-function RadioButton({isChecked, onPress, accessibilityLabel, disabled = false, hasError = false}: RadioButtonProps) {
+function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
