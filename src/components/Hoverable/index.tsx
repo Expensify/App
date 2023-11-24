@@ -8,7 +8,7 @@ import HoverableProps from './types';
  * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
-function Hoverable<R>({disabled, ...props}: HoverableProps, ref: Ref<R>) {
+function Hoverable({disabled, ...props}: HoverableProps, ref: Ref<HTMLElement>) {
     // If Hoverable is disabled, just render the child without additional logic or event listeners.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (disabled || !hasHoverSupport()) {
