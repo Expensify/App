@@ -99,16 +99,24 @@ function IOUCurrencySelection(props) {
             includeSafeAreaPaddingBottom={false}
             testID={IOUCurrencySelection.displayName}
         >
-            <HeaderWithBackButton
-                title={props.translate('common.selectCurrency')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
-            />
-            <CurrencySelectionList
-                textInputLabel={props.translate('common.search')}
-                onSelect={confirmCurrencySelection}
-                initiallyFocusedCurrencyCode={selectedCurrencyCode}
-                initiallySelectedCurrencyCode={selectedCurrencyCode}
-            />
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={props.translate('common.selectCurrency')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+                    />
+                    <CurrencySelectionList
+                        textInputLabel={props.translate('common.search')}
+                        onSelect={(option) => {
+                            if (!didScreenTransitionEnd) {
+                                return;
+                            }
+                            confirmCurrencySelection(option);
+                        }}
+                        initiallySelectedCurrencyCode={selectedCurrencyCode}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }

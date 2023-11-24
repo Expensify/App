@@ -7,7 +7,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
@@ -16,7 +16,9 @@ const propTypes = {};
 const defaultProps = {};
 
 function ImTeacherUpdateEmailPage() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
 
     return (
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
@@ -31,7 +33,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"
-                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.lhnLogoWidth}
             />
@@ -40,7 +42,7 @@ function ImTeacherUpdateEmailPage() {
                     success
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 />
             </FixedFooter>
         </ScreenWrapper>

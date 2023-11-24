@@ -1,7 +1,7 @@
 import React from 'react';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -22,18 +22,20 @@ const defaultProps = {
 };
 
 function PinButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
             <PressableWithFeedback
                 onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
                 style={[styles.touchableButtonImage]}
-                accessibilityState={{checked: props.report.isPinned}}
+                ariaChecked={props.report.isPinned}
                 accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     src={Expensicons.Pin}
-                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                    fill={props.report.isPinned ? theme.heading : theme.icon}
                 />
             </PressableWithFeedback>
         </Tooltip>

@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -20,6 +20,8 @@ const propTypes = {
 };
 
 function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
@@ -42,13 +44,13 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                             isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (
                             <Icon
                                 src={Expensicons.Send}
-                                fill={isDisabledProp || pressed ? themeColors.icon : themeColors.textLight}
+                                fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                             />
                         )}
                     </PressableWithFeedback>
