@@ -24,7 +24,7 @@ type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
     report: Report;
 };
 
-function ArchivedReportFooter({report, reportClosedAction = null, personalDetails = {}}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -32,7 +32,7 @@ function ArchivedReportFooter({report, reportClosedAction = null, personalDetail
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [report.ownerAccountID, 'displayName']);
 
-    let oldDisplayName;
+    let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
