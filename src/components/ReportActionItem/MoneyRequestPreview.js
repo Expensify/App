@@ -28,9 +28,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -138,6 +138,8 @@ const defaultProps = {
 };
 
 function MoneyRequestPreview(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
@@ -171,7 +173,7 @@ function MoneyRequestPreview(props) {
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
@@ -288,7 +290,7 @@ function MoneyRequestPreview(props) {
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
+                                        fill={theme.danger}
                                     />
                                 )}
                             </View>
@@ -308,7 +310,7 @@ function MoneyRequestPreview(props) {
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
-                                                fill={themeColors.iconSuccessFill}
+                                                fill={theme.iconSuccessFill}
                                             />
                                         </View>
                                     )}

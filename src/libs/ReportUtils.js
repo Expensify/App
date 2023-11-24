@@ -11,10 +11,10 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -80,6 +80,25 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+let allPolicyTags = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+function getPolicyTags(policyID) {
+    return lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -820,8 +839,15 @@ function isOneOnOneChat(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
 /**
@@ -1259,16 +1285,20 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     if (!accountID) {
         return '';
     }
+
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+
+    // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
+    // when searching for a new user while offline
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return personalDetails.login || '';
+        return formattedLogin;
     }
-    const longName = personalDetails.displayName;
+
+    const longName = personalDetails.displayName || formattedLogin;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+    if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1538,14 +1568,25 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
+    const ownerAccountID = report.ownerAccountID;
+    const personalDetails = allPersonalDetails[ownerAccountID];
+    const login = personalDetails ? personalDetails.login : null;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || login || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
+    let policyExpenseChatRole = 'user';
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
+    if (policyItem) {
+        policyExpenseChatRole = policyItem.role || 'user';
+    }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
@@ -1629,9 +1670,10 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  *    - or the user is an admin on the policy the expense report is tied to
  *
  * @param {Object} reportAction
+ * @param {String} fieldToEdit
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction) {
+function canEditMoneyRequest(reportAction, fieldToEdit = '') {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1653,7 +1695,9 @@ function canEditMoneyRequest(reportAction) {
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1680,7 +1724,7 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
 
@@ -1788,15 +1832,38 @@ function getTransactionReportName(reportAction) {
 }
 
 /**
+ * Get actor name to display in the message preview
+ *
+ * @param {Object} report
+ * @param {Number} actorID
+ * @param {Boolean} [shouldShowWorkspaceName]
+ * @param {Boolean} [shouldUseShortForm]
+ * @param {Object|undefined} [policy]
+ * @returns {String}
+ */
+function getActorNameForPreviewMessage({report, actorID, shouldShowWorkspaceName = false, shouldUseShortForm = false, policy = undefined}) {
+    return shouldShowWorkspaceName ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(actorID, shouldUseShortForm);
+}
+
+/**
  * Get money request message for an IOU report
  *
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
- * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Boolean} [isPreviewMessageForParentChatReport]
+ * @param {Boolean} [shouldHideParticipantName]
+ * @param {Object} [policy]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
+function getReportPreviewMessage(
+    report,
+    reportAction = {},
+    shouldConsiderReceiptBeingScanned = false,
+    isPreviewMessageForParentChatReport = false,
+    shouldHideParticipantName = false,
+    policy = undefined,
+) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1825,7 +1892,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerDisplayName = getActorNameForPreviewMessage({
+        report,
+        actorID: report.managerID,
+        shouldUseShortForm: true,
+        shouldShowWorkspaceName: isExpenseReport(report),
+        policy,
+    });
+    const payerName = shouldHideParticipantName ? '' : payerDisplayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1885,7 +1959,11 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
     if (!newValue) {
         return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
-    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+    return Localize.translateLocal('iou.updatedTheRequest', {
+        valueName: displayValueName,
+        newValueToDisplay,
+        oldValueToDisplay,
+    });
 }
 
 /**
@@ -1900,7 +1978,10 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 
 function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, newAmount, oldAmount) {
     if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+        return Localize.translateLocal('iou.setTheDistance', {
+            newDistanceToDisplay: newDistance,
+            newAmountToDisplay: newAmount,
+        });
     }
     return Localize.translateLocal('iou.updatedTheDistance', {
         newDistanceToDisplay: newDistance,
@@ -1926,7 +2007,7 @@ function getModifiedExpenseMessage(reportAction) {
     }
     const reportID = lodashGet(reportAction, 'reportID', '');
     const policyID = lodashGet(getReport(reportID), 'policyID', '');
-    const policyTags = IOU.getPolicyTags(policyID);
+    const policyTags = getPolicyTags(policyID);
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagListName = lodashGet(policyTag, 'name', Localize.translateLocal('common.tag'));
 
@@ -2232,6 +2313,19 @@ function navigateToDetailsPage(report) {
         return;
     }
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+}
+
+/**
+ * Go back to the details page of a given report
+ *
+ * @param {Object} report
+ */
+function goBackToDetailsPage(report) {
+    if (isOneOnOneChat(report)) {
+        Navigation.goBack(ROUTES.PROFILE.getRoute(report.participantAccountIDs[0]));
+        return;
+    }
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
 
 /**
@@ -2648,6 +2742,7 @@ function buildOptimisticIOUReportAction(
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
+
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  *
@@ -2672,6 +2767,56 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED report action with a randomly generated reportActionID.
+ * This action is used when we move reports across workspaces.
+ *
+ * @param {String} fromPolicyID
+ * @param {String} toPolicyID
+ * @param {Number} newParentReportID
+ * @param {Number} movedReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentReportID, movedReportID) {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+        newParentReportID,
+        movedReportID,
+    };
+
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
+    const movedActionMessage = [
+        {
+            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+            text: `moved the report to the ${policyName} workspace`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: movedActionMessage,
         person: [
             {
                 style: 'strong',
@@ -2920,12 +3065,13 @@ function buildOptimisticChatReport(
     welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
+    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
-        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
         lastActorAccountID: 0,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',
@@ -3286,6 +3432,7 @@ function canAccessReport(report, policies, betas, allReportActions) {
 
     return true;
 }
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  * @param {Object} report
@@ -3944,7 +4091,7 @@ function getWorkspaceChats(policyID, accountIDs) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
         return true;
     }
 
@@ -3957,6 +4104,15 @@ function shouldDisableRename(report, policy) {
     // If there is a linked workspace, that means the user is a member of the workspace the report is in.
     // Still, we only want policy owners and admins to be able to modify the name.
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
+ * @param {Object|null} report
+ * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @returns {Boolean}
+ */
+function canEditWriteCapability(report, policy) {
+    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report);
 }
 
 /**
@@ -4150,6 +4306,48 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
+ * Return room channel log display message
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getChannelLogMemberMessage(reportAction) {
+    const verb =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+            ? 'invited'
+            : 'removed';
+
+    const mentions = _.map(reportAction.originalMessage.targetAccountIDs, (accountID) => {
+        const personalDetail = lodashGet(allPersonalDetails, accountID);
+        const displayNameOrLogin =
+            LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetail, 'login', '')) || lodashGet(personalDetail, 'displayName', '') || Localize.translateLocal('common.hidden');
+        return `@${displayNameOrLogin}`;
+    });
+
+    const lastMention = mentions.pop();
+    let message = '';
+
+    if (mentions.length === 0) {
+        message = `${verb} ${lastMention}`;
+    } else if (mentions.length === 1) {
+        message = `${verb} ${mentions[0]} and ${lastMention}`;
+    } else {
+        message = `${verb} ${mentions.join(', ')}, and ${lastMention}`;
+    }
+
+    const roomName = lodashGet(reportAction, 'originalMessage.roomName', '');
+    if (roomName) {
+        const preposition =
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                ? ' to'
+                : ' from';
+        message += `${preposition} ${roomName}`;
+    }
+
+    return message;
+}
+
+/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4294,6 +4492,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
@@ -4367,6 +4566,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
@@ -4387,7 +4587,10 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     getPersonalDetailsForAccountID,
+    getChannelLogMemberMessage,
     getRoom,
+    getActorNameForPreviewMessage,
     shouldDisableWelcomeMessage,
+    canEditWriteCapability,
     hasRequestError,
 };

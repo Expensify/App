@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
@@ -45,6 +45,7 @@ const datePickerDefaultProps = {
 };
 
 function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+    const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {
