@@ -1,5 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import React, {ForwardedRef, forwardRef, ReactElement, useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -7,9 +8,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {viewForwardedRef} from '@src/types/utils/viewRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
-
-const viewForwardedRef = (ref: ForwardedRef<Animated.View | HTMLDivElement>) => ref as ForwardedRef<Animated.View>;
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
@@ -36,7 +36,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         isSuggestionPickerLarge,
         keyExtractor,
     }: AutoCompleteSuggestionsProps<TSuggestion>,
-    ref: ForwardedRef<Animated.View | HTMLDivElement>,
+    ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);

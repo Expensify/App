@@ -54,9 +54,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
     const bodyElement = document.querySelector('body');
 
     return (
-        Boolean(width) &&
-        bodyElement &&
-        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, bodyElement)
+        !!width && bodyElement && ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, bodyElement)
     );
 }
 
