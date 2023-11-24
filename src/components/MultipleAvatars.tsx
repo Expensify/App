@@ -102,7 +102,7 @@ function MultipleAvatars({
     const secondAvatarDefaultStyles = secondAvatarStyle ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size]);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
     const avatarSize = useMemo(() => {
