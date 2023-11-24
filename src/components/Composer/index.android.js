@@ -1,10 +1,10 @@
-import {useTheme} from '@storybook/theming/dist/ts3.9/_modules/@emotion-react-types-theming';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
+import {useTheme} from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
