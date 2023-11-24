@@ -129,7 +129,7 @@ function BasePicker<TPickerValue>(
     if (isDisabled) {
         return (
             <View>
-                {Boolean(label) && (
+                {!!label && (
                     <Text
                         style={[styles.textLabelSupporting, styles.mb1]}
                         numberOfLines={1}
@@ -138,7 +138,7 @@ function BasePicker<TPickerValue>(
                     </Text>
                 )}
                 <Text numberOfLines={1}>{value as ReactNode}</Text>
-                {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
+                {!!hintText && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
             </View>
         );
     }
@@ -184,7 +184,7 @@ function BasePicker<TPickerValue>(
                 />
             </View>
             <FormHelpMessage message={errorText} />
-            {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
+            {!!hintText && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
         </>
     );
 }
