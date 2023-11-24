@@ -53,9 +53,7 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Whether ScrollWithContext should be used instead of regular ScrollView.
-     *  Set to true when there's a nested Picker component in Form.
-     */
+    /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
     scrollContextEnabled: PropTypes.bool,
 
     /** Container styles */
@@ -67,13 +65,16 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Should validate function be called when input loose focus */
     shouldValidateOnBlur: PropTypes.bool,
 
+    /** Should validate function be called when the value of the input is changed */
     shouldValidateOnChange: PropTypes.bool,
-
-    shouldSetTouchedOnBlurOnly: PropTypes.bool,
 };
 
+// In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
+// 200ms delay was chosen as a result of empirical testing.
+// More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
 const defaultProps = {
@@ -89,7 +90,6 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
-    shouldSetTouchedOnBlurOnly: false,
 };
 
 function getInitialValueByType(valueType) {
@@ -105,7 +105,7 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, shouldSetTouchedOnBlurOnly, ...rest}) {
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
@@ -248,7 +248,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
-                    if (shouldSetTouchedOnBlurOnly) {
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
@@ -258,7 +258,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     }
                 },
                 onPress: (event) => {
-                    if (shouldSetTouchedOnBlurOnly) {
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
@@ -271,7 +271,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     // To prevent validating just pressed inputs, we need to set the touched input right after
                     // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
                     // as the onValidate is delayed
-                    if (shouldSetTouchedOnBlurOnly) {
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
@@ -322,7 +322,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 },
             };
         },
-        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldSetTouchedOnBlurOnly, shouldValidateOnBlur, shouldValidateOnChange],
+        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
