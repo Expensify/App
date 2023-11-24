@@ -1,4 +1,5 @@
 import {some} from 'lodash';
+
 /**
  * Check if it is the location by searching for the location
  * @param {string} search the string to search for a location
