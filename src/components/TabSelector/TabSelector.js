@@ -82,12 +82,12 @@ function TabSelector({state, navigation, onTabPress, position}) {
 
                 return position.interpolate({
                     inputRange,
-                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.themeColors.border : theme.themeColors.appBG)),
+                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
                 });
             }
-            return theme.themeColors.border;
+            return theme.border;
         },
-        [theme.themeColors, position],
+        [theme, position],
     );
 
     React.useEffect(() => {
