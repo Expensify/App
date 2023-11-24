@@ -51,7 +51,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.index ?? 0);
     }
 
-    if ('state' in stateOrRoute && stateOrRoute?.state?.routes) {
+    if ('state' in stateOrRoute && stateOrRoute.state?.routes) {
         const childActiveRoute = stateOrRoute.state.routes[stateOrRoute.state.index ?? 0];
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
@@ -91,8 +91,7 @@ function getDistanceFromPathInRootNavigator(path: string): number {
 /** Returns the current active route */
 function getActiveRoute(): string {
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = currentRoute?.name ?? false;
-    if (!currentRouteHasName) {
+    if (!currentRoute?.name) {
         return '';
     }
 

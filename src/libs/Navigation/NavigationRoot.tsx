@@ -53,7 +53,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
 
-    const currentReport = useCurrentReportID();
+    const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -88,7 +88,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         (current, previous) => {
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
-            if ([current, previous].includes(null) || current <= (previous ?? 0)) {
+            if (previous === null || current === null || current <= previous) {
                 return;
             }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
@@ -125,7 +125,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
-            currentReport?.updateCurrentReportID(state);
+            currentReportIDValue?.updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();

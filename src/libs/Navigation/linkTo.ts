@@ -31,12 +31,12 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
     let currentState: NavigationState | PartialState<NavigationState> | undefined = state;
     let currentTargetKey: string | undefined;
 
-    while (currentAction?.payload && 'name' in currentAction.payload && currentState?.routes[currentState?.index ?? -1].name === currentAction?.payload?.name) {
-        if (!currentState?.routes[currentState?.index ?? -1].state) {
+    while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
+        if (!currentState?.routes[currentState.index ?? -1].state) {
             break;
         }
 
-        currentState = currentState?.routes[currentState?.index ?? -1].state;
+        currentState = currentState?.routes[currentState.index ?? -1].state;
         currentTargetKey = currentState?.key;
 
         const payload = currentAction.payload as ActionPayload;

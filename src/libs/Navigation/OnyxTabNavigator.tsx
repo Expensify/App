@@ -39,7 +39,7 @@ function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...r
             screenListeners={{
                 state: (e) => {
                     const event = e as unknown as EventMapCore<NavigationState>['state'];
-                    const state = event.data?.state;
+                    const state = event.data.state;
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);

@@ -49,7 +49,7 @@ export const ROUTES = {
     // dynamic route
     SETTINGS_WORKSPACES: {
         route: 'settings/:accountID',
-        getRoute: (accountID:  number) => `settings/${accountID}` as const,
+        getRoute: (accountID: number) => `settings/${accountID}` as const,
     },
 };
 
