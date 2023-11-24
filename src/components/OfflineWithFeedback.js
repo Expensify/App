@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
