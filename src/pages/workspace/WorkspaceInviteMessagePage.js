@@ -27,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The accountID of the person */
@@ -178,7 +180,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(this.props.route.params.policyID))}
                     />
 
-                    <Form
+                    <FormProvider
                         style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.ph5]}
                         formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                         validate={this.validate}
@@ -216,7 +218,8 @@ class WorkspaceInviteMessagePage extends React.Component {
                             <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <View style={[this.props.themeStyles.mb3]}>
-                            <TextInput
+                            <InputWrapper
+                                InputComponent={TextInput}
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="welcomeMessage"
@@ -233,7 +236,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 shouldSaveDraft
                             />
                         </View>
-                    </Form>
+                    </FormProvider>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
