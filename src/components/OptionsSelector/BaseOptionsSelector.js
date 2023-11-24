@@ -399,7 +399,7 @@ class BaseOptionsSelector extends Component {
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
-        const listContainerStyles = this.props.listContainerStyles || [{flex: 1}];
+        const listContainerStyles = this.props.listContainerStyles || [this.props.themeStyles.flex1];
 
         const textInput = (
             <TextInput
