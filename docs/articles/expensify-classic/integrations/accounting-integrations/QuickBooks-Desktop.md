@@ -76,6 +76,7 @@ Expensify's integration with QuickBooks brings in your Chart of Accounts as Cate
 3. Expensify offers Auto-Categorization to automatically assign expenses to the appropriate expense categories.
 4. If needed, you can edit the names of the imported Categories to simplify expense coding for your employees. Keep in mind that if you make changes to these accounts in QuickBooks Desktop, the category names in Expensify will update to match them during the next sync.
 5. _**Important:**_ Each expense must have a category selected to export to QuickBooks Desktop. The selected category must be one imported from QuickBooks Desktop; you cannot manually create categories within Expensify policy settings.
+
 ## Classes
 Classes can be imported from QuickBooks as either tags (line-item level) or report fields (header level).
 
