@@ -1,15 +1,10 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
@@ -42,12 +37,6 @@ const propTypes = {
 
     /** Popover anchor ref */
     anchorRef: refPropTypes,
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
 };
 
 const defaultProps = {
@@ -58,10 +47,9 @@ const defaultProps = {
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     anchorRef: () => {},
-    session: {},
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected}) {
     const {translate} = useLocalize();
 
     return (
@@ -108,11 +96,4 @@ AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
 AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AddPaymentMethodMenu);
+export default withWindowDimensions(AddPaymentMethodMenu);
