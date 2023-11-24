@@ -383,9 +383,16 @@ function getAllReportErrors(report, reportActions) {
  */
 function getReportPreviewMessageForOptionList(report, reportAction = {}, isPreviewMessageForParentChatReport = false) {
     // For the request action preview we want to show the requestor instead of the user who owes the money
-    if (!isPreviewMessageForParentChatReport && reportAction.originalMessage && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
-        const amount = Math.abs(reportAction.originalMessage.amount);
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, report.currency);
+    if (
+        !isPreviewMessageForParentChatReport &&
+        reportAction.originalMessage &&
+        reportAction.originalMessage.IOUTransactionID &&
+        reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+    ) {
+        const transaction = lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${reportAction.originalMessage.IOUTransactionID}`, {});
+        const amount = Math.abs(TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(report)));
+        const currency = TransactionUtils.getCurrency(transaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const shouldShowActorName = currentUserAccountID !== reportAction.actorAccountID;
         const actorDisplayName = shouldShowActorName ? `${ReportUtils.getDisplayNameForParticipant(reportAction.actorAccountID, true)}: ` : '';
 
@@ -422,14 +429,16 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportPreviewAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = getReportPreviewMessageForOptionList(iouReport, lastIOUMoneyReport, ReportUtils.isChatReport(report));
+        if (lastIOUMoneyReportPreviewAction) {
+            lastMessageTextFromReport = getReportPreviewMessageForOptionList(iouReport, lastIOUMoneyReportPreviewAction, ReportUtils.isChatReport(report));
+        }
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
