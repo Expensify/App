@@ -275,6 +275,8 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                             <ChooseSSOOrMagicCode
                                 isUsingMagicCode={isUsingMagicCode}
                                 setIsUsingMagicCode={setIsUsingMagicCode}
+                                isUsingRecoveryCode={isUsingRecoveryCode}
+                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
                             />
                         )}
                         {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}

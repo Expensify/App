@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -18,16 +18,19 @@ import ValidateCodeForm from './ValidateCodeForm';
 const propTypes = {
     /** Function that returns whether the user is using SAML or magic codes to log in */
     setIsUsingMagicCode: PropTypes.func.isRequired,
+    /** Determines if user is switched to using recovery code instead of 2fa code */
+    isUsingRecoveryCode: PropTypes.bool.isRequired,
+    /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
+    setIsUsingRecoveryCode: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};
 
-function ChooseSSOOrMagicCode({setIsUsingMagicCode}) {
+function ChooseSSOOrMagicCode({setIsUsingMagicCode, isUsingRecoveryCode, setIsUsingRecoveryCode}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
     return (
         <>
