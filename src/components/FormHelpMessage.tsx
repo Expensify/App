@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import * as Localize from '@libs/Localize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import {ErrorsList} from '@src/libs/ErrorUtils';
 import {isEmptyObjectOrString} from '@src/types/utils/EmptyObject';
 import Icon from './Icon';
@@ -24,6 +24,8 @@ type FormHelpMessageProps = {
 };
 
 function FormHelpMessage({message = '', children, isError = true, style}: FormHelpMessageProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (isEmptyObjectOrString(message) && isEmptyObjectOrString(children)) {
         return null;
     }
@@ -35,7 +37,7 @@ function FormHelpMessage({message = '', children, isError = true, style}: FormHe
             {isError && (
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={themeColors.danger}
+                    fill={theme.danger}
                 />
             )}
             <View style={[styles.flex1, isError && styles.ml2]}>{children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}</View>

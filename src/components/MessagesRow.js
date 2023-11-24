@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -15,7 +15,9 @@ import Tooltip from './Tooltip';
 
 const propTypes = {
     /** The messages to display */
-    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
+    messages: PropTypes.objectOf(
+        PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    ),
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -38,6 +40,7 @@ const defaultProps = {
 };
 
 function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;
