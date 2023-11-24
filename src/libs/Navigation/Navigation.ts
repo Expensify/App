@@ -14,8 +14,8 @@ import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import {StackNavigationAction, StateOrRoute} from './types';
 
-let resolveNavigationIsReadyPromise: (value?: unknown) => void;
-const navigationIsReadyPromise = new Promise((resolve) => {
+let resolveNavigationIsReadyPromise: () => void;
+const navigationIsReadyPromise = new Promise<void>((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
@@ -273,7 +273,7 @@ function goToPendingRoute() {
     pendingRoute = null;
 }
 
-function isNavigationReady(): Promise<unknown> {
+function isNavigationReady(): Promise<void> {
     return navigationIsReadyPromise;
 }
 

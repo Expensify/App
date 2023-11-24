@@ -6,7 +6,7 @@ import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type FreezeWrapperProps = ChildrenProps & {
     /** Prop to disable freeze */
-    keepVisible: boolean;
+    keepVisible?: boolean;
 };
 
 function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
