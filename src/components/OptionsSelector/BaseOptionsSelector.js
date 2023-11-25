@@ -11,7 +11,7 @@ import Icon from '@components/Icon';
 import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import ShowMore from '@components/ShowMore';
+import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -453,7 +453,7 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowShowMore = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
+        const shouldShowShowMoreButton = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
@@ -525,8 +525,8 @@ class BaseOptionsSelector extends Component {
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
                 renderFooterContent={() =>
-                    shouldShowShowMore && (
-                        <ShowMore
+                    shouldShowShowMoreButton && (
+                        <ShowMoreButton
                             containerStyle={{...styles.mt2, ...styles.mb5}}
                             currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage}
                             totalCount={this.state.allOptions.length}

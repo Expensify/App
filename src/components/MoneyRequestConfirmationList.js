@@ -37,7 +37,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
-import ShowMore from './ShowMore';
+import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
@@ -635,7 +635,7 @@ function MoneyRequestConfirmationList(props) {
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
-                <ShowMore
+                <ShowMoreButton
                     containerStyle={styles.mt1}
                     onPress={toggleShouldExpandFields}
                 />

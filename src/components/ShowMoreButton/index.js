@@ -30,7 +30,7 @@ const defaultProps = {
     totalCount: undefined,
 };
 
-function ShowMore({containerStyle, currentCount, totalCount, onPress}) {
+function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}) {
     const {translate, preferredLocale} = useLocalize();
 
     const shouldShowCounter = _.isNumber(currentCount) && _.isNumber(totalCount);
@@ -63,8 +63,8 @@ function ShowMore({containerStyle, currentCount, totalCount, onPress}) {
     );
 }
 
-ShowMore.displayName = 'ShowMore';
-ShowMore.propTypes = propTypes;
-ShowMore.defaultProps = defaultProps;
+ShowMoreButton.displayName = 'ShowMoreButton';
+ShowMoreButton.propTypes = propTypes;
+ShowMoreButton.defaultProps = defaultProps;
 
-export default ShowMore;
+export default ShowMoreButton;
