@@ -208,16 +208,11 @@ class BaseOptionsSelector extends Component {
     }
 
     /**
-     * When pagination is enabled,
-     * maps sections to render only allowed count of them.
+     * Maps sections to render only allowed count of them per section.
      *
      * @returns {Objects[]}
      */
     sliceSections() {
-        if (!_.isNumber(CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH)) {
-            return this.props.sections;
-        }
-
         return _.map(this.props.sections, (section) => {
             if (_.isEmpty(section.data)) {
                 return section;
