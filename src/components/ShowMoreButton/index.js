@@ -14,13 +14,13 @@ const propTypes = {
     /** Additional styles for container */
     containerStyle: stylePropTypes,
 
-    /** A number of current showed items */
+    /** The number of currently shown items */
     currentCount: PropTypes.number,
 
-    /** A number of total items */
+    /** The total number of items that could be shown */
     totalCount: PropTypes.number,
 
-    /** A handler fires when button has been pressed */
+    /** A handler that fires when button has been pressed */
     onPress: PropTypes.func.isRequired,
 };
 
