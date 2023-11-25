@@ -91,7 +91,6 @@ const baseListItemPropTypes = {
     ...commonListItemPropTypes,
     item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
     shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
-    isHide: PropTypes.bool,
 };
 
 const propTypes = {

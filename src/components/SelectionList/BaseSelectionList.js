@@ -470,6 +470,7 @@ function BaseSelectionList({
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={scrollToFocusedIndexOnFirstRender}
+                                    style={!maxToRenderPerBatch && styles.opacity0}
                                 />
                                 {children}
                             </>
