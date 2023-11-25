@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import withCodePaste from '@components/withCodePaste';
 import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -144,7 +145,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                     style={[styles.mb3]}
                 >
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={_.isFunction(withCodePaste) ? withCodePaste(TextInput) : TextInput}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="privateNotes"
                         label={translate('privateNotes.composerLabel')}

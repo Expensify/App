@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -6,6 +5,7 @@ import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
+import withCodePaste from '@components/withCodePaste';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -230,46 +230,6 @@ function Composer({
     };
 
     /**
-     * Set pasted text to clipboard
-     * @param {String} text
-     */
-    const paste = useCallback((text) => {
-        try {
-            document.execCommand('insertText', false, text);
-            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInput.current.blur();
-            textInput.current.focus();
-            // eslint-disable-next-line no-empty
-        } catch (e) {}
-    }, []);
-
-    /**
-     * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
-     */
-    const handlePastedHTML = useCallback(
-        (html) => {
-            const parser = new ExpensiMark();
-            paste(parser.htmlToMarkdown(html));
-        },
-        [paste],
-    );
-
-    /**
-     * Paste the plaintext content into Composer.
-     *
-     * @param {ClipboardEvent} event
-     */
-    const handlePastePlainText = useCallback(
-        (event) => {
-            const plainText = event.clipboardData.getData('text/plain');
-            paste(plainText);
-        },
-        [paste],
-    );
-
-    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
@@ -297,37 +257,15 @@ function Composer({
 
             event.preventDefault();
 
-            const {files, types} = event.clipboardData;
-            const TEXT_HTML = 'text/html';
+            const {files} = event.clipboardData;
 
             // If paste contains files, then trigger file management
             if (files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
                 onPasteFile(event.clipboardData.files[0]);
-                return;
             }
-
-            // If paste contains HTML
-            if (types.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
-
-                const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
-                    }
-                }
-                handlePastedHTML(pastedHTML);
-                return;
-            }
-            handlePastePlainText(event);
         },
-        [onPasteFile, handlePastedHTML, checkComposerVisibility, handlePastePlainText],
+        [onPasteFile, checkComposerVisibility],
     );
 
     /**
@@ -483,4 +421,4 @@ const ComposerWithRef = React.forwardRef((props, ref) => (
 
 ComposerWithRef.displayName = 'ComposerWithRef';
 
-export default compose(withLocalize, withNavigation)(ComposerWithRef);
+export default compose(withLocalize, withNavigation)(withCodePaste(ComposerWithRef, false));
