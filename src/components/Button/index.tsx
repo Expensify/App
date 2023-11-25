@@ -1,212 +1,167 @@
-import {useIsFocused} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import React, {ForwardedRef, useCallback} from 'react';
+import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
-const propTypes = {
-    /** Should the press event bubble across multiple instances when Enter key triggers it. */
-    allowBubble: PropTypes.bool,
-
+type ButtonWithText = {
     /** The text for the button label */
-    text: PropTypes.string,
+    text: string;
 
     /** Boolean whether to display the right icon */
-    shouldShowRightIcon: PropTypes.bool,
+    shouldShowRightIcon?: boolean;
 
     /** The icon asset to display to the left of the text */
-    icon: PropTypes.func,
+    icon?: React.FC<SvgProps> | null;
+};
+
+type ButtonProps = (ButtonWithText | ChildrenProps) & {
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
-    iconRight: PropTypes.func,
+    iconRight?: React.FC<SvgProps>;
 
     /** The fill color to pass into the icon. */
-    iconFill: PropTypes.string,
+    iconFill?: string;
 
     /** Any additional styles to pass to the left icon container. */
-    // eslint-disable-next-line react/forbid-prop-types
-    iconStyles: PropTypes.arrayOf(PropTypes.object),
+    iconStyles?: StyleProp<ViewStyle>;
 
     /** Any additional styles to pass to the right icon container. */
-    // eslint-disable-next-line react/forbid-prop-types
-    iconRightStyles: PropTypes.arrayOf(PropTypes.object),
+    iconRightStyles?: StyleProp<ViewStyle>;
 
     /** Small sized button */
-    small: PropTypes.bool,
+    small?: boolean;
 
     /** Large sized button */
-    large: PropTypes.bool,
+    large?: boolean;
 
-    /** medium sized button */
-    medium: PropTypes.bool,
+    /** Medium sized button */
+    medium?: boolean;
 
     /** Indicates whether the button should be disabled and in the loading state */
-    isLoading: PropTypes.bool,
+    isLoading?: boolean;
 
     /** Indicates whether the button should be disabled */
-    isDisabled: PropTypes.bool,
+    isDisabled?: boolean;
 
     /** A function that is called when the button is clicked on */
-    onPress: PropTypes.func,
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** A function that is called when the button is long pressed */
-    onLongPress: PropTypes.func,
+    onLongPress?: (event?: GestureResponderEvent) => void;
 
     /** A function that is called when the button is pressed */
-    onPressIn: PropTypes.func,
+    onPressIn?: () => void;
 
     /** A function that is called when the button is released */
-    onPressOut: PropTypes.func,
+    onPressOut?: () => void;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown: PropTypes.func,
+    onMouseDown?: () => void;
 
     /** Call the onPress function when Enter key is pressed */
-    pressOnEnter: PropTypes.bool,
+    pressOnEnter?: boolean;
 
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
-    enterKeyEventListenerPriority: PropTypes.number,
+    enterKeyEventListenerPriority?: number;
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style?: StyleProp<ViewStyle>;
 
-    /** Additional button styles. Specific to the OpacityView of button */
-    // eslint-disable-next-line react/forbid-prop-types
-    innerStyles: PropTypes.arrayOf(PropTypes.object),
+    /** Additional button styles. Specific to the OpacityView of the button */
+    innerStyles?: StyleProp<ViewStyle>;
 
     /** Additional text styles */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
+    textStyles?: StyleProp<TextStyle>;
 
     /** Whether we should use the default hover style */
-    shouldUseDefaultHover: PropTypes.bool,
+    shouldUseDefaultHover?: boolean;
 
     /** Whether we should use the success theme color */
-    success: PropTypes.bool,
+    success?: boolean;
 
     /** Whether we should use the danger theme color */
-    danger: PropTypes.bool,
-
-    /** Children to replace all inner contents of button */
-    children: PropTypes.node,
+    danger?: boolean;
 
     /** Should we remove the right border radius top + bottom? */
-    shouldRemoveRightBorderRadius: PropTypes.bool,
+    shouldRemoveRightBorderRadius?: boolean;
 
     /** Should we remove the left border radius top + bottom? */
-    shouldRemoveLeftBorderRadius: PropTypes.bool,
+    shouldRemoveLeftBorderRadius?: boolean;
 
     /** Should enable the haptic feedback? */
-    shouldEnableHapticFeedback: PropTypes.bool,
+    shouldEnableHapticFeedback?: boolean;
 
     /** Id to use for this button */
-    id: PropTypes.string,
+    id?: string;
 
     /** Accessibility label for the component */
-    accessibilityLabel: PropTypes.string,
-
-    /** A ref to forward the button */
-    forwardedRef: refPropTypes,
+    accessibilityLabel?: string;
+    isFocused: boolean;
 };
 
-const defaultProps = {
-    allowBubble: false,
-    text: '',
-    shouldShowRightIcon: false,
-    icon: null,
-    iconRight: Expensicons.ArrowRight,
-    iconFill: undefined,
-    iconStyles: [],
-    iconRightStyles: [],
-    isLoading: false,
-    isDisabled: false,
-    small: false,
-    large: false,
-    medium: false,
-    onPress: () => {},
-    onLongPress: () => {},
-    onPressIn: () => {},
-    onPressOut: () => {},
-    onMouseDown: undefined,
-    pressOnEnter: false,
-    enterKeyEventListenerPriority: 0,
-    style: [],
-    innerStyles: [],
-    textStyles: [],
-    shouldUseDefaultHover: true,
-    success: false,
-    danger: false,
-    children: null,
-    shouldRemoveRightBorderRadius: false,
-    shouldRemoveLeftBorderRadius: false,
-    shouldEnableHapticFeedback: false,
-    id: '',
-    accessibilityLabel: '',
-    forwardedRef: undefined,
-};
+function Button(
+    {
+        allowBubble = false,
 
-function Button({
-    allowBubble,
-    text,
-    shouldShowRightIcon,
+        iconRight = Expensicons.ArrowRight,
+        iconFill = themeColors.textLight,
+        iconStyles = [],
+        iconRightStyles = [],
 
-    icon,
-    iconRight,
-    iconFill,
-    iconStyles,
-    iconRightStyles,
+        small = false,
+        large = false,
+        medium = false,
 
-    small,
-    large,
-    medium,
+        isLoading = false,
+        isDisabled = false,
 
-    isLoading,
-    isDisabled,
+        onPress = () => {},
+        onLongPress = () => {},
+        onPressIn = () => {},
+        onPressOut = () => {},
+        onMouseDown = undefined,
 
-    onPress,
-    onLongPress,
-    onPressIn,
-    onPressOut,
-    onMouseDown,
+        pressOnEnter = false,
+        enterKeyEventListenerPriority = 0,
 
-    pressOnEnter,
-    enterKeyEventListenerPriority,
+        style = [],
+        innerStyles = [],
+        textStyles = [],
 
-    style,
-    innerStyles,
-    textStyles,
+        shouldUseDefaultHover = true,
+        success = false,
+        danger = false,
 
-    shouldUseDefaultHover,
-    success,
-    danger,
-    children,
+        shouldRemoveRightBorderRadius = false,
+        shouldRemoveLeftBorderRadius = false,
+        shouldEnableHapticFeedback = false,
+        isFocused,
 
-    shouldRemoveRightBorderRadius,
-    shouldRemoveLeftBorderRadius,
-    shouldEnableHapticFeedback,
-
-    id,
-    accessibilityLabel,
-    forwardedRef,
-}) {
+        id = '',
+        accessibilityLabel = '',
+        ...rest
+    }: ButtonProps,
+    ref: ForwardedRef<View>,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
-        (event) => {
+        (event?: GestureResponderEvent | KeyboardEvent) => {
             if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
                 return;
             }
@@ -223,9 +178,11 @@ function Button({
     });
 
     const renderContent = () => {
-        if (children) {
-            return children;
+        if ('children' in rest) {
+            return rest.children;
         }
+
+        const {text = '', icon = null, shouldShowRightIcon = false} = rest;
 
         const textComponent = (
             <Text
@@ -240,7 +197,7 @@ function Button({
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
                     icon && styles.textAlignLeft,
-                    ...textStyles,
+                    textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -248,12 +205,13 @@ function Button({
             </Text>
         );
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
-                            <View style={[styles.mr1, ...iconStyles]}>
+                            <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
                                     fill={iconFill || theme.textLight}
@@ -264,7 +222,7 @@ function Button({
                         {textComponent}
                     </View>
                     {shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, ...iconRightStyles]}>
+                        <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
                                 fill={iconFill || theme.textLight}
@@ -281,10 +239,11 @@ function Button({
 
     return (
         <PressableWithFeedback
-            ref={forwardedRef}
+            ref={ref}
             onPress={(event) => {
-                if (event && event.type === 'click') {
-                    event.currentTarget.blur();
+                if (event?.type === 'click') {
+                    const currentTarget = event?.currentTarget as HTMLElement;
+                    currentTarget?.blur();
                 }
 
                 if (shouldEnableHapticFeedback) {
@@ -307,7 +266,7 @@ function Button({
                 styles.buttonContainer,
                 shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                ...StyleUtils.parseStyleAsArray(style),
+                style,
             ]}
             style={[
                 styles.button,
@@ -320,8 +279,9 @@ function Button({
                 isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                 shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                icon || shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-                ...innerStyles,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                'text' in rest && (rest?.icon || rest?.shouldShowRightIcon) ? styles.alignItemsStretch : undefined,
+                innerStyles,
             ]}
             hoverStyle={[
                 shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -344,18 +304,6 @@ function Button({
     );
 }
 
-Button.propTypes = propTypes;
-Button.defaultProps = defaultProps;
 Button.displayName = 'Button';
 
-const ButtonWithRef = React.forwardRef((props, ref) => (
-    <Button
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-ButtonWithRef.displayName = 'ButtonWithRef';
-
-export default withNavigationFallback(ButtonWithRef);
+export default withNavigationFallback(React.forwardRef(Button));
