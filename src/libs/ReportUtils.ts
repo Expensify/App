@@ -2178,26 +2178,28 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
+    let linkedTransaction: Transaction | EmptyObject = {};
+    if (!isEmptyObject(reportAction)) {
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    }
+
     if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
         // This covers group chats where the last action is a split bill action
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
 
-        if (!isEmptyObject(linkedTransaction)) {
-            if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning');
-            }
-
-            if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptMissingDetails');
-            }
-
-            const transactionDetails = getTransactionDetails(linkedTransaction);
-            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+        if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptScanning');
         }
+
+        if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptMissingDetails');
+        }
+
+        const transactionDetails = getTransactionDetails(linkedTransaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+        return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
@@ -2214,8 +2216,6 @@ function getReportPreviewMessage(
     }
 
     if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-
         if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
@@ -2261,7 +2261,15 @@ function getReportPreviewMessage(
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
 
-    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    if (containsNonReimbursable) {
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
+    }
+
+    if (!isEmptyObject(linkedTransaction)) {
+        const comment = TransactionUtils.getDescription(linkedTransaction);
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
+    }
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 
 /**
