@@ -2906,7 +2906,7 @@ const CONST = {
      * The maximum count of items per page for OptionsSelector.
      * When paginate, it multiplies by page number.
      */
-    OPTIONS_SELECTOR_PAGE_LIMITATION: 500,
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
 
     /**
      * Performance test setup - run the same test multiple times to get a more accurate result

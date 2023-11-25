@@ -214,7 +214,7 @@ class BaseOptionsSelector extends Component {
      * @returns {Objects[]}
      */
     sliceSections() {
-        if (!_.isNumber(CONST.OPTIONS_SELECTOR_PAGE_LIMITATION)) {
+        if (!_.isNumber(CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH)) {
             return this.props.sections;
         }
 
@@ -225,7 +225,7 @@ class BaseOptionsSelector extends Component {
 
             return {
                 ...section,
-                data: section.data.slice(0, CONST.OPTIONS_SELECTOR_PAGE_LIMITATION * lodashGet(this.state, 'paginationPage', 1)),
+                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(this.state, 'paginationPage', 1)),
             };
         });
     }
@@ -458,7 +458,7 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowShowMore = this.state.allOptions.length > CONST.OPTIONS_SELECTOR_PAGE_LIMITATION * this.state.paginationPage;
+        const shouldShowShowMore = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
@@ -533,7 +533,7 @@ class BaseOptionsSelector extends Component {
                     shouldShowShowMore && (
                         <ShowMore
                             containerStyle={{...styles.mt2, ...styles.mb5}}
-                            currentCount={CONST.OPTIONS_SELECTOR_PAGE_LIMITATION * this.state.paginationPage}
+                            currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage}
                             totalCount={this.state.allOptions.length}
                             onPress={this.incrementPage}
                         />
