@@ -5,40 +5,7 @@ description: Get the most out of your Expensify Card with exclusive perks!
 
 
 # Overview
-The Expensify Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. The Expensify Card’s primary perks include: 
-- Access to our premiere Expensify Lounge (with more locations coming soon)
-- Swipe to Win, where every swipe has a chance to win fun personalized gifts for you and your closest friends and family members
-- And unbeatable cash back incentive with each swipe
-Below, we’ll cover all of our exclusive offers in more detail and how to claim discounts with our partners.
-
-# Expensify Card Perks
-
-## Access to the Expensify Lounge
-Our [world-class lounge](https://use.expensify.com/lounge) is now open for Expensify members and guests to enjoy! 
-
-We invite you to visit our sleek San Francisco lounge, where sweeping city views provide the perfect backdrop for a morning coffee to start your day. 
-
-Enjoy complimentary cocktails and snacks in a vibrant atmosphere with blazing-fast WiFi. Whether you want a place to focus on work, socialize with other members, or simply kick back and relax – our lounge is ready and waiting to welcome you.
-
-You can sign up for free [here](https://use.expensify.com) if you’re not an Expensify member. If you have any questions, reach out to concierge@expensify.com and [check this out](https://use.expensify.com/lounge) for more info.
-
-## Swipe to Win
-Swipe to Win is a new [Expensify Card](https://use.expensify.com/company-credit-card) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
-
-Winners can choose to _Send a Smile_ or _Send a Laugh_. To start, we’re offering one gift per option:
-
-- **Send A Smile:** Champagne by Expensify
-- **Send a Laugh:** Jenga Set
-
-**How to Participate**
-It’s easy! Once you have an Expensify Card, you just need to start using it. With each swipe, you're automatically entered to win and have a 1 in 250 chance of getting a prize!
-
-**How will I know if I’ve won?**
-Winners will be notified immediately via the Expensify app, and receive additional instructions on how to choose and send their desired gift. 
-
-If you don't have Expensify notifications turned on yet, here are some helpful guides:
-- [Apple Notification Preferences](https://support.apple.com/en-us/HT201925)
-- [Android Notification Preferences](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fsupport.google.com%2Fandroid%2Fanswer%2F9079661%3Fhl%3Den)
+The Expensify Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. Below, we’ll cover all of our exclusive offers in more detail and how to claim discounts with our partners.
 
 # Partner Specific Perks
 
@@ -222,26 +189,3 @@ Stripe Atlas helps removes obstacles typically associated with starting a busine
 
 **How to redeem:** Sign up with your Expensify Card.
 
-# FAQ
-
-## Where is the Expensify Lounge?
-The Expensify Lounge is located on the 16th floor of 88 Kearny Street in San Francisco, California, 94108. This is currently our only lounge location, but keep an eye out for more work lounges popping up soon!
-
-## When is the Expensify Lounge open?
-The lounge is open 8 a.m. to 6 p.m. from Monday through Friday, except for national holidays. Capacity is limited, and we are admitting loungers on a first-come, first-served basis, so make sure to get there early!
-
-## Who can use the lounge workplace?
-Customers with an Expensify subscription can use Expensify’s lounge workplace, and any partner who has completed [ExpensifyApproved! University!](https://university.expensify.com/users/sign_in?next=%2Fdashboard)
-
-
-
-
-# FAQ
-This section covers the useful but not as vital information, it should capture commonly queried elements which do not organically form part of the About or How-to sections.
-
-- What's idiosyncratic or potentially confusing about this feature?
-- Is there anything unique about how this feature relates to billing/activity?
-- If this feature is released, are there any common confusions that can't be solved by improvements to the product itself?
-- Similarly, if this feature hasn't been released, can you predict and pre-empt any potential confusion?
-- Is there any general troubleshooting for this feature?
- - Note: troubleshooting should generally go in the FAQ, but if there is extensive troubleshooting, such as with integrations, that will be housed in a separate page, stored with and linked from the main page for that feature.

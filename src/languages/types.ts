@@ -243,6 +243,7 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,

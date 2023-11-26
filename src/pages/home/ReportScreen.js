@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -20,16 +19,14 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
-import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import Visibility from '@libs/Visibility';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -129,8 +126,12 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
-    return String(lodashGet(route, 'params.reportID', null));
+    // The report ID is used in an onyx key. If it's an empty string, onyx will return
+    // a collection instead of an individual report.
+    // We can't use the default value functionality of `lodash.get()` because it only
+    // provides a default value on `undefined`, and will return an empty string.
+    // Placing the default value outside of `lodash.get()` is intentional.
+    return String(lodashGet(route, 'params.reportID') || 0);
 }
 
 function ReportScreen({
@@ -150,6 +151,7 @@ function ReportScreen({
     userLeavingStatus,
     currentReportID,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -274,25 +276,6 @@ function ReportScreen({
             return () => clearTimeout(refID);
         },
         [route],
-    );
-
-    useFocusEffect(
-        useCallback(() => {
-            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
-                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-                // we don't need to call openReport
-                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
-                    return;
-                }
-
-                Report.openReport(report.reportID);
-            });
-
-            return () => unsubscribeVisibilityListener();
-            // The effect should run only on the first focus to attach listener
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
     );
 
     useEffect(() => {
@@ -431,7 +414,7 @@ function ReportScreen({
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
+                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
@@ -449,8 +432,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                    If we prevent rendering the report while they are loading then
-                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                     If we prevent rendering the report while they are loading then
+                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (

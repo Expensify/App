@@ -21,8 +21,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -59,7 +59,7 @@ const propTypes = {
     isLoadingPaymentMethods: PropTypes.bool,
 
     /** Type to filter the payment Method list */
-    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, '']),
 
     /** User wallet props */
     userWallet: PropTypes.shape({
@@ -128,7 +128,7 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
@@ -162,7 +162,7 @@ function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
 
     const defaultablePaymentMethodCount = _.filter(
         filteredPaymentMethods,
-        (method) => method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
+        (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
     return defaultablePaymentMethodCount > 1;
 }
@@ -206,6 +206,7 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -277,7 +278,7 @@ function PaymentMethodList({
      *
      * @return {React.Component}
      */
-    const renderListEmptyComponent = () => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
+    const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
 
     const renderListFooterComponent = useCallback(
         () => (
@@ -288,7 +289,8 @@ function PaymentMethodList({
                 wrapperStyle={styles.paymentMethod}
             />
         ),
-        [onPress, translate],
+
+        [onPress, styles.paymentMethod, translate],
     );
 
     /**
@@ -328,7 +330,8 @@ function PaymentMethodList({
                 />
             </OfflineWithFeedback>
         ),
-        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+
+        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

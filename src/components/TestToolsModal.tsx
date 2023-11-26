@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,9 +16,11 @@ type TestToolsModalOnyxProps = {
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
+    const styles = useThemeStyles();
+
     return (
         <Modal
-            isVisible={isTestToolsModalOpen}
+            isVisible={!!isTestToolsModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >

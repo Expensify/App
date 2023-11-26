@@ -16,7 +16,7 @@ import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/Step
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
 import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function VerifyStep({account, session}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formRef = React.useRef(null);
@@ -150,6 +151,7 @@ VerifyStep.propTypes = {
     }),
 };
 VerifyStep.defaultProps = defaultProps;
+VerifyStep.displayName = 'VerifyStep';
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({

@@ -1,7 +1,7 @@
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -29,6 +29,7 @@ const USER_DEFAULT = {shouldUseStagingServer: undefined, isSubscribedToNewslette
 
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+    const styles = useThemeStyles();
 
     return (
         <>

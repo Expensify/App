@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {TranslationFlatObject} from '@src/languages/types';
+import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
@@ -39,6 +39,14 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * @param error - error key or message to be saved
  */
 function getMicroSecondOnyxError(error: string): Record<number, string> {
+    return {[DateUtils.getMicroseconds()]: error};
+}
+
+/**
+ * Method used to get an error object with microsecond as the key and an object as the value.
+ * @param error - error key or message to be saved
+ */
+function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -93,7 +101,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
  * @param errorList - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage(errors: ErrorsList, inputID?: string, message?: string) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
     if (!message || !inputID) {
         return;
     }
@@ -111,4 +119,4 @@ function addErrorMessage(errors: ErrorsList, inputID?: string, message?: string)
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};

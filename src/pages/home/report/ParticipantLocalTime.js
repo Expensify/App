@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -29,6 +29,7 @@ function getParticipantLocalTime(participant, preferredLocale) {
 }
 
 function ParticipantLocalTime(props) {
+    const styles = useThemeStyles();
     const {participant, preferredLocale, translate} = props;
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));
@@ -44,6 +45,10 @@ function ParticipantLocalTime(props) {
     }, [participant, preferredLocale]);
 
     const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
+
+    if (!reportRecipientDisplayName) {
+        return null;
+    }
 
     return (
         <View style={[styles.chatItemComposeSecondaryRow]}>

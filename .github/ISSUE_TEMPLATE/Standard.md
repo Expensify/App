@@ -42,45 +42,8 @@ Which of our officially supported platforms is this issue occurring on?
 - [ ] MacOS: Desktop
 
 ## Screenshots/Videos
-<details>
-<summary>Android: Native</summary>
 
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>Android: mWeb Chrome</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>iOS: Native</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>iOS: mWeb Safari</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>MacOS: Chrome / Safari</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>MacOS: Desktop</summary>
-
-<!-- add screenshots or videos here -->
+Add any screenshot/video evidence
 
 </details>
 
