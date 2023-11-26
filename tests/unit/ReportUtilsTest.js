@@ -452,7 +452,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
-            it("it's a group chat report", () => {
+            it("it's a group DM report", () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
@@ -465,17 +465,6 @@ describe('ReportUtils', () => {
         });
 
         describe('return only money request option if', () => {
-            it("it is user's own policy expense chat", () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    isOwnPolicyExpenseChat: true,
-                };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
-                expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
-            });
-
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
                     reportID: '101',
@@ -520,15 +509,29 @@ describe('ReportUtils', () => {
             });
         });
 
-        it('return both iou send and request money in DM', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
-            expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
+        describe('return multiple money request option if', () => {
+            it("it is user's own policy expense chat", () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
+                expect(moneyRequestOptions.length).toBe(2);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+            });
+
+            it('it is a 1:1 DM', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
+                expect(moneyRequestOptions.length).toBe(2);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
+            });
         });
     });
 

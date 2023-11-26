@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -47,6 +47,7 @@ const defaultProps = {
 };
 
 function EnableStep(props) {
+    const styles = useThemeStyles();
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);

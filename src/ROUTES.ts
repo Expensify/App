@@ -83,6 +83,22 @@ export default {
         route: '/settings/wallet/card/:domain/report-virtual-fraud',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
     },
+    SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
+        route: '/settings/wallet/card/:domain/get-physical/name',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/name`,
+    },
+    SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
+        route: '/settings/wallet/card/:domain/get-physical/phone',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/phone`,
+    },
+    SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
+        route: '/settings/wallet/card/:domain/get-physical/address',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/address`,
+    },
+    SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
+        route: '/settings/wallet/card/:domain/get-physical/confirm',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/confirm`,
+    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
@@ -358,22 +374,14 @@ export default {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
+    // Referral program promotion
+    REFERRAL_DETAILS_MODAL: {
+        route: 'referral/:contentType',
+        getRoute: (contentType: string) => `referral/${contentType}`,
+    },
 
     // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
     MONEY2020: 'money2020',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'home',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'expenses',
-    REPORTS_OLDDOT: 'reports',
-    INSIGHTS_OLDDOT: 'insights',
-
-    // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspaces',
-    GROUPS_OLDDOT: 'group_workspaces',
-    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;

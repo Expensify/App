@@ -243,10 +243,10 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
-    TranslationPaths,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
     ZipCodeExampleFormatParams,

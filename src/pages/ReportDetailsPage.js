@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
@@ -15,14 +14,13 @@ import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +58,7 @@ const defaultProps = {
 };
 
 function ReportDetailsPage(props) {
+    const styles = useThemeStyles();
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
@@ -73,7 +72,6 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
@@ -144,19 +142,8 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom) {
-            const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                isAnonymousAction: false,
-                action: () => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom),
-            });
-        }
-
         return items;
-    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat, isPolicyMember]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -166,12 +153,13 @@ function ReportDetailsPage(props) {
     const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <Text
-            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+        <DisplayNames
+            fullTitle={chatRoomSubtitle}
+            tooltipEnabled
             numberOfLines={1}
-        >
-            {chatRoomSubtitle}
-        </Text>
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+            shouldUseFullTitle
+        />
     ) : null;
 
     return (
@@ -214,6 +202,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}

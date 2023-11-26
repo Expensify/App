@@ -180,6 +180,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 resourceQuery: /raw/,
                 type: 'asset/source',
             },
+            {
+                test: /\.lottie$/,
+                type: 'asset/resource',
+            },
         ],
     },
     resolve: {
