@@ -113,7 +113,7 @@ If you centrally manage your company cards through Domains, you can export expen
 
 ## Billable Expenses
 
-- In Expensify, you can designate expenses as billable. These will be exported to QuickBooks Online with the billable flag. - This feature applies only to expenses exported as Vendor Bills or Checks. To maximize this functionality, ensure that any billable expense is associated with a Customer/Job.
+- In Expensify, you can designate expenses as billable. These will be exported to QuickBooks Online with the billable flag. This feature applies only to expenses exported as Vendor Bills or Checks. To maximize this functionality, ensure that any billable expense is associated with a Customer/Job.
 
 ## Export Invoices
 
