@@ -1,6 +1,7 @@
-import React, {useEffect, useRef} from 'react';
-// We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
-import {FlatList} from 'react-native-gesture-handler';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useEffect, useRef} from 'react';
+// We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
+import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -28,7 +29,16 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
-function BaseAutoCompleteSuggestions(props) {
+function BaseAutoCompleteSuggestions({
+    highlightedSuggestionIndex,
+    onSelect,
+    renderSuggestionMenuItem,
+    suggestions,
+    accessibilityLabelExtractor,
+    keyExtractor,
+    isSuggestionPickerLarge,
+    forwardedRef,
+}) {
     const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef(null);
@@ -39,70 +49,56 @@ function BaseAutoCompleteSuggestions(props) {
      * @param {Number} params.index
      * @returns {JSX.Element}
      */
-    const renderSuggestionMenuItem = ({item, index}) => (
-        <PressableWithFeedback
-            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(props.highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
-            hoverDimmingValue={1}
-            onMouseDown={(e) => e.preventDefault()}
-            onPress={() => props.onSelect(index)}
-            onLongPress={() => {}}
-            accessibilityLabel={props.accessibilityLabelExtractor(item, index)}
-        >
-            {props.renderSuggestionMenuItem(item, index)}
-        </PressableWithFeedback>
+    const renderItem = useCallback(
+        ({item, index}) => (
+            <PressableWithFeedback
+                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
+                hoverDimmingValue={1}
+                onMouseDown={(e) => e.preventDefault()}
+                onPress={() => onSelect(index)}
+                onLongPress={() => {}}
+                accessibilityLabel={accessibilityLabelExtractor(item, index)}
+            >
+                {renderSuggestionMenuItem(item, index)}
+            </PressableWithFeedback>
+        ),
+        [highlightedSuggestionIndex, renderSuggestionMenuItem, onSelect, accessibilityLabelExtractor],
     );
 
-    /**
-     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
-     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
-     * lists.
-     *
-     * Also, `scrollToIndex` should be used in conjunction with `getItemLayout`, otherwise there is no way to know the location of offscreen indices or handle failures.
-     *
-     * @param {Array} data - This is the same as the data we pass into the component
-     * @param {Number} index the current item's index in the set of data
-     *
-     * @returns {Object}
-     */
-    const getItemLayout = (data, index) => ({
-        length: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
-        offset: index * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
-        index,
-    });
-
-    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * props.suggestions.length;
+    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
 
     useEffect(() => {
-        rowHeight.value = withTiming(measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge), {
+        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
             duration: 100,
             easing: Easing.inOut(Easing.ease),
         });
-    }, [props.suggestions.length, props.isSuggestionPickerLarge, rowHeight]);
+    }, [suggestions.length, isSuggestionPickerLarge, rowHeight]);
 
     useEffect(() => {
         if (!scrollRef.current) {
             return;
         }
-        scrollRef.current.scrollToIndex({index: props.highlightedSuggestionIndex, animated: true});
-    }, [props.highlightedSuggestionIndex]);
+        scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+    }, [highlightedSuggestionIndex]);
 
     return (
         <Animated.View
-            ref={props.forwardedRef}
+            ref={forwardedRef}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
-            <FlatList
+            <FlashList
+                estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
                 ref={scrollRef}
                 keyboardShouldPersistTaps="handled"
-                data={props.suggestions}
-                renderItem={renderSuggestionMenuItem}
-                keyExtractor={props.keyExtractor}
+                data={suggestions}
+                renderItem={renderItem}
+                renderScrollComponent={ScrollView}
+                keyExtractor={keyExtractor}
                 removeClippedSubviews={false}
                 showsVerticalScrollIndicator={innerHeight > rowHeight.value}
-                style={{flex: 1}}
-                getItemLayout={getItemLayout}
+                extraData={highlightedSuggestionIndex}
             />
         </Animated.View>
     );
