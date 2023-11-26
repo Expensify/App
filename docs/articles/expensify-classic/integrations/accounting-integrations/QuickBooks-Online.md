@@ -230,7 +230,7 @@ If your country applies taxes on sales (like GST, HST, or VAT), you can utilize 
 
 To get started:
 
-- Go to Settings > Workpaces > Group > [Workspace Name] > Connections, and click Configure.
+- Go to Settings > Workspaces > Group > [Workspace Name] > Connections, and click Configure.
 - Navigate to the Coding tab.
 - Turn on 'T.''.
 - Click Save. This imports the Tax Name and rate from QuickBooks Online.
