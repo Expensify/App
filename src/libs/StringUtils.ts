@@ -68,7 +68,7 @@ function removeInvisibleCharacters(value: string): string {
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
  */
-function normalizeCRLF(value: string | null): string {
+function normalizeCRLF(value?: string): string | undefined {
     return value?.replace(/\r\n/g, '\n');
 }
 
