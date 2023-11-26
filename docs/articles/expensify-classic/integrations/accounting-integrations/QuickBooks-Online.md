@@ -183,6 +183,7 @@ If you use Items in QuickBooks Online, you can import Items defined with Purchas
 
 The advanced settings are where functionality for automating and customizing the QuickBooks Online integration can be enabled.
 Navigate to this section of your Workspace by following Settings > Workspaces > Group > [Workspace Name] > Connections > Configure button > Advanced tab.
+
 ## Auto Sync
 With QuickBooks Online auto-sync, once a non-reimbursable report is final approved in Expensify, it's automatically queued for export to QuickBooks Online. For expenses eligible for reimbursement with a linked business bank account, they'll sync when marked as reimbursed.
 
