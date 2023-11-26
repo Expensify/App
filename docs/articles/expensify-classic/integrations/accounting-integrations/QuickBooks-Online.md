@@ -30,7 +30,7 @@ Additional Options for Streamlined Setup:
 ## Step 2: Connect Expensify and QuickBooks Online
 
 - Navigate to Settings > Workspaces > Group > [Workspace Name] > Connections > QuickBooks Online. Click Connect to QuickBooks.
-- Enter your QuickBooks Online Administrator’s login information and choose the QuickBooks Online Company File you want to connect to Expensify (you can connect one Company File per Workspace). Then Click Authorize.
+- Enter your QuickBooks Online Administrator’s login information and choose the QuickBooks Online Company File you want to connect to Expensify (you can connect one Company File per Workspace). Then click Authorize.
 - Enter your QuickBooks Online Administrator’s login information and choose the QuickBooks Online Company File you want to connect to Expensify (you can connect one Company File per Workspace):
 
 Exporting Historical Reports to QuickBooks Online:
