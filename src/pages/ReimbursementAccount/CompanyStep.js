@@ -165,6 +165,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <InputWrapper
                     InputComponent={TextInput}
                     label={translate('companyStep.legalBusinessName')}
+                    maxLength={CONST.LEGAL_NAMES_CHARACTER_LIMIT}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     inputID="companyName"
