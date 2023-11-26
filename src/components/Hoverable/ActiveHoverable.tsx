@@ -61,6 +61,10 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     }, [shouldHandleScroll]);
 
     useEffect(() => {
+        // Do not mount a listener if the component is not hovered
+        if (!isHovered) {
+            return;
+        }
         /**
          * Checks the hover state of a component and updates it based on the event target.
          * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
@@ -68,11 +72,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
          * @param event The hover event object.
          */
         const unsetHoveredIfOutside = (event: MouseEvent) => {
-            if (!ref.current || !isHovered) {
-                return;
-            }
-
-            if (ref.current.contains(event.target as Node)) {
+            if (!ref.current || ref.current.contains(event.target as Node)) {
                 return;
             }
 
