@@ -116,6 +116,10 @@ function RightModalNavigator(props) {
                         component={ModalStackNavigators.SignInModalStackNavigator}
                     />
                     <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name="Private_Notes"
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
