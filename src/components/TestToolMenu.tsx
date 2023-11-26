@@ -57,7 +57,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             <TestToolRow title="Force offline">
                 <Switch
                     accessibilityLabel="Force offline"
-                    isOn={Boolean(network?.shouldForceOffline)}
+                    isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
                 />
             </TestToolRow>
@@ -66,7 +66,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             <TestToolRow title="Simulate failing network requests">
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
-                    isOn={Boolean(network?.shouldFailAllRequests)}
+                    isOn={!!network?.shouldFailAllRequests}
                     onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                 />
             </TestToolRow>
