@@ -167,6 +167,7 @@ Locations can be imported into Expensify as a Report Field or, if you export rei
 ## Items
 
 If you use Items in QuickBooks Online, you can import Items defined with Purchasing Information (with or without Sales Information) into Expensify as Categories.
+
 ## Tax
 
 - Using our tax tracking feature, you can assign a tax rate and amount to each expense.
