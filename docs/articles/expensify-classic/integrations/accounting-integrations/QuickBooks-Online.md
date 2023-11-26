@@ -155,7 +155,7 @@ Please note that each expense has to have a category selected to export to Quick
 
 If you use Classes or Customers/Projects in QuickBooks Online, you can import those into Expensify as Tags or Report Fields:
 
-- Tags let you apply a Class and/or Customer/Project to each expense
+- Tags let you apply a Class and/or Customer/Project to each expense.
 - Report Fields enables you to apply a Class and/or Customer/Project to all expenses on a report.
 
 Note: Although Projects can be imported into Expensify and coded to expenses, due to the limitations of the QuickBooks API, expenses cannot be created within the Projects module in QuickBooks. 
