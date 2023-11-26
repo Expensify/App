@@ -37,11 +37,9 @@ Exporting Historical Reports to QuickBooks Online:
 
 After connecting QuickBooks Online to Expensify, you may receive a prompt to export all historical reports from Expensify. To export multiple reports at once, follow these steps:
 
-a. Go to the Reports page on the web.
-
-b. Tick the checkbox next to the reports you want to export.
-
-c. Click 'Export To' and select 'QuickBooks Online' from the drop-down list.
+- Go to the Reports page on the web.
+- Tick the checkbox next to the reports you want to export.
+- Click 'Export To' and select 'QuickBooks Online' from the drop-down list.
 
 If you don't want to export specific reports, click “Mark as manually entered” on the report.
 
