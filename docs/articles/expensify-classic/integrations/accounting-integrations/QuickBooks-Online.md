@@ -111,7 +111,7 @@ If you centrally manage your company cards through Domains, you can export expen
 - A single detailed vendor bill is generated for each Expensify report. If the accounting period is closed, the vendor bill will be posted on the first day of the next open period. If you choose to export non-reimbursable expenses as Vendor Bills, you can assign a default vendor to the bill.
 - The export will use your default vendor if you have Default Vendor enabled. If the Default Vendor is disabled, the report's submitter will be set as the Vendor in QuickBooks.
 
-Billable Expenses:
+## Billable Expenses
 
 - In Expensify, you can designate expenses as billable. These will be exported to QuickBooks Online with the billable flag. - This feature applies only to expenses exported as Vendor Bills or Checks. To maximize this functionality, ensure that any billable expense is associated with a Customer/Job.
 
