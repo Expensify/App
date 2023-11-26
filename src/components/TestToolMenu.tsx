@@ -1,3 +1,4 @@
+import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
