@@ -3,7 +3,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {AppState, Linking} from 'react-native';
+import {AppState, DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import App from '../../src/App';
 import CONFIG from '../../src/CONFIG';
@@ -78,7 +78,7 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible() {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge.props.style.transform[0].translateY) === 10;
+    return Math.round(badge.props.style.transform[0].translateY) === -40;
 }
 
 /**
@@ -130,7 +130,8 @@ function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
-        .then(() => {
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
             const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
@@ -248,8 +249,12 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            // Navigate to the unread chat from the sidebar
-            .then(() => navigateToSidebarOption(0))
+            .then(() => {
+                // Verify the unread indicator is present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
+            })
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
                 // Then navigate back to the sidebar
@@ -258,8 +263,14 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
+
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
+            })
+            .then(() => {
+                // Sending event to clear the unread indicator cache, given that the test doesn't behave as the app
+                DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING));
+                return waitForBatchedUpdatesWithAct();
             })
             .then(() => {
                 // Verify the unread indicator is not present

@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function TaskTitlePage(props) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values
      * @param {String} values.title
@@ -89,7 +90,7 @@ function TaskTitlePage(props) {
                         <View style={[styles.mb4]}>
                             <InputWrapper
                                 InputComponent={TextInput}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="title"
                                 name="title"
                                 label={props.translate('task.title')}

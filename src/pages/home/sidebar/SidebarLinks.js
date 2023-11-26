@@ -1,15 +1,15 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -19,15 +19,21 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
+    /** Toggles the navigation menu open and closed */
+    onLinkClick: PropTypes.func.isRequired,
+
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 };
@@ -46,6 +52,8 @@ const propTypes = {
 };
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -143,35 +151,47 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View
-                style={styles.sidebarHeaderContainer}
+                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                 dataSet={{dragArea: true}}
             >
                 <Header
-                    title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
+                    title={
+                        <LogoComponent
+                            fill={theme.text}
+                            width={variables.lhnLogoWidth}
+                            height={variables.lhnLogoHeight}
+                        />
+                    }
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />
                 <Tooltip text={translate('common.search')}>
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
                         <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
+                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-
-            <LHNOptionsList
-                style={[isLoading ? styles.flexShrink1 : styles.flex1]}
-                contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-                data={optionListItems}
-                onSelectRow={showReportPage}
-                shouldDisableFocusOptions={isSmallScreenWidth}
-                optionMode={viewMode}
-            />
-            {isLoading && <OptionsListSkeletonView shouldAnimate />}
+            <View style={[styles.pRelative, styles.flex1]}>
+                <LHNOptionsList
+                    style={styles.flex1}
+                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
+                    data={optionListItems}
+                    onSelectRow={showReportPage}
+                    shouldDisableFocusOptions={isSmallScreenWidth}
+                    optionMode={viewMode}
+                />
+                {isLoading && optionListItems.length === 0 && (
+                    <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>
+                        <OptionsListSkeletonView shouldAnimate />
+                    </View>
+                )}
+            </View>
         </View>
     );
 }

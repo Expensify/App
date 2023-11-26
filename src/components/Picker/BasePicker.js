@@ -232,14 +232,7 @@ function BasePicker(props) {
                     hasError && styles.borderColorDanger,
                 ]}
             >
-                {props.label && (
-                    <Text
-                        pointerEvents="none"
-                        style={[styles.pickerLabel, styles.textLabelSupporting]}
-                    >
-                        {props.label}
-                    </Text>
-                )}
+                {props.label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{props.label}</Text>}
                 <RNPickerSelect
                     onValueChange={onInputChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows

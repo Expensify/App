@@ -1,16 +1,16 @@
-import {AnimationObject} from 'lottie-react-native';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';
-import * as LottieAnimations from './LottieAnimations';
+import LottieAnimations from './LottieAnimations';
+import DotLottieAnimation from './LottieAnimations/types';
 import Text from './Text';
 
 type ConfirmationPageProps = {
     /** The asset to render */
-    animation: string | AnimationObject | {uri: string};
+    animation: DotLottieAnimation;
 
     /** Heading of the confirmation page */
     heading: string;
@@ -36,6 +36,8 @@ function ConfirmationPage({
     onButtonPress = () => {},
     shouldShowButton = false,
 }: ConfirmationPageProps) {
+    const styles = useThemeStyles();
+
     return (
         <>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
