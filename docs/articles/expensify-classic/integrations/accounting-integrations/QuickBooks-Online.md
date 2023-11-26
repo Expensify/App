@@ -171,7 +171,7 @@ If you use Items in QuickBooks Online, you can import Items defined with Purchas
 ## Tax
 
 - Using our tax tracking feature, you can assign a tax rate and amount to each expense.
--To activate tax tracking, go to connection configuration and enable it. This will automatically import purchasing taxes from QuickBooks Online into Expensify.
+- To activate tax tracking, go to connection configuration and enable it. This will automatically import purchasing taxes from QuickBooks Online into Expensify.
 - After the connection is set, navigate to Settings > Workspaces > Groups > [Workspace Name] > Tax. Here, you can view the taxes imported from QuickBooks Online.
 - Use the enable/disable button to choose which taxes are accessible to your employees.
 - Set a default tax for the Company Workspace, which will automatically apply to all new expenses.
