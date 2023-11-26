@@ -139,7 +139,7 @@ Equity type accounts will also be imported as categories.
 
 Important notes:
 
--  Other Current Liabilities can only be exported as Journal Entries if the submitter is set up as an Employee in QuickBooks.
+- Other Current Liabilities can only be exported as Journal Entries if the submitter is set up as an Employee in QuickBooks.
 - Exchange Gain or Loss detail type does not import.
   
 Recommended steps to take after importing the expense accounts from QuickBooks to Expensify:
