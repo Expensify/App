@@ -802,8 +802,8 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
  */
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
-    const messageItems = getMemberChangeMessageElements(reportAction);
-    return messageItems.map((element) => element.content).join('');
+    const messageElements = getMemberChangeMessageElements(reportAction);
+    return messageElements.map((element) => element.content).join('');
 }
 
 /**
