@@ -13,15 +13,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 };
 
 const assertDeployChecklistJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DEPLOY_CHECKLIST', 'Checkout'),
-        utils.createStepAssertion('Setup Node', true, null, 'DEPLOY_CHECKLIST', 'Setup Node'),
-        utils.createStepAssertion('Set version', true, null, 'DEPLOY_CHECKLIST', 'Set version'),
-        utils.createStepAssertion('Create or update staging deploy', true, null, 'DEPLOY_CHECKLIST', 'Create or update staging deploy', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'NPM_VERSION', value: '1.2.3'},
-        ]),
-    ];
+    const steps = [utils.createStepAssertion('deployChecklist', true, null, 'DEPLOY_CHECKLIST', 'Run deployChecklist')];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -63,6 +55,10 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
     );
     if (!isProduction) {
         steps.push(
+            utils.createStepAssertion('Upload Android version to GitHub artifacts', true, null, 'ANDROID', 'Upload Android version to GitHub artifacts', [
+                {key: 'name', value: 'app-production-release.aab'},
+                {key: 'path', value: 'android/app/build/outputs/bundle/productionRelease/app-production-release.aab'},
+            ]),
             utils.createStepAssertion('Upload Android version to Browser Stack', true, null, 'ANDROID', 'Uploading Android version to Browser Stack', null, [
                 {key: 'BROWSERSTACK', value: '***'},
             ]),
@@ -183,7 +179,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         ]),
     );
     if (!isProduction) {
-        steps.push(utils.createStepAssertion('Upload iOS version to Browser Stack', true, null, 'IOS', 'Uploading version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]));
+        steps.push(
+            utils.createStepAssertion('Upload iOS version to GitHub artifacts', true, null, 'IOS', 'Upload iOS version to GitHub artifacts', [
+                {key: 'name', value: 'New Expensify.ipa'},
+                {key: 'path', value: '/Users/runner/work/App/App/New Expensify.ipa'},
+            ]),
+            utils.createStepAssertion('Upload iOS version to Browser Stack', true, null, 'IOS', 'Uploading version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
+        );
     } else {
         steps.push(
             utils.createStepAssertion('Set iOS version in ENV', true, null, 'IOS', 'Setting iOS version'),
