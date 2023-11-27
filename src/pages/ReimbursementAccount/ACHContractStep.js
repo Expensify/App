@@ -18,6 +18,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import IdentityForm from './IdentityForm';
 import StepPropTypes from './StepPropTypes';
 
@@ -146,7 +147,7 @@ function ACHContractStep(props) {
         });
     };
 
-    return (
+    const foo = () => (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ACHContractStep.displayName}
@@ -212,6 +213,7 @@ function ACHContractStep(props) {
                             defaultValue={props.getDefaultStateForField('hasOtherBeneficialOwners', false)}
                             shouldSaveDraft
                         />
+
                         {Boolean(inputValues.hasOtherBeneficialOwners) && (
                             <View style={[styles.mb2]}>
                                 {_.map(beneficialOwners, (ownerKey, index) => (
@@ -287,6 +289,8 @@ function ACHContractStep(props) {
             </FormProvider>
         </ScreenWrapper>
     );
+
+    return <BeneficialOwnerInfo />;
 }
 
 ACHContractStep.propTypes = propTypes;
