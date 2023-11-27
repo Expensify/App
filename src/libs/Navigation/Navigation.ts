@@ -292,9 +292,7 @@ function navContainsProtectedRoutes(state: NavigationState | PartialState<Naviga
     }
 
     const protectedScreensName = Object.values(PROTECTED_SCREENS);
-    const difference = protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
-
-    return !difference;
+    return !protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
 }
 
 /**
