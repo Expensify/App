@@ -41,16 +41,12 @@ const propTypes = {
 
     /** The transaction being modified */
     transaction: transactionPropTypes,
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     report: {},
     selectedTab: CONST.TAB_REQUEST.SCAN,
     transaction: {},
-    betas: [],
 };
 
 function IOURequestStartPage({
@@ -61,7 +57,6 @@ function IOURequestStartPage({
     },
     selectedTab,
     transaction,
-    betas,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -96,7 +91,7 @@ function IOURequestStartPage({
     const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
