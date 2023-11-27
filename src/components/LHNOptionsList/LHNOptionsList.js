@@ -176,7 +176,7 @@ function LHNOptionsList({
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
                 initialNumToRender={20}
-                maxToRenderPerBatch={5}
+                maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT}
                 windowSize={5}
             />
         </View>

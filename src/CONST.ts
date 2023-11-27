@@ -2908,6 +2908,14 @@ const CONST = {
     PERFORMANCE_TESTS: {
         RUNS: 20,
     },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
 } as const;
 
 export default CONST;

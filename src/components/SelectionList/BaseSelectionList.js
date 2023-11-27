@@ -72,7 +72,7 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
-    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : 5);
+    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -320,7 +320,7 @@ function BaseSelectionList({
                 const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
                 const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
 
-                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + 5);
+                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
             if (!firstLayoutRef.current) {
