@@ -19,6 +19,7 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue | null>(nul
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
             setIsKeyboardShown(true);
@@ -42,8 +43,10 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
-export default function withKeyboardState<TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): (props: TProps & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithKeyboardState(props: TProps, ref: ForwardedRef<TRef>) {
+export default function withKeyboardState<TProps extends KeyboardStateContextValue, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof KeyboardStateContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithKeyboardState(props: Omit<TProps, keyof KeyboardStateContextValue>, ref: ForwardedRef<TRef>) {
         return (
             <KeyboardStateContext.Consumer>
                 {(keyboardStateProps) => (
@@ -51,14 +54,14 @@ export default function withKeyboardState<TProps, TRef>(WrappedComponent: Compon
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...keyboardStateProps}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
+                        {...(props as TProps)}
                         ref={ref}
                     />
                 )}
             </KeyboardStateContext.Consumer>
         );
     }
-    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
     return forwardRef(WithKeyboardState);
 }
 
