@@ -70,6 +70,10 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
         [videoPlayerRef],
     );
 
+    const showPopoverMenu = (e) => {
+        showPopover(videoPlayerRef.current, e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX);
+    };
+
     useEffect(() => {
         setDurationFormatted(convertMillisecondsToTime(duration));
     }, [duration]);
@@ -108,7 +112,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
                     <IconButton
                         src={Expensicons.ThreeDots}
                         tooltipText={translate('common.more')}
-                        onPress={(e) => showPopover(e.nativeEvent.pageY + CONST.VIDEO_PLAYER.POPOVER_Y_OFFSET, e.nativeEvent.pageX)}
+                        onPress={showPopoverMenu}
                         small={small}
                     />
                 </View>

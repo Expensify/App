@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 
 const propTypes = {};
 const defaultProps = {};
@@ -13,8 +13,15 @@ const defaultProps = {};
 function VideoPopoverMenu() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {playbackSpeeds, currentPlaybackSpeed, updatePlaybackSpeed} = usePlaybackContext();
-    const {isPopoverVisible, hidePopover, anchorPosition} = useVideoPopoverMenuContext();
+    const {isPopoverVisible, hidePopover, anchorPosition, targetVideoPlayerRef} = useVideoPopoverMenuContext();
+
+    const [playbackSpeeds] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
+
+    const updatePlaybackSpeed = (speed) => {
+        targetVideoPlayerRef.current.setStatusAsync({rate: speed});
+        setCurrentPlaybackSpeed(speed);
+    };
 
     const playbackSpeedSubMenuItems = _.map(playbackSpeeds, (speed) => ({
         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
@@ -37,6 +44,15 @@ function VideoPopoverMenu() {
             subMenuItems: playbackSpeedSubMenuItems,
         },
     ];
+
+    useEffect(() => {
+        if (!isPopoverVisible) {
+            return;
+        }
+        targetVideoPlayerRef.current.getStatusAsync().then((status) => {
+            setCurrentPlaybackSpeed(status.rate);
+        });
+    }, [isPopoverVisible, playbackSpeeds, targetVideoPlayerRef]);
 
     return (
         <PopoverMenu

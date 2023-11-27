@@ -10,9 +10,6 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
     const currentVideoPlayerRef = useRef(null);
 
-    const playbackSpeeds = CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS;
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
-
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
     }, [currentVideoPlayerRef]);
@@ -41,11 +38,6 @@ function PlaybackContextProvider({children}) {
         [playVideo],
     );
 
-    const updatePlaybackSpeed = useCallback((newPlaybackSpeed) => {
-        currentVideoPlayerRef.current.setStatusAsync({rate: newPlaybackSpeed});
-        setCurrentPlaybackSpeed(newPlaybackSpeed);
-    }, []);
-
     const contextValue = useMemo(
         () => ({
             updateCurrentlyPlayingURL,
@@ -56,22 +48,8 @@ function PlaybackContextProvider({children}) {
             shareVideoPlayerElements,
             playVideo,
             pauseVideo,
-            playbackSpeeds,
-            updatePlaybackSpeed,
-            currentPlaybackSpeed,
         }),
-        [
-            updateCurrentlyPlayingURL,
-            currentlyPlayingURL,
-            originalParent,
-            sharedElement,
-            shareVideoPlayerElements,
-            playVideo,
-            pauseVideo,
-            playbackSpeeds,
-            updatePlaybackSpeed,
-            currentPlaybackSpeed,
-        ],
+        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }

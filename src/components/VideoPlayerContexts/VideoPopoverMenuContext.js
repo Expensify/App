@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({vertical: 0, horizontal: 0});
+    const targetVideoPlayerRef = useRef(null);
 
     const updateAnchorPosition = useCallback((y, x) => {
         setAnchorPosition({vertical: y, horizontal: x});
@@ -16,16 +17,17 @@ function VideoPopoverMenuContextProvider({children}) {
     }, []);
 
     const showPopover = useCallback(
-        (y = 0, x = 0) => {
+        (ref, y = 0, x = 0) => {
             setIsPopoverVisible(true);
             updateAnchorPosition(y, x);
+            targetVideoPlayerRef.current = ref;
         },
         [updateAnchorPosition],
     );
 
     const contextValue = useMemo(
-        () => ({isPopoverVisible, hidePopover, showPopover, anchorPosition, updateAnchorPosition}),
-        [anchorPosition, hidePopover, isPopoverVisible, showPopover, updateAnchorPosition],
+        () => ({isPopoverVisible, hidePopover, showPopover, anchorPosition, updateAnchorPosition, targetVideoPlayerRef}),
+        [anchorPosition, hidePopover, isPopoverVisible, showPopover, updateAnchorPosition, targetVideoPlayerRef],
     );
     return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;
 }
