@@ -506,7 +506,7 @@ function ComposerWithSuggestions({
             InputFocus.inputFocusChange(false);
             return;
         }
-        focus();
+        focus(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
 
