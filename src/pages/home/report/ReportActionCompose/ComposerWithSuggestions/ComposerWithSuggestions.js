@@ -491,6 +491,7 @@ function ComposerWithSuggestions({
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
+        console.log('abcdef');
         if (modal.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
@@ -507,8 +508,7 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
