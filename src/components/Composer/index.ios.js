@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import {getComposerMaxHeightStyle} from '@styles/StyleUtils';
+import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
@@ -92,7 +93,20 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const maxHeightStyle = useMemo(() => getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
+    /**
+     * Set maximum number of lines
+     * @return {Number}
+     */
+    const maxNumberOfLines = useMemo(() => {
+        if (isComposerFullSize) {
+            return;
+        }
+        return maxLines;
+    }, [isComposerFullSize, maxLines]);
+
+    const composerStyles = useMemo(() => {
+        StyleSheet.flatten(props.style);
+    }, [props.style]);
 
     // On native layers we like to have the Text Input not focused so the
     // user can read new chats without the keyboard in the way of the view.
@@ -100,15 +114,16 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
     const propsToPass = _.omit(props, 'selection');
     return (
         <RNTextInput
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...propsToPass}
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
-            style={[...props.style, maxHeightStyle]}
+            maxNumberOfLines={maxNumberOfLines}
+            style={[composerStyles, styles.verticalAlignMiddle]}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...propsToPass}
             readOnly={isDisabled}
         />
     );
