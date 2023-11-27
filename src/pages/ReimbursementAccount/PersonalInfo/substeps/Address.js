@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -12,6 +12,7 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -61,12 +62,17 @@ function Address({reimbursementAccount, onNext, isEditing}) {
         zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.ZIP_CODE, ''),
     };
 
+    const handleSubmit = (values) => {
+        BankAccounts.addPersonalAddressForDraft(values);
+        onNext();
+    };
+
     return (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
@@ -85,7 +91,7 @@ function Address({reimbursementAccount, onNext, isEditing}) {
                     containerStyles={[styles.mt5]}
                 />
             </View>
-        </Form>
+        </FormProvider>
     );
 }
 

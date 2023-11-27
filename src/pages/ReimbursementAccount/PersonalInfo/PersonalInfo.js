@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,7 +7,6 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -17,7 +17,6 @@ import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -30,6 +29,9 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -44,7 +46,7 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
+const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
     const {translate} = useLocalize();
 
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -63,7 +65,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            onBackButtonPress();
         } else {
             prevScreen();
         }
@@ -71,6 +73,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
 
     return (
         <ScreenWrapper
+            ref={ref}
             testID={PersonalInfo.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
@@ -84,7 +87,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     // TODO Will be replaced with proper values
-                    startStep={1}
+                    startStep={2}
                     stepNames={STEP_NAMES}
                 />
             </View>
@@ -95,7 +98,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft}) {
             />
         </ScreenWrapper>
     );
-}
+});
 
 PersonalInfo.propTypes = propTypes;
 PersonalInfo.defaultProps = defaultProps;
