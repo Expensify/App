@@ -73,7 +73,7 @@ function ReportAvatar(props) {
             isWorkspaceAvatar
             originalFileName={policyName}
             shouldShowNotFoundPage={_.isEmpty(props.report.reportID) && !props.isLoadingReportData}
-            isLoading={_.isEmpty(props.report) && props.isLoadingReportData}
+            isLoading={(_.isEmpty(props.report.reportID) || _.isEmpty(props.policy.id)) && props.isLoadingReportData}
         />
     );
 }
