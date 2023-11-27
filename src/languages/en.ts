@@ -1189,7 +1189,7 @@ export default {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
-            website: 'Please enter a valid website',
+            website: 'Please enter a valid website. El sitio web debe estar en minúsculas.',
             zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
