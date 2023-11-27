@@ -1,3 +1,4 @@
+import {StatusBar} from 'react-native';
 import colors from '@styles/colors';
 import SCREENS from '@src/SCREENS';
 import {ThemeColors} from './types';
@@ -99,6 +100,9 @@ const darkTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
     },
+
+    statusBarContentTheme: 'light',
+    scrollBarTheme: 'dark',
 } satisfies ThemeColors;
 
 export default darkTheme;

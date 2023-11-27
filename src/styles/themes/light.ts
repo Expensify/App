@@ -99,6 +99,9 @@ const lightTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.lightHighlightBackground,
     },
+
+    statusBarContentTheme: 'dark',
+    scrollBarTheme: 'light',
 } satisfies ThemeColors;
 
 export default lightTheme;
