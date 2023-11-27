@@ -210,7 +210,7 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
-    const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const transaction = props.transaction;
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
@@ -580,7 +580,7 @@ function MoneyRequestConfirmationList(props) {
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transactionID={props.transactionID} />
+                    <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
             {(receiptImage || receiptThumbnail) && (
@@ -770,9 +770,6 @@ export default compose(
         },
         draftTransaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

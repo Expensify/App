@@ -200,7 +200,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
     canModifyParticipants,
     currentUserPersonalDetails,
-    draftTransaction,
     hasMultipleParticipants,
     hasSmartScanFailed,
     iouAmount,
@@ -236,12 +235,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    transactionID,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const transactionData = isEditingSplitBill ? draftTransaction || transaction : transaction;
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -250,7 +247,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isSplitWithScan = isTypeSplit && isScanRequest;
 
     const {unit, rate, currency} = mileageRate;
-    const distance = lodashGet(transactionData, 'routes.route0.distance', 0);
+    const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
@@ -277,7 +274,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
-    const hasRoute = TransactionUtils.hasRoute(transactionData);
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
         ? translate('common.tbd')
@@ -297,8 +294,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return false;
         }
 
-        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transactionData)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transactionData));
-    }, [isEditingSplitBill, hasSmartScanFailed, transactionData, didConfirmSplit]);
+        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -311,7 +308,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transactionData, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -319,8 +316,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
-        IOU.setMoneyRequestAmount(amount);
-    }, [shouldCalculateDistanceAmount, distance, rate, unit]);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
+    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
 
     /**
      * Returns the participants with amount
@@ -441,8 +438,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID, distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
+    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     /**
      * @param {Object} option
@@ -498,7 +495,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transactionData)) {
+                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
@@ -508,7 +505,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onConfirm(selectedParticipantsFiltered);
             }
         },
-        [selectedParticipantsFiltered, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transactionData],
+        [selectedParticipantsFiltered, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transaction],
     );
 
     const footerContent = useMemo(() => {
@@ -563,7 +560,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipantsFiltered, splitOrRequestOptions, translate, formError, styles.ph1, styles.mb2]);
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transactionData, receiptPath, receiptFilename) : {};
+    const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -586,7 +583,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         >
             {isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transactionID={transactionID} />
+                    <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
             {(receiptImage || receiptThumbnail) && (
@@ -613,13 +610,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transactionData) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transactionData) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -632,7 +629,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -669,12 +666,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transactionData) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transactionData) ? translate('common.error.enterDate') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {isDistanceRequest && (
@@ -684,7 +681,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!isReadOnly}
                         />
@@ -701,12 +700,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transactionData) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transactionData) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
@@ -715,7 +714,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -728,7 +729,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -769,12 +772,6 @@ export default compose(
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
-        },
-        draftTransaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

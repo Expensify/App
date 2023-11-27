@@ -302,7 +302,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     <MoneyRequestConfirmationList
-                        transactionID={transactionID}
+                        transaction={transaction}
                         hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={transaction.amount}

@@ -108,9 +108,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 }
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
