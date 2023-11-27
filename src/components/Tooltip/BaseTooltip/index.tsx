@@ -2,6 +2,9 @@ import {BoundsObserver} from '@react-ng/bounds-observer';
 import React, {ForwardedRef, forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
+import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
+import TooltipSense from '@components/Tooltip/TooltipSense';
+import TooltipProps from '@components/Tooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -10,9 +13,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import StringUtils from '@src/libs/StringUtils';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
-import TooltipSense from '@components/Tooltip/TooltipSense';
-import TooltipProps from '@components/Tooltip/types';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
