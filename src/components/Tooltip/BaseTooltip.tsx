@@ -1,5 +1,4 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import _ from 'lodash';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
@@ -9,9 +8,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import callOrReturn from '@src/types/utils/callOrReturn';
+import StringUtils from '@src/libs/StringUtils';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
-import {TooltipProps} from './types';
+import TooltipProps from './types';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -59,7 +60,7 @@ function Tooltip({
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth,
     text = '',
-    renderTooltipContent = undefined,
+    renderTooltipContent,
     renderTooltipContentKey = [],
     shouldHandleScroll = false,
     shiftHorizontal = 0,
@@ -180,7 +181,7 @@ function Tooltip({
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
-    if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
+    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
         return children;
     }
 
@@ -194,8 +195,8 @@ function Tooltip({
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={shiftHorizontal}
-                    shiftVertical={shiftVertical}
+                    shiftHorizontal={callOrReturn(shiftHorizontal)}
+                    shiftVertical={callOrReturn(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}

@@ -40,4 +40,5 @@ type TooltipExtendedProps = TooltipProps & {
     shouldRender?: boolean;
 };
 
-export type {TooltipProps, TooltipExtendedProps};
+export default TooltipProps;
+export type {TooltipExtendedProps};

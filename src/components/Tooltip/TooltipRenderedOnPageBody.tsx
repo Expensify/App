@@ -4,10 +4,9 @@ import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
-import callOrReturn from '@src/types/utils/callOrReturn';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-import {TooltipProps} from './types';
+import TooltipProps from './types';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */
@@ -27,7 +26,15 @@ type TooltipRenderedOnPageBodyProps = {
 
     /** The height of the tooltip's target */
     targetHeight: number;
-} & Pick<TooltipProps, 'shiftHorizontal' | 'shiftVertical' | 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text'>;
+
+    /** Any additional amount to manually adjust the horizontal position of the tooltip.
+    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
+    shiftHorizontal: number;
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip.
+    A positive value shifts the tooltip down, and a negative value shifts it up. */
+    shiftVertical: number;
+} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text'>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -46,7 +53,7 @@ function TooltipRenderedOnPageBody({
     text,
     numberOfLines,
     maxWidth = 0,
-    renderTooltipContent = undefined,
+    renderTooltipContent,
 }: TooltipRenderedOnPageBodyProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -84,8 +91,8 @@ function TooltipRenderedOnPageBody({
                 maxWidth,
                 contentMeasuredWidth,
                 wrapperMeasuredHeight,
-                callOrReturn(shiftHorizontal),
-                callOrReturn(shiftVertical),
+                shiftHorizontal,
+                shiftVertical,
             ),
         [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
     );
