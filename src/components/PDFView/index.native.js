@@ -35,8 +35,8 @@ const propTypes = {
  */
 
 function PDFView({
-    onToggleKeyboard, 
-    isKeyboardShown, 
+    onToggleKeyboard,
+    isKeyboardShown,
     onLoadComplete,
     translate,
     fileName,
@@ -45,9 +45,10 @@ function PDFView({
     onScaleChanged,
     sourceURL,
     isSmallScreenWidth,
-    windowWidth, 
+    windowWidth,
     windowHeight,
-    errorLabelStyles}) {
+    errorLabelStyles,
+}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
