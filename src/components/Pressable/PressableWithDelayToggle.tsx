@@ -120,7 +120,7 @@ function PressableWithDelayToggle(
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        style={iconStyles}
+                                        additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         inline={inline}

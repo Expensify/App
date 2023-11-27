@@ -9,7 +9,7 @@ import Onfido from '@components/Onfido';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Growl from '@libs/Growl';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +34,7 @@ const HEADER_STEP_COUNTER = {step: 3, total: 5};
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
 function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const submitOnfidoData = (onfidoData) => {

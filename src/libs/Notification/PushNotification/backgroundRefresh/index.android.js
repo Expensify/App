@@ -1,15 +1,17 @@
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import Visibility from '@libs/Visibility';
 import * as App from '@userActions/App';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getLastOnyxUpdateID() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
-            key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
-            callback: (lastUpdateID) => {
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (lastUpdateIDAppliedToClient) => {
                 Onyx.disconnect(connectionID);
-                resolve(lastUpdateID);
+                resolve(lastUpdateIDAppliedToClient);
             },
         });
     });
@@ -26,15 +28,19 @@ export default function backgroundRefresh() {
         return;
     }
 
-    getLastOnyxUpdateID().then((lastUpdateID) => {
-        /**
-         * ReconnectApp waits on the isReadyToOpenApp promise to resolve and this normally only resolves when the LHN is rendered.
-         * However on Android, this callback is run in the background using a Headless JS task which does not render the React UI,
-         * so we must manually run confirmReadyToOpenApp here instead.
-         *
-         * See more here: https://reactnative.dev/docs/headless-js-android
-         */
-        App.confirmReadyToOpenApp();
-        App.reconnectApp(lastUpdateID);
-    });
+    getLastOnyxUpdateID()
+        .then((lastUpdateIDAppliedToClient) => {
+            /**
+             * ReconnectApp waits on the isReadyToOpenApp promise to resolve and this normally only resolves when the LHN is rendered.
+             * However on Android, this callback is run in the background using a Headless JS task which does not render the React UI,
+             * so we must manually run confirmReadyToOpenApp here instead.
+             *
+             * See more here: https://reactnative.dev/docs/headless-js-android
+             */
+            App.confirmReadyToOpenApp();
+            App.reconnectApp(lastUpdateIDAppliedToClient);
+        })
+        .catch((error) => {
+            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] backgroundRefresh failed. This should never happen.`, {error});
+        });
 }
