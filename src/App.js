@@ -7,6 +7,7 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import ComposeProviders from './components/ComposeProviders';
+import CustomScrollbarWrapper from './components/CustomScrollbarWrapper';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
@@ -70,7 +71,9 @@ function App() {
             >
                 <CustomStatusBar />
                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
+                    <CustomScrollbarWrapper>
+                        <Expensify />
+                    </CustomScrollbarWrapper>
                 </ErrorBoundary>
             </ComposeProviders>
         </GestureHandlerRootView>
