@@ -13,7 +13,9 @@ import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';
 function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgProps> {
     const bankValue = CONST.BANK_NAMES[bankNameKey];
 
-    // Mapping bank names to their respective icon paths
+    // This maps bank names to their respective icon paths.
+    // The purpose is to avoid importing these at the app startup stage.
+    // Depending on whether 'isCard' is true, it selects either a card icon or a bank icon.
     const iconMappings = {
         [CONST.BANK_NAMES.EXPENSIFY]: isCard
             ? (require('@assets/images/cardicons/expensify-card-dark.svg') as React.FC<SvgProps>)
