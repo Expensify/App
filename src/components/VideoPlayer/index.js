@@ -42,12 +42,12 @@ const defaultProps = {
     videoStyle: [styles.w100, styles.h100],
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
-    isHovered: false,
+    isHovered: true,
 };
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isHovered}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
+    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
     const [duration, setDuration] = useState(0);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -58,17 +58,13 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const sharedVideoPlayerParentRef = useRef(null);
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
-    const onPlaybackStatusUpdate = useCallback(
-        (e) => {
-            const isVideoPlaying = e.isPlaying || false;
-            setIsPlaying(isVideoPlaying);
-            updateIsPlaying(isVideoPlaying);
-            setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
-            setDuration(e.durationMillis || 0);
-            setPosition(e.positionMillis || 0);
-        },
-        [updateIsPlaying],
-    );
+    const onPlaybackStatusUpdate = useCallback((e) => {
+        const isVideoPlaying = e.isPlaying || false;
+        setIsPlaying(isVideoPlaying);
+        setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
+        setDuration(e.durationMillis || 0);
+        setPosition(e.positionMillis || 0);
+    }, []);
 
     const bindFunctions = useCallback(() => {
         currentVideoPlayerRef.current._onPlaybackStatusUpdate = onPlaybackStatusUpdate;
@@ -83,9 +79,8 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        updateSharedElements(videoPlayerElementParentRef.current, videoPlayerElementRef.current);
-        updateCurrentVideoPlayerRef(videoPlayerRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateCurrentVideoPlayerRef, updateSharedElements, url]);
+        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {

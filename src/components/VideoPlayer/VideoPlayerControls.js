@@ -37,7 +37,7 @@ const defaultProps = {
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small}) {
     const {translate} = useLocalize();
-    const {togglePlay, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {pauseVideo, playVideo, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
     const [shouldShowTime, setShouldShowTime] = useState(false);
@@ -47,10 +47,12 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
+        } else if (isPlaying) {
+            pauseVideo();
         } else {
-            togglePlay();
+            playVideo();
         }
-    }, [isCurrentlyURLSet, togglePlay, updateCurrentlyPlayingURL, url]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
 
     const onLayout = (e) => {
         setShouldShowTime(e.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);

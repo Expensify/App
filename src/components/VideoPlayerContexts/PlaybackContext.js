@@ -10,8 +10,6 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
     const currentVideoPlayerRef = useRef(null);
 
-    const [isPlaying, setIsPlaying] = useState(false);
-
     const playbackSpeeds = CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS;
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
@@ -23,11 +21,6 @@ function PlaybackContextProvider({children}) {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
     }, [currentVideoPlayerRef]);
 
-    const togglePlay = useCallback(() => {
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
-        setIsPlaying(!isPlaying);
-    }, [currentVideoPlayerRef, isPlaying]);
-
     const updateCurrentlyPlayingURL = useCallback(
         (url) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
@@ -38,18 +31,15 @@ function PlaybackContextProvider({children}) {
         [currentlyPlayingURL, pauseVideo],
     );
 
-    const updateCurrentVideoPlayerRef = useCallback(
-        (ref) => {
+    const shareVideoPlayerElements = useCallback(
+        (ref, parent, child) => {
             currentVideoPlayerRef.current = ref;
+            setOriginalParent(parent);
+            setSharedElement(child);
             playVideo();
         },
         [playVideo],
     );
-
-    const updateSharedElements = useCallback((parent, child) => {
-        setOriginalParent(parent);
-        setSharedElement(child);
-    }, []);
 
     const updatePlaybackSpeed = useCallback((newPlaybackSpeed) => {
         currentVideoPlayerRef.current.setStatusAsync({rate: newPlaybackSpeed});
@@ -62,33 +52,25 @@ function PlaybackContextProvider({children}) {
             currentlyPlayingURL,
             originalParent,
             sharedElement,
-            updateSharedElements,
-            togglePlay,
-            isPlaying,
             currentVideoPlayerRef,
-            updateCurrentVideoPlayerRef,
+            shareVideoPlayerElements,
             playVideo,
             pauseVideo,
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
-            updateIsPlaying: setIsPlaying,
         }),
         [
             updateCurrentlyPlayingURL,
             currentlyPlayingURL,
             originalParent,
             sharedElement,
-            updateSharedElements,
-            togglePlay,
-            isPlaying,
-            updateCurrentVideoPlayerRef,
+            shareVideoPlayerElements,
             playVideo,
             pauseVideo,
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
-            setIsPlaying,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
