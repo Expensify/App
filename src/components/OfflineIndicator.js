@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {useMemo, View} from 'react-native';
 import compose from '@libs/compose';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -36,22 +36,22 @@ const defaultProps = {
     style: [],
 };
 
-const getStyles = (containerStyles, isSmallScreenWidth, styles) => {
-    if (containerStyles.length) {
-        return containerStyles;
-    }
-    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-};
-
 function OfflineIndicator(props) {
     const styles = useThemeStyles();
+
+    const computedStyles = useMemo(() => {
+        if (props.containerStyles.length) {
+            return props.containerStyles;
+        }
+        return props.isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    }, [props.containerStyles, props.isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
     if (!props.network.isOffline) {
         return null;
     }
 
     return (
-        <View style={[getStyles(props.containerStyles, props.isSmallScreenWidth, styles), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
+        <View style={[computedStyles(props.containerStyles, props.isSmallScreenWidth, styles), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
