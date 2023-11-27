@@ -6,7 +6,7 @@ type PlaidLinkProps = {
     token: string;
 
     // Callback to execute once the user taps continue after successfully entering their account information
-    onSuccess?: (args: {publicToken?: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => void;
+    onSuccess?: (args: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => void;
 
     // Callback to execute when there is an error event emitted by the Plaid SDK
     onError?: (error: ErrorEvent | null) => void;
