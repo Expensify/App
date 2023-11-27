@@ -7,10 +7,14 @@ type ReactionListRef = {
     isActiveReportAction: (actionID: number | string) => boolean;
 };
 
-type ActionListContextType = RefObject<FlatList<unknown>> | null;
+type ActionListContextType = {
+    flatListRef: RefObject<FlatList<unknown>> | null;
+    scrollPosition: {offset: number} | null;
+    setScrollPosition: (position: {offset: number}) => void;
+};
 type ReactionListContextType = RefObject<ReactionListRef> | null;
 
-const ActionListContext = createContext<ActionListContextType>(null);
+const ActionListContext = createContext<ActionListContextType>({flatListRef: null, scrollPosition: null, setScrollPosition: () => {}});
 const ReactionListContext = createContext<ReactionListContextType>(null);
 
 export {ActionListContext, ReactionListContext};
