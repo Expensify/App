@@ -17,8 +17,7 @@ const keyboardStatePropTypes = {
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue | null>(null);
 
-function KeyboardStateProvider(props: ChildrenProps): ReactElement | null {
-    const {children} = props;
+function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [isKeyboardShown, setIsKeyboardShown] = useState(false);
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
