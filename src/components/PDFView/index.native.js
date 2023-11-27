@@ -99,14 +99,14 @@ function PDFView({
      *
      * @param {String} pdfPassword Password submitted via PDFPasswordForm
      */
-    function attemptPDFLoadWithPassword(pdfPassword) {
+    const attemptPDFLoadWithPassword = (pdfPassword) => {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
         setPassword(pdfPassword);
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
-    }
+    };
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -156,7 +156,7 @@ function PDFView({
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             isFocused={isFocused}
-                            onSubmit={(formPasswordValue) => attemptPDFLoadWithPassword(formPasswordValue)}
+                            onSubmit={attemptPDFLoadWithPassword}
                             onPasswordUpdated={setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
