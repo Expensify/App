@@ -518,24 +518,24 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 danger
                             />
                         </View>
+                        <ConfirmModal
+                            isVisible={showConfirmDeleteModal}
+                            onConfirm={() => {
+                                deletePaymentMethod();
+                                hideDefaultDeleteMenu();
+                            }}
+                            onCancel={hideDefaultDeleteMenu}
+                            title={translate('walletPage.deleteAccount')}
+                            prompt={translate('walletPage.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            shouldShowCancelButton
+                            danger
+                            onModalHide={resetSelectedPaymentMethodData}
+                        />
                     </Popover>
                 </ScreenWrapper>
             )}
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={() => {
-                    deletePaymentMethod();
-                    hideDefaultDeleteMenu();
-                }}
-                onCancel={hideDefaultDeleteMenu}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 onClose={hideAddPaymentMenu}
