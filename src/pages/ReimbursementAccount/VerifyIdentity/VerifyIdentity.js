@@ -19,6 +19,7 @@ const propTypes = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
 };
 

@@ -4,7 +4,9 @@ import PersonalInfo from './PersonalInfo/PersonalInfo';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 const propTypes = {
+    /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
+
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
 };

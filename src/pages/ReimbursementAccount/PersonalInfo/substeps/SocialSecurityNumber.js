@@ -60,7 +60,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
                         aria-label={translate('personalInfoStep.last4SSN')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft

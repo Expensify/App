@@ -30,6 +30,7 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
+    /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
 };
 
