@@ -488,10 +488,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     }
 
-    let optimisticPolicyRecentlyUsedTags = {};
-    if (tag) {
-        optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
-    }
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -1166,10 +1163,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        let optimisticPolicyRecentlyUsedTags = {};
-        if (isPolicyExpenseChat) {
-            optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
-        }
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -1811,10 +1805,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         updatedChatReport.lastMessageHtml = messageText;
     }
 
-    let optimisticPolicyRecentlyUsedTags = {};
-    if (_.has(transactionChanges, 'tag')) {
-        optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
-    }
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
 
     const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
 

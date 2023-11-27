@@ -1491,7 +1491,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
  */
 function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
     if (!policyID || !tag) {
-        return [];
+        return {};
     }
 
     const policyTags = lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
