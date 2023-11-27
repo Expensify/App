@@ -14,9 +14,6 @@ type SubIcon = {
     /** Avatar source to display */
     source: (props: SrcProps) => ReactNode;
 
-    /** Background color for the icon. Visible when icon has transparent background. */
-    backgroundColor?: string;
-
     /** Width of the icon */
     width?: number;
 
