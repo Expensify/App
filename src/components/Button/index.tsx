@@ -160,8 +160,6 @@ function Button(
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
-    console.log('isFocused', isFocused);
-
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
             if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
