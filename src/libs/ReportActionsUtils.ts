@@ -22,28 +22,28 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-type MessageActionItemChanelLogBase = {
+type MessageActionItemChannelLogBase = {
     readonly kind: string;
     readonly content: string;
 };
 
-type MessageActionItemChanelLogText = {
+type MessageActionItemChannelLogText = {
     readonly kind: 'text';
     readonly content: string;
 };
 
-type MessageActionItemChanelLogUserMention = {
+type MessageActionItemChannelLogUserMention = {
     readonly kind: 'userMention';
     readonly accountID: number;
-} & MessageActionItemChanelLogBase;
+} & MessageActionItemChannelLogBase;
 
-type MessageActionItemChanelLogRoomReference = {
+type MessageActionItemChannelLogRoomReference = {
     readonly kind: 'roomReference';
     readonly roomName: string;
     readonly roomID: number;
-} & MessageActionItemChanelLogBase;
+} & MessageActionItemChannelLogBase;
 
-type MessageActionItemChanelLog = MessageActionItemChanelLogText | MessageActionItemChanelLogUserMention | MessageActionItemChanelLogRoomReference;
+type MessageActionItemChannelLog = MessageActionItemChannelLogText | MessageActionItemChannelLogUserMention | MessageActionItemChannelLogRoomReference;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -661,8 +661,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): MessageActionItemChanelLog[] {
-    const messageItems: MessageActionItemChanelLog[] = [];
+function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): MessageActionItemChannelLog[] {
+    const messageItems: MessageActionItemChannelLog[] = [];
     const isInviteRoom = isInvitedRoom(reportAction);
 
     const verb = isInviteRoom ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
@@ -676,15 +676,15 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
-    const mentions: MessageActionItemChanelLogUserMention[] = targetAccountIDs.map((accountID) => {
+    const mentions: MessageActionItemChannelLogUserMention[] = targetAccountIDs.map((accountID) => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
 
         if (personalDetail) {
             const displayNameOrLogin =
                 LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
-            return {content: `@${displayNameOrLogin}`, accountID} as MessageActionItemChanelLogUserMention;
+            return {content: `@${displayNameOrLogin}`, accountID} as MessageActionItemChannelLogUserMention;
         }
-        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MessageActionItemChanelLogUserMention;
+        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MessageActionItemChannelLogUserMention;
     });
 
     const lastMention = mentions.pop();
@@ -767,7 +767,7 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
 }
 
 function getActionItemFragmentChannelLogFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageItems: MessageActionItemChanelLog[] = getChannelLogMemberAction(reportAction);
+    const messageItems: MessageActionItemChannelLog[] = getChannelLogMemberAction(reportAction);
     let html = '';
 
     messageItems.forEach((messageItem) => {
