@@ -5,7 +5,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
-import {CustomScrollbarWrapper} from '@components/CustomScrollbarWrapper';
+import CustomScrollbarWrapper from '@components/CustomScrollbarWrapper';
+import CustomStatusBar from '@components/CustomStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -280,6 +281,7 @@ function SignInPage(props) {
     return (
         <CustomScrollbarWrapper theme={CONST.THEME.DARK}>
             <ThemeProvider theme={CONST.THEME.DARK}>
+                <CustomStatusBar isNested />
                 <ThemeStylesProvider>
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading

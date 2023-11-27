@@ -1,7 +1,7 @@
 import CustomScrollbarWrapperProps from './CustomScrollbarWrapperProps';
 
 function CustomScrollbarWrapper({children}: CustomScrollbarWrapperProps) {
-    return <>{children}</>;
+    return children;
 }
 
 export default CustomScrollbarWrapper;
