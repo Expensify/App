@@ -10,9 +10,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import StringUtils from '@src/libs/StringUtils';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
-import TooltipSense from './TooltipSense';
-import TooltipProps from './types';
+import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
+import TooltipSense from '@components/Tooltip/TooltipSense';
+import TooltipProps from '@components/Tooltip/types';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 

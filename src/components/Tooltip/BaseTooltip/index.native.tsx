@@ -1,7 +1,7 @@
 // We can't use the common component for the Tooltip as Web implementation uses DOM specific method to
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import TooltipProps from '@components/Tooltip/types';
 
-function Tooltip({children}: ChildrenProps) {
+function Tooltip({children}: TooltipProps) {
     return children;
 }
 
