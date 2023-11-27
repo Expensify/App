@@ -102,10 +102,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transactionID: string, currentIndex: string) {
+function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
-    const transaction = allTransactions?.[transactionID] ?? {};
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 
@@ -156,7 +155,11 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
             },
         };
     }
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
+    if (isDraft) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {

@@ -129,7 +129,7 @@ function IOURequestStepWaypoint({
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transactionID, pageIndex);
+            Transaction.removeWaypoint(transaction, pageIndex, true);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -149,7 +149,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transactionID, pageIndex);
+        Transaction.removeWaypoint(transaction, pageIndex, true);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
