@@ -15,7 +15,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
-import useBlockViewportScroll from '@hooks/useBlockViewportScroll';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -127,8 +126,12 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
-    return String(lodashGet(route, 'params.reportID', null));
+    // The report ID is used in an onyx key. If it's an empty string, onyx will return
+    // a collection instead of an individual report.
+    // We can't use the default value functionality of `lodash.get()` because it only
+    // provides a default value on `undefined`, and will return an empty string.
+    // Placing the default value outside of `lodash.get()` is intentional.
+    return String(lodashGet(route, 'params.reportID') || 0);
 }
 
 function ReportScreen({
@@ -151,7 +154,6 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    useBlockViewportScroll();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
