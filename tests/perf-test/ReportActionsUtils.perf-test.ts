@@ -8,8 +8,6 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.setTimeout(60000);
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
@@ -48,6 +46,8 @@ const reportActions = createCollection<ReportAction>(
 
 const reportId = '1';
 
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 /**
  * This function will be executed 20 times and the average time will be used on the comparison.
  * It will fail based on the CI configuration around Reassure:
@@ -64,7 +64,7 @@ test('getLastVisibleAction on 10k reportActions', async () => {
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId), {runs});
 });
 
 test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
@@ -93,7 +93,7 @@ test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () =
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge), {runs});
 });
 
 test('getMostRecentIOURequestActionID on 10k ReportActions', async () => {
@@ -102,7 +102,7 @@ test('getMostRecentIOURequestActionID on 10k ReportActions', async () => {
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray), {runs});
 });
 
 test('getLastVisibleMessage on 10k ReportActions', async () => {
@@ -110,7 +110,7 @@ test('getLastVisibleMessage on 10k ReportActions', async () => {
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId), {runs});
 });
 
 test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
@@ -139,7 +139,7 @@ test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () 
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, actionsToMerge), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, actionsToMerge), {runs});
 });
 
 test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
@@ -147,7 +147,7 @@ test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions), {runs});
 });
 
 test('getLastClosedReportAction on 10k ReportActions', async () => {
@@ -155,7 +155,7 @@ test('getLastClosedReportAction on 10k ReportActions', async () => {
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getLastClosedReportAction(reportActions), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getLastClosedReportAction(reportActions), {runs});
 });
 
 test('getMostRecentReportActionLastModified', async () => {
@@ -163,5 +163,5 @@ test('getMostRecentReportActionLastModified', async () => {
         ...mockedReportActionsMap,
     });
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportActionsUtils.getMostRecentReportActionLastModified(), {runs: 20});
+    await measureFunction(() => ReportActionsUtils.getMostRecentReportActionLastModified(), {runs});
 });
