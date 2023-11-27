@@ -1,4 +1,3 @@
-import {StatusBar} from 'react-native';
 import colors from '@styles/colors';
 import SCREENS from '@src/SCREENS';
 import {ThemeColors} from './types';
