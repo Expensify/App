@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {memo, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
@@ -32,7 +32,7 @@ const getVolumeIcon = (volume) => {
     return Expensicons.VolumeHigh;
 };
 
-function ProgressBar({style, small}) {
+function VolumeButton({style, small}) {
     const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
@@ -94,8 +94,8 @@ function ProgressBar({style, small}) {
     );
 }
 
-ProgressBar.propTypes = propTypes;
-ProgressBar.defaultProps = defaultProps;
-ProgressBar.displayName = 'ProgressBar';
+VolumeButton.propTypes = propTypes;
+VolumeButton.defaultProps = defaultProps;
+VolumeButton.displayName = 'VolumeButton';
 
-export default ProgressBar;
+export default memo(VolumeButton);

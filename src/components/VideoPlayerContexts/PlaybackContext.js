@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
-import CONST from '@src/CONST';
 
 const PlaybackContext = React.createContext(null);
 

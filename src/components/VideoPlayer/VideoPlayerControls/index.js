@@ -5,16 +5,16 @@ import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
+import IconButton from '@components/VideoPlayer/IconButton';
+import convertMillisecondsToTime from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import VolumeButton from '@components/VolumeButton';
 import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
 import spacing from '@styles/utilities/spacing';
 import CONST from '@src/CONST';
-import IconButton from './IconButton';
 import ProgressBar from './ProgressBar';
-import convertMillisecondsToTime from './utils';
+import VolumeButton from './VolumeButton';
 
 const propTypes = {
     duration: PropTypes.number.isRequired,
