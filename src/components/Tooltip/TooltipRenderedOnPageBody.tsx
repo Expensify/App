@@ -29,11 +29,11 @@ type TooltipRenderedOnPageBodyProps = {
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: number;
+    shiftHorizontal?: number;
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical: number;
+    shiftVertical?: number;
 } & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text'>;
 
 // Props will change frequently.
