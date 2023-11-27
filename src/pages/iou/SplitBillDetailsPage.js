@@ -109,10 +109,7 @@ function SplitBillDetailsPage(props) {
     );
 
     return (
-        <ScreenWrapper
-            testID={SplitBillDetailsPage.displayName}
-            shouldEnableAutoFocus
-        >
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>

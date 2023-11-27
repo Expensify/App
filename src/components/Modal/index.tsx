@@ -1,16 +1,13 @@
 import React, {useState} from 'react';
-import FocusTrapView from '@components/FocusTrapView';
 import withWindowDimensions from '@components/withWindowDimensions';
 import StatusBar from '@libs/StatusBar';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
 
-function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldEnableFocusTrap = false, ...rest}: BaseModalProps) {
-    const styles = useThemeStyles();
+function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, ...rest}: BaseModalProps) {
     const theme = useTheme();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
@@ -51,13 +48,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             fullscreen={fullscreen}
             type={type}
         >
-            <FocusTrapView
-                isEnabled={shouldEnableFocusTrap}
-                isActive
-                style={styles.noSelect}
-            >
-                {children}
-            </FocusTrapView>
+            {children}
         </BaseModal>
     );
 }
