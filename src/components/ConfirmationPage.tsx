@@ -10,7 +10,7 @@ import Text from './Text';
 
 type ConfirmationPageProps = {
     /** The asset to render */
-    animation: DotLottieAnimation;
+    animation?: DotLottieAnimation;
 
     /** Heading of the confirmation page */
     heading: string;
@@ -28,14 +28,7 @@ type ConfirmationPageProps = {
     shouldShowButton?: boolean;
 };
 
-function ConfirmationPage({
-    animation = LottieAnimations.Fireworks,
-    heading = '',
-    description = '',
-    buttonText = '',
-    onButtonPress = () => {},
-    shouldShowButton = false,
-}: ConfirmationPageProps) {
+function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, description, buttonText = '', onButtonPress = () => {}, shouldShowButton = false}: ConfirmationPageProps) {
     const styles = useThemeStyles();
 
     return (
