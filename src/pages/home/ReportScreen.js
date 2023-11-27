@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -536,4 +536,17 @@ export default compose(
             canEvict: false,
         },
     }),
-)(ReportScreen);
+)(
+    memo(ReportScreen, (prevProps, nextProps) => {
+        const prevParentReportActionID = prevProps.report ? prevProps.report.parentReportID : '0';
+        const nextParentReportActionID = nextProps.report ? nextProps.report.parentReportID : '0';
+        const prevParentReportAction = lodashGet(prevProps.reportActions, prevParentReportActionID, '');
+        const nextParentReportAction = lodashGet(nextProps.reportActions, nextParentReportActionID, '');
+
+        // We only want to re-render when the report action that is attached to is changed
+        if (prevParentReportAction !== nextParentReportAction) {
+            return false;
+        }
+        return _.isEqual(_.omit(prevProps, 'parentReportActions'), _.omit(nextProps, 'parentReportActions'));
+    }),
+);
