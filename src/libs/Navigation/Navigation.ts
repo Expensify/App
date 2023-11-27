@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, EventListenerCallback, EventMapBase, EventMapCore, getPathFromState, NavigationState, StackActions} from '@react-navigation/native';
+import {CommonActions, EventListenerCallback, EventMapBase, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -286,15 +286,13 @@ function setIsNavigationReady() {
  *
  * @param state - react-navigation state object
  */
-function navContainsProtectedRoutes(state: NavigationState | undefined): boolean {
+function navContainsProtectedRoutes(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
     if (!state?.routeNames || !Array.isArray(state.routeNames)) {
         return false;
     }
 
     const protectedScreensName = Object.values(PROTECTED_SCREENS);
-    const difference = protectedScreensName.filter((screen) => !state.routeNames.includes(screen));
-
-    return !difference.length;
+    return protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
 }
 
 /**
@@ -316,15 +314,14 @@ function waitForProtectedRoutes() {
                 resolve();
                 return;
             }
-            let unsubscribe: (() => void) | undefined;
-            const handleStateChange: EventListenerCallback<EventMapBase, 'state'> = ({data}) => {
+
+            const unsubscribe = navigationRef.current?.addListener('state', ({data}) => {
                 const state = data?.state;
                 if (navContainsProtectedRoutes(state)) {
                     unsubscribe?.();
                     resolve();
                 }
-            };
-            unsubscribe = navigationRef.current?.addListener('state', handleStateChange);
+            });
         });
     });
 }
