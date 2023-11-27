@@ -7,6 +7,7 @@ import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
 
@@ -57,7 +58,8 @@ type OfflineWithFeedbackProps = {
     canDismissError?: boolean;
 };
 
-type StrikethroughProps = {style: Array<ViewStyle | TextStyle | ImageStyle>; children?: React.ReactNode};
+type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
+
 /**
  * This method applies the strikethrough to all the children passed recursively
  */
