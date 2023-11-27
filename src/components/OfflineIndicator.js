@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import {useMemo, View} from 'react-native';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import compose from '@libs/compose';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
