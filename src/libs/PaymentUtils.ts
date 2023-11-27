@@ -26,7 +26,7 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
 
 function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData']): string {
     if (account) {
-        if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && 'accountNumber' in account) {
+        if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
             return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {
