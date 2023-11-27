@@ -66,8 +66,9 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const canUseBusinessBankAccount = ReportUtils.isExpenseReport(iouReport) ||
-    (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
+    const canUseBusinessBankAccount =
+        ReportUtils.isExpenseReport(iouReport) ||
+        (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
 
     return (
         <PopoverMenu
