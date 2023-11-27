@@ -19,8 +19,10 @@ import useBlockViewportScroll from '@hooks/useBlockViewportScroll';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useWindowFocusEvent from '@hooks/useWindowFocusEvent';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -274,6 +276,12 @@ function ReportScreen({
             return () => clearTimeout(refID);
         },
         [route],
+    );
+
+    useWindowFocusEvent(
+        useCallback(() => {
+            LocalNotification.clearReportNotifications(report.reportID);
+        }, [report.reportID]),
     );
 
     useEffect(() => {
