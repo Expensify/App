@@ -59,7 +59,7 @@ const propTypes = {
     isLoadingPaymentMethods: PropTypes.bool,
 
     /** Type to filter the payment Method list */
-    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, '']),
 
     /** User wallet props */
     userWallet: PropTypes.shape({
@@ -128,7 +128,7 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
@@ -162,7 +162,7 @@ function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
 
     const defaultablePaymentMethodCount = _.filter(
         filteredPaymentMethods,
-        (method) => method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
+        (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
     return defaultablePaymentMethodCount > 1;
 }
