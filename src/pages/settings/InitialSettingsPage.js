@@ -25,7 +25,6 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -89,9 +88,6 @@ const propTypes = {
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
@@ -120,7 +116,6 @@ const defaultProps = {
         currentBalance: 0,
     },
     reimbursementAccount: {},
-    betas: [],
     walletTerms: {},
     bankAccountList: {},
     fundList: null,
@@ -288,8 +283,7 @@ function InitialSettingsPage(props) {
          * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
          * @returns {Number} the user wallet balance
          */
-        const getWalletBalance = (isPaymentItem) =>
-            isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
+        const getWalletBalance = (isPaymentItem) => isPaymentItem && CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
 
         return (
             <>
@@ -324,7 +318,7 @@ function InitialSettingsPage(props) {
                 })}
             </>
         );
-    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
+    }, [getDefaultMenuItems, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
@@ -425,9 +419,6 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,

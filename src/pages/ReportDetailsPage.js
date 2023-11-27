@@ -157,7 +157,7 @@ function ReportDetailsPage(props) {
             fullTitle={chatRoomSubtitle}
             tooltipEnabled
             numberOfLines={1}
-            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
             shouldUseFullTitle
         />
     ) : null;
