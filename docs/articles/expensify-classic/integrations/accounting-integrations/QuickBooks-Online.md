@@ -232,7 +232,7 @@ To get started:
 
 - Go to Settings > Workspaces > Group > [Workspace Name] > Connections, and click Configure.
 - Navigate to the Coding tab.
-- Turn on 'T.''.
+- Turn on **Tax**.
 - Click Save. This imports the Tax Name and rate from QuickBooks Online.
 - Visit Settings > Workspaces > Group > [Workspace Name] > Tax to view the imported taxes.
 - Use the enable/disable button in the Tax tab to choose which taxes your employees can use.
