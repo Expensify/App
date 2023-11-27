@@ -3,8 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import Search from '@components/Search';
+import SubscriptAvatar from '@components/SubscriptAvatar';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -19,7 +22,6 @@ import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Search from '@components/Search';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -136,7 +138,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 style={[styles.gap6, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                 dataSet={{dragArea: true}}
             >
-                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
+                <SubscriptAvatar
+                    mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
+                    showTooltip={false}
+                />
                 <Search
                     prompt={translate('sidebarScreen.buttonSearch')}
                     onPress={() => alert('Roger that')}
