@@ -8,7 +8,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import useThemeStyles from "@styles/useThemeStyles";
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -34,7 +34,6 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
-    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -63,6 +62,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const themeStyles = useThemeStyles();
     const isMounted = useRef(false);
 
     const updateOptions = useCallback(() => {
@@ -177,7 +177,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton title={translate('common.search')} />
-                    <View style={[props.themeStyles.flex1, props.themeStyles.w100, props.themeStyles.pRelative]}>
+                    <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
                             value={searchValue}
@@ -219,4 +219,3 @@ export default withOnyx({
         initWithStoredValues: false,
     },
 })(SearchPage);
-//withThemeStyles
