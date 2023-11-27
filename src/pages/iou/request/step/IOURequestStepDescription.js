@@ -105,6 +105,7 @@ function IOURequestStepDescription({
                             updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                         inputStyle={[styles.verticalAlignTop]}
                         submitOnEnter={!Browser.isMobile()}
                     />
