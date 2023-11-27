@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, EventListenerCallback, EventMapBase, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import {CommonActions, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
