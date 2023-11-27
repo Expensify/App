@@ -7,7 +7,7 @@ const walletTransferPropTypes = PropTypes.shape({
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Type to filter the payment Method list */
-    filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+    filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, '']),
 
     /** Whether the success screen is shown to user. */
     shouldShowSuccess: PropTypes.bool,

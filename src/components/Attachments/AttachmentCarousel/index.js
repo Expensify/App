@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -203,7 +204,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             initialScrollIndex={page}
                             initialNumToRender={3}
                             windowSize={5}
-                            maxToRenderPerBatch={3}
+                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
