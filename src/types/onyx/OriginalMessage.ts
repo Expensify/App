@@ -3,7 +3,23 @@ import CONST from '@src/CONST';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
+type OriginalMessageActionName =
+    | 'ADDCOMMENT'
+    | 'APPROVED'
+    | 'CHRONOSOOOLIST'
+    | 'CLOSED'
+    | 'CREATED'
+    | 'IOU'
+    | 'MODIFIEDEXPENSE'
+    | 'REIMBURSEMENTQUEUED'
+    | 'RENAMED'
+    | 'REPORTPREVIEW'
+    | 'SUBMITTED'
+    | 'TASKCANCELLED'
+    | 'TASKCOMPLETED'
+    | 'TASKEDITED'
+    | 'TASKREOPENED'
+    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
@@ -15,24 +31,23 @@ type IOUDetails = {
     currency: string;
 };
 
+type IOUMessage = {
+    /** The ID of the iou transaction */
+    IOUTransactionID?: string;
+    IOUReportID?: string;
+    amount: number;
+    comment?: string;
+    currency: string;
+    lastModified?: string;
+    participantAccountIDs?: number[];
+    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
-    originalMessage: {
-        /** The ID of the iou transaction */
-        IOUTransactionID?: string;
-
-        IOUReportID?: number;
-
-        /** Only exists when we are sending money */
-        IOUDetails?: IOUDetails;
-
-        amount: number;
-        comment?: string;
-        currency: string;
-        lastModified?: string;
-        participantAccountIDs?: number[];
-        type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
-    };
+    originalMessage: IOUMessage;
 };
 
 type FlagSeverityName = ValueOf<
@@ -67,6 +82,12 @@ type Reaction = {
     users: User[];
 };
 
+type Closed = {
+    policyName: string;
+    reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
+    lastModified?: string;
+};
+
 type OriginalMessageAddComment = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
     originalMessage: {
@@ -89,11 +110,7 @@ type OriginalMessageSubmitted = {
 
 type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
-    originalMessage: {
-        policyName: string;
-        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
-        lastModified?: string;
-    };
+    originalMessage: Closed;
 };
 
 type OriginalMessageCreated = {
@@ -118,6 +135,11 @@ type ChronosOOOTimestamp = {
     timezone_type: number;
 };
 
+type ChangeLog = {
+    targetAccountIDs?: number[];
+    roomName?: string;
+};
+
 type ChronosOOOEvent = {
     id: string;
     lengthInDays: number;
@@ -140,23 +162,18 @@ type OriginalMessageReportPreview = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
     originalMessage: {
         linkedReportID: string;
+        lastModified?: string;
     };
 };
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessagePolicyTask = {
@@ -178,6 +195,16 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageMoved = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
+    originalMessage: {
+        fromPolicyID: string;
+        toPolicyID: string;
+        newParentReportID: string;
+        movedReportID: string;
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -192,7 +219,8 @@ type OriginalMessage =
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
-    | OriginalMessageReimbursementQueued;
+    | OriginalMessageReimbursementQueued
+    | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};

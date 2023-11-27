@@ -306,6 +306,7 @@ function MockedSidebarLinks({currentReportID}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <SidebarLinksData
+                onLinkClick={() => {}}
                 insets={{
                     top: 0,
                     left: 0,
@@ -314,7 +315,6 @@ function MockedSidebarLinks({currentReportID}) {
                 }}
                 isSmallScreenWidth={false}
                 currentReportID={currentReportID}
-                onLinkClick={() => {}}
             />
         </ComposeProviders>
     );

@@ -20,9 +20,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -85,6 +85,8 @@ const defaultProps = {
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
@@ -331,13 +333,14 @@ function BaseValidateCodeForm(props) {
                             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
+                            key="twoFactorAuthCode"
                         />
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <PressableWithFeedback
                         style={[styles.mt2]}
                         onPress={switchBetween2faAndRecoveryCode}
-                        underlayColor={themeColors.componentBG}
+                        underlayColor={theme.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
@@ -360,6 +363,7 @@ function BaseValidateCodeForm(props) {
                         errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
+                        key="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -372,7 +376,7 @@ function BaseValidateCodeForm(props) {
                             <PressableWithFeedback
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
-                                underlayColor={themeColors.componentBG}
+                                underlayColor={theme.componentBG}
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

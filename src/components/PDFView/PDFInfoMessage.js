@@ -6,7 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function PDFInfoMessage(props) {
+    const styles = useThemeStyles();
     return (
         <View style={styles.alignItemsCenter}>
             <Icon

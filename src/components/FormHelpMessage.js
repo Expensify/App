@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -32,6 +32,8 @@ const defaultProps = {
 };
 
 function FormHelpMessage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (_.isEmpty(props.message) && _.isEmpty(props.children)) {
         return null;
     }
@@ -42,9 +44,10 @@ function FormHelpMessage(props) {
             {props.isError && (
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={themeColors.danger}
+                    fill={theme.danger}
                 />
             )}
+
             <View style={[styles.flex1, props.isError && styles.ml2]}>
                 {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
             </View>

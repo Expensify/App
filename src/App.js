@@ -24,7 +24,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
+import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
@@ -65,7 +65,7 @@ function App() {
                     EnvironmentProvider,
                     ThemeProvider,
                     ThemeStylesProvider,
-                    SidebarNavigationContextProvider,
+                    ThemeIllustrationsProvider,
                 ]}
             >
                 <CustomStatusBar />
