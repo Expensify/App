@@ -4367,6 +4367,14 @@ function shouldDisableWelcomeMessage(report, policy) {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+function shouldAutoFocusOnKeyPress(event, inputRef) {
+    if (event.key === 'Tab' || event.key === 'Enter' || (event.key === 'Shift' && inputRef.current && !inputRef.current.isFocused())) {
+        return false;
+    }
+
+    return true;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4533,4 +4541,5 @@ export {
     getRoom,
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
+    shouldAutoFocusOnKeyPress,
 };

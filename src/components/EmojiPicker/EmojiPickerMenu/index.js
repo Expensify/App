@@ -18,6 +18,7 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as User from '@userActions/User';
@@ -316,7 +317,7 @@ function EmojiPickerMenu(props) {
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent, searchInputRef)) {
                 setIsUsingKeyboardMovement(true);
                 return;
             }

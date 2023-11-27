@@ -436,18 +436,7 @@ function ComposerWithSuggestions({
                 return;
             }
 
-            // If the key pressed is non-character keys like Enter, Shift, ... do not focus
-            if (e.key.length > 1) {
-                return;
-            }
-
-            // If a key is pressed in combination with Meta, Control or Alt do not focus
-            if (e.metaKey || e.ctrlKey || e.altKey) {
-                return;
-            }
-
-            // If the space key is pressed, do not focus
-            if (e.code === 'Space') {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(e, textInputRef)) {
                 return;
             }
 
@@ -457,7 +446,9 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            replaceSelectionWithText(e.key, false);
+            if (e.key.length === 1) {
+                replaceSelectionWithText(e.key, false);
+            }
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
