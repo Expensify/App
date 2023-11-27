@@ -1800,7 +1800,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         value: {
             [reportPreview.reportActionID]: {
                 ...reportPreview,
-                message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, false, newWorkspace),
+                message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
                 created: DateUtils.getDBTime(),
             },
         },
