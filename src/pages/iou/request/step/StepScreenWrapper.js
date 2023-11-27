@@ -9,7 +9,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 
     /** The title to show in the header (should be translated already) */
     headerTitle: PropTypes.string.isRequired,
