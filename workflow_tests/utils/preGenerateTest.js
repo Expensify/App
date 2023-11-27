@@ -96,7 +96,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 const mockStepTemplate = (stepMockName, step, jobId) => `
-const ${stepMockName} = utils.getMockStep(
+const ${stepMockName} = utils.createMockStep(
     '${step.name || ''}',
     '${step.name || ''}',
     ${jobId ? `'${jobId.toUpperCase()}'` : 'null'},
@@ -105,7 +105,7 @@ const ${stepMockName} = utils.getMockStep(
     // add outputs if needed
 );`;
 const stepAssertionTemplate = (step_name, job_id, step_message, inputs, envs) => `
-        utils.getStepAssertion(
+        utils.createStepAssertion(
             '${step_name}',
             true,
             null,

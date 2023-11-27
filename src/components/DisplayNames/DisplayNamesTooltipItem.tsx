@@ -3,12 +3,12 @@ import {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {AvatarSource} from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type DisplayNamesTooltipItemProps = {
     index?: number;
 
-    /** The full title of the DisplayNames component (not split up) */
+    /** The function to get a distance to shift the tooltip horizontally */
     getTooltipShiftX?: (index: number) => number | undefined;
 
     /** The Account ID for the tooltip */
@@ -40,6 +40,7 @@ function DisplayNamesTooltipItem({
     textStyles = [],
     childRefs = {current: []},
 }: DisplayNamesTooltipItemProps) {
+    const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (

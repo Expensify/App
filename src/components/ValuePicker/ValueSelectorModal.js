@@ -5,15 +5,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
-
-    /** Current value selected  */
-    currentValue: PropTypes.string,
 
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
@@ -32,7 +29,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentValue: '',
     items: [],
     selectedItem: {},
     label: '',
@@ -40,7 +36,8 @@ const defaultProps = {
     onItemSelected: () => {},
 };
 
-function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+    const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState([]);
 
     useEffect(() => {
@@ -70,7 +67,7 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                 <SelectionList
                     sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
-                    initiallyFocusedOptionKey={currentValue}
+                    initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
                 />
             </ScreenWrapper>

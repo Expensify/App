@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -20,6 +20,7 @@ const propTypes = {
 };
 
 function ReimbursementAccountLoadingIndicator(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <ScreenWrapper
