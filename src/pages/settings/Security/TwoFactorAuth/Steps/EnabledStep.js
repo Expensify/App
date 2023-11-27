@@ -1,18 +1,20 @@
 import React, {useState} from 'react';
-import {Text, View, ScrollView} from 'react-native';
-import Section from '../../../../../components/Section';
-import * as Illustrations from '../../../../../components/Icon/Illustrations';
-import * as Expensicons from '../../../../../components/Icon/Expensicons';
-import themeColors from '../../../../../styles/themes/default';
-import styles from '../../../../../styles/styles';
-import ConfirmModal from '../../../../../components/ConfirmModal';
-import * as Session from '../../../../../libs/actions/Session';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import CONST from '../../../../../CONST';
-import useLocalize from '../../../../../hooks/useLocalize';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
+import {ScrollView, Text, View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import useLocalize from '@hooks/useLocalize';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 function EnabledStep() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -32,7 +34,7 @@ function EnabledStep() {
                                 setIsConfirmModalVisible(true);
                             },
                             icon: Expensicons.Close,
-                            iconFill: themeColors.danger,
+                            iconFill: theme.danger,
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}
@@ -62,5 +64,7 @@ function EnabledStep() {
         </StepWrapper>
     );
 }
+
+EnabledStep.displayName = 'EnabledStep';
 
 export default EnabledStep;

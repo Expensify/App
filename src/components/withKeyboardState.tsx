@@ -1,7 +1,9 @@
 import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactNode, useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
@@ -38,7 +40,13 @@ function KeyboardStateProvider(props: KeyboardStateProviderProps) {
         };
     }, []);
 
-    return <KeyboardStateContext.Provider value={{isKeyboardShown}}>{children}</KeyboardStateContext.Provider>;
+    const contextValue = useMemo(
+        () => ({
+            isKeyboardShown,
+        }),
+        [isKeyboardShown],
+    );
+    return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

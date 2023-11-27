@@ -1,16 +1,18 @@
-import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Visibility from '../../libs/Visibility';
-import * as FormActions from '../../libs/actions/FormActions';
+import PropTypes from 'prop-types';
+import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import compose from '@libs/compose';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import compose from '../../libs/compose';
-import {withNetwork} from '../OnyxProvider';
-import stylePropTypes from '../../styles/stylePropTypes';
-import networkPropTypes from '../networkPropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -45,6 +47,9 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    /** Contains draft values for each input in the form */
+    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
+
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
@@ -75,6 +80,7 @@ const defaultProps = {
     formState: {
         isLoading: false,
     },
+    draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
@@ -98,19 +104,68 @@ function getInitialValueByType(valueType) {
     }
 }
 
-function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
-    const inputRefs = useRef(null);
+function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}) {
+    const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
     const [errors, setErrors] = useState({});
+    const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
     const onValidate = useCallback(
-        (values) => {
-            const validateErrors = validate(values);
-            setErrors(validateErrors);
-            return validateErrors;
+        (values, shouldClearServerError = true) => {
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
+
+            if (shouldClearServerError) {
+                FormActions.setErrors(formID, null);
+            }
+            FormActions.setErrorFields(formID, null);
+
+            const validateErrors = validate(values) || {};
+
+            // Validate the input for html tags. It should supercede any other error
+            _.each(trimmedStringValues, (inputValue, inputID) => {
+                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                if (!inputValue || !_.isString(inputValue)) {
+                    return;
+                }
+                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+
+                // Return early if there are no HTML characters
+                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+                    return;
+                }
+
+                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
+                // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                if (matchedHtmlTags) {
+                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                    for (let i = 0; i < matchedHtmlTags.length; i++) {
+                        const htmlTag = matchedHtmlTags[i];
+                        isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
+                        if (!isMatch) {
+                            break;
+                        }
+                    }
+                }
+                // Add a validation error here because it is a string value that contains HTML characters
+                validateErrors[inputID] = 'common.error.invalidCharacter';
+            });
+
+            if (!_.isObject(validateErrors)) {
+                throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
+            }
+
+            const touchedInputErrors = _.pick(validateErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
+
+            if (!_.isEqual(errors, touchedInputErrors)) {
+                setErrors(touchedInputErrors);
+            }
+
+            return touchedInputErrors;
         },
-        [validate],
+        [errors, formID, validate],
     );
 
     /**
@@ -129,11 +184,14 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             return;
         }
 
+        // Prepare values before submitting
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
         // Touches all form inputs so we can validate the entire form
         _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(onValidate(inputValues))) {
+        if (!_.isEmpty(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -142,17 +200,21 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             return;
         }
 
-        onSubmit(inputValues);
+        onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
-            const newRef = propsToParse.ref || createRef();
-            inputRefs[inputID] = newRef;
+            const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
+            if (inputRefs.current[inputID] !== newRef) {
+                inputRefs.current[inputID] = newRef;
+            }
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            } else if (propsToParse.shouldUseDefaultValue) {
+            } else if (propsToParse.shouldSaveDraft && !_.isUndefined(draftValues[inputID]) && _.isUndefined(inputValues[inputID])) {
+                inputValues[inputID] = draftValues[inputID];
+            } else if (propsToParse.shouldUseDefaultValue && _.isUndefined(inputValues[inputID])) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
             } else if (_.isUndefined(inputValues[inputID])) {
@@ -172,7 +234,13 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
 
             return {
                 ...propsToParse,
-                ref: newRef,
+                ref:
+                    typeof propsToParse.ref === 'function'
+                        ? (node) => {
+                              propsToParse.ref(node);
+                              newRef.current = node;
+                          }
+                        : newRef,
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
@@ -186,16 +254,33 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                         propsToParse.onTouched(event);
                     }
                 },
+                onPress: (event) => {
+                    setTouchedInput(inputID);
+                    if (_.isFunction(propsToParse.onPress)) {
+                        propsToParse.onPress(event);
+                    }
+                },
+                onPressIn: (event) => {
+                    setTouchedInput(inputID);
+                    if (_.isFunction(propsToParse.onPressIn)) {
+                        propsToParse.onPressIn(event);
+                    }
+                },
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
+                        const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
+
                         setTimeout(() => {
+                            if (relatedTargetId && _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)) {
+                                return;
+                            }
                             setTouchedInput(inputID);
                             if (shouldValidateOnBlur) {
-                                onValidate(inputValues);
+                                onValidate(inputValues, !hasServerError);
                             }
                         }, 200);
                     }
@@ -219,7 +304,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: value});
+                        FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
@@ -228,7 +313,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                 },
             };
         },
-        [errors, formState, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -237,12 +322,13 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             {/* eslint-disable react/jsx-props-no-spreading */}
             <FormWrapper
                 {...rest}
+                formID={formID}
                 onSubmit={submit}
                 inputRefs={inputRefs}
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
             >
-                {children}
+                {_.isFunction(children) ? children({inputValues}) : children}
             </FormWrapper>
         </FormContext.Provider>
     );
@@ -257,6 +343,9 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
+        },
+        draftValues: {
+            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(FormProvider);
