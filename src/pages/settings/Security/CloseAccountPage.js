@@ -15,7 +15,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -40,6 +40,7 @@ const defaultProps = {
 };
 
 function CloseAccountPage(props) {
+    const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 

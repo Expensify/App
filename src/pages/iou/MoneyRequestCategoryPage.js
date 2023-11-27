@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function MoneyRequestCategoryPage({route, report, iou}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportID = lodashGet(route, 'params.reportID', '');

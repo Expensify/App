@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +28,7 @@ const defaultProps = {
 };
 
 function EmailDeliveryFailurePage(props) {
+    const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;

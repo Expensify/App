@@ -13,6 +13,7 @@ import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccou
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
@@ -20,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +77,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -441,7 +442,8 @@ class ReimbursementAccountPage extends React.Component {
                         subtitle={policyName}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
-                    <View style={[styles.m5, styles.flex1]}>
+
+                    <View style={[this.props.themeStyles.m5, this.props.themeStyles.mv3, this.props.themeStyles.flex1]}>
                         <Text>{errorText}</Text>
                     </View>
                 </ScreenWrapper>
@@ -568,4 +570,5 @@ export default compose(
     }),
     withLocalize,
     withPolicy,
+    withThemeStyles,
 )(ReimbursementAccountPage);

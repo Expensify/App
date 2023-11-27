@@ -159,9 +159,13 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
     Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
     Settings_Wallet_Cards_Digital_Details_Update_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
-    Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    Settings_Wallet_DomainCard: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
     Settings_Wallet_ReportVirtualCardFraud: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     Settings_Wallet_Card_Activate: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardName').default,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardPhone').default,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardAddress').default,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardConfirm').default,
     Settings_Wallet_Transfer_Balance: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
     Settings_Wallet_Choose_Transfer_Account: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     Settings_Wallet_EnablePayments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
@@ -222,6 +226,9 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator({
 const SignInModalStackNavigator = createModalStackNavigator({
     SignIn_Root: () => require('../../../pages/signin/SignInModal').default,
 });
+const ReferralModalStackNavigator = createModalStackNavigator({
+    Referral_Details: () => require('../../../pages/ReferralDetailsPage').default,
+});
 
 export {
     MoneyRequestModalStackNavigator,
@@ -248,4 +255,5 @@ export {
     SignInModalStackNavigator,
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
+    ReferralModalStackNavigator,
 };
