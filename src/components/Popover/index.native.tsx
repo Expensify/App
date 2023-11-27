@@ -16,7 +16,6 @@ function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnima
             {...propsWithoutAnimation}
             // Mobile will always has fullscreen menu
             fullscreen
-            // Added those props because TS is complaining about them and those values are default based on documentation https://github.com/react-native-modal/react-native-modal#available-props
             animationIn="slideInUp"
             animationOut="slideOutDown"
         />

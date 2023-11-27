@@ -8,7 +8,7 @@ type PopoverDimensions = {
     height: number;
 };
 
-type PopoverProps = {
+type PopoverProps = BaseModalProps & {
     /** The anchor position of the popover */
     anchorPosition?: PopoverAnchorPosition;
 
@@ -35,7 +35,7 @@ type PopoverProps = {
 
     /** The popover children */
     children: React.ReactNode;
-} & BaseModalProps;
+};
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
