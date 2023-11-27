@@ -1,10 +1,10 @@
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import * as Localize from '@libs/Localize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import {ErrorsList} from '@src/libs/ErrorUtils';
-import {isEmptyObjectOrString} from '@src/types/utils/EmptyObject';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -26,7 +26,7 @@ type FormHelpMessageProps = {
 function FormHelpMessage({message = '', children, isError = true, style}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    if (isEmptyObjectOrString(message) && isEmptyObjectOrString(children)) {
+    if (isEmpty(message) && isEmpty(children)) {
         return null;
     }
 
