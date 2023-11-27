@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {ReactNode, memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -8,6 +8,21 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
+import Icon, { SrcProps } from './Icon';
+
+type SubIcon = {
+    /** Avatar source to display */
+    source: (props: SrcProps) => ReactNode;
+
+    /** Background color for the icon. Visible when icon has transparent background. */
+    backgroundColor?: string;
+
+    /** Width of the icon */
+    width?: number;
+
+    /** Height of the icon */
+    height?: number;
+}
 
 type SubAvatar = {
     /** Avatar source to display */
@@ -39,11 +54,8 @@ type SubscriptAvatarProps = {
     /** Subscript avatar URL or icon */
     secondaryAvatar?: SubAvatar;
 
-    /** Override the size of subscript avatar */
-    secondaryAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
-    /** Background color used for subscript avatar background */
-    secondaryAvatarBackgroundColor?: string;
+    /** Subscript icon type */
+    subscriptIcon?: SubIcon;
 
     /** Removes margin from around the avatar, used for the chat view */
     noMargin?: boolean;
@@ -52,21 +64,12 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, secondaryAvatarSize, backgroundColor, secondaryAvatarBackgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
-    const isSubscriptSmall = secondaryAvatarSize === CONST.AVATAR_SIZE.SMALL || isSmall;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = StyleUtils.getContainerStyles(size);
-
-    const subscriptWrapperStyle = () => {
-        if (isSubscriptSmall && !isSmall) {
-            return styles.secondAvatarSubscriptCompactIconNormal;
-        }
-
-        return isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle
-    }
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
@@ -86,33 +89,56 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
                     />
                 </View>
             </UserDetailsTooltip>
-            <UserDetailsTooltip
-                shouldRender={showTooltip}
-                accountID={secondaryAvatar.id ?? -1}
-                icon={secondaryAvatar}
-            >
+            {secondaryAvatar && (
+                <UserDetailsTooltip
+                    shouldRender={showTooltip}
+                    accountID={secondaryAvatar.id ?? -1}
+                    icon={secondaryAvatar}
+                >
+                    <View
+                        style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                        // Hover on overflowed part of icon will not work on Electron if dragArea is true
+                        // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
+                        dataSet={{dragArea: false}}
+                    >
+                        <Avatar
+                            iconAdditionalStyles={[
+                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                                StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
+                            ]}
+                            source={secondaryAvatar.source}
+                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                            fill={theme.iconSuccessFill}
+                            name={secondaryAvatar.name}
+                            type={secondaryAvatar.type}
+                            fallbackIcon={secondaryAvatar.fallbackIcon}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            )}
+            {subscriptIcon && (
                 <View
-                    style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptWrapperStyle()]}
+                    style={[
+                        size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
+                        StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALL, CONST.ICON_TYPE_AVATAR),
+                        StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL),
+                        StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
+                        styles.subscriptIcon,
+                        styles.dFlex,
+                        styles.justifyContentCenter,
+                    ]}
                     // Hover on overflowed part of icon will not work on Electron if dragArea is true
                     // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                     dataSet={{dragArea: false}}
                 >
-                    <Avatar
-                        iconAdditionalStyles={[
-                            StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                            StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
-                            StyleUtils.getBackgroundColorStyle(secondaryAvatarBackgroundColor ?? theme.componentBG),
-                        ]}
-                        imageStyles={(isSubscriptSmall && !isSmall) ? [styles.secondAvatarSubscriptIconSmall] : []}
-                        source={secondaryAvatar.source}
-                        size={isSubscriptSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                        fill={theme.iconSuccessFill}
-                        name={secondaryAvatar.name}
-                        type={secondaryAvatar.type}
-                        fallbackIcon={secondaryAvatar.fallbackIcon}
+                    <Icon
+                        src={subscriptIcon.source}
+                        width={subscriptIcon.width}
+                        height={subscriptIcon.height}
+                        additionalStyles={styles.alignSelfCenter}
                     />
                 </View>
-            </UserDetailsTooltip>
+            )}
         </View>
     );
 }

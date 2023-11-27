@@ -2004,12 +2004,6 @@ const styles = (theme: ThemeColors) =>
             right: -1,
         },
 
-        secondAvatarSubscriptCompactIconNormal: {
-            position: 'absolute',
-            bottom: -2.5,
-            right: -2.5,
-        },
-
         secondAvatarSubscriptSmallNormal: {
             position: 'absolute',
             bottom: 0,
@@ -2023,6 +2017,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 18,
             borderColor: theme.cardBorder,
             backgroundColor: theme.appBG,
+        },
+
+        subscriptIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            width: 20,
+            height: 20,
+            backgroundColor: colors.darkBorders,
         },
 
         avatarLarge: {
