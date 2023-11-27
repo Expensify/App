@@ -1,7 +1,5 @@
-import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactNode, useEffect, useState} from 'react';
-import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
-import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 
