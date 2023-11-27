@@ -165,6 +165,7 @@ function IOURequestStepWaypoint({
             lat: values.lat,
             lng: values.lng,
             address: values.address,
+            name: values.name,
         };
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
