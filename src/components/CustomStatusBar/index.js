@@ -19,7 +19,7 @@ function CustomStatusBar() {
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_BACKGROUND_COLORS) {
                 currentScreenBackgroundColor = theme.PAGE_BACKGROUND_COLORS[currentRoute.name];
             }
-            StatusBar.setBarStyle(preferredTheme === CONST.THEMES.LIGHT ? 'dark-content' : 'light-content', true);
+            StatusBar.setBarStyle(preferredTheme === CONST.THEME.LIGHT ? 'dark-content' : 'light-content', true);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor);
         });
     }, [preferredTheme, theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
