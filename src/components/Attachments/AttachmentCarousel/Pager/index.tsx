@@ -1,15 +1,16 @@
-import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {ReactNode, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {createNativeWrapper, GestureHandlerRootView} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
 import {ScrollEvent} from 'react-native-reanimated/lib/typescript/reanimated2/hook/useAnimatedScrollHandler';
+import {Attachment} from '@components/Attachments/AttachmentCarousel/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 
-function usePageScrollHandler(handlers: {onPageScroll: (e: ScrollEvent) => void}, dependencies) {
+function usePageScrollHandler(handlers: {onPageScroll: (e: Native) => void}, dependencies) {
     const {context, doDependenciesDiffer} = useHandler(handlers, dependencies);
     const subscribeForEvents = ['onPageScroll'];
 
@@ -38,7 +39,7 @@ type PagerProps = {
         key: string;
         url: string;
     }>;
-    renderItem: () => void;
+    renderItem: (props: {item: Attachment; isActive: boolean}) => ReactNode;
     initialIndex?: number;
     onPageSelected?: () => void;
     onTap?: () => void;

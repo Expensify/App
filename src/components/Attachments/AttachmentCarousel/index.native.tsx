@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {NativeEvent} from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
@@ -16,17 +17,8 @@ import AttachmentCarouselPager from './Pager';
 import AttachmentCarouselProps, {AttachmentCarouselOnyxProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({
-    report,
-    reportActions = {},
-    parentReportActions = {},
-    source = '',
-    onNavigate = () => {},
-    setDownloadButtonVisibility = () => {},
-    translate,
-    transaction = {},
-    onClose,
-}: AttachmentCarouselProps) {
+function AttachmentCarousel(props: AttachmentCarouselProps) {
+    const {report, reportActions = {}, parentReportActions = {}, source = '', onNavigate = () => {}, setDownloadButtonVisibility = () => {}, translate, transaction = {}, onClose} = props;
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
 
@@ -110,10 +102,10 @@ function AttachmentCarousel({
      * Defines how a single attachment should be rendered
      */
     const renderItem = useCallback(
-        ({item, isActive}: {item: Attachment; isActive: boolean}) => (
+        (renderItemProps: {item: Attachment; isActive: boolean}) => (
             <CarouselItem
-                item={item}
-                isFocused={isActive && activeSource === item.source}
+                item={renderItemProps.item}
+                isFocused={renderItemProps.isActive && activeSource === renderItemProps.item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
