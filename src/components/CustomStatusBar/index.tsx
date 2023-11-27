@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useMemo} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
+import CONST from '@src/CONST';
 import CustomStatusBarContext from './CustomStatusBarContext';
 
 type CustomStatusBarProps = {
@@ -11,7 +12,10 @@ type CustomStatusBarProps = {
 function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactElement | null {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
-    const statusBarContentTheme = useMemo(() => (theme.statusBarContentTheme === 'light' ? 'light-content' : 'dark-content'), [theme.statusBarContentTheme]);
+    const statusBarContentTheme = useMemo(
+        () => (theme.statusBarContentTheme === CONST.STATUS_BAR_AND_SCROLLBAR_THEME.LIGHT ? CONST.STATUS_BAR_THEME.LIGHT_CONTENT : CONST.STATUS_BAR_THEME.DARK_CONTENT),
+        [theme.statusBarContentTheme],
+    );
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
 

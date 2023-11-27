@@ -21,7 +21,7 @@ import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeColors} from './themes/types';
+import {StatusBarAndScrollbarTheme, ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
@@ -3979,6 +3979,8 @@ const styles = (theme: ThemeColors) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        colorSchemeStyle: (colorScheme: StatusBarAndScrollbarTheme | undefined) => ({colorScheme}),
     } satisfies Styles);
 
 const stylesGenerator = styles;

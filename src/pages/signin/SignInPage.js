@@ -279,17 +279,17 @@ SignInPageInner.displayName = 'SignInPage';
 
 function SignInPage(props) {
     return (
-        <CustomScrollbarWrapper theme={CONST.THEME.DARK}>
-            <ThemeProvider theme={CONST.THEME.DARK}>
-                <CustomStatusBar isNested />
-                <ThemeStylesProvider>
+        <ThemeProvider theme={CONST.THEME.DARK}>
+            <ThemeStylesProvider>
+                <CustomScrollbarWrapper theme={CONST.THEME.DARK}>
+                    <CustomStatusBar isNested />
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
-                </ThemeStylesProvider>
-            </ThemeProvider>
-        </CustomScrollbarWrapper>
+                </CustomScrollbarWrapper>
+            </ThemeStylesProvider>
+        </ThemeProvider>
     );
 }
 
