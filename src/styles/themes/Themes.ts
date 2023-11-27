@@ -7,8 +7,8 @@ import {ThemeColors, ThemePreferenceWithoutSystem} from './types';
 // Still, status bar, scrollbar and other components might need to adapt based on if the theme is overly light or dark
 // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
 const Themes = {
-    [CONST.THEME.LIGHT]: {theme: lightTheme, isLight: true},
-    [CONST.THEME.DARK]: {theme: darkTheme, isLight: false},
-} satisfies Record<ThemePreferenceWithoutSystem, {theme: ThemeColors; isLight: boolean}>;
+    [CONST.THEME.LIGHT]: lightTheme,
+    [CONST.THEME.DARK]: darkTheme,
+} satisfies Record<ThemePreferenceWithoutSystem, ThemeColors>;
 
 export default Themes;
