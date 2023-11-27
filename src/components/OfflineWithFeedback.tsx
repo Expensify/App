@@ -17,7 +17,7 @@ import MessagesRow from './MessagesRow';
  * care of adding the appropriate styles for pending actions and displaying the dismissible error.
  */
 
-type OfflineWithFeedbackProps = {
+type OfflineWithFeedbackProps = ChildrenProps & {
     /** The type of action that's pending  */
     pendingAction: OnyxCommon.PendingAction | null;
 
@@ -35,9 +35,6 @@ type OfflineWithFeedbackProps = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
-
-    /** The content that needs offline feedback */
-    children: React.ReactNode;
 
     /** Additional styles to add after local styles. Applied to the parent container */
     style?: StyleProp<ViewStyle>;
