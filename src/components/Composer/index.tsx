@@ -401,7 +401,7 @@ function Composer(
             }}
         >
             <Text
-                multiline
+                // multiline
                 style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth as DimensionValue}]}
             >
                 {`${valueBeforeCaret} `}
