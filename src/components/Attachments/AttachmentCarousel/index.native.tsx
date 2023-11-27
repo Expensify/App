@@ -1,42 +1,32 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
-import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
-import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem.tsx';
+import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-const viewabilityConfig = {
-    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-    // more than 95% visible. When that happens we update the page index in the state.
-    itemVisiblePercentThreshold: 95,
-};
-
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
     const styles = useThemeStyles();
-    const scrollRef = useRef(null);
+    const pagerRef = useRef(null);
 
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-
-    const [containerWidth, setContainerWidth] = useState(0);
+    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
+    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [isReceipt, setIsReceipt] = useState(false);
 
@@ -72,7 +62,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, parentReportActions, compareImage]);
+    }, [reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -80,25 +70,19 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @param {number} index
      */
     const updatePage = useCallback(
-        ({viewableItems}) => {
+        (newPageIndex) => {
             Keyboard.dismiss();
+            setShouldShowArrows(true);
 
-            // Since we can have only one item in view at a time, we can use the first item in the array
-            // to get the index of the current page
-            const entry = _.first(viewableItems);
-            if (!entry) {
-                setIsReceipt(false);
-                setActiveSource(null);
-                return;
-            }
+            const item = attachments[newPageIndex];
 
-            setIsReceipt(entry.item.isReceipt);
-            setPage(entry.index);
-            setActiveSource(entry.item.source);
+            setPage(newPageIndex);
+            setIsReceipt(item.isReceipt);
+            setActiveSource(item.source);
 
-            onNavigate(entry.item);
+            onNavigate(item);
         },
-        [onNavigate],
+        [setShouldShowArrows, attachments, onNavigate],
     );
 
     /**
@@ -107,61 +91,39 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextIndex = page + deltaSlide;
-            const nextItem = attachments[nextIndex];
+            const nextPageIndex = page + deltaSlide;
+            updatePage(nextPageIndex);
+            pagerRef.current.setPage(nextPageIndex);
 
-            if (!nextItem || !scrollRef.current) {
-                return;
-            }
-
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            autoHideArrows();
         },
-        [attachments, canUseTouchScreen, page],
-    );
-
-    /**
-     * Calculate items layout information to optimize scrolling performance
-     * @param {*} data
-     * @param {Number} index
-     * @returns {{offset: Number, length: Number, index: Number}}
-     */
-    const getItemLayout = useCallback(
-        (_data, index) => ({
-            length: containerWidth,
-            offset: containerWidth * index,
-            index,
-        }),
-        [containerWidth],
+        [autoHideArrows, page, updatePage],
     );
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {Object} item
-     * @param {String} item.reportActionID
-     * @param {Boolean} item.isAuthTokenRequired
-     * @param {String} item.source
-     * @param {Object} item.file
-     * @param {String} item.file.name
-     * @param {Boolean} item.hasBeenFlagged
+     * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, isActive}) => (
             <CarouselItem
                 item={item}
-                isFocused={activeSource === item.source}
-                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                isFocused={isActive && activeSource === item.source}
+                onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
-            onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
-            onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
+            onLayout={({nativeEvent}) =>
+                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
+            }
+            onMouseEnter={() => setShouldShowArrows(true)}
+            onMouseLeave={() => setShouldShowArrows(false)}
         >
             {page === -1 ? (
                 <BlockingView
@@ -173,7 +135,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             ) : (
                 <>
                     <CarouselButtons
-                        shouldShowArrows={shouldShowArrows}
+                        shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
                         page={page}
                         attachments={attachments}
                         onBack={() => cycleThroughAttachments(-1)}
@@ -182,45 +144,29 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {containerWidth > 0 && (
-                        <FlatList
-                            keyboardShouldPersistTaps="handled"
-                            listKey="AttachmentCarousel"
-                            horizontal
-                            decelerationRate="fast"
-                            showsHorizontalScrollIndicator={false}
-                            bounces={false}
-                            // Scroll only one image at a time no matter how fast the user swipes
-                            disableIntervalMomentum
-                            pagingEnabled
-                            snapToAlignment="start"
-                            snapToInterval={containerWidth}
-                            // Enable scrolling by swiping on mobile (touch) devices only
-                            // disable scroll for desktop/browsers because they add their scrollbars
-                            // Enable scrolling FlatList only when PDF is not in a zoomed state
-                            scrollEnabled={canUseTouchScreen}
-                            ref={scrollRef}
-                            initialScrollIndex={page}
-                            initialNumToRender={3}
-                            windowSize={5}
-                            maxToRenderPerBatch={3}
-                            data={attachments}
-                            CellRendererComponent={AttachmentCarouselCellRenderer}
+                    {containerDimensions.width > 0 && containerDimensions.height > 0 && (
+                        <AttachmentCarouselPager
+                            items={attachments}
                             renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            keyExtractor={(item) => item.source}
-                            viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage}
+                            initialIndex={page}
+                            onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                            onPinchGestureChange={(newIsPinchGestureRunning) => {
+                                setIsPinchGestureRunning(newIsPinchGestureRunning);
+                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                    setShouldShowArrows(true);
+                                }
+                            }}
+                            onSwipeDown={onClose}
+                            containerWidth={containerDimensions.width}
+                            containerHeight={containerDimensions.height}
+                            ref={pagerRef}
                         />
                     )}
-
-                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
                 </>
             )}
         </View>
     );
 }
-
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
@@ -250,5 +196,4 @@ export default compose(
         },
     }),
     withLocalize,
-    withWindowDimensions,
 )(AttachmentCarousel);
