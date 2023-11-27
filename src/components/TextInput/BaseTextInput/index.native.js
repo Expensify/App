@@ -172,10 +172,12 @@ function BaseTextInput(props) {
     /**
      * Set Value & activateLabel
      *
-     * @param {String} value
+     * @param {String} val
      * @memberof BaseTextInput
      */
-    const setValue = (value) => {
+    const setValue = (val) => {
+        const value = val.replace(/\n/g, ' ');
+
         if (props.onInputChange) {
             props.onInputChange(value);
         }
