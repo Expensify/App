@@ -75,7 +75,7 @@ Reimbursable expenses export to QuickBooks Online as:
 
 ## Vendor bill (recommended)
 
-This is a single itemized vendor bill for each Expensify report. If the accounting period is closed, we will post the vendor bill on the first day of the next open period. If you export as Vendor Bills, you can also choose to Sync reimbursed reports (set on the Advanced tab). **An A/P account is required to export to a vendor bill. Here is a screenshot of how your expenses map in QuickBooks.**
+This is a single itemized vendor bill for each Expensify report. If the accounting period is closed, we will post the vendor bill on the first day of the next open period. If you export as Vendor Bills, you can also choose to Sync reimbursed reports (set on the Advanced tab). **An A/P account is required to export to a vendor bill.**
 
 The submitter will be listed as the vendor in the vendor bill.
 
