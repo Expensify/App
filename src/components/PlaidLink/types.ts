@@ -1,5 +1,5 @@
 import {LinkEventMetadata, LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import {PlaidLinkOnEventMetadata, PlaidLinkOnSuccessMetadata, PlaidLinkStableEvent} from 'react-plaid-link';
+import {PlaidLinkOnEventMetadata, PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
 
 type PlaidLinkProps = {
     // Plaid Link SDK public token used to initialize the Plaid SDK
@@ -15,7 +15,7 @@ type PlaidLinkProps = {
     onExit?: () => void;
 
     // Callback to execute whenever a Plaid event occurs
-    onEvent: (eventName: PlaidLinkStableEvent | string, metadata?: PlaidLinkOnEventMetadata | LinkEventMetadata) => void;
+    onEvent: (eventName: string, metadata?: PlaidLinkOnEventMetadata | LinkEventMetadata) => void;
 
     // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
     // user to their respective bank platform
