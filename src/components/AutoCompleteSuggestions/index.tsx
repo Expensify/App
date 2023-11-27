@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
-import {propTypes} from './autoCompleteSuggestionsPropTypes';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
+import type {AutoCompleteSuggestionsProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -14,8 +14,8 @@ import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions({measureParentContainer, ...props}) {
-    const containerRef = React.useRef(null);
+function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
@@ -25,7 +25,7 @@ function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) {
-            return;
+            return () => {};
         }
         container.onpointerdown = (e) => {
             if (DeviceCapabilities.hasHoverSupport()) {
@@ -44,20 +44,20 @@ function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     }, [measureParentContainer, windowHeight, windowWidth]);
 
     const componentToRender = (
-        <BaseAutoCompleteSuggestions
+        <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={containerRef}
         />
     );
 
+    const bodyElement = document.querySelector('body');
+
     return (
-        Boolean(width) &&
-        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, document.querySelector('body'))
+        !!width && bodyElement && ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, bodyElement)
     );
 }
 
-AutoCompleteSuggestions.propTypes = propTypes;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;
