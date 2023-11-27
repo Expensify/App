@@ -1877,25 +1877,6 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 }
 
 /**
- * Get actor name to display in the message preview
- */
-function getActorNameForPreviewMessage({
-    report,
-    actorID,
-    shouldShowWorkspaceName = false,
-    shouldUseShortForm = false,
-    policy = null,
-}: {
-    report: OnyxEntry<Report>;
-    actorID: number;
-    shouldShowWorkspaceName: boolean;
-    shouldUseShortForm: boolean;
-    policy: OnyxEntry<Policy>;
-}) {
-    return shouldShowWorkspaceName ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(actorID, shouldUseShortForm);
-}
-
-/**
  * Get money request message for an IOU report
  *
  * @param [reportAction] This can be either a report preview action or the IOU action
@@ -1905,7 +1886,6 @@ function getReportPreviewMessage(
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
-    shouldHideParticipantName = false,
     policy: OnyxEntry<Policy> = null,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
@@ -1934,14 +1914,7 @@ function getReportPreviewMessage(
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerDisplayName = getActorNameForPreviewMessage({
-        report,
-        actorID: report.managerID ?? -1,
-        shouldUseShortForm: true,
-        shouldShowWorkspaceName: isExpenseReport(report),
-        policy,
-    });
-    const payerName = shouldHideParticipantName ? '' : payerDisplayName;
+    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1995,11 +1968,7 @@ function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: st
     if (!newValue) {
         return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
-    return Localize.translateLocal('iou.updatedTheRequest', {
-        valueName: displayValueName,
-        newValueToDisplay,
-        oldValueToDisplay,
-    });
+    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
 }
 
 /**
@@ -2007,10 +1976,7 @@ function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: st
  */
 function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
     if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {
-            newDistanceToDisplay: newDistance,
-            newAmountToDisplay: newAmount,
-        });
+        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
     return Localize.translateLocal('iou.updatedTheDistance', {
         newDistanceToDisplay: newDistance,
@@ -3391,7 +3357,6 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 
     return true;
 }
-
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
@@ -4415,7 +4380,6 @@ export {
     getPersonalDetailsForAccountID,
     getChannelLogMemberMessage,
     getRoom,
-    getActorNameForPreviewMessage,
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
 };
