@@ -1,14 +1,14 @@
 import React from 'react';
-import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
+import {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
-import * as Expensicons from './Icon/Expensicons';
-import Tooltip from './Tooltip';
-import { PressableWithoutFeedback } from './Pressable';
+import CONST from '@src/CONST';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 type SearchProps = {
     // Callback fired when component is pressed
@@ -24,7 +24,7 @@ type SearchProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function Search({ onPress, prompt, tooltip, style }: SearchProps) {
+function Search({onPress, prompt, tooltip, style}: SearchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -36,7 +36,11 @@ function Search({ onPress, prompt, tooltip, style }: SearchProps) {
                 style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchPressableContainer, style]}
                 onPress={onPress}
             >
-                <Icon src={Expensicons.MagnifyingGlass} width={variables.iconSizeSmall} height={variables.iconSizeSmall} />
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                />
                 <Text
                     style={styles.searchInputStyle}
                     numberOfLines={1}
