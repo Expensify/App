@@ -113,6 +113,7 @@ type OptimisticExpenseReport = Pick<
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
+    | 'lastVisibleActionCreated'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -268,6 +269,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'lastVisibleActionCreated'
 >;
 
 type TransactionDetails =
@@ -306,6 +308,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'statusNum'
+    | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
