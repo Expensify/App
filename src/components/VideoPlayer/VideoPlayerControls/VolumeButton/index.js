@@ -73,6 +73,7 @@ function VolumeButton({style, small}) {
                                         style={[styles.volumeSliderOverlay]}
                                         onLayout={onSliderLayout}
                                     >
+                                        <View style={styles.volumeSliderThumb} />
                                         <Animated.View style={[styles.volumeSliderFill, progressBarStyle]} />
                                     </View>
                                 </View>

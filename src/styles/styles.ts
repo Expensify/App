@@ -4051,8 +4051,16 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.transparentWhite,
             borderRadius: 10,
             marginTop: 10,
-            alignItems: 'flex-end',
+            alignItems: 'center',
             justifyContent: 'flex-end',
+        },
+
+        volumeSliderThumb: {
+            width: 8,
+            height: 8,
+            borderRadius: 8,
+            backgroundColor: colors.white,
+            marginBottom: -2,
         },
 
         volumeSliderFill: {
