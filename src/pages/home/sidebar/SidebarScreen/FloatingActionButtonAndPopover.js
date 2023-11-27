@@ -243,9 +243,11 @@ function FloatingActionButtonAndPopover(props) {
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
-                    console.log('FloatingActionButtonAndPopover.js: showCreateMenu()');
-                    // navigate to new screen
-                    Navigation.navigate(ROUTES.SETTINGS_HOME);
+                    if (isCreateMenuActive) {
+                        hideCreateMenu();
+                    } else {
+                        showCreateMenu();
+                    }
                 }}
             />
         </View>
