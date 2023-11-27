@@ -286,11 +286,11 @@ export default [
                     Clipboard.setString(logMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
-                    const markdown = parser.htmlToMarkdown(content);
                     if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(markdown);
+                        Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        Clipboard.setHtml(content, markdown);
+                        const plainText = parser.htmlToText(content);
+                        Clipboard.setHtml(content, plainText);
                     }
                 }
             }
