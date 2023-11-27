@@ -7,7 +7,7 @@ import PlaidLinkProps from './types';
 function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
     useDeepLinkRedirector();
     usePlaidEmitter((event: LinkEvent) => {
-        Log.info('[PlaidLink] Handled Plaid Event: ', false, event.eventName);
+        Log.info('[PlaidLink] Handled Plaid Event: ', false, {...event});
         onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
