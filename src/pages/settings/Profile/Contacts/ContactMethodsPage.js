@@ -111,6 +111,16 @@ function ContactMethodsPage(props) {
         );
     });
 
+    const onNewContactMethodButtonPress = () => {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.route);
+
+            return;
+        }
+								
+        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
+    };
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -136,7 +146,7 @@ function ContactMethodsPage(props) {
                     <Button
                         success
                         text={props.translate('contacts.newContactMethod')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                        onPress={onNewContactMethodButtonPress}
                         pressOnEnter
                     />
                 </FixedFooter>

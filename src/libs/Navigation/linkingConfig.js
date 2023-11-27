@@ -168,7 +168,7 @@ export default {
                                 path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
                             Settings_NewContactMethod: {
-                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                                 exact: true,
                             },
                             Settings_PersonalDetails_Initial: {

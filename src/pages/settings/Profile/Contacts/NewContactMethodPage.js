@@ -61,6 +61,8 @@ function NewContactMethodPage(props) {
     const styles = useThemeStyles();
     const loginInputRef = useRef(null);
 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
+
     const validate = React.useCallback(
         (values) => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
@@ -89,6 +91,16 @@ function NewContactMethodPage(props) {
         [],
     );
 
+    const onBackButtonPress = () => {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+
+            return;
+        }
+
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
+    };
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
@@ -104,7 +116,7 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}

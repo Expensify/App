@@ -132,7 +132,10 @@ export default {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,
     },
-    SETTINGS_NEW_CONTACT_METHOD: 'settings/profile/contact-methods/new',
+    SETTINGS_NEW_CONTACT_METHOD: {
+        route: 'settings/profile/contact-methods/new',
+        getRoute: (backTo?: string) => `${getUrlWithBackToParam('settings/profile/contact-methods/new', backTo)}`,
+    },
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
