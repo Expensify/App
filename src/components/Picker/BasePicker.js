@@ -163,24 +163,25 @@ function BasePicker(props) {
 
     const {icon, size} = props;
 
-    const iconToRender = useMemo(
-        () =>
-            icon
-                ? () => icon(size)
-                : () => (
-                      <Icon
-                          src={Expensicons.DownArrow}
-                          // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...(size === 'small'
-                              ? {
-                                    width: styles.pickerSmall().icon.width,
-                                    height: styles.pickerSmall().icon.height,
-                                }
-                              : {})}
-                      />
-                  ),
-        [icon, size, styles],
-    );
+    const iconToRender = useMemo(() => {
+        if (icon) {
+            return () => icon(size);
+        }
+
+        // eslint-disable-next-line react/display-name
+        return () => (
+            <Icon
+                src={Expensicons.DownArrow}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(size === 'small'
+                    ? {
+                          width: styles.pickerSmall().icon.width,
+                          height: styles.pickerSmall().icon.height,
+                      }
+                    : {})}
+            />
+        );
+    }, [icon, size, styles]);
 
     useImperativeHandle(props.forwardedRef, () => ({
         /**
