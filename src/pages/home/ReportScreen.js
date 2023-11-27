@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -161,12 +162,13 @@ function ReportScreen({
 
     const reportID = getReportID(route);
 
+    const isFocused = useIsFocused();
     useEffect(() => {
-        if (!reportID) {
+        if (!report.reportID || !isFocused) {
             return;
         }
-        Report.updateLastVisitTime(reportID);
-    }, [reportID]);
+        Report.updateLastVisitTime(report.reportID);
+    }, [report.reportID, isFocused]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -240,7 +242,6 @@ function ReportScreen({
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
-
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
         if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
@@ -253,7 +254,6 @@ function ReportScreen({
         if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
             return;
         }
-
         Report.openReport(reportIDFromPath);
     }, [report.reportID, route, isLoadingInitialReportActions]);
 
