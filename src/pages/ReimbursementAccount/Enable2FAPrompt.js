@@ -5,7 +5,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
 
@@ -13,6 +13,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 function Enable2FAPrompt(props) {
+    const styles = useThemeStyles();
     const secureYourAccountUrl = encodeURI(
         `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
     );

@@ -185,12 +185,12 @@ function ReportActionsView(props) {
         }
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction.actionName, oldestReportAction.reportActionID, reportID]);
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently

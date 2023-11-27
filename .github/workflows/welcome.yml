@@ -10,7 +10,7 @@ jobs:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get merged pull request
         id: getMergedPullRequest
