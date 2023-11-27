@@ -271,7 +271,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
-                    resizeMode={Image.resizeMode.contain}
+                    resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                     onError={onError}
