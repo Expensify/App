@@ -18,8 +18,8 @@ import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -60,6 +60,8 @@ function BaseSelectionList({
     children,
     shouldStopPropagation = false,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
@@ -144,9 +146,6 @@ function BaseSelectionList({
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
-    // initialFocusedIndex is needed only on component did mount event, don't need to update value
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialFocusedIndex = useMemo(() => (focusedIndex > -1 ? focusedIndex : undefined), []);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -310,9 +309,14 @@ function BaseSelectionList({
             />
         );
     };
-    const handleFirstLayout = useCallback(() => {
+
+    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
+        if (!firstLayoutRef.current) {
+            return;
+        }
+        scrollToIndex(focusedIndex, false);
         firstLayoutRef.current = false;
-    }, []);
+    }, [focusedIndex, scrollToIndex]);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -443,7 +447,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.white}
+                                    indicatorStyle={theme.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
@@ -451,9 +455,7 @@ function BaseSelectionList({
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    style={[styles.flexGrow0]}
-                                    onLayout={handleFirstLayout}
-                                    initialScrollIndex={initialFocusedIndex}
+                                    onLayout={scrollToFocusedIndexOnFirstRender}
                                 />
                                 {children}
                             </>

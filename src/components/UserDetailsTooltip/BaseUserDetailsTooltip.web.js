@@ -10,11 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
 
@@ -56,7 +57,27 @@ function BaseUserDetailsTooltip(props) {
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
             </View>
         ),
-        [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],
+
+        [
+            styles.alignItemsCenter,
+            styles.ph2,
+            styles.pv2,
+            styles.emptyAvatar,
+            styles.actionAvatar,
+            styles.mt2,
+            styles.textMicroBold,
+            styles.textReactionSenders,
+            styles.textAlignCenter,
+            styles.textMicro,
+            styles.fontColorReactionLabel,
+            styles.breakWord,
+            props.icon,
+            userAvatar,
+            userAccountID,
+            userLogin,
+            title,
+            subtitle,
+        ],
     );
 
     if (!props.icon && !userDisplayName && !userLogin) {

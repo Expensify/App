@@ -13,7 +13,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,6 +47,7 @@ function ReportVirtualCardFraudPage({
     cardList,
     formData,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain];

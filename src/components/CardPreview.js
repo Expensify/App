@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, session: {email}}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : email;
 

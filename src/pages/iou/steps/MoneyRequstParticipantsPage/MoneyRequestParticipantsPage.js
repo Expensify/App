@@ -15,7 +15,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +52,7 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();
@@ -86,6 +87,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
+        IOU.resetMoneyRequestCategory();
+        IOU.resetMoneyRequestTag();
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 

@@ -14,10 +14,8 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,19 +26,16 @@ const propTypes = {
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
-    betas: [],
 };
 
 function DebitCardPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
@@ -102,10 +97,6 @@ function DebitCardPage(props) {
 
         return errors;
     };
-
-    if (!Permissions.canUseWallet(props.betas)) {
-        return <NotFoundPage />;
-    }
 
     return (
         <ScreenWrapper
@@ -210,8 +201,5 @@ DebitCardPage.displayName = 'DebitCardPage';
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);
