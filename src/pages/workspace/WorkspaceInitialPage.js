@@ -69,7 +69,7 @@ function dismissError(policyID) {
 
 /**
  * Whether the policy report should be archived when we delete the policy.
- * @param {Object} report 
+ * @param {Object} report
  * @returns {Boolean}
  */
 function shouldArchiveReport(report) {
