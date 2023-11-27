@@ -119,7 +119,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
     };
 }
 
-function addBusinessWebstieForDraft(website: string) {
+function addBusinessWebsiteForDraft(website: string) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {website});
 }
 
@@ -445,7 +445,7 @@ function setReimbursementAccountLoading(isLoading: boolean) {
 }
 
 export {
-    addBusinessWebstieForDraft,
+    addBusinessWebsiteForDraft,
     addBusinessAddressForDraft,
     addPersonalAddressForDraft,
     addPersonalBankAccount,

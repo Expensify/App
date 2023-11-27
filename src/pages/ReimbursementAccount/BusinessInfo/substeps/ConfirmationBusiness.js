@@ -3,7 +3,7 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -129,7 +129,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         onMove(7);
                     }}
                 />
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     validate={validate}
                     onSubmit={onNext}
@@ -138,7 +138,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <CheckboxWithLabel
-                        accessibilityLabel={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
+                        aria-label={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
                         inputID={businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS}
                         defaultValue={defaultCheckboxState}
                         LabelComponent={() => (
@@ -156,7 +156,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         shouldSaveDraft
                         onInputChange={() => {}}
                     />
-                </Form>
+                </FormProvider>
                 <View style={[styles.ph5, styles.mtAuto]}>
                     {error.length > 0 && (
                         <DotIndicatorMessage

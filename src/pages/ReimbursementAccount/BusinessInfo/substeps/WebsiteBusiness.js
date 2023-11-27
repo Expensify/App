@@ -63,7 +63,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const defaultCompanyWebsite = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyWebsiteKey, defaultWebsiteExample);
 
     useEffect(() => {
-        BankAccounts.addBusinessWebstieForDraft(defaultCompanyWebsite);
+        BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
     }, [defaultCompanyWebsite]);
 
     return (
