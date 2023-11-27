@@ -14,7 +14,7 @@ const propTypes = {};
 
 const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
 
-function SettingsNavigator() {
+function FullScreenNavigator() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
@@ -40,7 +40,7 @@ function SettingsNavigator() {
     );
 }
 
-SettingsNavigator.propTypes = propTypes;
-SettingsNavigator.displayName = 'SettingsNavigator';
+FullScreenNavigator.propTypes = propTypes;
+FullScreenNavigator.displayName = 'FullScreenNavigator';
 
-export default SettingsNavigator;
+export default FullScreenNavigator;

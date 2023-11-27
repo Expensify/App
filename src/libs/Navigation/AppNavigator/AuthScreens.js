@@ -36,7 +36,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
-import SettingsNavigator from './Navigators/SettingsNavigator';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
@@ -340,7 +340,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={screenOptions.fullScreen}
-                    component={SettingsNavigator}
+                    component={FullScreenNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
