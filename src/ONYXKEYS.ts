@@ -334,6 +334,8 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
+        GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
+        GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
     },
 } as const;
 
@@ -366,7 +368,7 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER]: OnyxTypes.User;
-    [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
+    [ONYXKEYS.LOGIN_LIST]: Record<string, OnyxTypes.Login>;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -500,6 +502,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form | undefined;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

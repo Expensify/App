@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+
 const MAX_IMG_DIMENSIONS = 512;
 
 /**
@@ -28,15 +30,16 @@ function isCommentTag(tagName) {
 }
 
 /**
- * Check if there is an ancestor node with name 'comment'.
- * Finding node with name 'comment' flags that we are rendering a comment.
+ * Check if there is an ancestor node for which the predicate returns true.
+ *
  * @param {TNode} tnode
+ * @param {Function} predicate
  * @returns {Boolean}
  */
-function isInsideComment(tnode) {
-    let currentNode = tnode;
-    while (currentNode.parent) {
-        if (isCommentTag(currentNode.domNode.name)) {
+function isChildOfNode(tnode, predicate) {
+    let currentNode = tnode.parent;
+    while (currentNode) {
+        if (predicate(currentNode)) {
             return true;
         }
         currentNode = currentNode.parent;
@@ -44,4 +47,24 @@ function isInsideComment(tnode) {
     return false;
 }
 
-export {computeEmbeddedMaxWidth, isInsideComment, isCommentTag};
+/**
+ * Check if there is an ancestor node with name 'comment'.
+ * Finding node with name 'comment' flags that we are rendering a comment.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isChildOfComment(tnode) {
+    return isChildOfNode(tnode, (node) => isCommentTag(lodashGet(node, 'domNode.name', '')));
+}
+
+/**
+ * Check if there is an ancestor node with the name 'h1'.
+ * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isChildOfH1(tnode) {
+    return isChildOfNode(tnode, (node) => lodashGet(node, 'domNode.name', '').toLowerCase() === 'h1');
+}
+
+export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1};

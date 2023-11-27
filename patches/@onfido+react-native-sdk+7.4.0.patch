@@ -1,0 +1,31 @@
+diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
+index 52bef9a..c1ae060 100644
+--- a/node_modules/@onfido/react-native-sdk/android/build.gradle
++++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
+@@ -150,6 +150,13 @@ android {
+             }
+         }
+     }
++
++    publishing {
++        singleVariant('release') {
++            withSourcesJar()
++            withJavadocJar()
++        }
++    }
+ }
+ 
+ repositories {
+@@ -206,9 +213,9 @@ afterEvaluate { project ->
+         group = "Reporting"
+         description = "Generate Jacoco coverage reports after running tests."
+         reports {
+-            xml.enabled = true
+-            html.enabled = true
+-            csv.enabled = true
++            xml.required = true
++            html.required = true
++            csv.required = true
+         }
+         classDirectories.setFrom(fileTree(
+                 dir: 'build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/onfido/reactnative/sdk',

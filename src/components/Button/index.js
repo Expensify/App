@@ -10,9 +10,9 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -127,7 +127,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: themeColors.textLight,
+    iconFill: undefined,
     iconStyles: [],
     iconRightStyles: [],
     isLoading: false,
@@ -201,6 +201,8 @@ function Button({
     accessibilityLabel,
     forwardedRef,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
@@ -254,7 +256,7 @@ function Button({
                             <View style={[styles.mr1, ...iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.textLight}
                                     small={small}
                                 />
                             </View>
@@ -265,7 +267,7 @@ function Button({
                         <View style={[styles.justifyContentCenter, styles.ml1, ...iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill}
+                                fill={iconFill || theme.textLight}
                                 small={small}
                             />
                         </View>
@@ -334,7 +336,7 @@ function Button({
             {renderContent()}
             {isLoading && (
                 <ActivityIndicator
-                    color={success || danger ? themeColors.textLight : themeColors.text}
+                    color={success || danger ? theme.textLight : theme.text}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                 />
             )}

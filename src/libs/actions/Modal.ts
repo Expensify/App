@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-let closeModal: (isNavigating: boolean) => void;
+let closeModal: ((isNavigating: boolean) => void) | null;
 let onModalClose: null | (() => void);
 
 /**
  * Allows other parts of the app to call modal close function
  */
-function setCloseModal(onClose: () => void) {
+function setCloseModal(onClose: (() => void) | null) {
     closeModal = onClose;
 }
 

@@ -2,15 +2,20 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-export default {
+
+const PROTECTED_SCREENS = {
     HOME: 'Home',
+    CONCIERGE: 'Concierge',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
+} as const;
+
+export default {
+    ...PROTECTED_SCREENS,
     LOADING: 'Loading',
     REPORT: 'Report',
-    REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
-    CONCIERGE: 'Concierge',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
@@ -18,7 +23,13 @@ export default {
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
         WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
+        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+        WALLET_CARD_GET_PHYSICAL: {
+            NAME: 'Settings_Card_Get_Physical_Name',
+            PHONE: 'Settings_Card_Get_Physical_Phone',
+            ADDRESS: 'Settings_Card_Get_Physical_Address',
+            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -27,17 +38,6 @@ export default {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
-
-    // Iframe screens from olddot
-    HOME_OLDDOT: 'Home_OLDDOT',
-
-    // Spend tab
-    EXPENSES_OLDDOT: 'Expenses_OLDDOT',
-    REPORTS_OLDDOT: 'Reports_OLDDOT',
-    INSIGHTS_OLDDOT: 'Insights_OLDDOT',
-
-    // Workspaces tab
-    INDIVIDUAL_WORKSPACES_OLDDOT: 'IndividualWorkspaces_OLDDOT',
-    GROUPS_WORKSPACES_OLDDOT: 'GroupWorkspaces_OLDDOT',
-    CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
 } as const;
+
+export {PROTECTED_SCREENS};

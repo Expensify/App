@@ -14,8 +14,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +32,7 @@ const propTypes = {
 };
 
 function MentionUserRenderer(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
     const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');

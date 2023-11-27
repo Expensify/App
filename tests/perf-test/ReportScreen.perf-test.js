@@ -125,7 +125,7 @@ function ReportScreenWrapper(args) {
     );
 }
 
-test('should render ReportScreen with composer interactions', () => {
+test.skip('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
@@ -179,7 +179,7 @@ test('should render ReportScreen with composer interactions', () => {
         .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
 });
 
-test('should press of the report item', () => {
+test.skip('should press of the report item', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');

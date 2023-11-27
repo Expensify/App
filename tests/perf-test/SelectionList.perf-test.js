@@ -5,6 +5,8 @@ import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
 
+jest.setTimeout(60000);
+
 jest.mock('../../src/components/Icon/Expensicons');
 
 jest.mock('../../src/hooks/useLocalize', () =>

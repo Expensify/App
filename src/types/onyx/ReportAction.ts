@@ -5,11 +5,11 @@ type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
 
-    /** The html content of the fragment. */
-    html: string;
-
     /** The text content of the fragment. */
     text: string;
+
+    /** The html content of the fragment. */
+    html?: string;
 
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
@@ -32,14 +32,14 @@ type Message = {
     iconUrl?: string;
 
     /** Fragment edited flag */
-    isEdited: boolean;
+    isEdited?: boolean;
 
-    isDeletedParentAction: boolean;
+    isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
     isReversedTransaction?: boolean;
-    whisperedTo: number[];
-    reactions: Reaction[];
+    whisperedTo?: number[];
+    reactions?: Reaction[];
 
     moderationDecision?: Decision;
     translationKey?: string;
@@ -81,6 +81,12 @@ type ReportActionBase = {
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
 
+    /** Report action child status number */
+    childStatusNum?: number;
+
+    /** Report action child status name */
+    childStateNum?: number;
+
     avatar?: string;
     automatic?: boolean;
     shouldShow?: boolean;
@@ -92,6 +98,8 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    timestamp?: number;
+    reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
 
     /** ISO-formatted datetime */

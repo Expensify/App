@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -14,7 +15,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +39,10 @@ const defaultProps = {
     task: {},
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDetailsPage(props) {
+    const styles = useThemeStyles();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
@@ -46,7 +50,7 @@ function NewTaskDetailsPage(props) {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description || '');
+        setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
     }, [props.task]);
 
     /**
@@ -117,6 +121,8 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
