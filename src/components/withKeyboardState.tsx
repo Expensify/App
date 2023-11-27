@@ -1,16 +1,12 @@
 import PropTypes from 'prop-types';
-import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useState} from 'react';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactElement, RefAttributes, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
     isKeyboardShown: boolean;
-};
-
-type KeyboardStateProviderProps = {
-    /* Actual content wrapped by this component */
-    children: ReactNode;
 };
 
 // TODO: Remove - left for backwards compatibility with existing components.
@@ -21,7 +17,7 @@ const keyboardStatePropTypes = {
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue | null>(null);
 
-function KeyboardStateProvider(props: KeyboardStateProviderProps) {
+function KeyboardStateProvider(props: ChildrenProps): ReactElement | null {
     const {children} = props;
     const [isKeyboardShown, setIsKeyboardShown] = useState(false);
     useEffect(() => {
@@ -47,23 +43,24 @@ function KeyboardStateProvider(props: KeyboardStateProviderProps) {
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export default function withKeyboardState(WrappedComponent: ComponentType<{ref: ForwardedRef<unknown>}>) {
-    const WithKeyboardState = forwardRef((props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => (
-        <KeyboardStateContext.Consumer>
-            {(keyboardStateProps) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...keyboardStateProps}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            )}
-        </KeyboardStateContext.Consumer>
-    ));
-    (WithKeyboardState as unknown as {displayName: string}).displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
-    return WithKeyboardState;
+export default function withKeyboardState<TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): (props: TProps & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithKeyboardState(props: TProps, ref: ForwardedRef<TRef>) {
+        return (
+            <KeyboardStateContext.Consumer>
+                {(keyboardStateProps) => (
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...keyboardStateProps}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        ref={ref}
+                    />
+                )}
+            </KeyboardStateContext.Consumer>
+        );
+    }
+    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    return forwardRef(WithKeyboardState);
 }
 
 export {KeyboardStateProvider, keyboardStatePropTypes, type KeyboardStateContextValue, KeyboardStateContext};
