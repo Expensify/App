@@ -418,11 +418,8 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
         if (ReportUtils.isMoneyRequest(report) && ReportActionUtils.isDeletedAction(parentReportAction)) {
-            if (ReportActionUtils.isCreatedAction(lastReportAction)) {
-                lastMessageTextFromReport = '';
-            } else {
-                lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
-            }
+            const isCreatedAction = ReportActionUtils.isCreatedAction(lastReportAction);
+            lastMessageTextFromReport = isCreatedAction ? '' : lodashGet(lastReportAction, 'message[0].text', '');
         }
     }
     return lastMessageTextFromReport;
