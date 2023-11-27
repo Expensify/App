@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
+import {FlatList, Keyboard, PixelRatio, View, ViewToken} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -17,7 +17,7 @@ import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import AttachmentCarouselProps, {Attachment, AttachmentCarouselOnyxProps} from './types';
+import AttachmentCarouselProps, {Attachment, AttachmentCarouselOnyxProps, ImageSource} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 const viewabilityConfig = {
@@ -26,25 +26,17 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({
-    report,
-    reportActions,
-    parentReportActions,
-    source,
-    onNavigate,
-    setDownloadButtonVisibility,
-    translate,
-    transaction,
-}: AttachmentCarouselProps & WindowDimensionsProps) {
+function AttachmentCarousel(props: AttachmentCarouselProps & WindowDimensionsProps) {
+    const {report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction} = props;
     const styles = useThemeStyles();
-    const scrollRef = useRef(null);
+    const scrollRef = useRef<FlatList>(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState<number | null>(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeSource, setActiveSource] = useState(source);
+    const [activeSource, setActiveSource] = useState<ImageSource | null>(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [isReceipt, setIsReceipt] = useState(false);
 
@@ -86,7 +78,7 @@ function AttachmentCarousel({
      * Updates the page state when the user navigates between attachments
      */
     const updatePage = useCallback(
-        ({viewableItems}) => {
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
             Keyboard.dismiss();
 
             // Since we can have only one item in view at a time, we can use the first item in the array
@@ -128,7 +120,8 @@ function AttachmentCarousel({
      * Calculate items layout information to optimize scrolling performance
      */
     const getItemLayout = useCallback(
-        (_, index: number) => ({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        (_: ArrayLike<Attachment> | null | undefined, index: number) => ({
             length: containerWidth,
             offset: containerWidth * index,
             index,
@@ -140,10 +133,10 @@ function AttachmentCarousel({
      * Defines how a single attachment should be rendered
      */
     const renderItem = useCallback(
-        ({item}: {item: Attachment}) => (
+        (renderItemProps: {item: Attachment}) => (
             <CarouselItem
-                item={item}
-                isFocused={activeSource === item.source}
+                item={renderItemProps.item}
+                isFocused={activeSource === renderItemProps.item.source}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
@@ -168,7 +161,7 @@ function AttachmentCarousel({
                 <>
                     <CarouselButtons
                         shouldShowArrows={shouldShowArrows}
-                        page={page}
+                        page={page ?? 0}
                         attachments={attachments}
                         onBack={() => cycleThroughAttachments(-1)}
                         onForward={() => cycleThroughAttachments(1)}
@@ -201,7 +194,7 @@ function AttachmentCarousel({
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
-                            keyExtractor={(item: Attachment) => item.source}
+                            keyExtractor={(item: Attachment) => String(item.source)}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage}
                         />

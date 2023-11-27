@@ -3,9 +3,11 @@ import {OnyxEntry} from 'react-native-onyx';
 import {WithLocalizeProps} from '@components/withLocalize';
 import {Report, ReportActions, Transaction} from '@src/types/onyx';
 
+type ImageSource = string | ImageSourcePropType;
+
 type Attachment = {
     reportActionID?: string;
-    source: string;
+    source: ImageSource;
     isAuthTokenRequired: boolean;
     file: {name: string};
     isReceipt: boolean;
@@ -22,7 +24,7 @@ type AttachmentCarouselOnyxProps = {
 
 type AttachmentCarouselProps = {
     report: Report;
-    source: string | ImageSourcePropType;
+    source: ImageSource;
     onNavigate: (attachment: Attachment) => void;
     setDownloadButtonVisibility: (isVisible: boolean) => void;
     onClose: () => void;
@@ -30,4 +32,4 @@ type AttachmentCarouselProps = {
     WithLocalizeProps;
 
 export default AttachmentCarouselProps;
-export type {Attachment, AttachmentCarouselOnyxProps};
+export type {Attachment, AttachmentCarouselOnyxProps, ImageSource};

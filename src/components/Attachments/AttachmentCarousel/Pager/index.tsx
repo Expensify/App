@@ -1,16 +1,16 @@
-import React, {ReactNode, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {ForwardedRef, ReactNode, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {createNativeWrapper, GestureHandlerRootView} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
-import {ScrollEvent} from 'react-native-reanimated/lib/typescript/reanimated2/hook/useAnimatedScrollHandler';
+import {DependencyList} from 'react-native-reanimated/lib/typescript/reanimated2/hook';
 import {Attachment} from '@components/Attachments/AttachmentCarousel/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 
-function usePageScrollHandler(handlers: {onPageScroll: (e: Native) => void}, dependencies) {
+function usePageScrollHandler(handlers: {onPageScroll: (e) => void}, dependencies: DependencyList) {
     const {context, doDependenciesDiffer} = useHandler(handlers, dependencies);
     const subscribeForEvents = ['onPageScroll'];
 
@@ -35,11 +35,8 @@ const noopWorklet = () => {
 };
 
 type PagerProps = {
-    items: Array<{
-        key: string;
-        url: string;
-    }>;
-    renderItem: (props: {item: Attachment; isActive: boolean}) => ReactNode;
+    items: Attachment[];
+    renderItem: (props: {item: Attachment; isActive: boolean; index: number}) => ReactNode;
     initialIndex?: number;
     onPageSelected?: () => void;
     onTap?: () => void;
@@ -65,7 +62,7 @@ function AttachmentCarouselPager(
         containerWidth,
         containerHeight,
     }: PagerProps,
-    ref: any,
+    ref: ForwardedRef<PagerView>,
 ) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
@@ -144,7 +141,7 @@ function AttachmentCarouselPager(
                 >
                     {items.map((item, index) => (
                         <View
-                            key={item.source}
+                            key={String(item.source)}
                             style={styles.flex1}
                         >
                             {renderItem({item, index, isActive: index === activePage})}

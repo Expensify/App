@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {NativeEvent} from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
+import PagerView from 'react-native-pager-view';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
@@ -18,9 +18,9 @@ import AttachmentCarouselProps, {AttachmentCarouselOnyxProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel(props: AttachmentCarouselProps) {
-    const {report, reportActions = {}, parentReportActions = {}, source = '', onNavigate = () => {}, setDownloadButtonVisibility = () => {}, translate, transaction = {}, onClose} = props;
+    const {report, reportActions = {}, parentReportActions = {}, source = '', onNavigate = () => {}, setDownloadButtonVisibility = () => {}, translate, transaction, onClose} = props;
     const styles = useThemeStyles();
-    const pagerRef = useRef(null);
+    const pagerRef = useRef<PagerView>(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
     const [page, setPage] = useState(0);
