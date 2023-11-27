@@ -529,7 +529,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -910,13 +910,18 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return _.map(tags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {
+            text: tagName,
+            keyForList: tagName,
+            searchText: tagName,
+            tooltipText: tagName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
