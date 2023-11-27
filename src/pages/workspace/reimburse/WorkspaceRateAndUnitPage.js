@@ -180,7 +180,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                accessibilityLabel="Text input field"
                                 role={CONST.ROLE.PRESENTATION}
                                 inputID="rate"
                                 containerStyles={[this.props.themeStyles.mt4]}
