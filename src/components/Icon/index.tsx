@@ -101,6 +101,4 @@ class Icon extends PureComponent<IconProps> {
 
 export default Icon;
 
-export type {
-    SrcProps   
-};
+export type {SrcProps};
