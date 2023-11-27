@@ -1,13 +1,34 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
+import CustomStatusBarContext from './CustomStatusBarContext';
 
-function CustomStatusBar() {
+type CustomStatusBarProps = {
+    isNested: boolean;
+};
+
+function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactElement | null {
+    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
     const statusBarContentTheme = useMemo(() => (theme.statusBarContentTheme === 'light' ? 'light-content' : 'dark-content'), [theme.statusBarContentTheme]);
 
+    const isDisabled = !isNested && isRootStatusBarDisabled;
+
     useEffect(() => {
+        if (isNested) {
+            disableRootStatusBar(true);
+        }
+
+        return () => disableRootStatusBar(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (isDisabled) {
+            return;
+        }
+
         Navigation.isNavigationReady().then(() => {
             // Set the status bar colour depending on the current route.
             // If we don't have any colour defined for a route, fall back to
@@ -26,6 +47,10 @@ function CustomStatusBar() {
     useEffect(() => {
         StatusBar.setBarStyle(statusBarContentTheme, true);
     }, [statusBarContentTheme]);
+
+    if (isDisabled) {
+        return null;
+    }
 
     return <StatusBar />;
 }

@@ -9,6 +9,7 @@ import '../wdyr';
 import ComposeProviders from './components/ComposeProviders';
 import CustomScrollbarWrapper from './components/CustomScrollbarWrapper';
 import CustomStatusBar from './components/CustomStatusBar';
+import CustomStatusBarContextProvider from './components/CustomStatusBar/CustomStatusBarContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
@@ -67,6 +68,7 @@ function App() {
                     ThemeProvider,
                     ThemeStylesProvider,
                     ThemeIllustrationsProvider,
+                    CustomStatusBarContextProvider,
                 ]}
             >
                 <CustomStatusBar />
