@@ -24,23 +24,23 @@ type LastVisibleMessage = {
 
 type MessageActionItemChanelLogBase = {
     readonly kind: string;
-    content?: string;
+    readonly content: string;
 };
 
 type MessageActionItemChanelLogText = {
     readonly kind: 'text';
-    content?: string;
+    readonly content: string;
 };
 
 type MessageActionItemChanelLogUserMention = {
     readonly kind: 'userMention';
-    accountID?: number;
+    readonly accountID: number;
 } & MessageActionItemChanelLogBase;
 
 type MessageActionItemChanelLogRoomReference = {
     readonly kind: 'roomReference';
-    roomName?: string;
-    roomID?: number;
+    readonly roomName: string;
+    readonly roomID: number;
 } & MessageActionItemChanelLogBase;
 
 type MessageActionItemChanelLog = MessageActionItemChanelLogText | MessageActionItemChanelLogUserMention | MessageActionItemChanelLogRoomReference;
@@ -676,29 +676,34 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
-    const mentions = targetAccountIDs.map((accountID) => {
+    const mentions: MessageActionItemChanelLogUserMention[] = targetAccountIDs.map((accountID) => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
 
         if (personalDetail) {
             const displayNameOrLogin =
                 LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
-            return {content: `@${displayNameOrLogin}`, accountID};
+            return {content: `@${displayNameOrLogin}`, accountID} as MessageActionItemChanelLogUserMention;
         }
-        return {content: '', accountID: 0};
+        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MessageActionItemChanelLogUserMention;
     });
 
     const lastMention = mentions.pop();
+    if (!lastMention) {
+        return [];
+    }
 
     if (mentions.length === 0) {
         messageItems.push({
             kind: 'userMention',
-            ...lastMention,
+            content: lastMention.content,
+            accountID: lastMention.accountID,
         });
     } else if (mentions.length === 1) {
         messageItems.push(
             {
                 kind: 'userMention',
-                ...mentions[0],
+                content: mentions[0].content,
+                accountID: mentions[0].accountID,
             },
             {
                 kind: 'text',
@@ -706,7 +711,8 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
             },
             {
                 kind: 'userMention',
-                ...lastMention,
+                content: lastMention.content,
+                accountID: lastMention.accountID,
             },
         );
     } else {
@@ -714,7 +720,7 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
             messageItems.push(
                 {
                     kind: 'userMention',
-                    ...mention,
+                    accountID: mention.accountID,
                     content: `${mention.content}`,
                 },
                 {
@@ -731,7 +737,8 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
             },
             {
                 kind: 'userMention',
-                ...lastMention,
+                content: lastMention.content,
+                accountID: lastMention.accountID,
             },
         );
     }
@@ -740,24 +747,26 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
     if (roomName) {
         const preposition = isInviteRoom ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
 
-        messageItems.push(
-            {
-                kind: 'text',
-                content: preposition,
-            },
-            {
-                kind: 'roomReference',
-                roomName,
-                roomID: originalMessage?.reportID,
-                content: roomName,
-            },
-        );
+        if (originalMessage.reportID) {
+            messageItems.push(
+                {
+                    kind: 'text',
+                    content: preposition,
+                },
+                {
+                    kind: 'roomReference',
+                    roomName,
+                    roomID: originalMessage.reportID,
+                    content: roomName,
+                },
+            );
+        }
     }
 
     return messageItems;
 }
 
-function getActionItemFragmentChanelLogFragment(reportAction: OnyxEntry<ReportAction>): Message {
+function getActionItemFragmentChannelLogFragment(reportAction: OnyxEntry<ReportAction>): Message {
     const messageItems: MessageActionItemChanelLog[] = getChannelLogMemberAction(reportAction);
     let html = '';
 
@@ -845,6 +854,5 @@ export {
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
     getChannelLogMemberAction,
-    getActionItemFragmentChanelLogFragment,
-    isInvitedRoom,
+    getActionItemFragmentChannelLogFragment,
 };
