@@ -1,21 +1,28 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from './PlaybackContext';
 
 const VolumeContext = React.createContext(null);
 
 function VolumeContextProvider({children}) {
-    const {currentVideoPlayerRef} = usePlaybackContext();
+    const {currentVideoPlayerRef, sharedElement} = usePlaybackContext();
     const volume = useSharedValue(0);
 
     const updateVolume = useCallback(
         (newVolume) => {
+            if (!currentVideoPlayerRef.current) {
+                return;
+            }
             currentVideoPlayerRef.current.setStatusAsync({volume: newVolume});
             volume.value = newVolume;
         },
         [currentVideoPlayerRef, volume],
     );
+
+    useEffect(() => {
+        updateVolume(volume.value);
+    }, [sharedElement, updateVolume, volume.value]);
 
     const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
     return <VolumeContext.Provider value={contextValue}>{children}</VolumeContext.Provider>;
