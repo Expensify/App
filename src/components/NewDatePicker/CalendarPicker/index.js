@@ -1,4 +1,4 @@
-import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -127,8 +127,8 @@ class CalendarPicker extends React.PureComponent {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = startOfDay(endOfMonth(new Date(this.props.maxDate))) > addMonths(new Date(this.state.currentDateView), 1);
-        const hasAvailableDatesPrevMonth = startOfDay(new Date(this.props.minDate)) < endOfMonth(subMonths(new Date(this.state.currentDateView), 1));
+        const hasAvailableDatesNextMonth = startOfDay(new Date(this.props.maxDate)) > endOfMonth(new Date(this.state.currentDateView));
+        const hasAvailableDatesPrevMonth = endOfDay(new Date(this.props.minDate)) < startOfMonth(new Date(this.state.currentDateView));
 
         return (
             <View>
@@ -219,7 +219,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
+                            const isSelected = !!day && isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
