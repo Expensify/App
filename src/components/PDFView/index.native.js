@@ -81,7 +81,7 @@ function PDFView({
         }
     }
 
-    function handleFailureToLoadPDF(error) {
+    const handleFailureToLoadPDF = (error) => {
         if (error.message.match(/password/i)) {
             initiatePasswordChallenge();
             return;
@@ -90,7 +90,7 @@ function PDFView({
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
-    }
+    };
 
     /**
      * When the password is submitted via PDFPasswordForm, save the password
@@ -111,12 +111,12 @@ function PDFView({
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
      */
-    function finishPDFLoad() {
+    const finishPDFLoad = () => {
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
         onLoadComplete();
-    }
+    };
 
     function renderPDFView() {
         const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(windowWidth, windowHeight)];
@@ -145,9 +145,9 @@ function PDFView({
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: sourceURL}}
                         style={pdfStyles}
-                        onError={(error) => handleFailureToLoadPDF(error)}
+                        onError={handleFailureToLoadPDF}
                         password={password}
-                        onLoadComplete={() => finishPDFLoad()}
+                        onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
                     />
@@ -157,7 +157,7 @@ function PDFView({
                         <PDFPasswordForm
                             isFocused={isFocused}
                             onSubmit={(formPasswordValue) => attemptPDFLoadWithPassword(formPasswordValue)}
-                            onPasswordUpdated={() => setIsPasswordInvalid(false)}
+                            onPasswordUpdated={setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
                         />
