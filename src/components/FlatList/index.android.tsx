@@ -2,35 +2,24 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {ForwardedRef, forwardRef, useCallback, useState} from 'react';
 import {FlatList, FlatListProps} from 'react-native';
 
-type CustomFlatListProps = {
-    /** Same as for FlatList */
-    onScroll?: (...args: unknown[]) => unknown;
-
-    /** Same as for FlatList */
-    onLayout?: () => (...args: unknown[]) => unknown;
-
-    /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: ForwardedRef<FlatList>;
-} & FlatListProps<unknown>;
+type ScrollPosition = {offset?: number};
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList(props: CustomFlatListProps) {
-    const [scrollPosition, setScrollPosition] = useState<{offset?: number}>({});
-
-    const {innerRef} = props;
+function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
+    const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const onScreenFocus = useCallback(() => {
-        if (typeof innerRef === 'function') {
+        if (typeof ref === 'function') {
             return;
         }
-        if (!innerRef?.current || !scrollPosition.offset) {
+        if (!ref?.current || !scrollPosition.offset) {
             return;
         }
-        if (innerRef.current && scrollPosition.offset) {
-            innerRef.current.scrollToOffset({offset: scrollPosition.offset, animated: false});
+        if (ref.current && scrollPosition.offset) {
+            ref.current.scrollToOffset({offset: scrollPosition.offset, animated: false});
         }
-    }, [scrollPosition.offset, innerRef]);
+    }, [scrollPosition.offset, ref]);
 
     useFocusEffect(
         useCallback(() => {
@@ -39,26 +28,17 @@ function CustomFlatList(props: CustomFlatListProps) {
     );
 
     return (
-        <FlatList
+        <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onScroll={(event) => props.onScroll?.(event)}
             onMomentumScrollEnd={(event) => {
                 setScrollPosition({offset: event.nativeEvent.contentOffset.y});
             }}
-            ref={props.innerRef}
+            ref={ref}
         />
     );
 }
 
 CustomFlatList.displayName = 'CustomFlatListWithRef';
-
-const CustomFlatListWithRef = forwardRef((props: CustomFlatListProps, ref: ForwardedRef<FlatList>) => (
-    <CustomFlatList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-export default CustomFlatListWithRef;
+export default forwardRef(CustomFlatList);
