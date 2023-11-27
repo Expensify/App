@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
+import {CustomScrollbarWrapper} from '@components/CustomScrollbarWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -277,14 +278,16 @@ SignInPageInner.displayName = 'SignInPage';
 
 function SignInPage(props) {
     return (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <SignInPageInner
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
-            </ThemeStylesProvider>
-        </ThemeProvider>
+        <CustomScrollbarWrapper theme={CONST.THEME.DARK}>
+            <ThemeProvider theme={CONST.THEME.DARK}>
+                <ThemeStylesProvider>
+                    <SignInPageInner
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </ThemeStylesProvider>
+            </ThemeProvider>
+        </CustomScrollbarWrapper>
     );
 }
 
