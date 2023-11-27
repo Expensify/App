@@ -28,6 +28,7 @@ function BaseTextInput(props) {
     const styles = useThemeStyles();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+    const isMultiline = props.multiline || props.autoGrowHeight;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
@@ -229,7 +230,6 @@ function BaseTextInput(props) {
         (props.hasError || props.errorText) && styles.borderColorDanger,
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
-    const isMultiline = props.multiline || props.autoGrowHeight;
 
     return (
         <>
