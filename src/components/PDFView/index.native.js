@@ -157,7 +157,7 @@ function PDFView({
                         <PDFPasswordForm
                             isFocused={isFocused}
                             onSubmit={attemptPDFLoadWithPassword}
-                            onPasswordUpdated={setIsPasswordInvalid(false)}
+                            onPasswordUpdated={() => setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
                         />
