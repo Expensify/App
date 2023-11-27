@@ -32,15 +32,13 @@ type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 export default function useViolations(violations: TransactionViolation[]) {
     const {translate} = useLocalize();
 
-    // First we group violations by field and memoize the result
     const violationsByField = useMemo((): ViolationsMap => {
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
 
         for (const violation of violations) {
             const field = violationFields[violation.name];
             const existingViolations = violationGroups.get(field) ?? [];
-            existingViolations.push(violation);
-            violationGroups.set(field, existingViolations);
+            violationGroups.set(field, [...existingViolations, violation]);
         }
 
         return violationGroups;
