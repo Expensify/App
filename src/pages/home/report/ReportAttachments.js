@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +39,11 @@ function ReportAttachments(props) {
             defaultOpen
             report={report}
             source={source}
-            onModalHide={() => Navigation.dismissModal()}
+            onModalHide={() => {
+                Navigation.dismissModal();
+                // This enables Composer refocus when the attachments modal is closed by the browser navigation
+                ComposerFocusManager.setReadyToFocus();
+            }}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
         />
     );

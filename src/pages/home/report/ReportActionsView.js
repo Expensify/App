@@ -177,15 +177,15 @@ function ReportActionsView(props) {
      * displaying.
      */
     const loadOlderChats = () => {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.isLoadingOlderReportActions) {
+        // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
+        if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
 
         const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments

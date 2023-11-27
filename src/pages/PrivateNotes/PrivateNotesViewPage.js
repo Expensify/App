@@ -4,7 +4,6 @@ import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,10 +12,10 @@ import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +51,7 @@ const defaultProps = {
 };
 
 function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
@@ -71,33 +71,28 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesViewPage.displayName}
         >
-            <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || ReportUtils.isArchivedRoom(report)}
-                subtitleKey="privateNotes.notesUnavailable"
-            >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
-                    subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView style={[styles.flexGrow1]}>
-                    <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>
-                        <MenuItemWithTopDescription
-                            description={translate('privateNotes.composerLabel')}
-                            title={privateNote}
-                            onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, route.params.accountID))}
-                            shouldShowRightIcon={isCurrentUserNote}
-                            numberOfLinesTitle={0}
-                            shouldRenderAsHTML
-                            brickRoadIndicator={!_.isEmpty(lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            disabled={!isCurrentUserNote}
-                            shouldGreyOutWhenDisabled={false}
-                        />
-                    </OfflineWithFeedback>
-                </ScrollView>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('privateNotes.title')}
+                onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
+                subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
+                shouldShowBackButton
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <ScrollView style={[styles.flexGrow1]}>
+                <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>
+                    <MenuItemWithTopDescription
+                        description={translate('privateNotes.composerLabel')}
+                        title={privateNote}
+                        onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, route.params.accountID))}
+                        shouldShowRightIcon={isCurrentUserNote}
+                        numberOfLinesTitle={0}
+                        shouldRenderAsHTML
+                        brickRoadIndicator={!_.isEmpty(lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        disabled={!isCurrentUserNote}
+                        shouldGreyOutWhenDisabled={false}
+                    />
+                </OfflineWithFeedback>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
@@ -108,13 +103,8 @@ PrivateNotesViewPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withReportAndPrivateNotesOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

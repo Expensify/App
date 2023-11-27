@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -30,6 +31,8 @@ const defaultProps = {
 };
 
 function RadioButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <PressableWithFeedback
             disabled={props.disabled}
@@ -37,15 +40,17 @@ function RadioButton(props) {
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={props.accessibilityLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.RADIO}
+            role={CONST.ACCESSIBILITY_ROLE.RADIO}
         >
-            <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
-                <Icon
-                    src={Expensicons.Checkmark}
-                    fill="white"
-                    height={14}
-                    width={14}
-                />
+            <View style={[styles.radioButtonContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
+                {props.isChecked && (
+                    <Icon
+                        src={Expensicons.Checkmark}
+                        fill={theme.checkBox}
+                        height={14}
+                        width={14}
+                    />
+                )}
             </View>
         </PressableWithFeedback>
     );

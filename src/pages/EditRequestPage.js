@@ -12,7 +12,6 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -45,9 +44,6 @@ const propTypes = {
     }).isRequired,
 
     /** Onyx props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report object for the thread report */
     report: reportPropTypes,
 
@@ -68,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     report: {},
     parentReport: {},
     policyCategories: {},
@@ -77,7 +72,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -107,7 +102,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -124,11 +119,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        if (TransactionUtils.isDistanceRequest(transaction)) {
-            IOU.updateDistanceRequest(transaction.transactionID, report.reportID, transactionChanges);
-        } else {
-            IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
-        }
+        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
         Navigation.dismissModal(report.reportID);
     }
 
@@ -184,7 +175,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
                     });
                 }}
                 onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
@@ -278,9 +269,6 @@ EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },

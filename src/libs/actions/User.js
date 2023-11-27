@@ -77,7 +77,6 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
- * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login) {
     Session.resendValidateCode(login);
@@ -238,7 +237,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -328,7 +327,7 @@ function addNewContactMethodAndNavigate(contactMethod) {
     ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -755,7 +754,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**

@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import {useEffect, useState} from 'react';
 import {Dimensions} from 'react-native';
-import {initialWindowMetrics} from 'react-native-safe-area-context';
 
 /**
  * A convenience hook that provides initial size (width and height).
@@ -50,10 +49,8 @@ export default function () {
         };
     }, []);
 
-    const bottomInset = initialWindowMetrics && initialWindowMetrics.insets && initialWindowMetrics.insets.bottom ? initialWindowMetrics.insets.bottom : 0;
-
     return {
         initialWidth: dimensions.initialWidth,
-        initialHeight: dimensions.initialHeight - bottomInset,
+        initialHeight: dimensions.initialHeight,
     };
 }

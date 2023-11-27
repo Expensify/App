@@ -18,8 +18,8 @@ import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -40,7 +40,7 @@ function BaseSelectionList({
     textInputPlaceholder = '',
     textInputValue = '',
     textInputMaxLength,
-    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
     onScroll,
@@ -60,6 +60,8 @@ function BaseSelectionList({
     children,
     shouldStopPropagation = false,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
@@ -389,12 +391,12 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
                                     onChangeText={onChangeText}
-                                    keyboardType={keyboardType}
+                                    inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
@@ -417,7 +419,7 @@ function BaseSelectionList({
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -445,7 +447,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.white}
+                                    indicatorStyle={theme.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
@@ -453,7 +455,6 @@ function BaseSelectionList({
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    style={[styles.flexGrow0]}
                                     onLayout={scrollToFocusedIndexOnFirstRender}
                                 />
                                 {children}

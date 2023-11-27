@@ -22,7 +22,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -30,30 +30,47 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+      # - name: Check if there's an existing artifact for this baseline
+      #   id: checkForExistingArtifact
+      #   uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+      #   with:
+      #     name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      # - name: Skip build if there's already an existing artifact for the baseline
+      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+
+      # - name: Checkout "Baseline" commit (last release)
+      #   if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+      #   run: |
+      #     git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+      #     git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Checkout latest main commit (TODO temporary until new version is released)
+        run: git switch --detach main
+
+      - uses: ./.github/actions/composite/setupNode
+
+      - uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
-          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          ruby-version: "2.7"
+          bundler-cache: true
 
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
-
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: |
-          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        run: npm run android-build-e2e
+        shell: bash
+
+      - name: Upload APK
+        uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
-          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          path: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
+
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -61,11 +78,11 @@ jobs:
     outputs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: ./.github/actions/javascript/getPullRequestDetails
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
@@ -113,20 +130,34 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Build APK
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
-          ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
+          ruby-version: "2.7"
+          bundler-cache: true
+
+      - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
+
+      - name: Build APK
+        run: npm run android-build-e2edelta
+        shell: bash
+
+      - name: Upload APK
+        uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
+        with:
+          name: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
+          path: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
 
   runTestsInAWS:
     runs-on: ubuntu-latest
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
@@ -140,7 +171,7 @@ jobs:
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK
-        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-main.apk"
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk"
 
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
@@ -150,7 +181,7 @@ jobs:
           path: zip
 
       - name: Rename delta APK
-        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-delta.apk"
+        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edelta-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edeltaRelease.apk"
 
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
@@ -159,7 +190,7 @@ jobs:
         run: zip -qr App.zip ./zip
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -172,12 +203,12 @@ jobs:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
           device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease-main.apk
+          app_file: zip/app-e2eRelease.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
           test_package_file: App.zip
           test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpecMain.yml
+          test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: Customer Artifacts.zip
@@ -192,38 +223,13 @@ jobs:
           unzip "Customer Artifacts.zip" -d mainResults
           cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log
 
-      - name: Unzip AWS Device Farm main results
-        run: unzip "Customer Artifacts.zip" -d mainResults
+      - name: Unzip AWS Device Farm results
+        if: ${{ always() }}
+        run: unzip "Customer Artifacts.zip"
 
-      - name: Delete Customer Artifacts.zip
-        run: rm "Customer Artifacts.zip"
-
-      - name: Schedule AWS Device Farm test run on delta branch
-        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
-        with:
-          name: App E2E Performance Regression Tests
-          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
-          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease-delta.apk
-          app_type: ANDROID_APP
-          test_type: APPIUM_NODE
-          test_package_file: App.zip
-          test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpecDelta.yml
-          test_spec_type: APPIUM_NODE_TEST_SPEC
-          remote_src: false
-          file_artifacts: Customer Artifacts.zip
-          cleanup: true
-          timeout: 5400
-
-      - name: Unzip AWS Device Farm delta results
-        run: unzip "Customer Artifacts.zip" -d deltaResults
-
-      - name: Compare results
-        run: node tests/e2e/merge.js --mainPath ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/main.json --deltaPath ./deltaResults//Host_Machine_Files/\$WORKING_DIRECTORY/delta.json --outputPath ./output.md
-
-      - name: Print results
-        run: cat "./output.md"
+      - name: Print AWS Device Farm run results
+        if: ${{ always() }}
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         run: |

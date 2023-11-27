@@ -8,6 +8,7 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -15,13 +16,13 @@ import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -30,9 +31,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,9 +48,6 @@ const propTypes = {
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
@@ -66,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     parentReport: {},
     policyCategories: {},
     transaction: {
@@ -77,9 +74,12 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -99,16 +99,18 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    if (isDistanceRequest && !formattedTransactionAmount) {
+    const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
+    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
-    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -119,12 +121,12 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
-    const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    if (isExpensifyCardTransaction) {
+    if (isCardTransaction) {
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
@@ -169,11 +171,18 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
                                 image={receiptURIs.image}
+                                isLocalFile={receiptURIs.isLocalFile}
                                 transaction={transaction}
                                 enablePreviewModal
                             />
                         </View>
                     </OfflineWithFeedback>
+                )}
+                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                    <ReceiptEmptyState
+                        hasError={hasErrors}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                    />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
@@ -182,8 +191,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditAmount}
+                        shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -206,7 +215,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={transactionMerchant}
+                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
                             interactive={canEdit && !isSettled}
                             shouldShowRightIcon={canEdit && !isSettled}
                             titleStyle={styles.flex1}
@@ -263,23 +272,22 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         />
                     </OfflineWithFeedback>
                 )}
-                {isExpensifyCardTransaction && (
+                {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
-                            interactive={canEdit}
                         />
                     </OfflineWithFeedback>
                 )}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                        <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                         />
                     </View>
                 )}
@@ -299,9 +307,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },

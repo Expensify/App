@@ -7,7 +7,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,13 +31,14 @@ const defaultProps = {
 };
 
 function ChangeExpensifyLoginLink(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
             {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={props.onPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                role={CONST.ACCESSIBILITY_ROLE.LINK}
                 accessibilityLabel={props.translate('common.goBack')}
             >
                 <Text style={[styles.link]}>

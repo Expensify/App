@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
 const propTypes = {
@@ -16,6 +16,7 @@ const propTypes = {
 };
 
 function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom}) {
+    const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>

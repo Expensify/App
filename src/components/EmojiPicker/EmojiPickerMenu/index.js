@@ -471,15 +471,18 @@ function EmojiPickerMenu(props) {
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
         <View
-            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}
-            // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-            pointerEvents={arePointerEventsDisabled ? 'none' : 'auto'}
+            style={[
+                styles.emojiPickerContainer,
+                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
+                arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
+            ]}
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}
@@ -520,7 +523,7 @@ function EmojiPickerMenu(props) {
                 stickyHeaderIndices={headerIndices}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
-                ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
             />
             <EmojiSkinToneList
                 updatePreferredSkinTone={updatePreferredSkinTone}

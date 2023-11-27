@@ -138,8 +138,8 @@ const propTypes = {
     /** Callback to fire when the text input changes */
     onChangeText: PropTypes.func,
 
-    /** Keyboard type for the text input */
-    keyboardType: PropTypes.string,
+    /** Input mode for the text input */
+    inputMode: PropTypes.string,
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,

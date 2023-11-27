@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {defaultProps as defaultFieldPropTypes, propTypes as fieldPropTypes} from '@components/TextInput/baseTextInputPropTypes';
+import {defaultProps as defaultFieldPropTypes, propTypes as fieldPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {

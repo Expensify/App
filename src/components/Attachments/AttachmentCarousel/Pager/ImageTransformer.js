@@ -15,7 +15,7 @@ import Animated, {
     withDecay,
     withSpring,
 } from 'react-native-reanimated';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
@@ -60,6 +60,7 @@ const imageTransformerDefaultProps = {
 };
 
 function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
+    const styles = useThemeStyles();
     const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
 
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
@@ -574,5 +575,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 }
 ImageTransformer.propTypes = imageTransformerPropTypes;
 ImageTransformer.defaultProps = imageTransformerDefaultProps;
+ImageTransformer.displayName = 'ImageTransformer';
 
 export default ImageTransformer;

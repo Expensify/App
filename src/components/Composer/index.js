@@ -13,12 +13,11 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -57,7 +56,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */
@@ -93,7 +92,7 @@ const propTypes = {
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
-    numberOfLines: undefined,
+    numberOfLines: 0,
     onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
@@ -139,8 +138,6 @@ const getNextChars = (str, cursorPos) => {
     return substr.substring(0, spaceIndex);
 };
 
-const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
-
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({
@@ -169,6 +166,8 @@ function Composer({
     isComposerFullSize,
     ...props
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
@@ -332,19 +331,6 @@ function Composer({
     );
 
     /**
-     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
-     * @param {Object} event native Event
-     */
-    const handleWheel = useCallback((event) => {
-        if (event.target !== document.activeElement) {
-            return;
-        }
-
-        textInput.current.scrollTop += event.deltaY;
-        event.stopPropagation();
-    }, []);
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -385,7 +371,6 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -395,11 +380,6 @@ function Composer({
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            // eslint-disable-next-line es/no-optional-chaining
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -448,7 +428,8 @@ function Composer({
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
-        [style, maxLines, numberOfLines, isComposerFullSize],
+
+        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, isComposerFullSize],
     );
 
     return (
@@ -456,7 +437,7 @@ function Composer({
             <RNTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
+                placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
@@ -467,7 +448,7 @@ function Composer({
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={numberOfLines}
+                rows={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
@@ -490,6 +471,7 @@ function Composer({
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
+Composer.displayName = 'Composer';
 
 const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer

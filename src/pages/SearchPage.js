@@ -8,11 +8,11 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -34,6 +34,7 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -176,7 +177,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton title={translate('common.search')} />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <View style={[props.themeStyles.flex1, props.themeStyles.w100, props.themeStyles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
                             value={searchValue}
@@ -218,3 +219,4 @@ export default withOnyx({
         initWithStoredValues: false,
     },
 })(SearchPage);
+//withThemeStyles
