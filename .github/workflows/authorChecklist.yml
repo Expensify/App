@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: authorChecklist.js
         uses: ./.github/actions/javascript/authorChecklist

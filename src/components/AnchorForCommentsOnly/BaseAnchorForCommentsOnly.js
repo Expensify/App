@@ -56,6 +56,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     return (
         <PressableWithSecondaryInteraction
             inline
+            suppressHighlighting
             style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(

@@ -46,6 +46,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
                 tag={tagName}
                 policyID={policyID}
                 onSubmit={selectTag}
+                shouldShowDisabledAndSelectedOption
             />
         </ScreenWrapper>
     );
