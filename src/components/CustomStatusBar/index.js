@@ -2,11 +2,8 @@ import React, {useEffect} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
-import useThemePreference from '@styles/themes/useThemePreference';
-import CONST from '@src/CONST';
 
 function CustomStatusBar() {
-    const preferredTheme = useThemePreference();
     const theme = useTheme();
 
     useEffect(() => {
@@ -19,10 +16,10 @@ function CustomStatusBar() {
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_BACKGROUND_COLORS) {
                 currentScreenBackgroundColor = theme.PAGE_BACKGROUND_COLORS[currentRoute.name];
             }
-            StatusBar.setBarStyle(preferredTheme === CONST.THEME.LIGHT ? 'dark-content' : 'light-content', true);
+            StatusBar.setBarStyle(theme.statusBarContentTheme === 'light' ? 'light-content' : 'dark-content', true);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor);
         });
-    }, [preferredTheme, theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
+    }, [theme.PAGE_BACKGROUND_COLORS, theme.appBG, theme.statusBarContentTheme]);
     return <StatusBar />;
 }
 
