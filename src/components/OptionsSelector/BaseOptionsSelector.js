@@ -226,7 +226,8 @@ class BaseOptionsSelector extends Component {
     }
 
     /**
-     * Calculates all exactly visible options of sections.
+     * Calculates all currently visible options based on the sections that are currently being shown
+     * and the number of items of those sections.
      *
      * @returns {Number}
      */
