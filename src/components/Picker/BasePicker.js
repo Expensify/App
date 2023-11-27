@@ -161,15 +161,17 @@ function BasePicker(props) {
         setIsHighlighted(false);
     };
 
+    const {icon, size} = props;
+
     const iconToRender = useMemo(
         () =>
-            props.icon
-                ? () => props.icon(props.size)
+            icon
+                ? () => icon(size)
                 : () => (
                       <Icon
                           src={Expensicons.DownArrow}
                           // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...(props.size === 'small'
+                          {...(size === 'small'
                               ? {
                                     width: styles.pickerSmall().icon.width,
                                     height: styles.pickerSmall().icon.height,
@@ -177,7 +179,7 @@ function BasePicker(props) {
                               : {})}
                       />
                   ),
-        [props.icon, props.size, styles],
+        [icon, size, styles],
     );
 
     useImperativeHandle(props.forwardedRef, () => ({
@@ -253,7 +255,7 @@ function BasePicker(props) {
                     onValueChange={onInputChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
                     items={_.map(props.items, (item) => ({...item, color: theme.pickerOptionsTextColor}))}
-                    style={props.size === 'normal' ? styles.picker(props.isDisabled, props.backgroundColor) : styles.pickerSmall(props.backgroundColor)}
+                    style={size === 'normal' ? styles.picker(props.isDisabled, props.backgroundColor) : styles.pickerSmall(props.backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={placeholder}
                     value={props.value}

@@ -17,6 +17,7 @@ type CollapsibleSectionProps = ChildrenProps & {
 function CollapsibleSection({title, children}: CollapsibleSectionProps) {
     const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
+
     /**
      * Expands/collapses the section
      */
