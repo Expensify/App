@@ -51,9 +51,6 @@ const transactionViolationPropType = PropTypes.shape({
 
 const transactionViolationsPropTypes = PropTypes.arrayOf(transactionViolationPropType);
 
-export default {
-    transactionViolationPropType,
-    transactionViolationsPropTypes,
-};
+export {transactionViolationPropType, transactionViolationsPropTypes};
 
 export type {TransactionViolation, ViolationName, ViolationType};

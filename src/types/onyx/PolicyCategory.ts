@@ -20,5 +20,5 @@ type PolicyCategory = {
 };
 
 type PolicyCategories = Record<string, PolicyCategory>;
-export default PolicyCategory;
-export type {PolicyCategories};
+
+export type {PolicyCategory, PolicyCategories};
