@@ -17,10 +17,10 @@ type ThemeProviderProps = React.PropsWithChildren & {
     theme?: ThemePreferenceWithoutSystem;
 };
 
-function ThemeProvider({children, theme: themePreferenceStatic}: ThemeProviderProps) {
+function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
     const themePreference = useThemePreference();
 
-    const isLightTheme = (themePreferenceStatic ?? themePreference) === CONST.THEME.LIGHT;
+    const isLightTheme = (staticThemePreference ?? themePreference) === CONST.THEME.LIGHT;
 
     const theme = useMemo(() => (isLightTheme ? lightTheme : darkTheme), [isLightTheme]);
 
