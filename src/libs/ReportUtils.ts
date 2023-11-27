@@ -2762,7 +2762,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
  * Builds an optimistic MOVED report action with a randomly generated reportActionID.
  * This action is used when we move reports across workspaces.
  */
-function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: string, newParentReportID: string, movedReportID: string): ReportAction {
+function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: string, newParentReportID: string, movedReportID: string, policyName: string): ReportAction {
     const originalMessage = {
         fromPolicyID,
         toPolicyID,
@@ -2770,7 +2770,6 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
         movedReportID,
     };
 
-    const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
     const movedActionMessage = [
         {
             html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
