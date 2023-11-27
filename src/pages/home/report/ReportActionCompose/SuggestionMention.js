@@ -284,7 +284,7 @@ function SuggestionMention({
             highlightedMentionIndex={highlightedMentionIndex}
             mentions={suggestionValues.suggestedMentions}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}

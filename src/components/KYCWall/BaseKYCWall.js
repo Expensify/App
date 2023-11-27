@@ -10,9 +10,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Policy from '@userActions/Policy';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './kycWallPropTypes';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
@@ -115,11 +117,19 @@ function KYCWall({
      */
     const selectPaymentMethod = (paymentMethod) => {
         onSelectPaymentMethod(paymentMethod);
-
-        if (paymentMethod === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             Navigation.navigate(addBankAccountRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(addDebitCardRoute);
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            if (ReportUtils.isIOUReport(iouReport)) {
+                const policyID = Policy.createWorkspaceFromIOUPayment(iouReport);
+
+                // Navigate to the bank account set up flow for this specific policy
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+                return;
+            }
+            Navigation.navigate(addBankAccountRoute);
         }
     };
 
@@ -160,7 +170,7 @@ function KYCWall({
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             if (!shouldIncludeDebitCard) {
-                selectPaymentMethod(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                 return;
             }
 
@@ -182,7 +192,6 @@ function KYCWall({
                 return;
             }
         }
-
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
         onSuccessfulKYC(iouPaymentType, currentSource);
     };
@@ -191,15 +200,16 @@ function KYCWall({
         <>
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
-                onClose={() => setShouldShowAddPaymentMenu(false)}
+                iouReport={iouReport}
+                onClose={() => shouldShowAddPaymentMenu(false)}
                 anchorRef={anchorRef}
-                anchorAlignment={anchorAlignment}
                 anchorPosition={{
                     vertical: anchorPosition.anchorPositionVertical,
                     horizontal: anchorPosition.anchorPositionHorizontal,
                 }}
+                anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    setShouldShowAddPaymentMenu(false);
+                    shouldShowAddPaymentMenu(false);
                     selectPaymentMethod(item);
                 }}
             />

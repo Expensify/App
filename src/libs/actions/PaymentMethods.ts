@@ -81,7 +81,7 @@ function getMakeDefaultPaymentOnyxData(
                   key: ONYXKEYS.USER_WALLET,
                   value: {
                       walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
                       errors: null,
                   },
@@ -91,7 +91,7 @@ function getMakeDefaultPaymentOnyxData(
                   key: ONYXKEYS.USER_WALLET,
                   value: {
                       walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
               },
     ];
@@ -99,7 +99,7 @@ function getMakeDefaultPaymentOnyxData(
     if (previousPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
@@ -111,7 +111,7 @@ function getMakeDefaultPaymentOnyxData(
     if (currentPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
                     isDefault: isOptimisticData,
@@ -223,7 +223,8 @@ function clearDebitCardFormErrorAndSubmit() {
  *
  */
 function transferWalletBalance(paymentMethod: PaymentMethod) {
-    const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
+    const paymentMethodIDKey =
+        paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
 
     type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>;
 
