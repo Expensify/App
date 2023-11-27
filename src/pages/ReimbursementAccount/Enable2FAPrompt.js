@@ -5,10 +5,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
-import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 
 const propTypes = {
     ...withLocalizePropTypes,
