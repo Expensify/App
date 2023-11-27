@@ -44,7 +44,7 @@ type MemberChangeMessageRoomReferenceElement = {
     readonly roomID: number;
 } & MemberChangeMessageElementBase;
 
-type MessageActionItemChannelLog = MemberChangeMessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+type MemberChangeMessageElement = MemberChangeMessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -665,8 +665,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MessageActionItemChannelLog[] {
-    const messageItems: MessageActionItemChannelLog[] = [];
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MemberChangeMessageElement[] {
+    const messageItems: MemberChangeMessageElement[] = [];
     const isInviteAction = isInviteMemberAction(reportAction);
 
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
@@ -771,7 +771,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageItems: MessageActionItemChannelLog[] = getMemberChangeMessageElements(reportAction);
+    const messageItems: MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
     let html = '';
 
     messageItems.forEach((messageItem) => {
@@ -803,7 +803,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageItems = getMemberChangeMessageElements(reportAction);
-    return messageItems.map((item) => item.content).join('');
+    return messageItems.map((element) => element.content).join('');
 }
 
 /**
