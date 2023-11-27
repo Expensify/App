@@ -4,7 +4,6 @@ import {OnyxEntry} from 'react-native-onyx';
 import {Session} from '@src/types/onyx';
 
 type ImageOnyxProps = {
-    /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 };
