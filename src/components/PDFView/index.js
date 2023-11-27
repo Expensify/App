@@ -40,11 +40,20 @@ function PDFView(props) {
     const [shouldRequestPassword, setShouldRequestPassword] = false;
     const [isPasswordInvalid, setIsPasswordInvalid] = false;
     const [isKeyboardOpen, setIsKeyboardOpen] = false;
+    let onPasswordCallback;
 
-    const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-    retrieveCanvasLimits();
-
+    /**
+     * On small screens notify parent that the keyboard has opened or closed.
+     *
+     * @param {Boolean} keyboardState True if keyboard is open
+     */
+    function toggleKeyboardOnSmallScreens(keyboardState) {
+        if (!props.isSmallScreenWidth) {
+            return;
+        }
+        setIsKeyboardOpen(keyboardState);
+        props.onToggleKeyboard(keyboardState);
+    }
 
     function componentDidUpdate(prevProps) {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
@@ -72,17 +81,17 @@ function PDFView(props) {
      * @memberof PDFView
      */
     function onDocumentLoadSuccess(pdf) {
-        const {numPages} = pdf;
+        const {numberOfPages} = pdf;
 
         Promise.all(
-            _.times(numPages, (index) => {
+            _.times(numberOfPages, (index) => {
                 const pageNumber = index + 1;
 
                 return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
             }),
-        ).then((pageViewports) => {
-            setPageViewports();
-            setNumPages();
+        ).then((pgViewports) => {
+            setPageViewports(pgViewports);
+            setNumPages(numberOfPages);
             setShouldRequestPassword(false);
             setIsPasswordInvalid(false);
         });
@@ -122,6 +131,19 @@ function PDFView(props) {
     }
 
     /**
+     * Calculates a proper page width.
+     * It depends on a screen size. Also, the app should take into account the page borders.
+     * @returns {Number}
+     */
+    function calculatePageWidth() {
+        const pdfContainerWidth = containerWidth;
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
+        const pageWidth = props.isSmallScreenWidth ? containerWidth : pageWidthOnLargeScreen;
+
+        return pageWidth + PAGE_BORDER * 2;
+    }
+
+    /**
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
@@ -141,19 +163,6 @@ function PDFView(props) {
         const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
 
         return actualHeight;
-    }
-
-    /**
-     * Calculates a proper page width.
-     * It depends on a screen size. Also, the app should take into account the page borders.
-     * @returns {Number}
-     */
-    function calculatePageWidth() {
-        const pdfContainerWidth = containerWidth;
-        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
-        const pageWidth = props.isSmallScreenWidth ? containerWidth : pageWidthOnLargeScreen;
-
-        return pageWidth + PAGE_BORDER * 2;
     }
 
     /**
@@ -190,19 +199,6 @@ function PDFView(props) {
     }
 
     /**
-     * On small screens notify parent that the keyboard has opened or closed.
-     *
-     * @param {Boolean} isKeyboardOpen True if keyboard is open
-     */
-    function toggleKeyboardOnSmallScreens(isKeyboardOpen) {
-        if (!props.isSmallScreenWidth) {
-            return;
-        }
-        setIsKeyboardOpen();
-        props.onToggleKeyboard(isKeyboardOpen);
-    }
-
-    /**
      * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
      */
     function retrieveCanvasLimits() {
@@ -219,6 +215,10 @@ function PDFView(props) {
         }
     }
 
+    const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
+    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+    retrieveCanvasLimits();
+    
     /**
      * Render a specific page based on its index.
      * The method includes a wrapper to apply virtualized styles.
@@ -266,7 +266,11 @@ function PDFView(props) {
                         nativeEvent: {
                             layout: {width, height},
                         },
-                    }) => setState({containerWidth: width, containerHeight: height})}
+                    }) => {
+                        setContainerWidth(width);
+                        setContainerHeight(height);
+                    }
+                }
                 >
                     <Document
                         error={<Text style={props.errorLabelStyles}>{props.translate('attachmentView.failedToLoadPDF')}</Text>}
@@ -277,18 +281,18 @@ function PDFView(props) {
                             cMapPacked: true,
                         }}
                         externalLinkTarget="_blank"
-                        onLoadSuccess={onDocumentLoadSuccess}
-                        onPassword={initiatePasswordChallenge}
+                        onLoadSuccess={() => onDocumentLoadSuccess}
+                        onPassword={() => initiatePasswordChallenge}
                     >
                         {pageViewports.length > 0 && (
                             <List
-                                outerRef={setListAttributes}
+                                outerRef={() => setListAttributes}
                                 style={styles.PDFViewList}
                                 width={props.isSmallScreenWidth ? pageWidth : containerWidth}
                                 height={containerHeight}
                                 estimatedItemSize={calculatePageHeight(0)}
-                                itemCount={state.numPages}
-                                itemSize={calculatePageHeight}
+                                itemCount={() => numPages}
+                                itemSize={() => calculatePageHeight}
                             >
                                 {renderPage}
                             </List>
@@ -298,10 +302,10 @@ function PDFView(props) {
                 {shouldRequestPassword && (
                     <PDFPasswordForm
                         isFocused={props.isFocused}
-                        onSubmit={attemptPDFLoad}
+                        onSubmit={() => attemptPDFLoad}
                         onPasswordUpdated={() => setIsPasswordInvalid(false)}
                         isPasswordInvalid={isPasswordInvalid}
-                        onPasswordFieldFocused={toggleKeyboardOnSmallScreens}
+                        onPasswordFieldFocused={() => toggleKeyboardOnSmallScreens}
                     />
                 )}
             </View>
@@ -328,20 +332,6 @@ PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        maxCanvasArea: {
-            key: ONYXKEYS.MAX_CANVAS_AREA,
-        },
-        maxCanvasHeight: {
-            key: ONYXKEYS.MAX_CANVAS_HEIGHT,
-        },
-        maxCanvasWidth: {
-            key: ONYXKEYS.MAX_CANVAS_WIDTH,
-        },
-    }),
-)(PDFView);
     withLocalize,
     withWindowDimensions,
     withOnyx({
