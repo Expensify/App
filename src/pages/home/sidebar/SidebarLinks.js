@@ -150,7 +150,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <SubscriptAvatar
                     mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                    subscriptIcon={{source: Expensicons.DownArrow, size: CONST.AVATAR_SIZE.SMALL, width: 8, height: 8}}
+                    subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
                     showTooltip={false}
                     noMargin
                 />
