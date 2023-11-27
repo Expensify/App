@@ -1,10 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import CONST from '@src/CONST';
-import darkTheme from './default';
-import lightTheme from './light';
 import ThemeContext from './ThemeContext';
+import Themes from './Themes';
 import {ThemePreferenceWithoutSystem} from './types';
 import useThemePreference from './useThemePreference';
 
@@ -18,11 +16,12 @@ type ThemeProviderProps = React.PropsWithChildren & {
 };
 
 function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
-    const themePreference = useThemePreference();
+    const dynamicThemePreference = useThemePreference();
 
-    const isLightTheme = (staticThemePreference ?? themePreference) === CONST.THEME.LIGHT;
-
-    const theme = useMemo(() => (isLightTheme ? lightTheme : darkTheme), [isLightTheme]);
+    // If the "theme" prop is provided, we'll want to use a hardcoded/static theme instead of the currently selected dynamic theme
+    // This is used for example on the "SignInPage", because it should always display in dark mode.
+    const themePreference = staticThemePreference ?? dynamicThemePreference;
+    const theme = useMemo(() => Themes[themePreference], [themePreference]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
