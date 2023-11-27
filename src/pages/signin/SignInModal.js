@@ -6,6 +6,7 @@ import ThemeProvider from '@styles/themes/ThemeProvider';
 import ThemeStylesProvider from '@styles/ThemeStylesProvider';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import SignInPage from './SignInPage';
 
 const propTypes = {};
@@ -35,7 +36,7 @@ function SignInModalInner() {
 
 function SignInModal() {
     return (
-        <ThemeProvider theme="dark">
+        <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <SignInModalInner />
             </ThemeStylesProvider>
