@@ -1,6 +1,7 @@
-import {getYear, subYears} from 'date-fns';
+import {getYear, setYear} from 'date-fns';
 import lodashGet from 'lodash/get';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,30 +11,37 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
-function YearSelectorPage(props) {
+const propTypes = {
+    backTo: PropTypes.string.isRequired,
+    minYear: PropTypes.number,
+    maxYear: PropTypes.number,
+    // value property is number when accessing from Router Stack, will string after string
+    route: PropTypes.shape({params: PropTypes.shape({value: PropTypes.oneOfType([PropTypes.number, PropTypes.string])})}).isRequired,
+};
+
+const defaultProps = {
+    minYear: getYear(setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR)),
+    maxYear: getYear(setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR)),
+};
+
+function YearPicker(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
 
-    const minDate = useRef(subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE));
-    const maxDate = useRef(subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE));
-
-    const minYear = getYear(new Date(minDate.current));
-    const maxYear = getYear(new Date(maxDate.current));
-
     // Value from Query-params or Default to current year
-    const selectedYear = lodashGet(props, ['route', 'params', 'value'], null);
+    const selectedYear = lodashGet(props.route, ['params', 'value'], null);
 
     const [years] = useState(() =>
         _.map(
-            Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
+            Array.from({length: props.maxYear - props.minYear + 1}, (v, i) => i + props.minYear),
             (value) => ({
                 text: value.toString(),
                 value,
                 keyForList: value.toString(),
-                isSelected: value === selectedYear,
+                // Making sure to match
+                isSelected: value === Number(selectedYear),
             }),
         ),
     );
@@ -61,14 +69,15 @@ function YearSelectorPage(props) {
         <ScreenWrapper
             style={[styles.pb0]}
             includeSafeAreaPaddingBottom={false}
-            testID={YearSelectorPage.displayName}
+            testID={YearPicker.displayName}
         >
             <HeaderWithBackButton
                 title={translate('yearPickerPage.year')}
                 onBackButtonPress={() => {
-                    Navigation.goBack();
+                    Navigation.goBack(props.backTo);
                 }}
             />
+
             {isLoading ? (
                 <FullScreenLoadingIndicator />
             ) : (
@@ -82,10 +91,10 @@ function YearSelectorPage(props) {
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => {
-                        Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH);
+                        Navigation.goBack(props.backTo);
                         Navigation.setParams({year: option.value});
                     }}
-                    initiallyFocusedOptionKey={selectedYear.toString()}
+                    initiallyFocusedOptionKey={String(selectedYear)}
                     showScrollIndicator
                     shouldStopPropagation
                 />
@@ -94,6 +103,8 @@ function YearSelectorPage(props) {
     );
 }
 
-YearSelectorPage.displayName = 'YearSelectorPage';
+YearPicker.displayName = 'YearPicker';
+YearPicker.propTypes = propTypes;
+YearPicker.defaultProps = defaultProps;
 
-export default YearSelectorPage;
+export default YearPicker;

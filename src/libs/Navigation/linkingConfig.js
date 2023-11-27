@@ -383,6 +383,7 @@ export default {
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                             Money_Request_Date: ROUTES.MONEY_REQUEST_DATE.route,
+                            Money_Request_Date_Year: ROUTES.MONEY_REQUEST_DATE_YEAR.route,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY.route,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
                             Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY.route,

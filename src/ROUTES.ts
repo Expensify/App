@@ -259,6 +259,10 @@ export default {
         route: ':iouType/new/date/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}`,
     },
+    MONEY_REQUEST_DATE_YEAR: {
+        route: ':iouType/new/date/year/:reportID?',
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/year/${reportID}`,
+    },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
         getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,

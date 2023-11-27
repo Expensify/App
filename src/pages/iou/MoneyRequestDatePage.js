@@ -82,6 +82,8 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         navigateBack();
     }
 
+    const params = lodashGet(route, ['params'], {});
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -104,6 +106,10 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
                     label={translate('common.date')}
                     defaultValue={iou.created}
                     maxDate={new Date()}
+                    params={params}
+                    onClickYear={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_DATE_YEAR.getRoute(iouType, reportID));
+                    }}
                 />
             </FormProvider>
         </ScreenWrapper>

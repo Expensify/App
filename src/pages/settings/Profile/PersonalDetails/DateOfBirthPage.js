@@ -90,6 +90,9 @@ function DateOfBirthPage({translate, privatePersonalDetails, route}) {
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                         params={params}
+                        onClickYear={() => {
+                            Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR);
+                        }}
                     />
                 </FormProvider>
             )}

@@ -37,6 +37,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     params: PropTypes.object,
 
+    /** Function to call when click on Year */
+    onClickYear: PropTypes.func,
+
     ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
@@ -64,6 +67,7 @@ function NewDatePicker({
     translate,
     value,
     params,
+    onClickYear,
 }) {
     const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -114,6 +118,7 @@ function NewDatePicker({
                     value={selectedDate}
                     onSelected={setSelectedDate}
                     params={params}
+                    onClickYear={onClickYear}
                 />
             </View>
         </View>

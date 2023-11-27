@@ -5,8 +5,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Transaction defailt created value */
@@ -14,9 +16,18 @@ const propTypes = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+    /** Params object to get the value */
+    // eslint-disable-next-line react/forbid-prop-types
+    params: PropTypes.object.isRequired,
+
+    /** Report ID of the money request */
+    reportID: PropTypes.string.isRequired,
+
+    /** Type of Money Request */
+    iouType: PropTypes.string.isRequired,
 };
 
-function EditRequestCreatedPage({defaultCreated, onSubmit}) {
+function EditRequestCreatedPage({defaultCreated, onSubmit, params, reportID, iouType}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -39,6 +50,10 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
                     maxDate={new Date()}
+                    params={params}
+                    onClickYear={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_DATE_YEAR.getRoute(iouType, reportID));
+                    }}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -16,7 +16,6 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import ArrowIcon from './ArrowIcon';
 import generateMonthMatrix from './generateMonthMatrix';
 
@@ -37,6 +36,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     params: PropTypes.object,
 
+    /** Function to call when click on Year */
+    onClickYear: PropTypes.func,
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
 };
@@ -47,6 +48,7 @@ const defaultProps = {
     maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected: () => {},
     params: {},
+    onClickYear: () => {},
 };
 
 class CalendarPicker extends React.PureComponent {
@@ -168,7 +170,7 @@ class CalendarPicker extends React.PureComponent {
                 >
                     <PressableWithFeedback
                         onPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR);
+                            this.props.onClickYear();
                             // Pass the current selected (could be default value) as a query param
                             Navigation.setParams({value: this.state.currentDateView.getFullYear()});
                         }}
