@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 
-function useCarouselArrows() {
+function useCarouselArrows(): [boolean, (show?: boolean) => void, () => void, () => void] {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const [shouldShowArrows, setShouldShowArrowsInternal] = useState(canUseTouchScreen);
     const autoHideArrowTimeout = useRef<NodeJS.Timeout | null>(null);

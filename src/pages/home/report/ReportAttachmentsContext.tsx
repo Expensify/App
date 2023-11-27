@@ -1,17 +1,16 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const ReportAttachmentsContext = React.createContext();
-
-const propTypes = {
-    /** Rendered child component */
-    children: PropTypes.node.isRequired,
+type ReportAttachmentsContextValue = {
+    isAttachmentHidden: (reportActionID: string) => boolean;
+    updateHiddenAttachments: (reportActionID: string, value: boolean) => void;
 };
+const ReportAttachmentsContext = React.createContext<ReportAttachmentsContextValue>({} as ReportAttachmentsContextValue);
 
-function ReportAttachmentsProvider(props) {
+function ReportAttachmentsProvider(props: ChildrenProps) {
     const currentReportID = useCurrentReportID();
-    const hiddenAttachments = useRef({});
+    const hiddenAttachments = useRef<Record<string, boolean>>({});
 
     useEffect(() => {
         // We only want to store the attachment visibility for the current report.
@@ -21,11 +20,11 @@ function ReportAttachmentsProvider(props) {
 
     const contextValue = useMemo(
         () => ({
-            isAttachmentHidden: (reportActionID) => hiddenAttachments.current[reportActionID],
-            updateHiddenAttachments: (reportActionID, value) => {
+            isAttachmentHidden: (reportActionID: string) => hiddenAttachments.current[reportActionID],
+            updateHiddenAttachments: (reportActionID: string, value: boolean) => {
                 hiddenAttachments.current = {
                     ...hiddenAttachments.current,
-                    [reportActionID]: value,
+                    [reportActionID ?? '']: value ?? false,
                 };
             },
         }),
@@ -35,7 +34,6 @@ function ReportAttachmentsProvider(props) {
     return <ReportAttachmentsContext.Provider value={contextValue}>{props.children}</ReportAttachmentsContext.Provider>;
 }
 
-ReportAttachmentsProvider.propTypes = propTypes;
 ReportAttachmentsProvider.displayName = 'ReportAttachmentsProvider';
 
 export default ReportAttachmentsContext;

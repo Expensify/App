@@ -9,16 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-
-type Attachment = {
-    reportActionID?: string;
-    source: string;
-    isAuthTokenRequired: boolean;
-    file: {name: string};
-    isReceipt: boolean;
-    hasBeenFlagged?: boolean;
-    transactionID?: string;
-};
+import {Attachment} from './types';
 
 type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
@@ -34,8 +25,8 @@ type CarouselItemProps = {
 function CarouselItem({item, isFocused, onPress = undefined}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
-    const [isHidden, setIsHidden] = useState<boolean>(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const reportAttachmentsContext = useContext(ReportAttachmentsContext);
+    const [isHidden, setIsHidden] = useState<boolean>(() => !!reportAttachmentsContext?.isAttachmentHidden(item.reportActionID ?? '') ?? item.hasBeenFlagged);
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button

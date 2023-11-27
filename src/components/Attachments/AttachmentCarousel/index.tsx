@@ -1,12 +1,11 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,11 +13,11 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
-import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselProps, {Attachment, AttachmentCarouselOnyxProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 const viewabilityConfig = {
@@ -27,7 +26,16 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction}) {
+function AttachmentCarousel({
+    report,
+    reportActions,
+    parentReportActions,
+    source,
+    onNavigate,
+    setDownloadButtonVisibility,
+    translate,
+    transaction,
+}: AttachmentCarouselProps & WindowDimensionsProps) {
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
@@ -35,15 +43,15 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
-    const [attachments, setAttachments] = useState([]);
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [isReceipt, setIsReceipt] = useState(false);
 
     const compareImage = useCallback(
-        (attachment) => {
+        (attachment: Attachment) => {
             if (attachment.isReceipt && isReceipt) {
-                return attachment.transactionID === transaction.transactionID;
+                return attachment.transactionID === transaction?.transactionID;
             }
             return attachment.source === source;
         },
@@ -51,14 +59,14 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     useEffect(() => {
-        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''] ?? null;
         const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
 
-        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
+        const initialPage = attachmentsFromReport.findIndex(compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, compareImage)) {
-            Navigation.dismissModal();
+        if (initialPage === -1 && attachments.find(compareImage)) {
+            Navigation.dismissModal(undefined);
         } else {
             setPage(initialPage);
             setAttachments(attachmentsFromReport);
@@ -67,7 +75,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+            if (attachmentsFromReport[initialPage]) {
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
@@ -76,8 +84,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     /**
      * Updates the page state when the user navigates between attachments
-     * @param {Object} item
-     * @param {number} index
      */
     const updatePage = useCallback(
         ({viewableItems}) => {
@@ -85,7 +91,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = _.first(viewableItems);
+            const entry = viewableItems[0];
             if (!entry) {
                 setIsReceipt(false);
                 setActiveSource(null);
@@ -103,10 +109,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     /**
      * Increments or decrements the index to get another selected item
-     * @param {Number} deltaSlide
      */
     const cycleThroughAttachments = useCallback(
-        (deltaSlide) => {
+        (deltaSlide: number) => {
             const nextIndex = page + deltaSlide;
             const nextItem = attachments[nextIndex];
 
@@ -121,12 +126,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     /**
      * Calculate items layout information to optimize scrolling performance
-     * @param {*} data
-     * @param {Number} index
-     * @returns {{offset: Number, length: Number, index: Number}}
      */
     const getItemLayout = useCallback(
-        (_data, index) => ({
+        (_, index: number) => ({
             length: containerWidth,
             offset: containerWidth * index,
             index,
@@ -136,17 +138,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {Object} item
-     * @param {String} item.reportActionID
-     * @param {Boolean} item.isAuthTokenRequired
-     * @param {String} item.source
-     * @param {Object} item.file
-     * @param {String} item.file.name
-     * @param {Boolean} item.hasBeenFlagged
-     * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item}: {item: Attachment}) => (
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
@@ -185,7 +179,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     {containerWidth > 0 && (
                         <FlatList
                             keyboardShouldPersistTaps="handled"
-                            listKey="AttachmentCarousel"
                             horizontal
                             decelerationRate="fast"
                             showsHorizontalScrollIndicator={false}
@@ -208,7 +201,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
-                            keyExtractor={(item) => item.source}
+                            keyExtractor={(item: Attachment) => item.source}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage}
                         />
@@ -221,13 +214,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 }
 
-AttachmentCarousel.propTypes = propTypes;
-AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
+    withOnyx<AttachmentCarouselProps, AttachmentCarouselOnyxProps>({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
@@ -241,7 +232,7 @@ export default compose(
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
+    withOnyx<AttachmentCarouselProps, AttachmentCarouselOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
