@@ -447,14 +447,12 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
 
-            const betas = [CONST.BETAS.VIOLATIONS];
-
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: betas,
+                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,

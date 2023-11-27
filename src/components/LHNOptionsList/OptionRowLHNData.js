@@ -73,6 +73,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
+    betas,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -87,7 +88,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, propsToForward.betas);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, betas);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -96,7 +97,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, betas]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
