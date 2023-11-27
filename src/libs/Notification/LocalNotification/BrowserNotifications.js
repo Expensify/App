@@ -142,7 +142,7 @@ export default {
         _.keys(notificationCache).forEach((notificationID) => {
             const notification = notificationCache[notificationID];
 
-            if (shouldClearNotification(notification.data)) {
+            if (shouldClearNotification(notification.data || {})) {
                 notification.close();
             }
         });
