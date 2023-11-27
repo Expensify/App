@@ -21,6 +21,7 @@ import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import {TransactionViolation, TransactionViolations} from '@src/types/onyx/TransactionViolation';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
@@ -402,10 +403,10 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-const transactionViolations = {};
+const transactionViolations: OnyxCollection<TransactionViolations> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (violations, key) => {
+    callback: (violations: OnyxCollection<TransactionViolation>, key) => {
         if (!key || !violations) {
             return;
         }
@@ -415,7 +416,7 @@ Onyx.connect({
     },
 });
 
-const reportActions = {};
+const reportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {

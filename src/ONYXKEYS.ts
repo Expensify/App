@@ -266,6 +266,9 @@ const ONYXKEYS = {
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
 
+        // Transaction Violations
+        TRANSACTION_VIOLATIONS: 'transactionViolations_',
+
         // Holds temporary transactions used during the creation and edit flow
         TRANSACTION_DRAFT: 'transactionsDraft_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
