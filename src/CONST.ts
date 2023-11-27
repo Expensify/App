@@ -248,18 +248,9 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_SAML: 'newDotSAML',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
@@ -2822,6 +2813,7 @@ const CONST = {
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
             REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
@@ -2843,6 +2835,14 @@ const CONST = {
      */
     PERFORMANCE_TESTS: {
         RUNS: 20,
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
     },
 } as const;
 
