@@ -3017,7 +3017,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchPressableContainer: {
-            backgroundColor: colors.darkAppBackground,
+            backgroundColor: colors.darkHighlightBackground,
             borderRadius: 999,
             height: 40,
             minHeight: 40,
