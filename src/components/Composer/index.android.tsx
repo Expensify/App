@@ -37,7 +37,6 @@ type ComposerProps = {
     isComposerFullSize: boolean;
 
     /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
     style: StyleProp<TextStyle>;
 };
 
@@ -90,7 +89,6 @@ function Composer(
 
     /**
      * Set maximum number of lines
-     * @return {Number}
      */
     const maxNumberOfLines = useMemo(() => {
         if (isComposerFullSize) {
@@ -125,7 +123,7 @@ function Composer(
     );
 }
 
-Composer.displayName = 'ComposerWithRef';
+Composer.displayName = 'Composer';
 
 const ComposerWithRef = React.forwardRef(Composer);
 

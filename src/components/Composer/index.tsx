@@ -194,8 +194,6 @@ function Composer(
 
     /**
      *  Adds the cursor position to the selection change event.
-     *
-     * @param event
      */
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
@@ -229,7 +227,6 @@ function Composer(
 
     /**
      * Set pasted text to clipboard
-     * @param {String} text
      */
     const paste = useCallback((text?: string) => {
         try {
@@ -243,8 +240,6 @@ function Composer(
 
     /**
      * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
@@ -256,8 +251,6 @@ function Composer(
 
     /**
      * Paste the plaintext content into Composer.
-     *
-     * @param {ClipboardEvent} event
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
@@ -412,7 +405,6 @@ function Composer(
         </View>
     );
 
-    // const inputStyleMemo: StyleProp<AnimatedStyle<StyleProp<TextStyle>>> = useMemo(
     const inputStyleMemo: StyleProp<TextStyle> = useMemo(
         () => [
             // We are hiding the scrollbar to prevent it from reducing the text input width,

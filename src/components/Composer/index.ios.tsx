@@ -38,7 +38,6 @@ type ComposerProps = {
     isComposerFullSize?: boolean;
 
     /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
     style: StyleProp<TextStyle>;
 };
 
@@ -57,7 +56,6 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    // const textInput = useRef<React.Component<AnimatedProps<TextInputProps>>>();
     const textInput = useRef<TextInput>();
 
     const styles = useThemeStyles();
@@ -65,7 +63,6 @@ function Composer(
 
     /**
      * Set the TextInput Ref
-     * @param {Element} el
      */
     const setTextInputRef = useCallback((el: TextInput) => {
         textInput.current = el;
@@ -91,7 +88,6 @@ function Composer(
 
     /**
      * Set maximum number of lines
-     * @return {Number}
      */
     const maxNumberOfLines = useMemo(() => {
         if (isComposerFullSize) {
