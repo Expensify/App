@@ -1,20 +1,20 @@
-import PropTypes from 'prop-types';
+/* eslint-disable react/no-array-index-key */
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
-import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 
-const propTypes = {
+type ReceiptError = {error?: string; source: string; filename: string};
+
+type DotIndicatorMessageProps = {
     /**
      * In most cases this should just be errors from onxyData
      * if you are not passing that data then this needs to be in a similar shape like
@@ -22,66 +22,46 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(
-        PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
-    ),
+    messages: Record<string, Localize.MaybePhraseKey>;
 
-    // The type of message, 'error' shows a red dot, 'success' shows a green dot
-    type: PropTypes.oneOf(['error', 'success']).isRequired,
+    /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
+    type: 'error' | 'success';
 
-    // Additional styles to apply to the container */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    /** Additional styles to apply to the container */
+    style?: StyleProp<ViewStyle>;
 
-    // Additional styles to apply to the text
-    textStyles: stylePropTypes,
+    /** Additional styles to apply to the text */
+    textStyles?: StyleProp<TextStyle>;
 };
 
-const defaultProps = {
-    messages: {},
-    style: [],
-    textStyles: [],
-};
-
-/**
- * Check if the error includes a receipt.
- *
- * @param {String} message
- * @returns {Boolean}
- */
-const isReceiptError = (message) => {
-    if (_.isString(message)) {
+/** Check if the error includes a receipt. */
+function isReceiptError(message: string | ReceiptError): message is ReceiptError {
+    if (typeof message === 'string') {
         return false;
     }
-    return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
-};
+    return (message?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+}
 
-function DotIndicatorMessage(props) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    if (_.isEmpty(props.messages)) {
+
+    if (Object.keys(messages).length === 0) {
         return null;
     }
 
-    // To ensure messages are presented in order we are sort of destroying the data we are given
-    // and rebuilding as an array so we can render the messages in order. We don't really care about
-    // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
-    // BEWARE: if you decide to refactor this and keep the microtime keys it could cause performance issues
-    const sortedMessages = _.chain(props.messages)
-        .keys()
-        .sortBy()
-        .map((key) => props.messages[key])
+    // Fetch the keys, sort them, and map through each key to get the corresponding message
+    const sortedMessages = Object.keys(messages)
+        .sort()
+        .map((key) => messages[key]);
 
-        // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
-        // and can potentially pass the same error.
-        .uniq()
-        .map((message) => Localize.translateIfPhraseKey(message))
-        .value();
+    // Removing duplicates using Set and transforming the result into an array
+    const uniqueMessages = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
 
-    const isErrorMessage = props.type === 'error';
+    const isErrorMessage = type === 'error';
 
     return (
-        <View style={[styles.dotIndicatorMessage, ...props.style]}>
+        <View style={[styles.dotIndicatorMessage, style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
@@ -89,9 +69,10 @@ function DotIndicatorMessage(props) {
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {_.map(sortedMessages, (message, i) =>
+                {uniqueMessages.map((message, i) =>
                     isReceiptError(message) ? (
                         <PressableWithoutFeedback
+                            accessibilityLabel={Localize.translateLocal('iou.error.saveFileMessage')}
                             key={i}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             onPress={() => {
@@ -109,8 +90,9 @@ function DotIndicatorMessage(props) {
                         </PressableWithoutFeedback>
                     ) : (
                         <Text
+                            // eslint-disable-next-line react/no-array-index-key
                             key={i}
-                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
+                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
                         >
                             {message}
                         </Text>
@@ -121,8 +103,6 @@ function DotIndicatorMessage(props) {
     );
 }
 
-DotIndicatorMessage.propTypes = propTypes;
-DotIndicatorMessage.defaultProps = defaultProps;
 DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;
