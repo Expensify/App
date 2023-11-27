@@ -99,6 +99,40 @@ function getDistanceFromPathInRootNavigator(path) {
 }
 
 /**
+ * Returns the current active route
+ * @returns {String}
+ */
+function getActiveRoute() {
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+
+    if (routeFromState) {
+        return routeFromState;
+    }
+
+    return '';
+}
+
+/**
+ * Check whether the passed route is currently Active or not.
+ *
+ * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
+ * is undefined in the first navigation.
+ *
+ * @param {String} routePath Path to check
+ * @return {Boolean} is active
+ */
+function isActiveRoute(routePath) {
+    // We remove First forward slash from the URL before matching
+    return getActiveRoute().substring(1) === routePath;
+}
+
+/**
  * Main navigation method for redirecting to a route.
  * @param {String} route
  * @param {String} [type] - Type of action to perform. Currently UP is supported.
@@ -111,8 +145,7 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
-    linkTo(navigationRef.current, route, type);
+    linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
 /**
@@ -223,26 +256,6 @@ function dismissModal(targetReportID) {
 }
 
 /**
- * Returns the current active route
- * @returns {String}
- */
-function getActiveRoute() {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
-    if (!currentRouteHasName) {
-        return '';
-    }
-
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
-
-    if (routeFromState) {
-        return routeFromState;
-    }
-
-    return '';
-}
-
-/**
  * Returns the current active route without the URL params
  * @returns {String}
  */
@@ -264,20 +277,6 @@ function getRouteNameFromStateEvent(event) {
     if (currentRouteName) {
         return currentRouteName;
     }
-}
-
-/**
- * Check whether the passed route is currently Active or not.
- *
- * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
- * is undefined in the first navigation.
- *
- * @param {String} routePath Path to check
- * @return {Boolean} is active
- */
-function isActiveRoute(routePath) {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
 }
 
 /**
