@@ -104,7 +104,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
                         <Avatar
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                                StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
+                                StyleUtils.getBorderColorStyle(backgroundColor ?? theme.sidebar),
                             ]}
                             source={secondaryAvatar.source}
                             size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}

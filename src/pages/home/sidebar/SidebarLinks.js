@@ -22,7 +22,6 @@ import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import colors from '@styles/colors';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -142,7 +141,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 <SubscriptAvatar
                     mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
                     subscriptIcon={{ source: Expensicons.DownArrow, size: CONST.AVATAR_SIZE.SMALL, width: 8, height: 8 }}
-                    backgroundColor={colors.darkHighlightBackground}
                     showTooltip={false}
                     noMargin
                 />
