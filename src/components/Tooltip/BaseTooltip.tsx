@@ -94,7 +94,10 @@ function Tooltip(
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
-        target.current = e.currentTarget as HTMLElement;
+        if (!(e.currentTarget instanceof HTMLElement)) {
+            return;
+        }
+        target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 

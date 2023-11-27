@@ -10,7 +10,7 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/dot-notation
-        const tooltipNode = tooltipRef.current ? tooltipRef.current['_childNode'] : null;
+        const tooltipNode = tooltipRef.current?.['_childNode'] ?? null;
         if (isOpen && popover?.anchorRef?.current && tooltipNode && (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)) {
             return true;
         }

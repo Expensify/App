@@ -1,4 +1,4 @@
-import React, {RefObject, useMemo} from 'react';
+import React, {RefObject, useCallback} from 'react';
 import {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -41,8 +41,7 @@ function DisplayNamesTooltipItem({
     childRefs = {current: []},
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
-    // TODO: Check here if we need to memoize the tooltipIndexBridge
-    const tooltipIndexBridge = useMemo(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
+    const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (
         <UserDetailsTooltip

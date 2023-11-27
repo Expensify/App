@@ -1,5 +1,9 @@
 function callOrReturn<TValue>(value: TValue | (() => TValue)): TValue {
-    return typeof value === 'function' ? (value as () => TValue)() : value;
+    if (typeof value === 'function') {
+        return (value as () => TValue)();
+    }
+
+    return value;
 }
 
 export default callOrReturn;
