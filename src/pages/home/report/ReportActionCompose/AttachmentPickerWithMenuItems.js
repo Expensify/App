@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -13,19 +12,14 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** ID of the report */
@@ -88,7 +82,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     reportParticipantIDs: [],
 };
 
@@ -99,7 +92,6 @@ const defaultProps = {
  * @returns {React.Component}
  */
 function AttachmentPickerWithMenuItems({
-    betas,
     report,
     reportParticipantIDs,
     displayFileInModal,
@@ -155,7 +147,7 @@ function AttachmentPickerWithMenuItems({
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        if (!Permissions.canUseTasks(betas) || !ReportUtils.canCreateTaskInReport(report)) {
+        if (!ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
 
@@ -166,7 +158,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
             },
         ];
-    }, [betas, report, reportID, translate]);
+    }, [report, reportID, translate]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -290,8 +282,4 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(AttachmentPickerWithMenuItems);
+export default AttachmentPickerWithMenuItems;

@@ -1,3 +1,4 @@
+import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -73,8 +74,8 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false): Report {
-    if (currency !== iouReport.currency) {
+function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+    if (currency !== iouReport?.currency) {
         return iouReport;
     }
 
