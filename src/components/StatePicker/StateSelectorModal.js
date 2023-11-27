@@ -101,6 +101,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}
                     shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>
