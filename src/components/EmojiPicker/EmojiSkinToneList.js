@@ -6,7 +6,7 @@ import * as Emojis from '@assets/emojis';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function EmojiSkinToneList(props) {
+    const styles = useThemeStyles();
     const [highlightedIndex, setHighlightedIndex] = useState(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
 

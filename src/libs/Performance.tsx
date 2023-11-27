@@ -26,7 +26,7 @@ type GetPerformanceMetrics = () => PerformanceEntry[];
 type PrintPerformanceMetrics = () => void;
 type MarkStart = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
 type MarkEnd = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
-type MeasureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark: string) => void;
+type MeasureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => void;
 type MeasureTTI = (endMark: string) => void;
 type TraceRender = (id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>) => PerformanceMeasure | void;
 type WithRenderTrace = ({id}: WrappedComponentConfig) => WithRenderTraceHOC | BlankHOC;
@@ -90,7 +90,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
-    Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark: string) => {
+    Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => {
         try {
             rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
         } catch (error) {

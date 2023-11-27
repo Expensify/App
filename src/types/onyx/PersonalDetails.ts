@@ -22,7 +22,7 @@ type PersonalDetails = {
     lastName?: string;
 
     /** Display name of the current user from their personal details */
-    displayName: string;
+    displayName?: string;
 
     /** Is current user validated */
     validated?: boolean;
@@ -64,9 +64,12 @@ type PersonalDetails = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
-    /** Status of the current user from their personal details */
 
+    /** Status of the current user from their personal details */
     status?: string;
+
+    /** PayPalMe address of the current user */
+    payPalMeAddress?: string;
 };
 
 export default PersonalDetails;

@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
@@ -51,6 +51,7 @@ const defaultProps = {
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 function FormAlertWrapper(props) {
+    const styles = useThemeStyles();
     let children;
     if (_.isEmpty(props.message)) {
         children = (

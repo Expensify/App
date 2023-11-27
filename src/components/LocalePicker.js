@@ -3,8 +3,8 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +27,8 @@ const defaultProps = {
 };
 
 function LocalePicker(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
         value: language,
         label: props.translate(`languagePage.languages.${language}.label`),
@@ -47,7 +49,7 @@ function LocalePicker(props) {
             size={props.size}
             value={props.preferredLocale}
             containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
-            backgroundColor={themeColors.signInPage}
+            backgroundColor={theme.signInPage}
         />
     );
 }
