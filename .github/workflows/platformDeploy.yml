@@ -39,6 +39,7 @@ jobs:
     uses: ./.github/workflows/createDeployChecklist.yml
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
+    secrets: inherit
 
   android:
     name: Build and deploy Android
@@ -53,7 +54,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
@@ -134,7 +135,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -176,7 +177,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
@@ -285,13 +286,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -341,7 +342,7 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - name: Post Slack message on failure
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -416,21 +417,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/App/.github/actions/javascript/getDeployPullRequestList@main
+        uses: ./.github/actions/javascript/getDeployPullRequestList
         with:
           TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
 
       - name: Comment on issues
-        uses: Expensify/App/.github/actions/javascript/markPullRequestsAsDeployed@main
+        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

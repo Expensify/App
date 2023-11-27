@@ -37,17 +37,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         ];
     }, [selectedTag]);
 
-    const initialFocusedIndex = useMemo(() => {
-        if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyTagList)
-                .values()
-                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
-                .value();
-        }
-
-        return 0;
-    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
-
     const enabledTags = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
             return policyTagList;
@@ -64,6 +53,8 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
 
+    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (policyTag) => policyTag.searchText === selectedTag)[0], 'keyForList');
+
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
@@ -77,7 +68,10 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            // Focus the first option when searching
+            focusedIndex={0}
+            // Focus the selected option on first load
+            initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
