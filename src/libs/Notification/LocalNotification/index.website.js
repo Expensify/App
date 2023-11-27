@@ -22,6 +22,9 @@ function showModifiedExpenseNotification(report, reportAction, onClick) {
     BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick, true);
 }
 
+/**
+ * @param {String} reportID
+ */
 function clearReportNotifications(reportID) {
     BrowserNotifications.clearNotifications((notificationData) => notificationData.reportID === reportID);
 }
