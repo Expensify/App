@@ -176,7 +176,7 @@ function BaseTextInput(props) {
      * @memberof BaseTextInput
      */
     const setValue = (val) => {
-        const value = val.replace(/\n/g, ' ');
+        const value = isMultiline ? val : val.replace(/\n/g, ' ');
 
         if (props.onInputChange) {
             props.onInputChange(value);
