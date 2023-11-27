@@ -15,7 +15,7 @@ type TextProps = RNTextProps &
         fontSize?: number;
 
         /** The alignment of the text */
-        textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
+        textAlign?: TextStyle['textAlign'];
 
         /** The family of the font to use */
         family?: keyof typeof fontFamily;
