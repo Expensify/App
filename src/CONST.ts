@@ -2813,6 +2813,7 @@ const CONST = {
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
             REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
