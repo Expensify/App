@@ -25,7 +25,6 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -133,7 +132,7 @@ function ProfilePage(props) {
 
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
-    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
@@ -291,9 +290,6 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         session: {
             key: ONYXKEYS.SESSION,
