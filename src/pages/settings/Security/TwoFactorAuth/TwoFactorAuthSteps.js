@@ -49,7 +49,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
     const renderStep = () => {
         switch (currentStep) {
             case CONST.TWO_FACTOR_AUTH_STEPS.CODES:
-                return <CodesStep />;
+                return <CodesStep backTo={backTo} />;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
@@ -59,7 +59,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return <DisabledStep />;
             default:
-                return <CodesStep />;
+                return <CodesStep backTo={backTo} />;
         }
     };
 

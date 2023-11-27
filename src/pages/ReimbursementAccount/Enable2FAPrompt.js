@@ -5,19 +5,20 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
+import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /** policyID of the workspace where user is setting up bank account */
     policyID: PropTypes.string.isRequired,
 };
 
-function Enable2FAPrompt(props) {
+function Enable2FAPrompt({translate, policyID}) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     return (
         <Section
@@ -27,7 +28,7 @@ function Enable2FAPrompt(props) {
                 {
                     title: translate('validationStep.secureYourAccount'),
                     onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', props.policyID)));
+                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID)));
                     },
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
@@ -46,4 +47,4 @@ function Enable2FAPrompt(props) {
 Enable2FAPrompt.propTypes = propTypes;
 Enable2FAPrompt.displayName = 'Enable2FAPrompt';
 
-export default Enable2FAPrompt;
+export default withLocalize(Enable2FAPrompt);
