@@ -420,7 +420,7 @@ function getLastMessageTextForReport(report) {
         if (ReportUtils.isMoneyRequest(report) && ReportActionUtils.isDeletedAction(parentReportAction)) {
             const isCreatedAction = ReportActionUtils.isCreatedAction(lastReportAction);
             lastMessageTextFromReport = isCreatedAction ? '' : lodashGet(lastReportAction, 'message[0].text', '');
-        } 
+        }
     }
     return lastMessageTextFromReport;
 }
