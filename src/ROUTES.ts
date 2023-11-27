@@ -4,10 +4,10 @@ import CONST from './CONST';
 /**
  * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
  */
-function getUrlWithBackToParam(url: string, backTo?: string): string {
+const getUrlWithBackToParam = (url: string, backTo?: string): string => {
     const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
     return url + backToParam;
-}
+};
 
 export default {
     HOME: '',
@@ -317,9 +317,9 @@ export default {
             getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}/`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
-        route: 'create/:iouType/currency/:transactionID/:reportID/',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/`, backTo),
+        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: 'create/:iouType/date/:transactionID/:reportID/',
@@ -357,7 +357,7 @@ export default {
             getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}/`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
-        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex?',
+        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
@@ -458,3 +458,5 @@ export default {
     SBE: 'sbe',
     MONEY2020: 'money2020',
 } as const;
+
+export {getUrlWithBackToParam};

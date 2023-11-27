@@ -12,7 +12,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -50,7 +50,7 @@ const defaultProps = {
 function IOURequestStepCurrency({
     currencyList,
     route: {
-        params: {backTo, transactionID},
+        params: {backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction: {currency},
 }) {
@@ -59,7 +59,16 @@ function IOURequestStepCurrency({
     const optionsSelectorRef = useRef();
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME, true);
+        // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
+        // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
+        // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
+        // to the confirmation page
+        if (pageIndex === 'confirm') {
+            const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(backTo, `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID)}`);
+            Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
+            return;
+        }
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
