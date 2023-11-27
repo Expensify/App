@@ -1,4 +1,4 @@
-import React, {ReactNode, memo} from 'react';
+import React, {memo, ReactNode} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -7,8 +7,8 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
+import Icon, {SrcProps} from './Icon';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import Icon, { SrcProps } from './Icon';
 
 type SubIcon = {
     /** Avatar source to display */
@@ -22,7 +22,7 @@ type SubIcon = {
 
     /** Height of the icon */
     height?: number;
-}
+};
 
 type SubAvatar = {
     /** Avatar source to display */
