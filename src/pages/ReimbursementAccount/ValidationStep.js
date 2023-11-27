@@ -154,7 +154,6 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     </View>
                     <View style={[styles.mv5]}>
                         <TextInput
-                            accessibilityLabel="Text input field"
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -163,7 +162,6 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             role={CONST.ROLE.PRESENTATION}
                         />
                         <TextInput
-                            accessibilityLabel="Text input field"
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -172,7 +170,6 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             role={CONST.ROLE.PRESENTATION}
                         />
                         <TextInput
-                            accessibilityLabel="Text input field"
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
