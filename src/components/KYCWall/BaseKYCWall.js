@@ -201,7 +201,7 @@ function KYCWall({
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 iouReport={iouReport}
-                onClose={() => shouldShowAddPaymentMenu(false)}
+                onClose={() => setShouldShowAddPaymentMenu(false)}
                 anchorRef={anchorRef}
                 anchorPosition={{
                     vertical: anchorPosition.anchorPositionVertical,
@@ -209,7 +209,7 @@ function KYCWall({
                 }}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    shouldShowAddPaymentMenu(false);
+                    setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(item);
                 }}
             />
