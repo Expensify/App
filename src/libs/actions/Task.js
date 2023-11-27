@@ -222,7 +222,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         {optimisticData, successData, failureData},
     );
 
-    Navigation.dismissModal(optimisticTaskReport.reportID);
+    Navigation.dismissModal(parentReportID);
 }
 
 /**
@@ -450,6 +450,9 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
+        notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
+            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     };
 
     const optimisticData = [

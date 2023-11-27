@@ -237,7 +237,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -250,7 +250,6 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            emojisPresentBefore.current = emojis;
             const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
             const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
 
@@ -258,12 +257,13 @@ function ComposerWithSuggestions({
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
             }
+            emojisPresentBefore.current = emojis;
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
 
@@ -287,8 +287,17 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [preferredSkinTone, reportID, suggestionsRef],
+        [
+            debouncedUpdateFrequentlyUsedEmojis,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            setIsCommentEmpty,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+            selection.end,
+        ],
     );
 
     /**
@@ -511,7 +520,7 @@ function ComposerWithSuggestions({
             InputFocus.inputFocusChange(false);
             return;
         }
-        focus();
+        focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
