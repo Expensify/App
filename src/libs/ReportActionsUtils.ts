@@ -5,7 +5,7 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName, CommonOriginalMessage} from '@src/types/onyx/OriginalMessage';
+import {ActionName, ChangeLogOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
@@ -22,28 +22,28 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-type MessageActionItemChannelLogBase = {
+type MemberChangeMessageElementBase = {
     readonly kind: string;
     readonly content: string;
 };
 
-type MessageActionItemChannelLogText = {
+type MemberChangeMessageTextElement = {
     readonly kind: 'text';
     readonly content: string;
 };
 
-type MessageActionItemChannelLogUserMention = {
+type MemberChangeMessageUserMentionElement = {
     readonly kind: 'userMention';
     readonly accountID: number;
-} & MessageActionItemChannelLogBase;
+} & MemberChangeMessageElementBase;
 
-type MessageActionItemChannelLogRoomReference = {
+type MemberChangeMessageRoomReferenceElement = {
     readonly kind: 'roomReference';
     readonly roomName: string;
     readonly roomID: number;
-} & MessageActionItemChannelLogBase;
+} & MemberChangeMessageElementBase;
 
-type MessageActionItemChannelLog = MessageActionItemChannelLogText | MessageActionItemChannelLogUserMention | MessageActionItemChannelLogRoomReference;
+type MessageActionItemChannelLog = MemberChangeMessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -131,7 +131,7 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function isInvitedRoom(reportAction: OnyxEntry<ReportAction>) {
+function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 }
 
@@ -661,30 +661,30 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): MessageActionItemChannelLog[] {
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MessageActionItemChannelLog[] {
     const messageItems: MessageActionItemChannelLog[] = [];
-    const isInviteRoom = isInvitedRoom(reportAction);
+    const isInviteAction = isInviteMemberAction(reportAction);
 
-    const verb = isInviteRoom ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
+    const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
     messageItems.push({
         kind: 'text',
         content: `${verb} `,
     });
 
-    const originalMessage = reportAction?.originalMessage as CommonOriginalMessage;
+    const originalMessage = reportAction?.originalMessage as ChangeLogOriginalMessage;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
-    const mentions: MessageActionItemChannelLogUserMention[] = targetAccountIDs.map((accountID) => {
+    const mentions: MemberChangeMessageUserMentionElement[] = targetAccountIDs.map((accountID) => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
 
         if (personalDetail) {
             const displayNameOrLogin =
                 LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
-            return {content: `@${displayNameOrLogin}`, accountID} as MessageActionItemChannelLogUserMention;
+            return {content: `@${displayNameOrLogin}`, accountID} as MemberChangeMessageUserMentionElement;
         }
-        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MessageActionItemChannelLogUserMention;
+        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MemberChangeMessageUserMentionElement;
     });
 
     const lastMention = mentions.pop();
@@ -745,7 +745,7 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
 
     const roomName = originalMessage?.roomName;
     if (roomName) {
-        const preposition = isInviteRoom ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
+        const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
 
         if (originalMessage.reportID) {
             messageItems.push(
@@ -766,8 +766,8 @@ function getChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>): Messa
     return messageItems;
 }
 
-function getActionItemFragmentChannelLogFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageItems: MessageActionItemChannelLog[] = getChannelLogMemberAction(reportAction);
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageItems: MessageActionItemChannelLog[] = getMemberChangeMessageElements(reportAction);
     let html = '';
 
     messageItems.forEach((messageItem) => {
@@ -788,6 +788,18 @@ function getActionItemFragmentChannelLogFragment(reportAction: OnyxEntry<ReportA
         text: reportAction?.message ? reportAction?.message[0].text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
+}
+
+/**
+ * Return room channel log message
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+
+function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
+    const messageItems = getMemberChangeMessageElements(reportAction);
+    return messageItems.map((item) => item.content).join('');
 }
 
 /**
@@ -853,6 +865,6 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
-    getChannelLogMemberAction,
-    getActionItemFragmentChannelLogFragment,
+    getMemberChangeMessageFragment,
+    getMemberChangeMessagePlainText,
 };

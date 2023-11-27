@@ -4264,17 +4264,6 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
- * Return room channel log message
- *
- * @param {Object} reportAction
- * @returns {String}
- */
-function getChannelLogMemberMessagePlainText(reportAction) {
-    const messageItems = ReportActionsUtils.getChannelLogMemberAction(reportAction);
-    return _.map(messageItems, (item) => item.content).join('');
-}
-
-/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4337,7 +4326,6 @@ function shouldDisableWelcomeMessage(report, policy) {
 }
 
 export {
-    getChannelLogMemberMessagePlainText,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,

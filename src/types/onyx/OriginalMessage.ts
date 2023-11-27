@@ -144,7 +144,7 @@ type OriginalMessageReportPreview = {
     };
 };
 
-type CommonOriginalMessage = {
+type ChangeLogOriginalMessage = {
     targetAccountIDs?: number[];
     roomName?: string;
     reportID?: number;
@@ -152,12 +152,12 @@ type CommonOriginalMessage = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage?: CommonOriginalMessage;
+    originalMessage?: ChangeLogOriginalMessage;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage?: CommonOriginalMessage;
+    originalMessage?: ChangeLogOriginalMessage;
 };
 
 type OriginalMessagePolicyTask = {
@@ -196,4 +196,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, CommonOriginalMessage};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, ChangeLogOriginalMessage};
