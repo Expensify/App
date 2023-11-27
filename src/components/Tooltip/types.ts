@@ -1,5 +1,4 @@
-import {BoundsObserver} from '@react-ng/bounds-observer';
-import {ReactElement, ReactNode, RefObject} from 'react';
+import {ReactElement, ReactNode} from 'react';
 
 type TooltipProps = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
@@ -30,9 +29,6 @@ type TooltipProps = {
 
     /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll?: boolean;
-
-    /** Reference to the tooltip container */
-    tooltipRef?: RefObject<BoundsObserver> | null;
 };
 
 type TooltipExtendedProps = TooltipProps & {
