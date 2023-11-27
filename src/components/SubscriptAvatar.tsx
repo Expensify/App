@@ -30,14 +30,20 @@ type SubscriptAvatarProps = {
     /** Avatar URL or icon */
     mainAvatar?: SubAvatar;
 
-    /** Subscript avatar URL or icon */
-    secondaryAvatar?: SubAvatar;
-
     /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Background color used for subscript avatar border */
     backgroundColor?: string;
+
+    /** Subscript avatar URL or icon */
+    secondaryAvatar?: SubAvatar;
+
+    /** Override the size of subscript avatar */
+    secondaryAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+    /** Background color used for subscript avatar background */
+    secondaryAvatarBackgroundColor?: string;
 
     /** Removes margin from around the avatar, used for the chat view */
     noMargin?: boolean;
@@ -46,12 +52,21 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, secondaryAvatarSize, backgroundColor, secondaryAvatarBackgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
+    const isSubscriptSmall = secondaryAvatarSize === CONST.AVATAR_SIZE.SMALL || isSmall;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = StyleUtils.getContainerStyles(size);
+
+    const subscriptWrapperStyle = () => {
+        if (isSubscriptSmall && !isSmall) {
+            return styles.secondAvatarSubscriptCompactIconNormal;
+        }
+
+        return isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle
+    }
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
@@ -77,7 +92,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
                 icon={secondaryAvatar}
             >
                 <View
-                    style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                    style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptWrapperStyle()]}
                     // Hover on overflowed part of icon will not work on Electron if dragArea is true
                     // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                     dataSet={{dragArea: false}}
@@ -86,9 +101,11 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
                             StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
+                            StyleUtils.getBackgroundColorStyle(secondaryAvatarBackgroundColor ?? theme.componentBG),
                         ]}
+                        imageStyles={(isSubscriptSmall && !isSmall) ? [styles.secondAvatarSubscriptIconSmall] : []}
                         source={secondaryAvatar.source}
-                        size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                        size={isSubscriptSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                         fill={theme.iconSuccessFill}
                         name={secondaryAvatar.name}
                         type={secondaryAvatar.type}

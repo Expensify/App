@@ -2004,6 +2004,12 @@ const styles = (theme: ThemeColors) =>
             right: -1,
         },
 
+        secondAvatarSubscriptCompactIconNormal: {
+            position: 'absolute',
+            bottom: -2.5,
+            right: -2.5,
+        },
+
         secondAvatarSubscriptSmallNormal: {
             position: 'absolute',
             bottom: 0,
