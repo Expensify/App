@@ -19,6 +19,7 @@ import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -108,6 +109,15 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const showSearchPage = useCallback(() => {
+        if (isCreateMenuOpen) {
+            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SEARCH);
+    }, [isCreateMenuOpen]);
+
     /**
      * Show Report page with selected report id
      *
@@ -140,13 +150,13 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <SubscriptAvatar
                     mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                    subscriptIcon={{ source: Expensicons.DownArrow, size: CONST.AVATAR_SIZE.SMALL, width: 8, height: 8 }}
+                    subscriptIcon={{source: Expensicons.DownArrow, size: CONST.AVATAR_SIZE.SMALL, width: 8, height: 8}}
                     showTooltip={false}
                     noMargin
                 />
                 <Search
                     prompt={translate('sidebarScreen.buttonSearch')}
-                    onPress={() => alert('Roger that')}
+                    onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                 />
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
