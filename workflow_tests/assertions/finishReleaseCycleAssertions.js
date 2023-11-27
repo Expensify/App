@@ -1,7 +1,18 @@
 const utils = require('../utils/utils');
 
 const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false, isSuccessful = true) => {
-    const steps = [utils.createStepAssertion('Validate actor is deployer', true, null, 'VALIDATE', 'Validating if actor is deployer', [], [{key: 'GITHUB_TOKEN', value: '***'}])];
+    const steps = [
+        utils.createStepAssertion('Checkout', true, null, 'VALIDATE', 'Checkout', [
+            {key: 'ref', value: 'main'},
+            {key: 'token', value: '***'},
+        ]),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'VALIDATE', 'Setup git for OSBotify', [
+            {key: 'GPG_PASSPHRASE', value: '***'},
+            {key: 'OS_BOTIFY_APP_ID', value: '***'},
+            {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
+        ]),
+        utils.createStepAssertion('Validate actor is deployer', true, null, 'VALIDATE', 'Validating if actor is deployer', [], [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}]),
+    ];
     if (isTeamMember) {
         steps.push(
             utils.createStepAssertion(
@@ -11,7 +22,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
                 'VALIDATE',
                 'Checking for deploy blockers',
                 [
-                    {key: 'GITHUB_TOKEN', value: '***'},
+                    {key: 'GITHUB_TOKEN', value: 'os_botify_api_token'},
                     {key: 'ISSUE_NUMBER', value: issueNumber},
                 ],
                 [],
@@ -36,7 +47,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             'VALIDATE',
             'Reopening issue - not a team member',
             [
-                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'GITHUB_TOKEN', value: 'os_botify_api_token'},
                 {key: 'ISSUE_NUMBER', value: issueNumber},
                 {key: 'COMMENT', value: 'Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.\nReopening!'},
             ],
@@ -60,7 +71,7 @@ const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute 
             'VALIDATE',
             'Reopening issue - blockers',
             [
-                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'GITHUB_TOKEN', value: 'os_botify_api_token'},
                 {key: 'ISSUE_NUMBER', value: issueNumber},
             ],
             [],
@@ -102,7 +113,7 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, is
             ],
             [],
         ),
-        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
         utils.createStepAssertion('Update production branch', true, null, 'UPDATEPRODUCTION', 'Updating production branch', [], []),
     ];
 
@@ -153,7 +164,7 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
             ],
             [],
         ),
-        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATESTAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Setup git for OSBotify', true, null, 'UPDATESTAGING', 'Setup git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
         utils.createStepAssertion('Update staging branch to trigger staging deploy', true, null, 'UPDATESTAGING', 'Updating staging branch', [], []),
     ];
 
