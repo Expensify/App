@@ -1,3 +1,4 @@
+import * as useViolations from './useViolations';
 import * as ViolationsUtils from './ViolationsUtils';
 
-export default ViolationsUtils;
+export {useViolations, ViolationsUtils};

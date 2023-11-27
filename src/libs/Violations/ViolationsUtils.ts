@@ -2,14 +2,8 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
-import possibleViolationsByField, {ViolationField} from './possibleViolationsByField';
 
 const ViolationsUtils = {
-    getTranslatedViolationNameForField(field: ViolationField, transactionViolations: TransactionViolation[], translate: (key: string) => string): string {
-        const fieldViolations = transactionViolations.filter((violation) => possibleViolationsByField[field]?.includes(violation.name)).map((violation) => translate(violation.name));
-        return fieldViolations[0];
-    },
-
     getViolationsOnyxData(
         /** The transaction to check for policy violations. */
         transaction: Transaction,
