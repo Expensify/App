@@ -78,6 +78,7 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const isMobileChrome = Browser.isMobileChrome();
 
 function ReportActionItemMessageEdit(props) {
     const theme = useTheme();
@@ -86,6 +87,8 @@ function ReportActionItemMessageEdit(props) {
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const emojiPickerSelectionRef = useRef(undefined);
 
     const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
@@ -335,16 +338,15 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} emoji
      */
     const addEmojiToTextBox = (emoji) => {
-        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
+        let newSelection = {
+            start: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+        };
+        setSelection(newSelection);
 
-        // The logic below evades a problem occurring on mobile devices, where onSelectionChange fires with { start: 0, end: 0 } before runAfterInteractions's callback is invoked
-        const prevSelectionSnapshot = {...selection};
-        InteractionManager.runAfterInteractions(() => {
-            setSelection({
-                start: prevSelectionSnapshot.start + emoji.length + CONST.SPACE_LENGTH,
-                end: prevSelectionSnapshot.start + emoji.length + CONST.SPACE_LENGTH,
-            });
-        });
+        if (isMobileChrome) emojiPickerSelectionRef.current = newSelection; // immediately set the selection again on Chrome mobile after focusing the inputm which seems to change the cursor position for a brief moment
+
+        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
     /**
@@ -445,7 +447,12 @@ function ReportActionItemMessageEdit(props) {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
-                            onModalHide={() => focus(true)}
+                            onModalHide={() => {
+                                let emojiPickerSelection = emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined;
+                                emojiPickerSelectionRef.current = undefined;
+
+                                focus(true, emojiPickerSelection);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
