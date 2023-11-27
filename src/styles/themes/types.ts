@@ -91,8 +91,8 @@ type ThemeColors = {
 
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 
-    // Status bar and scroll bars need to adapt their theme based on the currently displayed user theme for good contrast
-    // Therefore, we need to define the
+    // Status bar and scroll bars need to adapt their theme based on the active user theme for good contrast
+    // Therefore, we need to define specific themes for these elements
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarContentTheme: ContentTheme;
     scrollBarTheme: ContentTheme;
