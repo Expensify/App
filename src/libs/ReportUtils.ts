@@ -1080,7 +1080,7 @@ function chatIncludesConcierge(report: OnyxEntry<Report>): boolean {
  * Returns true if there is any automated expensify account `in accountIDs
  */
 function hasAutomatedExpensifyAccountIDs(accountIDs: number[]): boolean {
-    return accountIDs.filter((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID)).length > 0;
+    return accountIDs.some((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
 }
 
 function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAccountID: number): number[] {
@@ -1701,10 +1701,10 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
  */
 
 function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails {
-    const report = getReport(transaction?.reportID);
     if (!transaction) {
         return;
     }
+    const report = getReport(transaction?.reportID);
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report)),
@@ -4136,7 +4136,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
 }
 
 function isReportDraft(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
+    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
