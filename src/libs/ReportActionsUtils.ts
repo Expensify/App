@@ -74,7 +74,7 @@ function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
-    return (reportAction?.message?.[0].isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -749,6 +749,26 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+/**
+ * Helper method to determine if the provided accountID has made a request on the specified report.
+ *
+ * @param reportID
+ * @param currentAccountID
+ * @returns
+ */
+function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    const reportActions = Object.values(getAllReportActions(reportID));
+    if (reportActions.length === 0) {
+        return false;
+    }
+
+    return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -792,6 +812,7 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     getRangeFromArrayByID,
     getSlicedRangeFromArrayByID,
+    hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
 };
