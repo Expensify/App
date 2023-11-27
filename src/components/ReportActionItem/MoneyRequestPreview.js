@@ -282,7 +282,7 @@ function MoneyRequestPreview(props) {
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
                                     {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {hasFieldErrors && (
+                                {!isSettled && hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
