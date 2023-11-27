@@ -66,6 +66,8 @@ function push(title, body, icon = '', data = {}, onClick = () => {}) {
             window.focus();
             focusApp();
             notificationCache[notificationID].close();
+        };
+        notificationCache[notificationID].onclose = () => {
             delete notificationCache[notificationID];
         };
     });
@@ -142,7 +144,6 @@ export default {
 
             if (shouldClearNotification(notification.data)) {
                 notification.close();
-                delete notificationCache[notificationID];
             }
         });
     },
