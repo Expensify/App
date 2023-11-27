@@ -117,7 +117,7 @@ function ContactMethodsPage(props) {
 
             return;
         }
-								
+
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
     };
 
