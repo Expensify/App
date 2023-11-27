@@ -68,7 +68,6 @@
     "@invertase/react-native-apple-authentication": "^2.2.2",
     "@kie/act-js": "^2.0.1",
     "@kie/mock-github": "^1.0.0",
-    "@lottiefiles/react-lottie-player": "^3.5.3",
     "@oguzhnatly/react-native-image-manipulator": "github:j-piasecki/react-native-image-manipulator#708ff95b64373a556d673cabe1c128b9771f0556",
     "@onfido/react-native-sdk": "git+https://github.com/j-piasecki/onfido-react-native-sdk.git#75d4bbf16cb6ebf0a025efc42b3e9638cf57cb28",
     "@react-native-async-storage/async-storage": "^1.19.5",
