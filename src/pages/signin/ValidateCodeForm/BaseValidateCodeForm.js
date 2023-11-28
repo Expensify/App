@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -58,6 +58,8 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
+    magicCodeTimeRemaining: PropTypes.number,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -73,12 +75,15 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultMagicCodeTimeRemaining = 30;
+
 const defaultProps = {
     account: {},
     credentials: {},
     session: {
         authToken: null,
     },
+    magicCodeTimeRemaining: defaultMagicCodeTimeRemaining,
 };
 
 function BaseValidateCodeForm(props) {
@@ -88,7 +93,7 @@ function BaseValidateCodeForm(props) {
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [timeRemaining, setTimeRemaining] = useState(30);
+    const [timeRemaining, setTimeRemaining] = useState(props.magicCodeTimeRemaining);
     const [recoveryCode, setRecoveryCode] = useState('');
 
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
@@ -150,6 +155,8 @@ function BaseValidateCodeForm(props) {
         if (timeRemaining > 0) {
             timerRef.current = setTimeout(() => {
                 setTimeRemaining(timeRemaining - 1);
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.set(ONYXKEYS.MAGIC_CODE_TIME_REMAINING, timeRemaining - 1);
             }, 1000);
         }
         return () => {
@@ -415,6 +422,7 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
+        magicCodeTimeRemaining: {key: ONYXKEYS.MAGIC_CODE_TIME_REMAINING},
     }),
     withNetwork(),
 )(BaseValidateCodeForm);

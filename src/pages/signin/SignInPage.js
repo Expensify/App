@@ -273,7 +273,6 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                         {shouldShowChooseSSOOrMagicCode && (
                             <ChooseSSOOrMagicCode
-                                isUsingMagicCode={isUsingMagicCode}
                                 setIsUsingMagicCode={setIsUsingMagicCode}
                                 isUsingRecoveryCode={isUsingRecoveryCode}
                                 setIsUsingRecoveryCode={setIsUsingRecoveryCode}
