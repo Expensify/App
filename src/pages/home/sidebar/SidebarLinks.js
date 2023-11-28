@@ -23,6 +23,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { PressableWithFeedback } from '@components/Pressable';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -148,12 +149,14 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 style={[styles.gap6, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                 dataSet={{dragArea: true}}
             >
-                <SubscriptAvatar
-                    mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                    subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
-                    showTooltip={false}
-                    noMargin
-                />
+                <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
+                    <SubscriptAvatar
+                        mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
+                        subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
+                        showTooltip={false}
+                        noMargin
+                    />
+                </PressableWithFeedback>
                 <Search
                     prompt={translate('sidebarScreen.buttonSearch')}
                     onPress={Session.checkIfActionIsAllowed(showSearchPage)}
