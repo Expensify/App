@@ -1,5 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -16,6 +14,7 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import useThemeStyles from '@styles/useThemeStyles';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
@@ -33,35 +32,25 @@ const SPRING_CONFIG = {
     damping: 500,
 };
 
-function clamp(value, lowerBound, upperBound) {
+function clamp(value: number, lowerBound: number, upperBound: number) {
     'worklet';
 
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-const imageTransformerPropTypes = {
-    imageWidth: PropTypes.number,
-    imageHeight: PropTypes.number,
-    imageScaleX: PropTypes.number,
-    imageScaleY: PropTypes.number,
-    scaledImageWidth: PropTypes.number,
-    scaledImageHeight: PropTypes.number,
-    isActive: PropTypes.bool.isRequired,
-    children: PropTypes.node.isRequired,
+type ImageTransformerProps = ChildrenProps & {
+    imageWidth?: number;
+    imageHeight?: number;
+    imageScaleX?: number;
+    imageScaleY?: number;
+    scaledImageWidth?: number;
+    scaledImageHeight?: number;
+    isActive: boolean;
 };
 
-const imageTransformerDefaultProps = {
-    imageWidth: 0,
-    imageHeight: 0,
-    imageScaleX: 1,
-    imageScaleY: 1,
-    scaledImageWidth: 0,
-    scaledImageHeight: 0,
-};
-
-function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
+function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScaleX = 1, imageScaleY = 1, scaledImageWidth = 0, scaledImageHeight = 0, isActive, children}: ImageTransformerProps) {
     const styles = useThemeStyles();
-    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
     const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
@@ -105,7 +94,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const pinchScaleOffset = useSharedValue(1);
 
     // disable pan vertically when image is smaller than screen
-    const canPanVertically = useDerivedValue(() => canvasHeight < zoomScaledImageHeight.value, [canvasHeight]);
+    const canPanVertically = useDerivedValue(() => (attachmentCarouselPagerContext?.canvasHeight ?? 0) < zoomScaledImageHeight.value, [attachmentCarouselPagerContext?.canvasHeight]);
 
     // calculates bounds of the scaled image
     // can we pan left/right/up/down
@@ -113,6 +102,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const getBounds = useWorkletCallback(() => {
         let rightBoundary = 0;
         let topBoundary = 0;
+        const canvasWidth = attachmentCarouselPagerContext?.canvasWidth ?? 0;
+        const canvasHeight = attachmentCarouselPagerContext?.canvasHeight ?? 0;
 
         if (canvasWidth < zoomScaledImageWidth.value) {
             rightBoundary = Math.abs(canvasWidth - zoomScaledImageWidth.value) / 2;
@@ -142,7 +133,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             canPanLeft: target.x < maxVector.x,
             canPanRight: target.x > minVector.x,
         };
-    }, [canvasWidth, canvasHeight]);
+    }, [attachmentCarouselPagerContext?.canvasWidth, attachmentCarouselPagerContext?.canvasHeight]);
 
     const afterPanGesture = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
@@ -205,11 +196,13 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     });
 
     const zoomToCoordinates = useWorkletCallback(
-        (canvasFocalX, canvasFocalY) => {
+        (canvasFocalX: number, canvasFocalY: number) => {
             'worklet';
 
             stopAnimation();
 
+            const canvasWidth = attachmentCarouselPagerContext?.canvasWidth ?? 0;
+            const canvasHeight = attachmentCarouselPagerContext?.canvasHeight ?? 0;
             const canvasOffsetX = Math.max(0, (canvasWidth - scaledImageWidth) / 2);
             const canvasOffsetY = Math.max(0, (canvasHeight - scaledImageHeight) / 2);
 
@@ -262,7 +255,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScaleOffset.value = doubleTapScale;
         },
-        [scaledImageWidth, scaledImageHeight, canvasWidth, canvasHeight],
+        [scaledImageWidth, scaledImageHeight, attachmentCarouselPagerContext?.canvasWidth, attachmentCarouselPagerContext?.canvasHeight],
     );
 
     const reset = useWorkletCallback((animated) => {
@@ -307,14 +300,14 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             stopAnimation();
         })
         .onFinalize((evt, success) => {
-            if (!success || !onTap) {
+            if (!success || !attachmentCarouselPagerContext?.onTap) {
                 return;
             }
 
-            runOnJS(onTap)();
+            runOnJS(attachmentCarouselPagerContext?.onTap)();
         });
 
-    const previousTouch = useSharedValue(null);
+    const previousTouch = useSharedValue<{x: number; y: number} | null>(null);
 
     const panGesture = Gesture.Pan()
         .manualActivation(true)
@@ -349,7 +342,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 };
             }
         })
-        .simultaneousWithExternalGesture(pagerRef, doubleTap, singleTap)
+        .simultaneousWithExternalGesture(attachmentCarouselPagerContext?.pagerRef ?? {current: undefined}, doubleTap, singleTap)
         .onBegin(() => {
             stopAnimation();
         })
@@ -357,7 +350,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             // since we running both pinch and pan gesture handlers simultaneously
             // we need to make sure that we don't pan when we pinch and move fingers
             // since we track it as pinch focal gesture
-            if (evt.numberOfPointers > 1 || isScrolling.value) {
+            if (evt.numberOfPointers > 1 || attachmentCarouselPagerContext?.isScrolling.value) {
                 return;
             }
 
@@ -376,7 +369,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         .onEnd((evt) => {
             previousTouch.value = null;
 
-            if (isScrolling.value) {
+            if (attachmentCarouselPagerContext?.isScrolling.value) {
                 return;
             }
 
@@ -390,7 +383,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
 
                 if (enoughVelocity && rightDirection) {
-                    const maybeInvert = (v) => {
+                    const maybeInvert = (v: number) => {
                         const invert = evt.velocityY < 0;
                         return invert ? -v : v;
                     };
@@ -407,7 +400,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                             velocity: Math.abs(evt.velocityY) < 1200 ? maybeInvert(1200) : evt.velocityY,
                         },
                         () => {
-                            runOnJS(onSwipeSuccess)();
+                            runOnJS(attachmentCarouselPagerContext?.onSwipeSuccess ?? (() => {}))();
                         },
                     );
                     return;
@@ -422,11 +415,11 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         .withRef(panGestureRef);
 
     const getAdjustedFocal = useWorkletCallback(
-        (focalX, focalY) => ({
-            x: focalX - (canvasWidth / 2 + offsetX.value),
-            y: focalY - (canvasHeight / 2 + offsetY.value),
+        (focalX: number, focalY: number) => ({
+            x: focalX - ((attachmentCarouselPagerContext?.canvasWidth ?? 0) / 2 + offsetX.value),
+            y: focalY - ((attachmentCarouselPagerContext?.canvasHeight ?? 0) / 2 + offsetY.value),
         }),
-        [canvasWidth, canvasHeight],
+        [attachmentCarouselPagerContext?.canvasWidth, attachmentCarouselPagerContext?.canvasHeight],
     );
 
     // used to store event scale value when we limit scale
@@ -435,7 +428,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
-            if (!isScrolling.value) {
+            if (!attachmentCarouselPagerContext?.isScrolling.value) {
                 return;
             }
 
@@ -502,19 +495,19 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         ([zoom, running]) => {
             const newIsPinchGestureInUse = zoom !== 1 || running;
             if (isPinchGestureInUse !== newIsPinchGestureInUse) {
-                runOnJS(setIsPinchGestureInUse)(newIsPinchGestureInUse);
+                runOnJS(setIsPinchGestureInUse)(!!newIsPinchGestureInUse);
             }
         },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
+    useEffect(() => attachmentCarouselPagerContext?.onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     const animatedStyles = useAnimatedStyle(() => {
         const x = pinchTranslateX.value + pinchBounceTranslateX.value + translateX.value + offsetX.value;
         const y = pinchTranslateY.value + pinchBounceTranslateY.value + translateY.value + offsetY.value;
 
         if (isSwiping.value) {
-            onSwipe(y);
+            attachmentCarouselPagerContext?.onSwipe(y);
         }
 
         return {
@@ -534,7 +527,10 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     useAnimatedReaction(
         () => zoomScale.value,
         () => {
-            shouldPagerScroll.value = zoomScale.value === 1;
+            if (!attachmentCarouselPagerContext) {
+                return;
+            }
+            attachmentCarouselPagerContext.shouldPagerScroll.value = zoomScale.value === 1;
         },
     );
 
@@ -556,7 +552,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             style={[
                 styles.flex1,
                 {
-                    width: canvasWidth,
+                    width: attachmentCarouselPagerContext?.canvasWidth,
                 },
             ]}
         >
@@ -573,8 +569,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         </View>
     );
 }
-ImageTransformer.propTypes = imageTransformerPropTypes;
-ImageTransformer.defaultProps = imageTransformerDefaultProps;
+
 ImageTransformer.displayName = 'ImageTransformer';
 
 export default ImageTransformer;

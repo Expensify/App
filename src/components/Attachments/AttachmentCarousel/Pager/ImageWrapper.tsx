@@ -1,14 +1,10 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Animated from 'react-native-reanimated';
 import useThemeStyles from '@styles/useThemeStyles';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const imageWrapperPropTypes = {
-    children: PropTypes.node.isRequired,
-};
-
-function ImageWrapper({children}) {
+function ImageWrapper({children}: ChildrenProps) {
     const styles = useThemeStyles();
     return (
         <Animated.View
@@ -20,7 +16,6 @@ function ImageWrapper({children}) {
     );
 }
 
-ImageWrapper.propTypes = imageWrapperPropTypes;
 ImageWrapper.displayName = 'ImageWrapper';
 
 export default ImageWrapper;
