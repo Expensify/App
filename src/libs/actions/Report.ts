@@ -28,7 +28,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, ReportActionReactions} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -36,12 +36,12 @@ import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/Emp
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
-let currentUserAccountID: number | undefined;
+let currentUserAccountID: number;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (!val) {
+        if (!val?.accountID) {
             return;
         }
 
@@ -49,7 +49,7 @@ Onyx.connect({
     },
 });
 
-let preferredSkinTone: string | number;
+let preferredSkinTone: number;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
@@ -713,9 +713,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
         openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])].filter(
-            (accountID): accountID is number => typeof accountID === 'number',
-        );
+        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
@@ -1012,22 +1010,18 @@ function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const typingStatus: Record<number, boolean> = currentUserAccountID
-        ? {
-              [currentUserAccountID]: true,
-          }
-        : {};
+    const typingStatus: Record<number, boolean> = {
+        [currentUserAccountID]: true,
+    };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
 /** Broadcasts to the report's private pusher channel whether a user is leaving a report */
 function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const leavingStatus: Record<number, boolean> = currentUserAccountID
-        ? {
-              [currentUserAccountID]: true,
-          }
-        : {};
+    const leavingStatus: Record<number, boolean> = {
+        [currentUserAccountID]: true,
+    };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
@@ -1430,9 +1424,7 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false, parentReportID, parentReportActionID);
         }
     } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])].filter(
-            (accountID): accountID is number => typeof accountID === 'number',
-        );
+        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
         const parentReport = allReports?.[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
@@ -1555,10 +1547,6 @@ function addPolicyReport(
     writeCapability: WriteCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
     welcomeMessage = '',
 ) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
     const participants = [currentUserAccountID];
     const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
     const policyReport = ReportUtils.buildOptimisticChatReport(
@@ -1857,10 +1845,6 @@ function clearIOUError(reportID: string) {
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
     const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1933,10 +1917,6 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1973,11 +1953,22 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function toggleEmojiReaction(reportID: string, reportAction: ReportAction, reactionObject: {code: string}, existingReactions: string, paramSkinTone: number = preferredSkinTone) {
+function toggleEmojiReaction(
+    reportID: string,
+    reportAction: ReportAction,
+    reactionObject: Emoji,
+    existingReactions: OnyxCollection<ReportActionReactions>,
+    paramSkinTone: number = preferredSkinTone,
+) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+
+    if (!originalReportID) {
+        return;
+    }
+
     const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
 
-    if (_.isEmpty(originalReportAction)) {
+    if (isEmptyObject(originalReportAction)) {
         return;
     }
 
@@ -1989,7 +1980,7 @@ function toggleEmojiReaction(reportID: string, reportAction: ReportAction, react
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject?.users, skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
@@ -2032,14 +2023,17 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
     });
 }
 
-function getCurrentUserAccountID(): number | undefined {
+function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = allReports?.[reportID] ?? {};
-    const reportKeys = _.keys(report);
+    const report = allReports?.[reportID];
+
+    if (!report) {
+        return;
+    }
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
@@ -2048,152 +2042,173 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
-    const optimisticData = [
-        isWorkspaceMemberLeavingWorkspaceRoom
-            ? {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
-                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
-                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                      statusNum: CONST.REPORT.STATUS.CLOSED,
-                  },
-              },
-    ];
-
-    const successData = [
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN} : _.object(reportKeys, Array(reportKeys.length).fill(null)),
+            value: report,
         },
     ];
 
-    API.write(
-        'LeaveRoom',
-        {
-            reportID,
-        },
-        {
-            optimisticData,
-            successData,
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: report,
-                },
-            ],
-        },
-    );
+    if (isWorkspaceMemberLeavingWorkspaceRoom) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+        });
+    } else {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                acc[key] = null;
+                return acc;
+            }, {}),
+        });
+    }
+
+    type LeaveRoomParameters = {
+        reportID: string;
+    };
+
+    const parameters: LeaveRoomParameters = {
+        reportID,
+    };
+
+    API.write('LeaveRoom', parameters, {optimisticData, successData, failureData});
 
     if (isWorkspaceMemberLeavingWorkspaceRoom) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+        if (chat?.reportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+        }
     }
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
-    const report = allReports?.[reportID] ?? {};
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+    const report = allReports?.[reportID];
 
-    const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
-    const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
+    if (!report) {
+        return;
+    }
 
-    const {participantAccountIDs} = report;
-    const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
+    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
+    const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
 
-    API.write(
-        'InviteToRoom',
-        {
-            reportID,
-            inviteeEmails,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        participantAccountIDs: participantAccountIDsAfterInvitation,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        participantAccountIDs,
-                    },
-                },
-            ],
-        },
+    const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
+        (accountID): accountID is number => typeof accountID === 'number',
     );
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: participantAccountIDsAfterInvitation,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: report.participantAccountIDs,
+            },
+        },
+    ];
+
+    type InviteToRoomParameters = {
+        reportID: string;
+        inviteeEmails: string[];
+    };
+
+    const parameters: InviteToRoomParameters = {
+        reportID,
+        inviteeEmails,
+    };
+
+    API.write('InviteToRoom', parameters, {optimisticData, failureData});
 }
 
 /** Removes people from a room */
-function removeFromRoom(reportID, targetAccountIDs) {
-    const report = allReports?.[reportID] ?? {};
+function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
+    const report = allReports?.[reportID];
 
-    const {participantAccountIDs} = report;
-    const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
+    const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
 
-    API.write(
-        'RemoveFromRoom',
+    const optimisticData: OnyxUpdate[] = [
         {
-            reportID,
-            targetAccountIDs,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: participantAccountIDsAfterRemoval,
+            },
         },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        participantAccountIDs: participantAccountIDsAfterRemoval,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        participantAccountIDs,
-                    },
-                },
-            ],
+    ];
 
-            // We need to add success data here since in high latency situations,
-            // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        participantAccountIDs: participantAccountIDsAfterRemoval,
-                    },
-                },
-            ],
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: report?.participantAccountIDs,
+            },
         },
-    );
+    ];
+
+    // We need to add success data here since in high latency situations,
+    // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: participantAccountIDsAfterRemoval,
+            },
+        },
+    ];
+
+    type RemoveFromRoomParameters = {
+        reportID: string;
+        targetAccountIDs: number[];
+    };
+
+    const parameters: RemoveFromRoomParameters = {
+        reportID,
+        targetAccountIDs,
+    };
+
+    API.write('RemoveFromRoom', parameters, {optimisticData, failureData, successData});
 }
 
-function setLastOpenedPublicRoom(reportID) {
+function setLastOpenedPublicRoom(reportID: string) {
     Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
 }
 
-/**
- * Navigates to the last opened public room
- */
+/** Navigates to the last opened public room */
 function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
     Navigation.isNavigationReady().then(() => {
         setLastOpenedPublicRoom('');
@@ -2201,9 +2216,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
     });
 }
 
-/**
- * Flag a comment as offensive
- */
+/** Flag a comment as offensive */
 function flagComment(reportID: string, reportAction: ReportAction, severity: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction?.message?.[0];
@@ -2276,7 +2289,13 @@ function flagComment(reportID: string, reportAction: ReportAction, severity: str
         },
     ];
 
-    const parameters = {
+    type FlagCommentParameters = {
+        severity: string;
+        reportActionID: string;
+        isDevRequest: boolean;
+    };
+
+    const parameters: FlagCommentParameters = {
         severity,
         reportActionID,
         // This check is to prevent flooding Concierge with test flags
@@ -2287,9 +2306,7 @@ function flagComment(reportID: string, reportAction: ReportAction, severity: str
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Updates a given user's private notes on a report
- */
+/** Updates a given user's private notes on a report */
 const updatePrivateNotes = (reportID: string, accountID: number, note: string) => {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2336,12 +2353,17 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
         },
     ];
 
-    API.write('UpdateReportPrivateNote', {reportID, privateNotes: note}, {optimisticData, successData, failureData});
+    type UpdateReportPrivateNoteParameters = {
+        reportID: string;
+        privateNotes: string;
+    };
+
+    const parameters: UpdateReportPrivateNoteParameters = {reportID, privateNotes: note};
+
+    API.write('UpdateReportPrivateNote', parameters, {optimisticData, successData, failureData});
 };
 
-/**
- * Fetches all the private notes for a given report
- */
+/** Fetches all the private notes for a given report */
 function getReportPrivateNote(reportID: string) {
     if (!reportID) {
         return;
@@ -2377,18 +2399,24 @@ function getReportPrivateNote(reportID: string) {
         },
     ];
 
-    API.read('GetReportPrivateNote', {reportID}, {optimisticData, successData, failureData});
+    type GetReportPrivateNoteParameters = {
+        reportID: string;
+    };
+
+    const parameters: GetReportPrivateNoteParameters = {reportID};
+
+    API.read('GetReportPrivateNote', parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Loads necessary data for rendering the RoomMembersPage
- *
- * @param reportID
- */
-function openRoomMembersPage(reportID) {
-    API.read('OpenRoomMembersPage', {
-        reportID,
-    });
+/** Loads necessary data for rendering the RoomMembersPage */
+function openRoomMembersPage(reportID: string) {
+    type OpenRoomMembersPageParameters = {
+        reportID: string;
+    };
+
+    const parameters: OpenRoomMembersPageParameters = {reportID};
+
+    API.read('OpenRoomMembersPage', parameters);
 }
 
 /**
@@ -2401,15 +2429,13 @@ function hasErrorInPrivateNotes(report: Report): boolean {
     return Object.values(privateNotes).some((privateNote) => !isEmpty(privateNote.errors));
 }
 
-/**
- * Clears all errors associated with a given private note
- */
+/** Clears all errors associated with a given private note */
 function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-function getDraftPrivateNote(reportID: string) {
-    return draftNoteMap[reportID] ?? '';
+function getDraftPrivateNote(reportID: string): string {
+    return draftNoteMap?.[reportID] ?? '';
 }
 
 /**
@@ -2420,49 +2446,41 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-/**
- * @private
- * @param searchInput
- */
-function searchForReports(searchInput) {
+function searchForReports(searchInput: string) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isNetworkOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
-    API.read(
-        'SearchForReports',
-        {searchInput},
+    const successData: OnyxUpdate[] = [
         {
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                    value: false,
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                    value: false,
-                },
-            ],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            value: false,
         },
-    );
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            value: false,
+        },
+    ];
+
+    type SearchForReportsParameters = {
+        searchInput: string;
+    };
+
+    const parameters: SearchForReportsParameters = {searchInput};
+
+    API.read('SearchForReports', parameters, {successData, failureData});
 }
 
-/**
- * @private
- * @param {string} searchInput
- */
 const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
 
-/**
- * @param searchInput
- */
-function searchInServer(searchInput) {
+function searchInServer(searchInput: string) {
     if (isNetworkOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;

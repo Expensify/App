@@ -70,7 +70,7 @@ type DecisionName = ValueOf<
 >;
 type Decision = {
     decision: DecisionName;
-    timestamp: string;
+    timestamp?: string;
 };
 
 type User = {

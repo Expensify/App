@@ -2,7 +2,7 @@ import BrowserNotifications from './BrowserNotifications';
 
 /**
  * @param {Object} options
- * @param {Object} options.report
+ * @param {Object|null|undefined} options.report
  * @param {Object} options.reportAction
  * @param {Function} options.onClick
  */
@@ -16,7 +16,7 @@ function showUpdateAvailableNotification() {
 
 /**
  * @param {Object} options
- * @param {Object} options.report
+ * @param {Object|null|undefined} options.report
  * @param {Object} options.reportAction
  * @param {Function} options.onClick
  */

@@ -7,6 +7,12 @@ type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENC
 
 type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
+type Note = {
+    note: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -143,7 +149,7 @@ type Report = {
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
-    privateNotes?: Record<number, {errors?: OnyxCommon.Errors}>;
+    privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
 };
 
