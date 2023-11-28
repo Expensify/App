@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionName} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -72,7 +73,10 @@ function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
     return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+    if (isEmptyObject(reportAction)) {
+        return false;
+    }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -151,14 +155,14 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, shouldMarkTheFirstItem = false): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions?.filter(Boolean).sort((first, second) => {
+    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -178,6 +182,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    // Mark the first item if shouldMarkTheFirstItem is true
+    if (shouldMarkTheFirstItem && sortedActions?.length > 0) {
+        sortedActions[0] = {
+            ...sortedActions[0],
+            isNewestReportAction: true,
+        };
+    }
+
+    return sortedActions;
 }
 
 /**
@@ -444,7 +458,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null): 
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(baseURLAdjustedReportActions, true, true);
 }
 
 /**
@@ -695,3 +709,5 @@ export {
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
 };
+
+export type {LastVisibleMessage};
