@@ -82,7 +82,7 @@ function GetPhysicalCardConfirm({
             submitButtonText={translate('getPhysicalCard.shipCard')}
             title={translate('getPhysicalCard.header')}
         >
-            <Text style={[styles.baseFontStyle, styles.mv5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
+            <Text style={[styles.baseFontStyle, styles.mb5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.legalName')}
                 iconRight={Expensicons.ArrowRight}

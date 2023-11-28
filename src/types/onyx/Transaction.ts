@@ -71,7 +71,7 @@ type Transaction = {
     // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
     participantsAutoAssigned?: boolean;
     pendingAction: OnyxCommon.PendingAction;
-    receipt: Receipt;
+    receipt?: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;

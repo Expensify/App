@@ -8,10 +8,8 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PendingMapView from '@components/MapView/PendingMapView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -57,7 +55,6 @@ const defaultProps = {
 function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const numberOfWaypoints = _.size(waypoints);
@@ -114,28 +111,20 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                 </View>
             )}
             <View style={styles.mapViewContainer}>
-                {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <DistanceMapView
-                        accessToken={mapboxAccessToken.token}
-                        mapPadding={CONST.MAPBOX.PADDING}
-                        pitchEnabled={false}
-                        initialState={{
-                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
-                        }}
-                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={[styles.mapView, styles.mapEditView]}
-                        waypoints={waypointMarkers}
-                        styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.mapEditView}
-                    />
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
-                    />
-                )}
+                <DistanceMapView
+                    accessToken={mapboxAccessToken.token}
+                    mapPadding={CONST.MAPBOX.PADDING}
+                    pitchEnabled={false}
+                    initialState={{
+                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                    }}
+                    directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                    style={[styles.mapView, styles.mapEditView]}
+                    waypoints={waypointMarkers}
+                    styleURL={CONST.MAPBOX.STYLE_URL}
+                    overlayStyle={styles.mapEditView}
+                />
             </View>
         </>
     );
