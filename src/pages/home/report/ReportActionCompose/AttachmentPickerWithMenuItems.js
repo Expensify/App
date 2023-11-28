@@ -13,8 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
@@ -309,4 +307,4 @@ AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
 
-export default compose(withNavigationFocus)(AttachmentPickerWithMenuItems);
+export default withNavigationFocus(AttachmentPickerWithMenuItems);
