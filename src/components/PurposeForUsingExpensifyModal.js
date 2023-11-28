@@ -21,6 +21,8 @@ import IllustratedHeaderPageLayout from "@components/IllustratedHeaderPageLayout
 import SCREENS from "@src/SCREENS";
 import LottieAnimations from "@components/LottieAnimations";
 import useTheme from '@styles/themes/useTheme';
+import Text from "@components/Text";
+import {View} from "react-native";
 
 const propTypes = {
 
@@ -94,10 +96,15 @@ function PurposeForUsingExpensifyModal() {
                 shouldShowBackButton={false}
                 onCloseButtonPress={() => setIsModalOpen(false)}
             >
-                <Header
-                    title={translate('purposeForExpensify.welcomeMessage')}
-                    subtitle={translate('purposeForExpensify.welcomeSubtitle')}
-                />
+                <View style={[styles.w100, styles.ph5, styles.pb5]}>
+                    <Text
+                        style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                        numberOfLines={2}
+                    >
+                        {translate('purposeForExpensify.welcomeMessage')}
+                    </Text>
+                    <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                </View>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution
