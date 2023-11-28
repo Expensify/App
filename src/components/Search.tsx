@@ -1,12 +1,12 @@
 import React from 'react';
-import {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {PressableWithoutFeedback} from './Pressable';
+import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
@@ -30,24 +30,27 @@ function Search({onPress, prompt, tooltip, style}: SearchProps) {
 
     return (
         <Tooltip text={tooltip ?? translate('common.search')}>
-            <PressableWithoutFeedback
+            <PressableWithFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonSearchLabel')}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchPressableContainer, style]}
                 onPress={onPress}
             >
-                <Icon
-                    src={Expensicons.MagnifyingGlass}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                />
-                <Text
-                    style={styles.searchInputStyle}
-                    numberOfLines={1}
-                >
-                    {prompt}
-                </Text>
-            </PressableWithoutFeedback>
+                {({hovered}) => (
+                    <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchContainer, hovered && styles.searchContainerHovered, style]}>
+                        <Icon
+                            src={Expensicons.MagnifyingGlass}
+                            width={ variables.iconSizeSmall }
+                            height={variables.iconSizeSmall}
+                        />
+                        <Text
+                            style={styles.searchInputStyle}
+                            numberOfLines={1}
+                        >
+                            {prompt}
+                        </Text>
+                    </View>
+                )}
+            </PressableWithFeedback>
         </Tooltip>
     );
 }

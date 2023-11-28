@@ -3016,12 +3016,16 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchPressableContainer: {
-            backgroundColor: colors.darkHighlightBackground,
+        searchContainer: {
+            backgroundColor: theme.highlightBG,
             borderRadius: 999,
             height: 40,
             minHeight: 40,
             maxHeight: 40,
+        },
+
+        searchContainerHovered: {
+            backgroundColor: theme.border,
         },
 
         searchInputStyle: {
