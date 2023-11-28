@@ -281,7 +281,7 @@ export default [
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
+                } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (content) {

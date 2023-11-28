@@ -41,7 +41,7 @@ function ReportActionItemMessage(props) {
     const styles = useThemeStyles();
     const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
-    if (ReportActionsUtils.isChannelLogMemberAction(props.action)) {
+    if (ReportActionsUtils.isMemberChangeAction(props.action)) {
         const fragment = ReportActionsUtils.getMemberChangeMessageFragment(props.action);
 
         return (

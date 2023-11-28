@@ -126,7 +126,7 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
-function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
     return (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
@@ -680,15 +680,15 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
-    const mentions: MemberChangeMessageUserMentionElement[] = targetAccountIDs.map((accountID) => {
+    const mentions = targetAccountIDs.map((accountID) => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
 
         if (personalDetail) {
             const displayNameOrLogin =
                 LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
-            return {content: `@${displayNameOrLogin}`, accountID} as MemberChangeMessageUserMentionElement;
+            return {content: `@${displayNameOrLogin}`, accountID};
         }
-        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID} as MemberChangeMessageUserMentionElement;
+        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID};
     });
 
     const lastMention = mentions.pop();
@@ -868,7 +868,7 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
-    isChannelLogMemberAction,
+    isMemberChangeAction,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
 };
