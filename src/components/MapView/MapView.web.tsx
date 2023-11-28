@@ -76,7 +76,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
                     },
                 );
-            }, [cachedUserLocation, isOffline, initialState.location])
+            }, [cachedUserLocation, isOffline, initialState.location]),
         );
 
         // Determines if map can be panned to user's detected
