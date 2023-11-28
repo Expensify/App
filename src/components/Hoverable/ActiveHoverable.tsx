@@ -100,20 +100,23 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
 
     const child = useMemo(() => (typeof children === 'function' ? children(!isScrolling.current && isHovered) : children), [children, isHovered]);
 
+    const childOnMouseEnter = child.props.onMouseEnter;
+    const childOnMouseLeave = child.props.onMouseLeave;
+
     const onMouseEnter = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(true);
-            child.props.onMouseEnter?.(e);
+            childOnMouseEnter?.(e);
         },
-        [updateIsHovered, child.props],
+        [updateIsHovered, childOnMouseEnter],
     );
 
     const onMouseLeave = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(false);
-            child.props.onMouseLeave?.(e);
+            childOnMouseLeave?.(e);
         },
-        [updateIsHovered, child.props],
+        [updateIsHovered, childOnMouseLeave],
     );
 
     const disableHoveredOnBlur = useCallback(
