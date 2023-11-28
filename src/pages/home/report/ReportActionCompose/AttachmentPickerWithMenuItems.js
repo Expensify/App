@@ -163,10 +163,10 @@ function AttachmentPickerWithMenuItems({
         ];
     }, [report, reportID, translate]);
 
-    const onPopoverMenuClose = useCallback(() => {
+    const onPopoverMenuClose = () => {
         setMenuVisibility(false);
         onMenuClosed();
-    }, [onMenuClosed, setMenuVisibility]);
+    };
 
     const prevIsFocused = usePrevious(isFocused);
 
