@@ -1,10 +1,6 @@
-/**
- * @module TransactionViolation
- * @description Transaction Violation
- */
 
 /**
- * Names of the various Transaction Violation types
+ * Names of transaction violations
  */
 type ViolationName =
     | 'allTagLevelsRequired'
@@ -47,5 +43,6 @@ type TransactionViolation = {
     userMessage: string;
     data?: Record<string, string>;
 };
+
 
 export type {TransactionViolation, ViolationName};

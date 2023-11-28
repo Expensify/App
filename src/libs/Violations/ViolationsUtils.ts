@@ -2,7 +2,6 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
-
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction violations.
@@ -22,8 +21,8 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
-            const hasCategoryViolation = transactionViolations.some((violation) => Boolean(violation.name === 'categoryOutOfPolicy'));
-            const hasMissingCategoryViolation = transactionViolations.some((violation) => Boolean(violation.name === 'missingCategory'));
+            const hasCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'categoryOutOfPolicy')));
+            const hasMissingCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'missingCategory')));
 
             const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
 
@@ -42,16 +41,17 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
-            // add missingCategory violation if category is required and not set
+            // Add missingCategory violation if category is required and not set
             if (!hasMissingCategoryViolation && isCategoryInPolicy && !transaction.category) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
 
         if (policyRequiresTags) {
+            const hasTagViolation = Boolean(transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy'));
+            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+          
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            const hasTagViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
-            const isTagInPolicy = policyTags[transaction.tag]?.enabled;
             if (!hasTagViolation && transaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
             }
