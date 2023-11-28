@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useTheme from '@styles/themes/useTheme';
@@ -8,42 +7,38 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
-const propTypes = {
+type RadioButtonProps = {
     /** Whether radioButton is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: boolean;
 
     /** A function that is called when the box/label is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: () => void;
 
     /** Specifies the accessibility label for the radio button */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: string;
 
     /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
+    hasError?: boolean;
 
     /** Should the input be disabled  */
-    disabled: PropTypes.bool,
+    disabled?: boolean;
 };
 
-const defaultProps = {
-    hasError: false,
-    disabled: false,
-};
-
-function RadioButton(props) {
+function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
     return (
         <PressableWithFeedback
-            disabled={props.disabled}
-            onPress={props.onPress}
+            disabled={disabled}
+            onPress={onPress}
             hoverDimmingValue={1}
             pressDimmingValue={1}
-            accessibilityLabel={props.accessibilityLabel}
+            accessibilityLabel={accessibilityLabel}
             role={CONST.ACCESSIBILITY_ROLE.RADIO}
         >
-            <View style={[styles.radioButtonContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
-                {props.isChecked && (
+            <View style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}>
+                {isChecked && (
                     <Icon
                         src={Expensicons.Checkmark}
                         fill={theme.checkBox}
@@ -56,8 +51,6 @@ function RadioButton(props) {
     );
 }
 
-RadioButton.propTypes = propTypes;
-RadioButton.defaultProps = defaultProps;
 RadioButton.displayName = 'RadioButton';
 
 export default RadioButton;

@@ -2813,6 +2813,7 @@ const CONST = {
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
             REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
@@ -2828,6 +2829,12 @@ const CONST = {
     },
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
 
     /**
      * Performance test setup - run the same test multiple times to get a more accurate result
