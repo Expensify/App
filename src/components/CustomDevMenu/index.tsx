@@ -1,3 +1,4 @@
+import React from 'react';
 import CustomDevMenuElement from './types';
 
 const CustomDevMenu: CustomDevMenuElement = Object.assign(() => <></>, {displayName: 'CustomDevMenu'});
