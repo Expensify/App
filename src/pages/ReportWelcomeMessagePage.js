@@ -23,6 +23,8 @@ import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import reportPropTypes from './reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -86,7 +88,7 @@ function ReportWelcomeMessagePage(props) {
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
@@ -95,7 +97,8 @@ function ReportWelcomeMessagePage(props) {
                 >
                     <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
@@ -116,7 +119,7 @@ function ReportWelcomeMessagePage(props) {
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
