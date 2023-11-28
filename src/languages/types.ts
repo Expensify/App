@@ -111,17 +111,17 @@ type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: number};
 
-type PayerOwesAmountParams = {payer: string; amount: number};
+type PayerOwesAmountParams = {payer: string; amount: number | string};
 
 type PayerOwesParams = {payer: string};
 
-type PayerPaidAmountParams = {payer: string; amount: number};
+type PayerPaidAmountParams = {payer: string; amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
 type PayerPaidParams = {payer: string};
 
-type PayerSettledParams = {amount: number};
+type PayerSettledParams = {amount: number | string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
