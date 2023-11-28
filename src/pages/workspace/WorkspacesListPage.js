@@ -114,7 +114,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {Number} the user wallet balance
+     * @returns {String|undefined} the user's wallet balance
      */
     function getWalletBalance(isPaymentItem) {
         return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;

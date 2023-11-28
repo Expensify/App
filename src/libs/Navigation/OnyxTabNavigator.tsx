@@ -1,31 +1,33 @@
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import PropTypes from 'prop-types';
+import {createMaterialTopTabNavigator, MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const propTypes = {
-    /** ID of the tab component to be saved in onyx */
-    id: PropTypes.string.isRequired,
-
-    /** Name of the selected tab */
-    selectedTab: PropTypes.string,
-
-    /** Children nodes */
-    children: PropTypes.node.isRequired,
+type OnyxTabNavigatorOnyxProps = {
+    selectedTab: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    selectedTab: '',
-};
+type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
+    ChildrenProps & {
+        /** ID of the tab component to be saved in onyx */
+        id: string;
+
+        /** Name of the selected tab */
+        selectedTab?: string;
+
+        screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
+    };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
 export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
+function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...rest}: OnyxTabNavigatorProps) {
     return (
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -35,13 +37,14 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
             backBehavior="initialRoute"
             keyboardDismissMode="none"
             screenListeners={{
-                state: (event) => {
+                state: (e) => {
+                    const event = e as unknown as EventMapCore<NavigationState>['state'];
                     const state = event.data.state;
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);
                 },
-                ...(rest.screenListeners || {}),
+                ...(screenListeners ?? {}),
             }}
         >
             {children}
@@ -49,11 +52,9 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
     );
 }
 
-OnyxTabNavigator.defaultProps = defaultProps;
-OnyxTabNavigator.propTypes = propTypes;
 OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
-export default withOnyx({
+export default withOnyx<OnyxTabNavigatorProps, OnyxTabNavigatorOnyxProps>({
     selectedTab: {
         key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },

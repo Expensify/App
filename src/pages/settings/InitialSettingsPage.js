@@ -281,9 +281,9 @@ function InitialSettingsPage(props) {
     const getMenuItems = useMemo(() => {
         /**
          * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-         * @returns {Number} the user wallet balance
+         * @returns {String|undefined} the user's wallet balance
          */
-        const getWalletBalance = (isPaymentItem) => isPaymentItem && CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
+        const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
         return (
             <>

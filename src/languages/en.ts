@@ -1952,7 +1952,7 @@ export default {
             buttonText1: 'Request money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Request money from a new Expensify account. Get  $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+            body1: `Request money from a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Send money, ',

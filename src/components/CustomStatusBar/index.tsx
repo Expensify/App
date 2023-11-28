@@ -1,4 +1,5 @@
 import {EventListenerCallback, NavigationContainerEventMap} from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
@@ -9,7 +10,18 @@ type CustomStatusBarProps = {
     isNested: boolean;
 };
 
-function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactElement | null {
+const propTypes = {
+    isNested: PropTypes.bool,
+};
+
+type CustomStatusBarType = {
+    (props: CustomStatusBarProps): React.ReactNode;
+    displayName: string;
+    propTypes: typeof propTypes;
+};
+
+// eslint-disable-next-line react/function-component-definition
+const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
 
@@ -63,8 +75,9 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
     }
 
     return <StatusBar />;
-}
+};
 
 CustomStatusBar.displayName = 'CustomStatusBar';
+CustomStatusBar.propTypes = propTypes;
 
 export default CustomStatusBar;

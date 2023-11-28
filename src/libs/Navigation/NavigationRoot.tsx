@@ -1,5 +1,4 @@
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
-import PropTypes from 'prop-types';
+import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
@@ -10,19 +9,18 @@ import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
-const propTypes = {
+type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
-    authenticated: PropTypes.bool.isRequired,
+    authenticated: boolean;
 
     /** Fired when react-navigation is ready */
-    onReady: PropTypes.func.isRequired,
+    onReady: () => void;
 };
 
 /**
  * Intercept navigation state changes and log it
- * @param {NavigationState} state
  */
-function parseAndLogRoute(state) {
+function parseAndLogRoute(state: NavigationState) {
     if (!state) {
         return;
     }
@@ -39,12 +37,12 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-function NavigationRoot(props) {
+function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
 
-    const {updateCurrentReportID} = useCurrentReportID();
+    const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -62,21 +60,21 @@ function NavigationRoot(props) {
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        if (!navigationRef.isReady() || !props.authenticated) {
+        if (!navigationRef.isReady() || !authenticated) {
             return;
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, props.authenticated]);
+    }, [isSmallScreenWidth, authenticated]);
 
-    const handleStateChange = (state) => {
+    const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
         }
 
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
-            updateCurrentReportID(state);
+            currentReportIDValue?.updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
     };
@@ -96,7 +94,7 @@ function NavigationRoot(props) {
     return (
         <NavigationContainer
             onStateChange={handleStateChange}
-            onReady={props.onReady}
+            onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
@@ -104,11 +102,11 @@ function NavigationRoot(props) {
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={props.authenticated} />
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }
 
 NavigationRoot.displayName = 'NavigationRoot';
-NavigationRoot.propTypes = propTypes;
+
 export default NavigationRoot;
