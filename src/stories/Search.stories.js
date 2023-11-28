@@ -35,7 +35,7 @@ const CustomBackground = Template.bind({});
 CustomBackground.args = {
     prompt: 'Search...',
     onPress: () => alert('This component has custom styles applied'),
-    style: {backgroundColor: '#07271F'},
+    style: {backgroundColor: 'darkgreen'},
 };
 
 export default story;
