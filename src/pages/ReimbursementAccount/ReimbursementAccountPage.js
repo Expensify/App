@@ -443,7 +443,7 @@ class ReimbursementAccountPage extends React.Component {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
 
-                    <View style={[this.props.themeStyles.m5, this.props.themeStyles.flex1]}>
+                    <View style={[this.props.themeStyles.m5, this.props.themeStyles.mv3, this.props.themeStyles.flex1]}>
                         <Text>{errorText}</Text>
                     </View>
                 </ScreenWrapper>
