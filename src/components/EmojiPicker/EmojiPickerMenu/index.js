@@ -464,7 +464,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles.emojiHeaderContainer, styles.textLabelSupporting, translate, onEmojiSelected],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
