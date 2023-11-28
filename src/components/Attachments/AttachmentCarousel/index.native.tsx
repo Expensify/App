@@ -9,12 +9,13 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem, {Attachment} from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
-import AttachmentCarouselProps, {AttachmentCarouselOnyxProps} from './types';
+import AttachmentCarouselProps, {AttachmentCarouselOnyxProps, TransactionAttachmentCarouselOnyxProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel(props: AttachmentCarouselProps) {
@@ -146,8 +147,8 @@ function AttachmentCarousel(props: AttachmentCarouselProps) {
                             renderItem={renderItem}
                             initialIndex={page}
                             onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                            onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                setIsPinchGestureRunning(newIsPinchGestureRunning);
+                            onPinchGestureChange={(newIsPinchGestureRunning?: boolean) => {
+                                setIsPinchGestureRunning(newIsPinchGestureRunning ?? false);
                                 if (!newIsPinchGestureRunning && !shouldShowArrows) {
                                     setShouldShowArrows(true);
                                 }
@@ -181,14 +182,15 @@ export default compose(
             canEvict: false,
         },
     }),
+    withLocalize,
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx<AttachmentCarouselProps, AttachmentCarouselOnyxProps>({
+    withOnyx<AttachmentCarouselProps, TransactionAttachmentCarouselOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+                const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage : null;
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
             },
         },
     }),
-    withLocalize,
 )(AttachmentCarousel);

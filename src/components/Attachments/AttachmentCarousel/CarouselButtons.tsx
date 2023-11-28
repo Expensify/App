@@ -1,8 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import * as AttachmentCarouselViewPropTypes from '@components/Attachments/propTypes';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
@@ -45,6 +42,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
+                            text=""
                         />
                     </View>
                 </Tooltip>
@@ -61,6 +59,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
+                            text=""
                         />
                     </View>
                 </Tooltip>

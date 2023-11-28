@@ -25,7 +25,7 @@ function AttachmentViewImage({
         <AttachmentCarouselPage
             source={source}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            file={file}
+            // file={file}
             isActive={isFocused}
         />
     ) : (

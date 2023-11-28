@@ -54,7 +54,7 @@ function AttachmentViewPdf({onScaleChanged, ...props}: AttachmentViewPdfProps) {
                         {...props}
                         onScaleChanged={(scale) => {
                             updateScale(scale ?? 0);
-                            onScaleChanged();
+                            onScaleChanged?.();
                         }}
                     />
                 </Animated.View>

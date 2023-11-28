@@ -18,7 +18,7 @@ import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import AttachmentCarouselProps, {Attachment, AttachmentCarouselOnyxProps, ImageSource} from './types';
+import AttachmentCarouselProps, {Attachment, AttachmentCarouselOnyxProps, TransactionAttachmentCarouselOnyxProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 const viewabilityConfig = {
@@ -37,7 +37,7 @@ function AttachmentCarousel(props: AttachmentCarouselProps & WindowDimensionsPro
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState<number | null>(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeSource, setActiveSource] = useState<ImageSource | null>(source);
+    const [activeSource, setActiveSource] = useState<string | null>(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [isReceipt, setIsReceipt] = useState(false);
 
@@ -105,7 +105,7 @@ function AttachmentCarousel(props: AttachmentCarouselProps & WindowDimensionsPro
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
-            const nextIndex = page + deltaSlide;
+            const nextIndex = (page ?? 0) + deltaSlide;
             const nextItem = attachments[nextIndex];
 
             if (!nextItem || !scrollRef.current) {
@@ -225,15 +225,16 @@ export default compose(
             canEvict: false,
         },
     }),
+    withWindowDimensions,
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx<AttachmentCarouselProps, AttachmentCarouselOnyxProps>({
+    withOnyx<AttachmentCarouselProps, TransactionAttachmentCarouselOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+                const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage : null;
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
             },
         },
     }),
     withLocalize,
-    withWindowDimensions,
 )(AttachmentCarousel);

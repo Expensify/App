@@ -10,10 +10,9 @@ import AttachmentViewImageProps from './types';
 function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, onError}: AttachmentViewImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const children = (
         <ImageView
-            onScaleChanged={onScaleChanged}
+            onScaleChanged={onScaleChanged ?? (() => {})}
             url={source}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}

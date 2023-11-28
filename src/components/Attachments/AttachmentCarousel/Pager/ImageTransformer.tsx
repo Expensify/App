@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {ComponentType, RefObject, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
@@ -45,6 +45,7 @@ type ImageTransformerProps = ChildrenProps & {
     imageScaleY?: number;
     scaledImageWidth?: number;
     scaledImageHeight?: number;
+    minImageScale?: number;
     isActive: boolean;
 };
 
@@ -342,7 +343,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScaleX = 1, ima
                 };
             }
         })
-        .simultaneousWithExternalGesture(attachmentCarouselPagerContext?.pagerRef ?? {current: undefined}, doubleTap, singleTap)
+        .simultaneousWithExternalGesture((attachmentCarouselPagerContext?.pagerRef as unknown as RefObject<ComponentType>) ?? {current: undefined}, doubleTap, singleTap)
         .onBegin(() => {
             stopAnimation();
         })

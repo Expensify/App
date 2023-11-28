@@ -1,14 +1,14 @@
-/* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import Image from '@components/Image';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
 
-function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
+type CanvasDimensions = {canvasWidth: number; canvasHeight: number; imageWidth: number; imageHeight: number};
+type OnLoadEvent = {nativeEvent: {width: number; height: number}};
+
+function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}: CanvasDimensions) {
     const imageScaleX = canvasWidth / imageWidth;
     const imageScaleY = canvasHeight / imageHeight;
 
@@ -17,22 +17,14 @@ function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight})
 
 const cachedDimensions = new Map();
 
-const pagePropTypes = {
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    isActive: PropTypes.bool.isRequired,
+type AttachmentCarouselPageProps = {
+    isAuthTokenRequired?: boolean;
+    source: string;
+    isActive: boolean;
 };
 
-const defaultProps = {
-    isAuthTokenRequired: false,
-};
-
-function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialIsActive}) {
-    const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
+function AttachmentCarouselPage({source, isAuthTokenRequired = false, isActive: initialIsActive}: AttachmentCarouselPageProps) {
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const dimensions = cachedDimensions.get(source);
 
@@ -49,7 +41,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
     }, [initialIsActive]);
 
     const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
-    const isImageLoaded = useRef(null);
+    const isImageLoaded = useRef<boolean | null>(null);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [isFallbackLoading, setIsFallbackLoading] = useState(false);
     const [showFallback, setShowFallback] = useState(true);
@@ -88,13 +80,20 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                             onLoadEnd={() => {
                                 setShowFallback(false);
                                 setIsImageLoading(false);
-                                isImageLoaded.current = true;
+                                if (isImageLoaded.current) {
+                                    isImageLoaded.current = true;
+                                }
                             }}
-                            onLoad={(evt) => {
+                            onLoad={(evt: OnLoadEvent) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
 
-                                const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                                const {imageScaleX, imageScaleY} = getCanvasFitScale({
+                                    canvasWidth: attachmentCarouselPagerContext?.canvasWidth ?? 0,
+                                    canvasHeight: attachmentCarouselPagerContext?.canvasHeight ?? 0,
+                                    imageWidth,
+                                    imageHeight,
+                                });
 
                                 // Don't update the dimensions if they are already set
                                 if (
@@ -145,11 +144,16 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                             }
                             setIsFallbackLoading(false);
                         }}
-                        onLoad={(evt) => {
+                        onLoad={(evt: OnLoadEvent) => {
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
 
-                            const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                            const {imageScaleX, imageScaleY} = getCanvasFitScale({
+                                canvasWidth: attachmentCarouselPagerContext?.canvasWidth ?? 0,
+                                canvasHeight: attachmentCarouselPagerContext?.canvasHeight ?? 0,
+                                imageWidth,
+                                imageHeight,
+                            });
                             const minImageScale = Math.min(imageScaleX, imageScaleY);
 
                             const scaledImageWidth = imageWidth * minImageScale;
@@ -182,8 +186,6 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
     );
 }
 
-AttachmentCarouselPage.propTypes = pagePropTypes;
-AttachmentCarouselPage.defaultProps = defaultProps;
 AttachmentCarouselPage.displayName = 'AttachmentCarouselPage';
 
 export default AttachmentCarouselPage;

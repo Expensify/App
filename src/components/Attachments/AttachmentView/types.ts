@@ -1,7 +1,5 @@
-import {ImageSourcePropType} from 'react-native';
-
 type AttachmentProps = {
-    source: string | ImageSourcePropType;
+    source: string;
     file: {name: string};
     isAuthTokenRequired?: boolean;
     isFocused?: boolean;

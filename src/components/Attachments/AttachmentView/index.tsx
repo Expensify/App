@@ -1,16 +1,14 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React, {memo, useState} from 'react';
-import {ActivityIndicator, ImageSourcePropType, ScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {ActivityIndicator, ScrollView, StyleProp, View, ViewStyle} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {ImageSource} from '@components/Attachments/AttachmentCarousel/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -53,7 +51,7 @@ type AttachmentViewProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID?: string;
 
-    fallbackSource?: string | ImageSourcePropType;
+    fallbackSource?: string;
 } & AttachmentProps &
     AttachmentViewOnyxProps;
 
@@ -155,7 +153,7 @@ function AttachmentView({
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={imageError ? fallbackSource : source}
+                source={imageError ? fallbackSource ?? '' : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 isUsedInCarousel={isUsedInCarousel}
@@ -177,7 +175,7 @@ function AttachmentView({
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>

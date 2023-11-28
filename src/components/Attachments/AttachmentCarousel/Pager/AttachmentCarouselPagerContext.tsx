@@ -1,11 +1,12 @@
-import {ComponentType, createContext, RefObject} from 'react';
+import {createContext, RefObject} from 'react';
+import PagerView from 'react-native-pager-view';
 import {SharedValue} from 'react-native-reanimated';
 
 type AttachmentCarouselPagerContextValue = {
     canvasWidth: number;
     canvasHeight: number;
     isScrolling: SharedValue<boolean>;
-    pagerRef: RefObject<ComponentType>;
+    pagerRef: RefObject<PagerView>;
     shouldPagerScroll: SharedValue<boolean>;
     onPinchGestureChange: (value?: boolean) => void;
     onTap: () => void;
@@ -17,3 +18,4 @@ type AttachmentCarouselPagerContextValue = {
 const AttachmentCarouselContextPager = createContext<AttachmentCarouselPagerContextValue | null>(null);
 
 export default AttachmentCarouselContextPager;
+export type {AttachmentCarouselPagerContextValue};
