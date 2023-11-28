@@ -20,9 +20,12 @@ export default PropTypes.shape({
     /** Status of wallet - e.g. SILVER or GOLD */
     tierName: PropTypes.string,
 
-    /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
-    shouldShowWalletActivationSuccess: PropTypes.bool,
+    /** Whether the kyc is pending and is yet to be confirmed */
+    isPendingOnfidoResult: PropTypes.bool,
 
     /** The wallet's programID, used to show the correct terms. */
     walletProgramID: PropTypes.string,
+
+    /** Whether the user has failed Onfido completely */
+    hasFailedOnfido: PropTypes.bool,
 });

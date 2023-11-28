@@ -1,5 +1,5 @@
 import Airship, {iOS} from '@ua/react-native-airship';
-import shouldShowPushNotification from '../shouldShowPushNotification';
+import shouldShowPushNotification from '@libs/Notification/PushNotification/shouldShowPushNotification';
 
 function configureForegroundNotifications() {
     // Set our default iOS foreground presentation to be loud with a banner

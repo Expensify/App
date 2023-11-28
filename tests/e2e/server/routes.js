@@ -7,4 +7,7 @@ module.exports = {
 
     // When the app is done running a test it calls this endpoint
     testDone: '/test_done',
+
+    // Commands to execute from the host machine (there are pre-defined types like scroll or type)
+    testNativeCommand: '/test_native_command',
 };

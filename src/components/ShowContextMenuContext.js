@@ -1,8 +1,8 @@
 import React from 'react';
-import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from '../pages/home/report/ContextMenu/ContextMenuActions';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,

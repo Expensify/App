@@ -1,12 +1,12 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All the data of the action */
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function RenameAction(props) {
+    const styles = useThemeStyles();
     const currentUserAccountID = lodashGet(props.currentUserPersonalDetails, 'accountID', '');
     const userDisplayName = lodashGet(props.action, ['person', 0, 'text']);
     const actorAccountID = lodashGet(props.action, 'actorAccountID', '');

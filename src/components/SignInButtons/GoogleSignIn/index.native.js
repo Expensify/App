@@ -1,10 +1,10 @@
-import React from 'react';
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
-import Log from '../../../libs/Log';
-import IconButton from '../IconButton';
-import * as Session from '../../../libs/actions/Session';
-import CONST from '../../../CONST';
-import CONFIG from '../../../CONFIG';
+import React from 'react';
+import IconButton from '@components/SignInButtons/IconButton';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 /**
  * Google Sign In method for iOS and android that returns identityToken.
@@ -25,14 +25,18 @@ function googleSignInRequest() {
         .then((response) => response.idToken)
         .then((token) => Session.beginGoogleSignIn(token))
         .catch((error) => {
+            // Handle unexpected error shape
+            if (error === undefined || error.code === undefined) {
+                Log.alert(`[Google Sign In] Google sign in failed: ${error}`);
+            }
+            /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
+              - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
+              - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
+            */
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                Log.alert('[Google Sign In] Google sign in cancelled', true, {error});
-            } else if (error.code === statusCodes.IN_PROGRESS) {
-                Log.alert('[Google Sign In] Google sign in already in progress', true, {error});
-            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                Log.alert('[Google Sign In] Google play services not available or outdated', true, {error});
+                Log.info('[Google Sign In] Google Sign In cancelled');
             } else {
-                Log.alert('[Google Sign In] Unknown Google sign in error', true, {error});
+                Log.alert(`[Google Sign In] Error Code: ${error.code}. ${error.message}`, {}, false);
             }
         });
 }

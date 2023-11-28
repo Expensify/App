@@ -1,14 +1,14 @@
-import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import CollapsibleSection from '../../../components/CollapsibleSection';
-import * as Localize from '../../../libs/Localize';
-import CONST from '../../../CONST';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import TextLink from '../../../components/TextLink';
+import _ from 'underscore';
+import CollapsibleSection from '@components/CollapsibleSection';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import * as Localize from '@libs/Localize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const termsData = [
     {

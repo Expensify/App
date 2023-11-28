@@ -1,13 +1,13 @@
-import _ from 'underscore';
+import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK} from '@onfido/react-native-sdk';
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
-import {Onfido as OnfidoSDK, OnfidoCaptureType, OnfidoDocumentType, OnfidoCountryCode} from '@onfido/react-native-sdk';
+import _ from 'underscore';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import onfidoPropTypes from './onfidoPropTypes';
-import CONST from '../../CONST';
-import Log from '../../libs/Log';
-import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import useLocalize from '../../hooks/useLocalize';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();

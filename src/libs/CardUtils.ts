@@ -1,13 +1,53 @@
 import lodash from 'lodash';
-import {Card} from '../types/onyx';
-import CONST from '../CONST';
-import * as OnyxTypes from '../types/onyx';
+import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
+import * as OnyxTypes from '@src/types/onyx';
+import {Card} from '@src/types/onyx';
+import * as Localize from './Localize';
+
+let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
+Onyx.connect({
+    key: ONYXKEYS.CARD_LIST,
+    callback: (val) => {
+        if (!val || Object.keys(val).length === 0) {
+            return;
+        }
+
+        allCards = val;
+    },
+});
 
 /**
  * @returns string with a month in MM format
  */
 function getMonthFromExpirationDateString(expirationDateString: string) {
     return expirationDateString.substring(0, 2);
+}
+
+/**
+ * @param cardID
+ * @returns boolean
+ */
+function isExpensifyCard(cardID: number) {
+    const card = allCards[cardID];
+    if (!card) {
+        return false;
+    }
+    return card.bank === CONST.EXPENSIFY_CARD.BANK;
+}
+
+/**
+ * @param cardID
+ * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
+ */
+function getCardDescription(cardID: number) {
+    const card = allCards[cardID];
+    if (!card) {
+        return '';
+    }
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : `${card.bank}`;
 }
 
 /**
@@ -20,21 +60,15 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-function getCompanyCards(cardList: {string: Card}) {
-    if (!cardList) {
-        return [];
-    }
-    return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
-}
-
 /**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
+    // Check for domainName to filter out personal credit cards.
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
+    const activeCards = lodash.filter(cardList, (card) => !!card.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
@@ -56,4 +90,13 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard};
+/**
+ * Finds physical card in a list of cards
+ *
+ * @returns a physical card object (or undefined if none is found)
+ */
+function findPhysicalCard(cards: Card[]) {
+    return cards.find((card) => !card.isVirtual);
+}
+
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};

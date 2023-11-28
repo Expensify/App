@@ -1,20 +1,16 @@
 import _ from 'lodash';
-import ONYXKEYS from '../../ONYXKEYS';
-import Report from '../../types/onyx/Report';
-import {Middleware} from '../Request';
-import * as PersistedRequests from '../actions/PersistedRequests';
-import deepReplaceKeysAndValues from '../deepReplaceKeysAndValues';
+import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
+import {Middleware} from '@libs/Request';
+import * as PersistedRequests from '@userActions/PersistedRequests';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Report from '@src/types/onyx/Report';
 
 const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
         responseOnyxData.forEach((onyxData) => {
             const key = onyxData.key;
-            if (!key) {
-                return;
-            }
-
-            if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            if (!key?.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
                 return;
             }
 

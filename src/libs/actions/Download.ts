@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Set whether an attachment is being downloaded so that a spinner can be shown.

@@ -1,9 +1,9 @@
 import React from 'react';
-import sidebarPropTypes from './sidebarPropTypes';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
-import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import sidebarPropTypes from './sidebarPropTypes';
 
 function SidebarScreen(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
