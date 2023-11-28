@@ -248,6 +248,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        shouldSaveDraft
                     />
                 </FormProvider>
             </View>
