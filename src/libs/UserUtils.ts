@@ -107,7 +107,7 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param [avatarURL] - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarURL?: string): boolean {
+function isDefaultAvatar(avatarURL?: string | React.FC<SvgProps>): boolean {
     if (typeof avatarURL === 'string') {
         if (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default')) {
             return true;
@@ -134,7 +134,7 @@ function isDefaultAvatar(avatarURL?: string): boolean {
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getAvatar(avatarURL: AvatarSource, accountID: number): AvatarSource {
     return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
 }
 
@@ -153,7 +153,7 @@ function getAvatarUrl(avatarURL: string, accountID: number): string {
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getFullSizeAvatar(avatarURL: string, accountID: number): AvatarSource {
     const source = getAvatar(avatarURL, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -165,7 +165,7 @@ function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgPr
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getSmallSizeAvatar(avatarURL: string, accountID: number): AvatarSource {
     const source = getAvatar(avatarURL, accountID);
     if (typeof source !== 'string') {
         return source;
