@@ -2459,4 +2459,10 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
+    purposeForExpensify: {
+        track: 'Keep track of personal receipts and expenses',
+        submit: 'Scan and submit receipts to my manager',
+        VSB: 'Manage my business expenses to file taxes',
+        SMB: 'Explore Expensify for my own company',
+    }
 } satisfies EnglishTranslation;
