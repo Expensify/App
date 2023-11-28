@@ -22,7 +22,7 @@ const padNumbers = [
     ['4', '5', '6'],
     ['7', '8', '9'],
     ['.', '0', '<'],
-];
+] as const;
 
 function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView'}: BigNumberPadProps) {
     const {toLocaleDigit} = useLocalize();
