@@ -53,7 +53,7 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlay = false,
     singleExecution = (func) => func,
-    shouldAwareTopMostReport = false,
+    shouldNavigateToTopMostReport = false,
 }) {
     const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -75,8 +75,9 @@ function HeaderWithBackButton({
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                if (shouldAwareTopMostReport && Navigation.getTopmostReportId()) {
-                                    Navigation.goBack(ROUTES.HOME);
+                                const topmostReportId = Navigation.getTopmostReportId();
+                                if (shouldNavigateToTopMostReport && topmostReportId) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
                                 } else {
                                     onBackButtonPress();
                                 }

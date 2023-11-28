@@ -164,7 +164,7 @@ function FlagCommentPage(props) {
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton
                         title={props.translate('reportActionContextMenu.flagAsOffensive')}
-                        shouldAwareTopMostReport
+                        shouldNavigateToTopMostReport
                         onBackButtonPress={() => {
                             Navigation.goBack();
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));

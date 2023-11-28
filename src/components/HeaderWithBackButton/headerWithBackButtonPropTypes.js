@@ -94,8 +94,8 @@ const propTypes = {
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution: PropTypes.func,
 
-    /** Whether we should navigate to home when the route have a topMostReport  */
-    shouldAwareTopMostReport: PropTypes.bool,
+    /** Whether we should navigate to report page when the route have a topMostReport  */
+    shouldNavigateToTopMostReport: PropTypes.bool,
 };
 
 export default propTypes;

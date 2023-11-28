@@ -167,7 +167,7 @@ function ReportDetailsPage(props) {
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
-                    shouldAwareTopMostReport
+                    shouldNavigateToTopMostReport
                     onBackButtonPress={() => {
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
