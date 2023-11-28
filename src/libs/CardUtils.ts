@@ -39,6 +39,18 @@ function isExpensifyCard(cardID: number) {
 
 /**
  * @param cardID
+ * @returns boolean
+ */
+function isCompanyCard(cardID: number) {
+    const card = allCards[cardID];
+    if (!card) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID: number) {
@@ -99,4 +111,4 @@ function findPhysicalCard(cards: Card[]) {
     return cards.find((card) => !card.isVirtual);
 }
 
-export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
+export {isExpensifyCard, isCompanyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
