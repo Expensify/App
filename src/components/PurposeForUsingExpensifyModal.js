@@ -10,7 +10,7 @@ import useWindowDimensions from "@hooks/useWindowDimensions";
 import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 import ScreenWrapper from "./ScreenWrapper";
 import MenuItemList from "./MenuItemList";
-import Header from "./Header";
+import HeaderWithBackButton from "./HeaderWithBackButton";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import HeaderGap from "./HeaderGap";
@@ -78,6 +78,7 @@ function PurposeForUsingExpensifyModal() {
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
+            fullscreen
         >
             <ScreenWrapper
                 style={[styles.pb0]}
@@ -86,10 +87,10 @@ function PurposeForUsingExpensifyModal() {
                 testID='asdfasdf'
             >
                 {isSmallScreenWidth && <HeaderGap />}
-                <Header
-                    title={translate('avatarCropModal.title')}
+                <HeaderWithBackButton
                     shouldShowCloseButton
-                    closeButtonPress={() => setIsModalOpen(false)}
+                    shouldShowBackButton={false}
+                    onCloseButtonPress={() => setIsModalOpen(false)}
                 />
                 <MenuItemList
                     menuItems={menuItems}
