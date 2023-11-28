@@ -103,7 +103,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     const childOnMouseEnter = child.props.onMouseEnter;
     const childOnMouseLeave = child.props.onMouseLeave;
 
-    const onMouseEnter = useCallback(
+    const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(true);
             childOnMouseEnter?.(e);
@@ -111,7 +111,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         [updateIsHovered, childOnMouseEnter],
     );
 
-    const onMouseLeave = useCallback(
+    const unsetHoverAndForwardOnMouseLeave = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(false);
             childOnMouseLeave?.(e);
@@ -143,8 +143,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
 
     return cloneElement(child, {
         ref: hijackRef,
-        onMouseEnter,
-        onMouseLeave,
+        onMouseEnter: hoverAndForwardOnMouseEnter,
+        onMouseLeave: unsetHoverAndForwardOnMouseLeave,
         onBlur: disableHoveredOnBlur,
     });
 }
