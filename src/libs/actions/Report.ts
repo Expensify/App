@@ -393,7 +393,7 @@ function addActions(reportID: string, text = '', file?: File) {
     const failureReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
-        optimisticReportActions[actionKey] = {
+        failureReportActions[actionKey] = {
             ...action,
             errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
         };
