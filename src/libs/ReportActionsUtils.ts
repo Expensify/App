@@ -96,6 +96,15 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
+function isReimbursementDeQueuedAction(reportID: string): boolean {
+    if (!allReportActions) {
+        return false
+    }
+
+    const reportAction = Object.values(allReportActions[`${reportID}`] ?? {});
+    return reportAction.some(action => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED);
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -657,4 +666,5 @@ export {
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
+    isReimbursementDeQueuedAction
 };

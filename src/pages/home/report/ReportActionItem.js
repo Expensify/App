@@ -572,7 +572,6 @@ function ReportActionItem(props) {
             content = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
-                        action={props.action}
                         report={props.report}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />

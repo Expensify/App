@@ -77,7 +77,7 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, action}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -109,6 +109,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isCancelled = ReportActionsUtils.isReimbursementDeQueuedAction(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
@@ -136,7 +137,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (action && action.originalMessage && action.originalMessage.cancellationReason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+        if(isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;

@@ -166,6 +166,7 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+    const isCancelled = ReportActionsUtils.isReimbursementDeQueuedAction(props.iouReport.reportID);
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
@@ -219,7 +220,7 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (props.action.originalMessage && props.action.originalMessage.cancellationReason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+        } else if (isCancelled) {
             message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
@@ -279,7 +280,7 @@ function MoneyRequestPreview(props) {
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !isCancelled ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
                                 {hasFieldErrors && (
                                     <Icon
