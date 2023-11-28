@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -138,6 +138,11 @@ function getReportID(route) {
     return String(lodashGet(route, 'params.reportID') || 0);
 }
 
+function getParentReportAction(parentReportActions, report) {
+    const parentReportActionID = report ? report.parentReportActionID : '0';
+    return lodashGet(parentReportActions, parentReportActionID, '');
+}
+
 function ReportScreen({
     betas,
     route,
@@ -182,11 +187,15 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = useMemo(() => {
-        if (!report || !report.parentReportID || !report.parentReportActionID || !report.reportID || !parentReportActions) {
+        if (!report.parentReportID || !report.parentReportActionID || !report.reportID || !parentReportActions) {
             return {};
         }
         return parentReportActions[report.parentReportActionID];
-    }, [report, parentReportActions]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.parentReportActionID, parentReportActions]);
+
+    const isDeletedParentReportAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
@@ -367,8 +376,14 @@ function ReportScreen({
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const reportActionToDisplay = useMemo(
-        () => _.filter(reportActions, (action) => !ReportActionsUtils.shouldExcludeModifiedAction(parentReportAction, action)),
-        [reportActions, parentReportAction],
+        () => {
+            if (!isDeletedParentReportAction) {
+                return reportActions;
+            }
+            return _.filter(reportActions, (action) => !ReportActionsUtils.shouldExcludeModifiedAction(parentReportAction, action));
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [reportActions, isDeletedParentReportAction],
     );
 
     const onListLayout = useCallback((e) => {
@@ -536,4 +551,14 @@ export default compose(
             canEvict: false,
         },
     }),
-)(ReportScreen);
+)(
+    memo(ReportScreen, (prevProps, nextProps) => {
+        const prevParentReportAction = getParentReportAction(prevProps.parentReportActions, prevProps.report);
+        const nextParentReportAction = getParentReportAction(nextProps.parentReportActions, nextProps.report);
+
+        if (prevParentReportAction !== nextParentReportAction) {
+            return false;
+        }
+        return _.isEqual(_.omit(prevProps, 'parentReportActions'), _.omit(nextProps, 'parentReportActions'));
+    }),
+);
