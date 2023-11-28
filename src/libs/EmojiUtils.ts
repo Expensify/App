@@ -436,7 +436,7 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (val: string | number): number | string => {
+const getPreferredSkinToneIndex = (val: string | number | null): number | string => {
     if (val !== null && Number.isInteger(Number(val))) {
         return val;
     }

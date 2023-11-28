@@ -2,7 +2,6 @@ import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import isEmpty from 'lodash/isEmpty';
-import moment from 'moment';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -24,11 +23,9 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import PersonalDetails from '@src/types/onyx/PersonalDetails';
+import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
-import ReportAction, {Message, ModerationDecision, ReportActionBase} from '@src/types/onyx/ReportAction';
-import {User} from '@src/types/onyx/ReportActionReactions';
+import ReportAction, {Message, ReportActionBase} from '@src/types/onyx/ReportAction';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -45,7 +42,7 @@ Onyx.connect({
     },
 });
 
-let preferredSkinTone: number;
+let preferredSkinTone: string | number;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
@@ -85,7 +82,7 @@ Onyx.connect({
     },
 });
 
-const draftNoteMap = {};
+const draftNoteMap: OnyxCollection<string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
     callback: (value, key) => {
@@ -98,13 +95,11 @@ Onyx.connect({
     },
 });
 
-const allReports = {};
-let conciergeChatReportID;
-const typingWatchTimers = {};
+const allReports: OnyxCollection<Report> = {};
+let conciergeChatReportID: string | undefined;
+const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
-/**
- * Get the private pusher channel name for a Report.
- */
+/** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
@@ -133,9 +128,7 @@ function getNormalizedStatus(status: NonNormalizedStatus): Record<string, boolea
     return normalizedStatus;
 }
 
-/**
- * Initialize our pusher subscriptions to listen for someone typing in a report.
- */
+/** Initialize our pusher subscriptions to listen for someone typing in a report. */
 function subscribeToReportTypingEvents(reportID: string) {
     if (!reportID) {
         return;
@@ -1562,9 +1555,7 @@ function addPolicyReport(
     Navigation.dismissModal(policyReport.reportID);
 }
 
-/**
- * Deletes a report, along with its reportActions, any linked reports, and any linked IOU report.
- */
+/** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string) {
     const report = allReports[reportID];
     const onyxData = {
@@ -2097,7 +2088,7 @@ function flagComment(reportID: string, reportAction: ReportAction, severity: str
         return;
     }
 
-    let updatedDecision: ModerationDecision;
+    let updatedDecision: Decision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
         if (!message?.moderationDecision) {
             updatedDecision = {
@@ -2293,18 +2284,15 @@ function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-function getDraftPrivateNote(reportID) {
-    return draftNoteMap[reportID] || '';
+function getDraftPrivateNote(reportID: string) {
+    return draftNoteMap[reportID] ?? '';
 }
 
 /**
  * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
- *
- * @param reportID
- * @param note
  */
-function savePrivateNotesDraft(reportID, note) {
+function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 

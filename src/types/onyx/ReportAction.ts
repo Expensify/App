@@ -145,4 +145,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, Message};
+export type {ReportActions, ReportActionBase, Message};
