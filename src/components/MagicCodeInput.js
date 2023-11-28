@@ -138,7 +138,7 @@ function MagicCodeInput(props) {
         setInput(TEXT_INPUT_EMPTY_STATE);
         setFocusedIndex(index);
         setEditIndex(index);
-    }
+    };
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -233,8 +233,12 @@ function MagicCodeInput(props) {
             return;
         }
 
-        const addedValue =
-            value.length - 1 === lastValue.current.length && value.slice(0, value.length - 1) === lastValue.current ? value.slice(lastValue.current.length, value.length) : value;
+        // Checks if one new character was added, or if the content was replaced
+        const hasToSlice = value.length - 1 === lastValue.current.length && value.slice(0, value.length - 1) === lastValue.current;
+
+        // Gets the new value added by the user
+        const addedValue = hasToSlice ? value.slice(lastValue.current.length, value.length) : value;
+
         lastValue.current = value;
         // Updates the focused input taking into consideration the last input
         // edited and the number of digits added by the user.
