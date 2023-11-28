@@ -5,7 +5,7 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName, ChangeLogOriginalMessage} from '@src/types/onyx/OriginalMessage';
+import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -666,17 +666,17 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 }
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MemberChangeMessageElement[] {
-    const messageElements: MemberChangeMessageElement[] = [];
     const isInviteAction = isInviteMemberAction(reportAction);
-
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
-    messageElements.push({
-        kind: 'text',
-        content: `${verb} `,
-    });
+    const messageElements: MemberChangeMessageElement[] = [
+        {
+            kind: 'text',
+            content: `${verb} `,
+        },
+    ];
 
-    const originalMessage = reportAction?.originalMessage as ChangeLogOriginalMessage;
+    const originalMessage = reportAction?.originalMessage as ChangeLog;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
@@ -791,13 +791,6 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
-
-/**
- * Return room channel log message
- *
- * @param {Object} reportAction
- * @returns {String}
- */
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
