@@ -42,7 +42,7 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
-import {TransactionViolation, ViolationName, ViolationType} from './TransactionViolation';
+import {TransactionViolation, ViolationName} from './TransactionViolation';
 import User from './User';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -107,7 +107,6 @@ export type {
     User,
     UserWallet,
     ViolationName,
-    ViolationType,
     WalletAdditionalDetails,
     WalletOnfido,
     WalletStatement,
