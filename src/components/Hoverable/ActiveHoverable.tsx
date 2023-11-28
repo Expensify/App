@@ -25,7 +25,7 @@ type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
     const [isHovered, setIsHovered] = useState(false);
 
-    const ref = useRef<HTMLElement | null>(null);
+    const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
     const isHoveredRef = useRef(false);
 
@@ -41,7 +41,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     );
 
     // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
-    useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
+    useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => elementRef.current, []);
 
     useEffect(() => {
         if (isHovered) {
@@ -78,7 +78,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
          * @param event The hover event object.
          */
         const unsetHoveredIfOutside = (event: MouseEvent) => {
-            if (!ref.current || ref.current.contains(event.target as Node)) {
+            if (!elementRef.current || elementRef.current.contains(event.target as Node)) {
                 return;
             }
 
@@ -88,7 +88,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [isHovered, ref]);
+    }, [isHovered, elementRef]);
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
@@ -123,7 +123,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         (event: MouseEvent) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
-            if (!ref.current?.contains(event.target as Node) && !ref.current?.contains(event.relatedTarget as Node)) {
+            if (!elementRef.current?.contains(event.target as Node) && !elementRef.current?.contains(event.relatedTarget as Node)) {
                 setIsHovered(false);
             }
 
@@ -135,7 +135,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     // We need to access the ref of a children from both parent and current component
     // So we pass it to current ref and assign it once again to the child ref prop
     const hijackRef = (el: HTMLElement) => {
-        ref.current = el;
+        elementRef.current = el;
         if (child.ref) {
             assignRef(child.ref, el);
         }
