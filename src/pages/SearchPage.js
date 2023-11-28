@@ -52,6 +52,18 @@ const defaultProps = {
     isSearchingForReports: false,
 };
 
+function isSectionsEmpty(sections) {
+    if (!sections.length) {
+        return true;
+    }
+
+    if (!sections[0].data.length) {
+        return true;
+    }
+
+    return _.isEmpty(sections[0].data[0]);
+}
+
 class SearchPage extends Component {
     constructor(props) {
         super(props);
@@ -184,7 +196,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.state.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(PersonalDetailsUtils.getPersonalDetails());
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.recentReports.length + this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
@@ -209,7 +221,7 @@ class SearchPage extends Component {
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && !isSectionsEmpty(sections)}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 textInputAlert={
                                     this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
