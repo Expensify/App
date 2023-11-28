@@ -17,7 +17,6 @@ import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -27,9 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
-
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
@@ -56,13 +52,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
         BankAccounts.setReimbursementAccountLoading(true);
         Policy.openWorkspaceReimburseView(this.props.policy.id);
-    }
-
-    componentDidUpdate(prevProps) {
-        // We should update rate input when rate data is fetched
-        if (prevProps.reimbursementAccount.isLoading === this.props.reimbursementAccount.isLoading) {
-            return;
-        }
     }
 
     getUnitItems() {
