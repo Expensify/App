@@ -135,6 +135,9 @@ const EmojiPicker = forwardRef((props, ref) => {
             });
         });
         return () => {
+            if (!emojiPopoverDimensionListener) {
+                return;
+            }
             emojiPopoverDimensionListener.remove();
         };
     }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);

@@ -6,35 +6,21 @@ on:
       - labeled
 
 jobs:
-  deployBlocker:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.label.name == 'DeployBlockerCash' }}
+  updateChecklist:
+    if: github.event.label.name == 'DeployBlockerCash'
+    uses: ./.github/workflows/createDeployChecklist.yml
 
+  deployBlocker:
+    if: github.event.label.name == 'DeployBlockerCash'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get URL, title, & number of new deploy blocker (issue)
-        if: ${{ github.event_name == 'issues' }}
-        env:
-          TITLE: ${{ github.event.issue.title }}
-        run: |
-          { echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}";
-          echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}";
-          echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "$TITLE")";} >> "$GITHUB_ENV"
-
-      - name: Update StagingDeployCash with new deploy blocker
-        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+        uses: actions/checkout@v4
 
       - name: Give the issue/PR the Hourly, Engineering labels
-        uses: andymckay/labeler@978f846c4ca6299fd136f465b42c5e87aca28cac
-        with:
-          add-labels: 'Hourly, Engineering'
-          remove-labels: 'Daily, Weekly, Monthly'
+        run: gh issue edit ${{ github.event.issue.number }} --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: 'Post the issue in the #expensify-open-source slack room'
         if: ${{ success() }}
@@ -46,26 +32,29 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ env.DEPLOY_BLOCKER_URL }}|'+ `${{ env.DEPLOY_BLOCKER_TITLE }}`.replace(/(^'|'$)/gi, '').replace(/'\''/gi,'\'') + '>',
+                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ github.event.issue.html_url }}|${{ github.event.issue.title }}>'.replace(/[&<>"'|]/g, function(m) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '|': '&verbar;'}[m]; }),
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      - name: Comment on deferred PR
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ env.DEPLOY_BLOCKER_NUMBER }}
-          body: |
-            :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open `StagingDeployCash` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release, then work quickly to do one of the following:
-              1. Identify the pull request that introduced this issue and revert it.
-              2. Find someone who can quickly fix the issue.
-              3. Fix the issue yourself.
+      - name: Comment on deploy blocker
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "$(cat <<'EOF'
+          :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open \`StagingDeployCash\` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release, then work quickly to do one of the following:
+
+          1. Identify the pull request that introduced this issue and revert it.
+          2. Find someone who can quickly fix the issue.
+          3. Fix the issue yourself.
+
+          EOF
+          )"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
