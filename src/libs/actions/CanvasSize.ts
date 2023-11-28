@@ -16,7 +16,7 @@ function retrieveMaxCanvasArea() {
             useWorker: false,
         })
         .then(() => ({
-            onSuccess: (width, height) => {
+            onSuccess: (width: number, height: number) => {
                 Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
             },
         }));
@@ -27,7 +27,7 @@ function retrieveMaxCanvasArea() {
  */
 function retrieveMaxCanvasHeight() {
     canvasSize.maxHeight({
-        onSuccess: (width, height) => {
+        onSuccess: (width: number, height: number) => {
             Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, height);
         },
     });
@@ -38,7 +38,7 @@ function retrieveMaxCanvasHeight() {
  */
 function retrieveMaxCanvasWidth() {
     canvasSize.maxWidth({
-        onSuccess: (width) => {
+        onSuccess: (width: number) => {
             Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, width);
         },
     });
