@@ -106,7 +106,7 @@ function CheckboxWithLabel(props) {
                     label={props.label}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
-                    forwardedRef={props.forwardedRef}
+                    ref={props.forwardedRef}
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
