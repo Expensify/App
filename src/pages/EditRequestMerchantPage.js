@@ -2,7 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -42,7 +43,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             testID={EditRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.merchant')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={onSubmit}
@@ -51,7 +52,8 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="merchant"
                         name="merchant"
                         defaultValue={defaultMerchant}
@@ -61,7 +63,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         ref={(e) => (merchantInputRef.current = e)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

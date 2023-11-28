@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -71,6 +72,9 @@ class BaseOptionsSelector extends Component {
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
+        this.incrementPage = this.incrementPage.bind(this);
+        this.sliceSections = this.sliceSections.bind(this);
+        this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
         this.onLayout = this.onLayout.bind(this);
         this.setListRef = this.setListRef.bind(this);
         this.relatedTarget = null;
@@ -78,12 +82,15 @@ class BaseOptionsSelector extends Component {
         this.focusListener = null;
         this.blurListener = null;
         this.isFocused = false;
+
         this.state = {
+            sections: [],
             allOptions: [],
             focusedIndex: 0,
             shouldDisableRowSelection: false,
             shouldShowReferralModal: false,
             errorMessage: '',
+            paginationPage: 1,
         };
     }
 
@@ -117,23 +124,35 @@ class BaseOptionsSelector extends Component {
          */
         this.interactionTask = InteractionManager.runAfterInteractions(() => {
             const allOptions = this.flattenSections();
+            const sections = this.sliceSections();
             const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
             this.setState({
+                sections,
                 allOptions,
                 focusedIndex,
             });
         });
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.paginationPage !== this.state.paginationPage) {
+            const newSections = this.sliceSections();
+
+            this.setState({
+                sections: newSections,
+            });
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
+        const newSections = this.sliceSections();
         const newOptions = this.flattenSections();
 
         if (prevProps.preferredLocale !== this.props.preferredLocale) {
             this.setState({
+                sections: newSections,
                 allOptions: newOptions,
             });
             return;
@@ -144,6 +163,7 @@ class BaseOptionsSelector extends Component {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
+                sections: newSections,
                 allOptions: newOptions,
                 focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
             },
@@ -212,8 +232,43 @@ class BaseOptionsSelector extends Component {
         this.list = ref;
     }
 
+    /**
+     * Maps sections to render only allowed count of them per section.
+     *
+     * @returns {Objects[]}
+     */
+    sliceSections() {
+        return _.map(this.props.sections, (section) => {
+            if (_.isEmpty(section.data)) {
+                return section;
+            }
+
+            return {
+                ...section,
+                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(this.state, 'paginationPage', 1)),
+            };
+        });
+    }
+
+    /**
+     * Calculates all currently visible options based on the sections that are currently being shown
+     * and the number of items of those sections.
+     *
+     * @returns {Number}
+     */
+    calculateAllVisibleOptionsCount() {
+        let count = 0;
+
+        _.forEach(this.state.sections, (section) => {
+            count += lodashGet(section, 'data.length', 0);
+        });
+
+        return count;
+    }
+
     updateSearchValue(value) {
         this.setState({
+            paginationPage: 1,
             errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
         });
 
@@ -351,12 +406,16 @@ class BaseOptionsSelector extends Component {
         const itemIndex = option.index;
         const sectionIndex = option.sectionIndex;
 
+        if (!lodashGet(this.state.sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
+            return;
+        }
+
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(this.state.sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
@@ -410,7 +469,17 @@ class BaseOptionsSelector extends Component {
         this.props.onAddToSelection(option);
     }
 
+    /**
+     * Increments a pagination page to show more items
+     */
+    incrementPage() {
+        this.setState((prev) => ({
+            paginationPage: prev.paginationPage + 1,
+        }));
+    }
+
     render() {
+        const shouldShowShowMoreButton = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
@@ -447,7 +516,7 @@ class BaseOptionsSelector extends Component {
                 ref={this.setListRef}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.props.sections}
+                sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
@@ -474,6 +543,16 @@ class BaseOptionsSelector extends Component {
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
+                renderFooterContent={() =>
+                    shouldShowShowMoreButton && (
+                        <ShowMoreButton
+                            containerStyle={{...styles.mt2, ...styles.mb5}}
+                            currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage}
+                            totalCount={this.state.allOptions.length}
+                            onPress={this.incrementPage}
+                        />
+                    )
+                }
             />
         );
 
@@ -491,7 +570,7 @@ class BaseOptionsSelector extends Component {
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.state.allOptions.length - 1}
+                maxIndex={this.calculateAllVisibleOptionsCount() - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >

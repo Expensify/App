@@ -20,7 +20,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID, reportAction.reportActionID);
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID ?? '', reportAction.reportActionID);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }

@@ -6,7 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -99,13 +100,13 @@ function BankAccountPlaidStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
                 submitButtonText={translate('common.saveAndContinue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts'))}
             >
                 <AddPlaidBankAccount
@@ -122,7 +123,8 @@ function BankAccountPlaidStep(props) {
                     selectedPlaidAccountID={selectedPlaidAccountID}
                 />
                 {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) && (
-                    <CheckboxWithLabel
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
                         accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
                         inputID="acceptTerms"
@@ -136,7 +138,7 @@ function BankAccountPlaidStep(props) {
                         shouldSaveDraft
                     />
                 )}
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
