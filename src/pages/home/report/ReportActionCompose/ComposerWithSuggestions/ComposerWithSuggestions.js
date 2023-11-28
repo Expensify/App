@@ -82,6 +82,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -104,8 +105,6 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
-    setExceededMaxCommentLength,
-    hasExceededMaxCommentLength,
     // For testing
     children,
 }) {
@@ -529,14 +528,8 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
-            if (hasExceededMaxCommentLength) {
-                setExceededMaxCommentLength(false);
-            }
-            return;
-        }
-        setExceededMaxCommentLength(true);
-    }, [value, setExceededMaxCommentLength, hasExceededMaxCommentLength]);
+        onValueChange(value);
+    }, [onValueChange, value]);
 
     return (
         <>

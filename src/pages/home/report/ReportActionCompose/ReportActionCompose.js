@@ -342,6 +342,19 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
+    const handleValueChange = useCallback(
+        (value) => {
+            if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
+                if (hasExceededMaxCommentLength) {
+                    setExceededMaxCommentLength(false);
+                }
+                return;
+            }
+            setExceededMaxCommentLength(true);
+        },
+        [hasExceededMaxCommentLength],
+    );
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -416,8 +429,7 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
-                                        setExceededMaxCommentLength={setExceededMaxCommentLength}
-                                        hasExceededMaxCommentLength={hasExceededMaxCommentLength}
+                                        onValueChange={handleValueChange}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {
