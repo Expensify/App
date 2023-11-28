@@ -9,13 +9,6 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-/**
- * Performance tests with Reassure can require big timeouts as all runs
- * for a test have to be executed within this limit. (default runs=10)
- * This also includes manual garbage collection between them.
- */
-jest.setTimeout(60000);
-
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/libs/Navigation/Navigation');
 jest.mock('../../src/components/Icon/Expensicons');
@@ -56,6 +49,8 @@ const getMockedReportsMap = (length = 100) => {
 
 const mockedResponseMap = getMockedReportsMap(500);
 
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 test('should render Sidebar with 500 reports stored', () => {
     const scenario = async () => {
         // Query for the sidebar
@@ -78,7 +73,7 @@ test('should render Sidebar with 500 reports stored', () => {
                 ...mockedResponseMap,
             }),
         )
-        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario}));
+        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs}));
 });
 
 test('should scroll and click some of the items', () => {
@@ -102,12 +97,11 @@ test('should scroll and click some of the items', () => {
         };
 
         const lhnOptionsList = await screen.findByTestId('lhn-options-list');
-        expect(lhnOptionsList).toBeDefined();
 
         fireEvent.scroll(lhnOptionsList, eventData);
-
-        const button1 = await screen.findByTestId('1');
-        const button2 = await screen.findByTestId('2');
+        // find elements that are currently visible in the viewport
+        const button1 = await screen.findByTestId('7');
+        const button2 = await screen.findByTestId('8');
         fireEvent.press(button1);
         fireEvent.press(button2);
     };
@@ -123,5 +117,5 @@ test('should scroll and click some of the items', () => {
                 ...mockedResponseMap,
             }),
         )
-        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario}));
+        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs}));
 });
