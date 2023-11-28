@@ -72,15 +72,6 @@ function getMessageLine(prefix: string, messageFragments: string[]) {
     }, prefix);
 }
 
-/**
- * Get the message for a modified distance request.
- *
- * @param newDistance
- * @param oldDistance
- * @param newAmount
- * @param oldAmount
- */
-
 function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
