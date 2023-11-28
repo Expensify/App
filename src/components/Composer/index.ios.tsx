@@ -1,45 +1,10 @@
 import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {StyleProp, StyleSheet, TextInput, TextStyle} from 'react-native';
+import {StyleSheet, TextInput} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-
-type ComposerProps = {
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear?: boolean;
-
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear?: () => void;
-
-    /** Set focus to this component the first time it renders.
-     * Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
-    autoFocus?: boolean;
-
-    /** Prevent edits and interactions like focus for this input. */
-    isDisabled?: boolean;
-
-    /** Selection Object */
-    selection?: {
-        start: number;
-        end?: number;
-    };
-
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable?: boolean;
-
-    /** Maximum number of lines in the text input */
-    maxLines?: number;
-
-    /** Allow the full composer to be opened */
-    setIsFullComposerAvailable?: () => void;
-
-    /** Whether the composer is full size */
-    isComposerFullSize?: boolean;
-
-    /** General styles to apply to the text input */
-    style: StyleProp<TextStyle>;
-};
+import {ComposerProps} from './types';
 
 function Composer(
     {
@@ -124,6 +89,4 @@ function Composer(
 
 Composer.displayName = 'Composer';
 
-const ComposerWithRef = React.forwardRef(Composer);
-
-export default ComposerWithRef;
+export default React.forwardRef(Composer);

@@ -3,6 +3,7 @@ import {StyleProp, StyleSheet, TextInput, TextStyle} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import themeColors from '@styles/themes/default';
+import {TextSelection} from './types';
 
 type ComposerProps = {
     /** Maximum number of lines in the text input */
@@ -22,10 +23,7 @@ type ComposerProps = {
     isDisabled: boolean;
 
     /** Selection Object */
-    selection: {
-        start: number;
-        end?: number;
-    };
+    selection: TextSelection;
 
     /** Whether the full composer can be opened */
     isFullComposerAvailable: boolean;
@@ -63,7 +61,6 @@ function Composer(
 
     /**
      * Set the TextInput Ref
-     * @param {Element} el
      */
     const setTextInputRef = useCallback((el: TextInput) => {
         textInput.current = el;
@@ -125,6 +122,4 @@ function Composer(
 
 Composer.displayName = 'Composer';
 
-const ComposerWithRef = React.forwardRef(Composer);
-
-export default ComposerWithRef;
+export default React.forwardRef(Composer);

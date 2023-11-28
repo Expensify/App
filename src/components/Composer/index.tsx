@@ -9,7 +9,6 @@ import {
     StyleProp,
     StyleSheet,
     TextInput,
-    TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputProps,
     TextInputSelectionChangeEventData,
@@ -29,74 +28,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-
-type ComposerProps = {
-    /** Maximum number of lines in the text input */
-    maxLines?: number;
-
-    /** The default value of the comment box */
-    defaultValue?: string;
-
-    /** The value of the comment box */
-    value?: string;
-
-    /** Number of lines for the comment */
-    numberOfLines?: number;
-
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange?: (numberOfLines: number) => void;
-
-    /** Callback method to handle pasting a file */
-    onPasteFile?: (file?: File) => void;
-
-    /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    style?: StyleProp<TextStyle>;
-
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear?: boolean;
-
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear?: () => void;
-
-    /** Whether or not this TextInput is disabled. */
-    isDisabled?: boolean;
-
-    /** Set focus to this component the first time it renders.
-  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
-    autoFocus?: boolean;
-
-    /** Update selection position on change */
-    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
-
-    /** Selection Object */
-    selection?: {
-        start: number;
-        end?: number;
-    };
-
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable?: boolean;
-
-    /** Allow the full composer to be opened */
-    setIsFullComposerAvailable?: () => void;
-
-    /** Should we calculate the caret position */
-    shouldCalculateCaretPosition?: boolean;
-
-    /** Function to check whether composer is covered up or not */
-    checkComposerVisibility?: () => boolean;
-
-    /** Whether this is the report action compose */
-    isReportActionCompose?: boolean;
-
-    /** Whether the sull composer is open */
-    isComposerFullSize?: boolean;
-
-    onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
-
-    onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
-};
+import {ComposerProps} from './types';
 
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.
@@ -106,7 +38,7 @@ type ComposerProps = {
  * @returns - The substring from the cursor position up to the next space or new line.
  *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
  */
-const getNextChars = (str: string, cursorPos: number) => {
+const getNextChars = (str: string, cursorPos: number): string => {
     // Get the substring starting from the cursor position
     const substr = str.substring(cursorPos);
 
@@ -457,6 +389,4 @@ function Composer(
 
 Composer.displayName = 'Composer';
 
-const ComposerWithRef = React.forwardRef(Composer);
-
-export default ComposerWithRef;
+export default React.forwardRef(Composer);
