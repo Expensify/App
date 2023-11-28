@@ -6,8 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
-import compose from '@libs/compose';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -20,18 +19,18 @@ type ValidateCodeModalOnyxProps = {
     session: OnyxEntry<SessionType>;
 };
 
-type ValidateCodeModalProps = WithLocalizeProps &
-    ValidateCodeModalOnyxProps & {
-        /** Code to display. */
-        code: string;
-        /** The ID of the account to which the code belongs. */
-        accountID: number;
-    };
+type ValidateCodeModalProps = ValidateCodeModalOnyxProps & {
+    /** Code to display. */
+    code: string;
+    /** The ID of the account to which the code belongs. */
+    accountID: number;
+};
 
-function ValidateCodeModal({code, accountID, session = {}, translate}: ValidateCodeModalProps) {
+function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
+    const {translate} = useLocalize();
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -73,9 +72,6 @@ function ValidateCodeModal({code, accountID, session = {}, translate}: ValidateC
 
 ValidateCodeModal.displayName = 'ValidateCodeModal';
 
-export default compose(
-    withLocalize<ValidateCodeModalProps, unknown>,
-    withOnyx<ValidateCodeModalProps, ValidateCodeModalOnyxProps>({
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(ValidateCodeModal);
+export default withOnyx<ValidateCodeModalProps, ValidateCodeModalOnyxProps>({
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateCodeModal);

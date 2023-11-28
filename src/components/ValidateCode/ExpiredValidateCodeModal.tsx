@@ -4,16 +4,15 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
-type ExpiredValidateCodeModalProps = WithLocalizeProps;
-
-function ExpiredValidateCodeModal(props: ExpiredValidateCodeModalProps) {
+function ExpiredValidateCodeModal() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -24,9 +23,9 @@ function ExpiredValidateCodeModal(props: ExpiredValidateCodeModalProps) {
                         src={Illustrations.ToddBehindCloud}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.expiredCodeTitle')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
-                    <Text style={styles.textAlignCenter}>{props.translate('validateCodeModal.expiredCodeDescription')}</Text>
+                    <Text style={styles.textAlignCenter}>{translate('validateCodeModal.expiredCodeDescription')}</Text>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
@@ -42,4 +41,4 @@ function ExpiredValidateCodeModal(props: ExpiredValidateCodeModalProps) {
 }
 
 ExpiredValidateCodeModal.displayName = 'ExpiredValidateCodeModal';
-export default withLocalize(ExpiredValidateCodeModal);
+export default ExpiredValidateCodeModal;
