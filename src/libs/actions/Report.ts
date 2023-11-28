@@ -30,7 +30,7 @@ import {PersonalDetails} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase} from '@src/types/onyx/ReportAction';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -662,7 +662,7 @@ function openReport(
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
 function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true) {
-    let newChat = {};
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -687,7 +687,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
  * @param participantAccountIDs of user logins to start a chat report with.
  */
 function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
-    let newChat = {};
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);

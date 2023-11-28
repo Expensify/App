@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -3013,7 +3014,7 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility: ValueOf<typeof CONST.REPORT.VISIBILITY> | undefined = undefined,
     writeCapability: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES> | undefined = undefined,
-    notificationPreference: string | number = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
     welcomeMessage = '',
@@ -4382,4 +4383,4 @@ export {
     canEditWriteCapability,
 };
 
-export type {OptionData};
+export type {OptionData, OptimisticChatReport};
