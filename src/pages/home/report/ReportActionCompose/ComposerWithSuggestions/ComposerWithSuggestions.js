@@ -491,7 +491,6 @@ function ComposerWithSuggestions({
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
-        console.log('abcdef');
         if (modal.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
