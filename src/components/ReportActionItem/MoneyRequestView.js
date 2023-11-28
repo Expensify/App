@@ -134,6 +134,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         if (TransactionUtils.isPending(transaction)) {
             amountDescription += ` • ${translate('iou.pending')}`;
         }
+        if(isCancelled) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        }
     } else {
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
