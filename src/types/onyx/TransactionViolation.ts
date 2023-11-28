@@ -1,7 +1,3 @@
-/**
- * @module TransactionViolation
- * @description Transaction Violation
- */
 import PropTypes from 'prop-types';
 
 /**
