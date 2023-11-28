@@ -2,8 +2,10 @@ import React, {useEffect} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
+import type CustomStatusBarType from './types';
 
-function CustomStatusBar() {
+// eslint-disable-next-line react/function-component-definition
+const CustomStatusBar: CustomStatusBarType = () => {
     const theme = useTheme();
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
@@ -20,7 +22,7 @@ function CustomStatusBar() {
         });
     }, [theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
     return <StatusBar />;
-}
+};
 
 CustomStatusBar.displayName = 'CustomStatusBar';
 
