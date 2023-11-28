@@ -118,6 +118,11 @@ function IOURequestStepScan({
         const fileSource = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, file.name);
 
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
             IOU.replaceReceipt(transactionID, file, fileSource);

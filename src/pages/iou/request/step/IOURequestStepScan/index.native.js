@@ -40,7 +40,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, pageIndex},
+        params: {iouType, reportID, transactionID, pageIndex, backTo},
     },
 }) {
     const theme = useTheme();
@@ -131,6 +131,11 @@ function IOURequestStepScan({
             .then((photo) => {
                 const filePath = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
+
+                if (backTo) {
+                    Navigation.goBack(backTo);
+                    return;
+                }
 
                 const onSuccess = (receipt) => {
                     IOU.replaceReceipt(transactionID, receipt, filePath);
