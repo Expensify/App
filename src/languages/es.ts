@@ -2464,5 +2464,7 @@ export default {
         submit: 'Scan and submit receipts to my manager',
         VSB: 'Manage my business expenses to file taxes',
         SMB: 'Explore Expensify for my own company',
+        welcomeMessage: 'Welcome to Expensify',
+        welcomeSubtitle: 'What\'s your main purpose for using Expensify?',
     }
 } satisfies EnglishTranslation;

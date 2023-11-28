@@ -11,10 +11,16 @@ import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 import ScreenWrapper from "./ScreenWrapper";
 import MenuItemList from "./MenuItemList";
 import HeaderWithBackButton from "./HeaderWithBackButton";
+import Header from "./Header";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import HeaderGap from "./HeaderGap";
 import * as Expensicons from './Icon/Expensicons';
+import * as StyleUtils from "@styles/StyleUtils";
+import IllustratedHeaderPageLayout from "@components/IllustratedHeaderPageLayout";
+import SCREENS from "@src/SCREENS";
+import LottieAnimations from "@components/LottieAnimations";
+import useTheme from '@styles/themes/useTheme';
 
 const propTypes = {
 
@@ -38,6 +44,7 @@ function PurposeForUsingExpensifyModal() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(true);
+    const theme = useTheme();
 
     const menuItems = [
         {
@@ -80,23 +87,22 @@ function PurposeForUsingExpensifyModal() {
             isVisible={isModalOpen}
             fullscreen
         >
-            <ScreenWrapper
-                style={[styles.pb0]}
-                includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
-                testID='asdfasdf'
+            <IllustratedHeaderPageLayout
+                backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+                illustration={LottieAnimations.WorkspacePlanet}
+                shouldShowCloseButton
+                shouldShowBackButton={false}
+                onCloseButtonPress={() => setIsModalOpen(false)}
             >
-                {isSmallScreenWidth && <HeaderGap />}
-                <HeaderWithBackButton
-                    shouldShowCloseButton
-                    shouldShowBackButton={false}
-                    onCloseButtonPress={() => setIsModalOpen(false)}
+                <Header
+                    title={translate('purposeForExpensify.welcomeMessage')}
+                    subtitle={translate('purposeForExpensify.welcomeSubtitle')}
                 />
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </ScreenWrapper>
+            </IllustratedHeaderPageLayout>
         </Modal>
     );
 }
