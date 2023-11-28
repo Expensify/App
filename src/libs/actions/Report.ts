@@ -361,7 +361,7 @@ function addActions(reportID: string, text = '', file?: File) {
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey]) => {
-        optimisticReportActions[actionKey] = {pendingAction: null};
+        successReportActions[actionKey] = {pendingAction: null};
     });
 
     const successData: OnyxUpdate[] = [
