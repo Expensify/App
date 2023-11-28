@@ -1,23 +1,20 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
-import lodashGet from 'lodash/get';
 import RNFetchBlob from 'react-native-blob-util';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
+import type {FileDownload} from './types';
 
 /**
  * Downloads the file to Documents section in iOS
- * @param {String} fileUrl
- * @param {String} fileName
- * @returns {Promise}
  */
-function downloadFile(fileUrl, fileName) {
+function downloadFile(fileUrl: string, fileName: string) {
     const dirs = RNFetchBlob.fs.dirs;
 
     // The iOS files will download to documents directory
     const path = dirs.DocumentDir;
 
     // Fetching the attachment
-    const fetchedAttachment = RNFetchBlob.config({
+    return RNFetchBlob.config({
         fileCache: true,
         path: `${path}/${fileName}`,
         addAndroidDownloads: {
@@ -26,60 +23,61 @@ function downloadFile(fileUrl, fileName) {
             path: `${path}/Expensify/${fileName}`,
         },
     }).fetch('GET', fileUrl);
-    return fetchedAttachment;
 }
 
 /**
  * Download the image to photo lib in iOS
- * @param {String} fileUrl
- * @param {String} fileName
- * @returns {String} URI
  */
-function downloadImage(fileUrl) {
+function downloadImage(fileUrl: string) {
     return CameraRoll.save(fileUrl);
 }
 
 /**
  * Download the video to photo lib in iOS
- * @param {String} fileUrl
- * @param {String} fileName
- * @returns {String} URI
  */
-function downloadVideo(fileUrl, fileName) {
+function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
     return new Promise((resolve, reject) => {
-        let documentPathUri = null;
-        let cameraRollUri = null;
+        let documentPathUri: string | null = null;
+        let cameraRollUri: string | null = null;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = lodashGet(attachment, 'data');
+                documentPathUri = attachment.data;
+                if (!documentPathUri) {
+                    throw new Error('Error downloading video');
+                }
                 return CameraRoll.save(documentPathUri);
             })
             .then((attachment) => {
                 cameraRollUri = attachment;
+                if (!documentPathUri) {
+                    throw new Error('Error downloading video');
+                }
                 return RNFetchBlob.fs.unlink(documentPathUri);
             })
-            .then(() => resolve(cameraRollUri))
+            .then(() => {
+                if (!cameraRollUri) {
+                    throw new Error('Error downloading video');
+                }
+                resolve(cameraRollUri);
+            })
             .catch((err) => reject(err));
     });
 }
 
 /**
  * Download the file based on type(image, video, other file types)for iOS
- * @param {String} fileUrl
- * @param {String} fileName
- * @returns {Promise<Void>}
  */
-export default function fileDownload(fileUrl, fileName) {
-    return new Promise((resolve) => {
-        let fileDownloadPromise = null;
+const fileDownload: FileDownload = (fileUrl, fileName) =>
+    new Promise((resolve) => {
+        let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
         const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
-                fileDownloadPromise = downloadImage(fileUrl, attachmentName);
+                fileDownloadPromise = downloadImage(fileUrl);
                 break;
             case CONST.ATTACHMENT_FILE_TYPE.VIDEO:
                 fileDownloadPromise = downloadVideo(fileUrl, attachmentName);
@@ -108,4 +106,5 @@ export default function fileDownload(fileUrl, fileName) {
             })
             .finally(() => resolve());
     });
-}
+
+export default fileDownload;

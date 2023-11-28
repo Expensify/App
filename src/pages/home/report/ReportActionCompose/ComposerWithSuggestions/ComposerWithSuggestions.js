@@ -217,7 +217,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -230,14 +230,20 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
+            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            /** Only update isCommentEmpty state if it's different from previous one */
+            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+                setIsCommentEmpty(isNewCommentEmpty);
+            }
             emojisPresentBefore.current = emojis;
-            setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
 
@@ -270,6 +276,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
+            selection.end,
         ],
     );
 

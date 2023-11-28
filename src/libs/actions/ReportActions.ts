@@ -27,7 +27,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
 
         // Delete the failed task report too
         const taskReportID = reportAction.message?.[0]?.taskReportID;
-        if (taskReportID) {
+        if (taskReportID && ReportActionUtils.isCreatedTaskReportAction(reportAction)) {
             Report.deleteReport(taskReportID);
         }
         return;
