@@ -112,18 +112,18 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         mutationObserverRef.current?.disconnect();
 
         const mutationObserver = new MutationObserver(() => {
-            // Chrome adjusts scroll position when elements are added at the top of the
-            // view. We want to have the same behavior as react-native / Safari so we
-            // reset the scroll position to the last value we got from an event.
-            const lastScrollOffset = lastScrollOffsetRef.current;
-            const scrollOffset = getScrollOffset();
-            if (lastScrollOffset !== scrollOffset) {
-                scrollToOffset(lastScrollOffset, false);
-            }
-
             // This needs to execute after scroll events are dispatched, but
             // in the same tick to avoid flickering. rAF provides the right timing.
             requestAnimationFrame(() => {
+                // Chrome adjusts scroll position when elements are added at the top of the
+                // view. We want to have the same behavior as react-native / Safari so we
+                // reset the scroll position to the last value we got from an event.
+                const lastScrollOffset = lastScrollOffsetRef.current;
+                const scrollOffset = getScrollOffset();
+                if (lastScrollOffset !== scrollOffset) {
+                    scrollToOffset(lastScrollOffset, false);
+                }
+
                 adjustForMaintainVisibleContentPosition();
             });
         });
