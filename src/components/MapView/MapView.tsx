@@ -41,7 +41,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 hasStartedGettingCurrentPosition.current = true;
-                console.log('Called once: hasStartedGettingCurrentPosition.current')
 
                 getCurrentPosition(
                     (params) => {
