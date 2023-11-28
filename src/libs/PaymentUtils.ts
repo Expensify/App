@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import BankAccount from '@src/types/onyx/BankAccount';
 import Fund from '@src/types/onyx/Fund';
 import PaymentMethod from '@src/types/onyx/PaymentMethod';
+import styles from '@styles/styles';
 import * as Localize from './Localize';
 import BankAccountModel from './models/BankAccount';
 
@@ -39,7 +40,7 @@ function getPaymentMethodDescription(accountType: AccountType, account: BankAcco
 /**
  * Get the PaymentMethods list
  */
-function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund>): PaymentMethod[] {
+function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund>, themeStyles: typeof styles): PaymentMethod[] {
     const combinedPaymentMethods: PaymentMethod[] = [];
 
     Object.values(bankAccountList).forEach((bankAccount) => {
@@ -48,7 +49,9 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             return;
         }
 
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
+            bankName: bankAccount?.accountData?.additionalData?.bankName ?? '', isCard: false, themeStyles
+        });
         combinedPaymentMethods.push({
             ...bankAccount,
             description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
@@ -61,7 +64,13 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(card?.accountData?.bank ?? '', true);
+        const {
+            icon,
+            iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles
+        } = getBankIcon({bankName: card?.accountData?.bank ?? '', isCard: true, themeStyles});
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
@@ -83,4 +92,9 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
-export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee};
+export {
+    hasExpensifyPaymentMethod,
+    getPaymentMethodDescription,
+    formatPaymentMethods,
+    calculateWalletTransferBalanceFee
+};
