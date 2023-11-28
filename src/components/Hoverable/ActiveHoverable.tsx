@@ -43,7 +43,13 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
     useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
 
-    useEffect(() => (isHovered ? onHoverIn?.() : onHoverOut?.()), [isHovered, onHoverIn, onHoverOut]);
+    useEffect(() => {
+        if (isHovered) {
+            onHoverIn?.();
+        } else {
+            onHoverOut?.();
+        }
+    }, [isHovered, onHoverIn, onHoverOut]);
 
     useEffect(() => {
         if (!shouldHandleScroll) {
