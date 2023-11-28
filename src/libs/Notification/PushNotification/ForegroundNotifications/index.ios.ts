@@ -1,6 +1,6 @@
 import Airship, {iOS} from '@ua/react-native-airship';
 import shouldShowPushNotification from '@libs/Notification/PushNotification/shouldShowPushNotification';
-import ForegroundNotifications from './types';
+import ForegroundNotificationsType from './types';
 
 function configureForegroundNotifications() {
     // Set our default iOS foreground presentation to be loud with a banner
@@ -21,9 +21,9 @@ function disableForegroundNotifications() {
     Airship.push.iOS.setForegroundPresentationOptionsCallback(() => Promise.resolve([]));
 }
 
-const foregroundNotifications: ForegroundNotifications = {
+const ForegroundNotifications: ForegroundNotificationsType = {
     configureForegroundNotifications,
     disableForegroundNotifications,
 };
 
-export default foregroundNotifications;
+export default ForegroundNotifications;
