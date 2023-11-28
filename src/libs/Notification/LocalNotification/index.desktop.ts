@@ -18,4 +18,5 @@ const LocalNotification: LocalNotificationModule = {
     showUpdateAvailableNotification,
     showModifiedExpenseNotification,
 };
+
 export default LocalNotification;
