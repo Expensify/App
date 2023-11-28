@@ -28,7 +28,9 @@ type UserIsTypingEvent = Record<string, boolean> & {
     userLogin?: string;
 };
 
-type UserIsLeavingRoomEvent = Record<number, boolean>;
+type UserIsLeavingRoomEvent = Record<string, boolean> & {
+    userLogin?: string;
+};
 
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
@@ -410,4 +412,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, PushJSON};
+export type {EventCallbackError, States, PushJSON, UserIsTypingEvent, UserIsLeavingRoomEvent};

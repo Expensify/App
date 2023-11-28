@@ -5,6 +5,7 @@ import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import {NullishDeep} from 'react-native-onyx/lib/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -28,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase} from '@src/types/onyx/ReportAction';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -114,13 +116,13 @@ function getReportChannelName(reportID: string): string {
  *
  * This method makes sure that no matter which we get, we return the "new" format
  */
-function getNormalizedStatus(status: NonNormalizedStatus): Record<string, boolean> {
-    let normalizedStatus: Record<string, boolean>;
+function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): Record<string, boolean> {
+    let normalizedStatus: Record<string | number, boolean>;
 
-    if (status.userLogin) {
-        normalizedStatus = {[status.userLogin]: true};
+    if (typingStatus.userLogin) {
+        normalizedStatus = {[typingStatus.userLogin]: true};
     } else {
-        normalizedStatus = status;
+        normalizedStatus = typingStatus;
     }
 
     return normalizedStatus;
@@ -169,9 +171,7 @@ function subscribeToReportTypingEvents(reportID: string) {
     });
 }
 
-/**
- * Initialize our pusher subscriptions to listen for someone leaving a room.
- */
+/** Initialize our pusher subscriptions to listen for someone leaving a room. */
 function subscribeToReportLeavingEvents(reportID: string) {
     if (!reportID) {
         return;
@@ -181,7 +181,7 @@ function subscribeToReportLeavingEvents(reportID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus: NonNormalizedStatus) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus: Pusher.UserIsLeavingRoomEvent) => {
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
@@ -228,7 +228,7 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
 
-type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string) => void;
+type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
 type ActionSubscriber = {
     reportID: string;
@@ -250,10 +250,8 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
     };
 }
 
-/**
- * Notify the ReportActionsView that a new comment has arrived
- */
-function notifyNewAction(reportID: string, accountID: number, reportActionID: string) {
+/** Notify the ReportActionsView that a new comment has arrived */
+function notifyNewAction(reportID: string, accountID: number | undefined, reportActionID: string | undefined) {
     const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
     if (!actionSubscriber) {
         return;
@@ -271,8 +269,8 @@ function notifyNewAction(reportID: string, accountID: number, reportActionID: st
  */
 function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
-    let reportCommentAction;
-    let attachmentAction;
+    let reportCommentAction: Partial<ReportAction> | undefined;
+    let attachmentAction: Partial<ReportAction> | undefined;
     let commandName = 'AddComment';
 
     if (text) {
@@ -290,43 +288,53 @@ function addActions(reportID: string, text = '', file?: File) {
     }
 
     // Always prefer the file as the last action over text
-    const lastAction = attachmentAction || reportCommentAction;
-
+    const lastAction = attachmentAction ?? reportCommentAction;
     const currentTime = DateUtils.getDBTime();
+    const lastComment = lastAction?.message?.[0];
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
-    const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
-
-    const optimisticReport = {
+    const optimisticReport: Partial<Report> = {
         lastVisibleActionCreated: currentTime,
-        lastMessageTranslationKey: lodashGet(lastAction, 'message[0].translationKey', ''),
+        lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
 
-    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    const report = ReportUtils.getReport(reportID);
+
+    if (isNotEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions = {};
-    if (text) {
+    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    if (text && reportCommentAction?.reportActionID) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
-    if (file) {
+    if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
-    const parameters = {
+    type Parameters = {
+        reportID: string;
+        reportActionID?: string;
+        commentReportActionID?: string | null;
+        reportComment?: string;
+        file?: File;
+        timezone?: string;
+    };
+
+    const parameters: Parameters = {
         reportID,
-        reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
+        reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -339,18 +347,21 @@ function addActions(reportID: string, text = '', file?: File) {
         },
     ];
 
-    const successData = [
+    const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+
+    Object.entries(optimisticReportActions).forEach(([actionKey]) => {
+        optimisticReportActions[actionKey] = {pendingAction: null};
+    });
+
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: Object.entries(optimisticReportActions).reduce((prev, [key]) => {
-                prev[key] = {pendingAction: null};
-                return prev;
-            }, {}),
+            value: successReportActions,
         },
     ];
 
-    let failureReport = {
+    let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
@@ -358,8 +369,8 @@ function addActions(reportID: string, text = '', file?: File) {
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
-        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
@@ -367,7 +378,17 @@ function addActions(reportID: string, text = '', file?: File) {
             lastActorAccountID,
         };
     }
-    const failureData = [
+
+    const failureReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+
+    Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
+        optimisticReportActions[actionKey] = {
+            ...action,
+            errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+        };
+    });
+
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -376,24 +397,18 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: Object.entries(optimisticReportActions).reduce((prev, [key, action]) => {
-                prev[key] = {
-                    ...action,
-                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
-                };
-                return prev;
-            }, {}),
+            value: failureReportActions,
         },
     ];
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!isEmpty(optimisticParentReportData)) {
+    if (isNotEmptyObject(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
-    if (DateUtils.canUpdateTimezone()) {
+    if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
         const timezone = DateUtils.getCurrentTimezone();
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
@@ -409,20 +424,15 @@ function addActions(reportID: string, text = '', file?: File) {
         successData,
         failureData,
     });
-    notifyNewAction(reportID, lastAction.actorAccountID, lastAction.reportActionID);
+    notifyNewAction(reportID, lastAction?.actorAccountID, lastAction?.reportActionID);
 }
 
-/**
- *
- * Add an attachment and optional comment.
- */
+/** Add an attachment and optional comment. */
 function addAttachment(reportID: string, file: File, text = '') {
     addActions(reportID, text, file);
 }
 
-/**
- * Add a single comment to a report
- */
+/** Add a single comment to a report */
 function addComment(reportID: string, text: string) {
     addActions(reportID, text);
 }

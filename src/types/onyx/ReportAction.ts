@@ -121,7 +121,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+    attachmentInfo?: File | Record<string, never>;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
