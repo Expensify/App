@@ -2,6 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction violations.
@@ -50,7 +51,7 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const hasTagViolation = Boolean(transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy'));
             const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
-          
+
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagViolation && transaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
