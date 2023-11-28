@@ -278,6 +278,7 @@ function ReportScreen({
         [route],
     );
 
+    // Clear notifications for the current report when the window is focused (web/desktop only)
     useWindowFocusEvent(
         useCallback(() => {
             // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time

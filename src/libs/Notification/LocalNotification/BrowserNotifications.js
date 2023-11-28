@@ -54,6 +54,7 @@ function push(title, body, icon = '', data = {}, onClick = () => {}) {
             return;
         }
 
+        // We cache these notifications so that we can clear them later
         const notificationID = Str.guid();
         notificationCache[notificationID] = new Notification(title, {
             body,
@@ -134,6 +135,11 @@ export default {
         });
     },
 
+    /**
+     * Clears all open notifications where shouldClearNotification returns true
+     *
+     * @param {Function} shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
+     */
     clearNotifications(shouldClearNotification) {
         if (!_.isFunction(shouldClearNotification)) {
             return;
