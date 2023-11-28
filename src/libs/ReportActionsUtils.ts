@@ -666,12 +666,12 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 }
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MemberChangeMessageElement[] {
-    const messageItems: MemberChangeMessageElement[] = [];
+    const messageElements: MemberChangeMessageElement[] = [];
     const isInviteAction = isInviteMemberAction(reportAction);
 
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
-    messageItems.push({
+    messageElements.push({
         kind: 'text',
         content: `${verb} `,
     });
@@ -697,13 +697,13 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     }
 
     if (mentions.length === 0) {
-        messageItems.push({
+        messageElements.push({
             kind: 'userMention',
             content: lastMention.content,
             accountID: lastMention.accountID,
         });
     } else if (mentions.length === 1) {
-        messageItems.push(
+        messageElements.push(
             {
                 kind: 'userMention',
                 content: mentions[0].content,
@@ -721,7 +721,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
         );
     } else {
         mentions.forEach((mention) => {
-            messageItems.push(
+            messageElements.push(
                 {
                     kind: 'userMention',
                     accountID: mention.accountID,
@@ -734,7 +734,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
             );
         });
 
-        messageItems.push(
+        messageElements.push(
             {
                 kind: 'text',
                 content: `${Localize.translateLocal('common.and')} `,
@@ -752,7 +752,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
         const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
 
         if (originalMessage.reportID) {
-            messageItems.push(
+            messageElements.push(
                 {
                     kind: 'text',
                     content: preposition,
@@ -767,25 +767,23 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
         }
     }
 
-    return messageItems;
+    return messageElements;
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageItems: MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
-    let html = '';
-
-    messageItems.forEach((messageItem) => {
-        switch (messageItem.kind) {
-            case 'userMention':
-                html += `<mention-user accountID=${messageItem.accountID}></mention-user>`;
-                break;
-            case 'roomReference':
-                html += `<a href="${environmentURL}/r/${messageItem.roomID}" target="_blank">${messageItem.roomName}</a>`;
-                break;
-            default:
-                html += messageItem.content;
-        }
-    });
+    const messageElements: MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
 
     return {
         html: `<muted-text>${html}</muted-text>`,
