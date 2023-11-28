@@ -281,7 +281,7 @@ function SignInPage(props) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
-                <CustomScrollbarWrapper theme={CONST.THEME.DARK}>
+                <CustomScrollbarWrapper>
                     <CustomStatusBar isNested />
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading

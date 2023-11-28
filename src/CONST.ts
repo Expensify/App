@@ -701,7 +701,7 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
     },
-    STATUS_BAR_CONTENT_STYLE: {
+    STATUS_BAR_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
     },

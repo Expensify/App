@@ -41,6 +41,7 @@ import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 
 type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
+type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
 
 type AnchorPosition = {
     horizontal: number;
@@ -3989,4 +3990,4 @@ const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator, type Styles, type ColorScheme};
+export {stylesGenerator, type Styles, type StatusBarStyle, type ColorScheme};

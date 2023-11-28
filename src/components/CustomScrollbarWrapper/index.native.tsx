@@ -1,6 +1,4 @@
-import CustomScrollbarWrapperProps from './CustomScrollbarWrapperProps';
-
-function CustomScrollbarWrapper({children}: CustomScrollbarWrapperProps) {
+function CustomScrollbarWrapper({children}: React.PropsWithChildren) {
     return children;
 }
 

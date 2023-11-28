@@ -1,8 +1,7 @@
-import React, {useContext, useEffect, useMemo} from 'react';
+import React, {useContext, useEffect} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
-import CONST from '@src/CONST';
 import CustomStatusBarContext from './CustomStatusBarContext';
 
 type CustomStatusBarProps = {
@@ -12,10 +11,6 @@ type CustomStatusBarProps = {
 function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactElement | null {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
-    const statusBarContentTheme = useMemo(
-        () => (theme.statusBarContentTheme === CONST.COLOR_SCHEME.LIGHT ? CONST.STATUS_BAR_CONTENT_STYLE.LIGHT_CONTENT : CONST.STATUS_BAR_CONTENT_STYLE.DARK_CONTENT),
-        [theme.statusBarContentTheme],
-    );
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
 
@@ -39,19 +34,22 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
             // appBG color.
             const currentRoute = navigationRef.getCurrentRoute();
             let currentScreenBackgroundColor = theme.appBG;
-            if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_BACKGROUND_COLORS) {
-                currentScreenBackgroundColor = theme.PAGE_BACKGROUND_COLORS[currentRoute.name];
+            let statusBarStyle = theme.statusBarStyle;
+            if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
+                const screenTheme = theme.PAGE_THEMES[currentRoute.name];
+                currentScreenBackgroundColor = screenTheme.backgroundColor;
+                statusBarStyle = screenTheme.statusBarStyle;
             }
 
-            StatusBar.setBarStyle(statusBarContentTheme, false);
+            StatusBar.setBarStyle(statusBarStyle, false);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor, false);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
+    }, [theme.PAGE_THEMES, theme.appBG]);
 
     useEffect(() => {
-        StatusBar.setBarStyle(statusBarContentTheme, true);
-    }, [statusBarContentTheme]);
+        StatusBar.setBarStyle(theme.statusBarStyle, true);
+    }, [theme.statusBarStyle]);
 
     if (isDisabled) {
         return null;

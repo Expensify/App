@@ -1,17 +1,13 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Themes from '@styles/themes/Themes';
-import useThemePreferenceWithStaticOverride from '@styles/themes/useThemePreferenceWithStaticOverride';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import CustomScrollbarWrapperProps from './CustomScrollbarWrapperProps';
 
-function CustomScrollbarWrapper({children, theme: staticThemePreference}: CustomScrollbarWrapperProps): React.ReactElement {
+function CustomScrollbarWrapper({children}: React.PropsWithChildren): React.ReactElement {
+    const theme = useTheme();
     const themeStyles = useThemeStyles();
 
-    const preferredTheme = useThemePreferenceWithStaticOverride(staticThemePreference);
-    const scrollbarTheme = useMemo(() => Themes[preferredTheme].scrollBarTheme, [preferredTheme]);
-
-    return <View style={[themeStyles.flex1, themeStyles.colorSchemeStyle(scrollbarTheme)]}>{children}</View>;
+    return <View style={[themeStyles.flex1, themeStyles.colorSchemeStyle(theme.colorScheme)]}>{children}</View>;
 }
 
 export default CustomScrollbarWrapper;
