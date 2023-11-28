@@ -2,26 +2,24 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import ComposeProviders from '@components/ComposeProviders';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
-import {KeyboardStateProvider} from '@components/withKeyboardState';
-import {WindowDimensionsProvider} from '@components/withWindowDimensions';
-import * as Localize from '@libs/Localize';
-import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsContext';
-import ReportScreen from '@pages/home/ReportScreen';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ComposeProviders from '../../src/components/ComposeProviders';
+import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
+import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
+import OnyxProvider from '../../src/components/OnyxProvider';
+import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
+import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
+import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import CONST from '../../src/CONST';
+import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
+import ReportScreen from '../../src/pages/home/ReportScreen';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.setTimeout(60000);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
@@ -56,7 +54,6 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 );
 
 jest.mock('../../src/libs/Permissions', () => ({
-    canUseTasks: jest.fn(() => true),
     canUseLinkPreviews: jest.fn(() => true),
 }));
 
@@ -125,14 +122,15 @@ function ReportScreenWrapper(args) {
     );
 }
 
-test.skip('should render ReportScreen with composer interactions', () => {
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
+test('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
 
         // Query for the composer
         const composer = await screen.findByTestId('composer');
-        expect(composer).toBeDefined();
 
         // Type in the composer
         fireEvent.changeText(composer, 'Test message');
@@ -141,7 +139,6 @@ test.skip('should render ReportScreen with composer interactions', () => {
 
         // Query for the send button
         const sendButton = await screen.findByLabelText(hintSendButtonText);
-        expect(sendButton).toBeDefined();
 
         // Click on the send button
         fireEvent.press(sendButton);
@@ -149,8 +146,7 @@ test.skip('should render ReportScreen with composer interactions', () => {
         const hintHeaderText = Localize.translateLocal('common.back');
 
         // Query for the header
-        const header = await screen.findByLabelText(hintHeaderText);
-        expect(header).toBeDefined();
+        await screen.findByLabelText(hintHeaderText);
     };
 
     const policy = {
@@ -176,10 +172,10 @@ test.skip('should render ReportScreen with composer interactions', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario, runs}));
 });
 
-test.skip('should press of the report item', () => {
+test('should press of the report item', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
@@ -191,8 +187,6 @@ test.skip('should press of the report item', () => {
 
         // Query for report preview buttons
         const reportPreviewButtons = await screen.findAllByLabelText(hintReportPreviewText);
-
-        expect(reportPreviewButtons.length).toBeDefined();
 
         // click on the report preview button
         fireEvent.press(reportPreviewButtons[0]);
@@ -221,5 +215,5 @@ test.skip('should press of the report item', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario, runs}));
 });
