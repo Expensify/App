@@ -26,13 +26,13 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     const [isHovered, setIsHovered] = useState(false);
 
     const ref = useRef<HTMLElement | null>(null);
-    const isScrolling = useRef(false);
+    const isScrollingRef = useRef(false);
     const isHoveredRef = useRef(false);
 
     const updateIsHovered = useCallback(
         (hovered: boolean) => {
             isHoveredRef.current = hovered;
-            if (shouldHandleScroll && isScrolling.current) {
+            if (shouldHandleScroll && isScrollingRef.current) {
                 return;
             }
             setIsHovered(hovered);
@@ -57,8 +57,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         }
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-            isScrolling.current = scrolling;
-            if (!isScrolling.current) {
+            isScrollingRef.current = scrolling;
+            if (!isScrollingRef.current) {
                 setIsHovered(isHoveredRef.current);
             }
         });
@@ -98,7 +98,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
     }, []);
 
-    const child = useMemo(() => (typeof children === 'function' ? children(!isScrolling.current && isHovered) : children), [children, isHovered]);
+    const child = useMemo(() => (typeof children === 'function' ? children(!isScrollingRef.current && isHovered) : children), [children, isHovered]);
 
     const childOnMouseEnter = child.props.onMouseEnter;
     const childOnMouseLeave = child.props.onMouseLeave;
