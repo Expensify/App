@@ -15,7 +15,7 @@ type DragAndDropParams = {
     onDrop?: (event: DragEvent) => void;
     shouldAllowDrop?: boolean;
     isDisabled?: boolean;
-    shouldAcceptDrop?: (event?: DragEvent) => boolean;
+    shouldAcceptDrop?: (event: DragEvent) => boolean;
 };
 
 type DragAndDropOptions = {
