@@ -280,8 +280,13 @@ function ReportScreen({
 
     useWindowFocusEvent(
         useCallback(() => {
+            // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
+            if (!isTopMostReportId) {
+                return;
+            }
+
             LocalNotification.clearReportNotifications(report.reportID);
-        }, [report.reportID]),
+        }, [report.reportID, isTopMostReportId]),
     );
 
     useEffect(() => {
