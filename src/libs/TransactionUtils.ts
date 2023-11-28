@@ -337,8 +337,11 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 /**
  * Determine whether a transaction is made with a card.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isCardTransaction(transaction: Transaction): boolean {
-    return (transaction?.cardID ?? 0) > 0;
+    // We are returning cash cardID via the API. We can undo this after it is fixed in Auth.
+    // return (transaction?.cardID ?? 0) > 0;
+    return false;
 }
 
 /**
