@@ -21,7 +21,7 @@ import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {StatusBarAndScrollbarTheme, ThemeColors} from './themes/types';
+import {ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
@@ -39,6 +39,8 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
+
+type ColorScheme = 'light' | 'dark';
 
 type AnchorPosition = {
     horizontal: number;
@@ -3980,11 +3982,11 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
-        colorSchemeStyle: (colorScheme: StatusBarAndScrollbarTheme | undefined) => ({colorScheme}),
+        colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
     } satisfies Styles);
 
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ColorScheme};
