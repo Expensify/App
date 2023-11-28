@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -91,7 +91,7 @@ function NewContactMethodPage(props) {
         [],
     );
 
-    const onBackButtonPress = () => {
+    const onBackButtonPress = useCallback(() => {
         if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 
@@ -99,7 +99,7 @@ function NewContactMethodPage(props) {
         }
 
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
-    };
+    }, [navigateBackTo]);
 
     return (
         <ScreenWrapper
