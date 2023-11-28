@@ -9,7 +9,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import Navigation from '@libs/Navigation/Navigation';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Url from '@libs/Url';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -18,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function AnchorRenderer(props) {
+    const styles = useThemeStyles();
     const htmlAttribs = props.tnode.attributes;
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments

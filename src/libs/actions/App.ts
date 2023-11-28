@@ -1,7 +1,5 @@
-// Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import 'moment/locale/es';
 import {AppState, AppStateStatus} from 'react-native';
 import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
@@ -29,12 +27,12 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | string;
+let currentUserAccountID: number | null;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? '';
+        currentUserAccountID = val?.accountID ?? null;
         currentUserEmail = val?.email ?? '';
     },
 });
@@ -455,30 +453,33 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
         timezone: JSON.stringify(newTimezoneData),
     };
 
-    API.write('OpenProfile', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: newTimezoneData,
+    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
+    if (typeof currentUserAccountID === 'number') {
+        API.write('OpenProfile', parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: newTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: oldTimezoneData,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: oldTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-    });
+            ],
+        });
+    }
 }
 
 /**

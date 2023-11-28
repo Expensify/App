@@ -69,9 +69,13 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 
 ### Example
 - We have card transactions for the day totaling $100, so we create the following journal entry upon sync:
+![QBO Journal Entry](https://help.expensify.com/assets/images/Auto-Reconciliation QBO 1.png){:width="100%"}
 - The current balance of the Expensify Clearing Account is now $100:
+![QBO Clearing Account](https://help.expensify.com/assets/images/Auto-reconciliation QBO 2.png){:width="100%"}
 - After transactions are posted in Expensify and the report is approved and exported, a second journal entry is generated:
+![QBO Second Journal Entry](https://help.expensify.com/assets/images/Auto-reconciliation QBO 3.png){:width="100%"}
 - We reconcile the matching amounts automatically, clearing the balance of the Expensify Clearing Account:
+![QBO Clearing Account 2](https://help.expensify.com/assets/images/Auto-reconciliation QBO 4.png){:width="100%"}
 - Now, you'll have a debit on your credit card account (increasing the total spent) and a credit on the bank account (reducing the available amount). The Clearing Account balance is $0.
 - Each expense will also create a credit card expense, similar to how we do it today, exported upon final approval. This action debits the expense account (category) and includes any other line item data.
 - This process occurs daily during the QuickBooks Online Auto-Sync to ensure your card remains reconciled.
@@ -89,6 +93,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 
 ### How This Works
 1. During the first overnight Auto Sync after enabling Continuous Reconciliation, Expensify will create a Liability Account (Bank Account) on your Xero Dashboard. If you've opted for Daily Settlement, an additional Clearing Account will be created in your General Ledger. Two Contacts —Expensify and Expensify Card— will also be generated:
+![Xero Contacts](https://help.expensify.com/assets/images/Auto-reconciliation Xero 1.png){:width="100%"}
 2. The bank account for Expensify Card transactions is tied to the Liability Account Expensify created. Note that this doesn't apply to other cards or non-reimbursable expenses, which follow your workspace settings.
 
 ### Daily Settlement Reconciliation
@@ -129,7 +134,9 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 ### Example
 - Let's say you have card transactions totaling $100 for the day.
 - We create a journal entry:
+![NetSuite Journal Entry](https://help.expensify.com/assets/images/Auto-reconciliation NS 1.png){:width="100%"}
 - After transactions are posted in Expensify, we create the second Journal Entry(ies):
+![NetSuite Second Journal Entry](https://help.expensify.com/assets/images/Auto-reconciliation NS 2.png){:width="100%"}
 - We then reconcile the matching amounts automatically, clearing the balance of the Expensify Clearing Account.
 - Now, you'll have a debit on your Credit Card account (increasing the total spent) and a credit on the bank account (reducing the amount available). The clearing account has a $0 balance.
 - Each expense will also create a Journal Entry, just as we do today, exported upon final approval. This entry will debit the expense account (category) and contain any other line item data.

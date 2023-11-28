@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Run performance testing script
         shell: bash
@@ -38,7 +38,7 @@ jobs:
 
       - name: Validate output.json
         id: validateReassureOutput
-        uses: Expensify/App/.github/actions/javascript/validateReassureOutput@main
+        uses: ./.github/actions/javascript/validateReassureOutput
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
