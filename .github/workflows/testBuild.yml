@@ -82,7 +82,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
@@ -101,7 +101,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -149,7 +149,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
@@ -191,7 +191,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -230,7 +230,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -238,7 +238,7 @@ jobs:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -273,10 +273,10 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: ./.github/actions/composite/configureAwsCredentials
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -343,7 +343,7 @@ jobs:
 
       - name: Publish links to apps for download
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-        uses: Expensify/App/.github/actions/javascript/postTestBuildComment@main
+        uses: ./.github/actions/javascript/postTestBuildComment
         with:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
