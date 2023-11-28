@@ -51,7 +51,7 @@ function SuggestionMention({
     isComposerFocused,
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -74,7 +74,7 @@ function SuggestionMention({
         (highlightedMentionIndexInner) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
+            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.login}`;
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
@@ -159,7 +159,8 @@ function SuggestionMention({
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
                     text: detail.displayName,
-                    alternateText: detail.login,
+                    alternateText: formatPhoneNumber(detail.login),
+                    login: detail.login,
                     icons: [
                         {
                             name: detail.login,
@@ -173,7 +174,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate],
+        [translate, formatPhoneNumber],
     );
 
     const calculateMentionSuggestion = useCallback(
