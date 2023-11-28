@@ -71,6 +71,7 @@ function BaseOptionsList({
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
+    renderFooterContent,
 }) {
     const styles = useThemeStyles();
     const flattenedData = useRef();
@@ -287,6 +288,7 @@ function BaseOptionsList({
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
+                        ListFooterComponent={renderFooterContent}
                     />
                 </>
             )}
