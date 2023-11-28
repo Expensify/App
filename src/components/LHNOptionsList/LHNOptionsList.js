@@ -117,7 +117,13 @@ function LHNOptionsList({
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
+            const participants = [...(itemFullReport.participantAccountIDs || [])];
+
+            if (itemFullReport.ownerAccountID > 0) {
+                participants.push(itemFullReport.ownerAccountID);
+            }
+
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
             return (
                 <OptionRowLHNData
