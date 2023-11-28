@@ -1,9 +1,4 @@
 /**
- * @module TransactionViolation
- * @description Transaction Violation
- */
-
-/**
  * Names of transaction violations
  */
 type ViolationName =
