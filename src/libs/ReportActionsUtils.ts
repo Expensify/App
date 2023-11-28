@@ -111,11 +111,11 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
 
 function isReimbursementDeQueuedAction(reportID: string): boolean {
     if (!allReportActions) {
-        return false
+        return false;
     }
 
     const reportAction = Object.values(allReportActions[`${reportID}`] ?? {});
-    return reportAction.some(action => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED);
+    return reportAction.some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED);
 }
 
 /**
@@ -707,7 +707,7 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
-    isReimbursementDeQueuedAction
+    isReimbursementDeQueuedAction,
 };
 
 export type {LastVisibleMessage};

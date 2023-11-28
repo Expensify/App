@@ -134,14 +134,14 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         if (TransactionUtils.isPending(transaction)) {
             amountDescription += ` • ${translate('iou.pending')}`;
         }
-        if(isCancelled) {
+        if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         }
     } else {
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if(isCancelled) {
+        if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
