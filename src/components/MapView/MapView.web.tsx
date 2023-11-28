@@ -5,7 +5,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -47,6 +47,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
+        const hasStartedGettingCurrentPosition = useRef(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
         useFocusEffect(
@@ -54,6 +55,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 if (isOffline) {
                     return;
                 }
+
+                if (hasStartedGettingCurrentPosition.current) {
+                    return;
+                }
+
+                hasStartedGettingCurrentPosition.current = true;
+                console.log('Called once: hasStartedGettingCurrentPosition.current')
 
                 getCurrentPosition(
                     (params) => {
@@ -69,7 +77,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
                     },
                 );
-            }, [cachedUserLocation, isOffline, initialState.location]),
+            }, [cachedUserLocation, isOffline, initialState.location])
         );
 
         // Determines if map can be panned to user's detected

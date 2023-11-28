@@ -28,12 +28,20 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+        const hasStartedGettingCurrentPosition = useRef(false);
 
         useFocusEffect(
             useCallback(() => {
                 if (isOffline) {
                     return;
                 }
+
+                if (hasStartedGettingCurrentPosition.current) {
+                    return;
+                }
+
+                hasStartedGettingCurrentPosition.current = true;
+                console.log('Called once: hasStartedGettingCurrentPosition.current')
 
                 getCurrentPosition(
                     (params) => {
