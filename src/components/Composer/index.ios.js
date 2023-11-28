@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -92,17 +92,6 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    /**
-     * Set maximum number of lines
-     * @return {Number}
-     */
-    const maxNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) {
-            return;
-        }
-        return maxLines;
-    }, [isComposerFullSize, maxLines]);
-
     // On native layers we like to have the Text Input not focused so the
     // user can read new chats without the keyboard in the way of the view.
     // On Android the selection prop is required on the TextInput but this prop has issues on IOS
@@ -115,7 +104,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
-            maxNumberOfLines={maxNumberOfLines}
+            maxNumberOfLines={isComposerFullSize ? undefined : maxLines}
             style={[...props.style, styles.verticalAlignMiddle]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
