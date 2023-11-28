@@ -1,4 +1,3 @@
-
 /**
  * Names of transaction violations
  */
@@ -43,6 +42,5 @@ type TransactionViolation = {
     userMessage: string;
     data?: Record<string, string>;
 };
-
 
 export type {TransactionViolation, ViolationName};
