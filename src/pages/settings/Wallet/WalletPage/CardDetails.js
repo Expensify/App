@@ -11,7 +11,7 @@ import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -58,6 +58,7 @@ const defaultProps = {
 };
 
 function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
 

@@ -5,9 +5,9 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
@@ -42,7 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    backgroundColor: themeColors.appBG,
+    backgroundColor: undefined,
     header: null,
     headerContainerStyles: [],
     scrollViewContainerStyles: [],
@@ -51,20 +51,22 @@ const defaultProps = {
 };
 
 function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, scrollViewContainerStyles, childrenContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
+    const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
     const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = backgroundColor !== themeColors.appBG;
+        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG;
         return {
-            titleColor: isColorfulBackground ? themeColors.textColorfulBackground : undefined,
-            iconFill: isColorfulBackground ? themeColors.iconColorfulBackground : undefined,
+            titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
+            iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
         };
-    }, [backgroundColor]);
+    }, [backgroundColor, theme.appBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
@@ -82,7 +84,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
-                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG)]} />
                                 <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
@@ -90,8 +92,8 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             offlineIndicatorStyle={[appBGColor]}
                         >
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor || theme.appBG, windowHeight)} />}
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG), ...headerContainerStyles]}>
                                 {headerContent}
                             </View>
                             <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>

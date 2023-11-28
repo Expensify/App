@@ -21,7 +21,7 @@ import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -74,6 +74,7 @@ const filterInput = (amount) => {
 };
 
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -145,7 +146,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 >
                     <View style={[styles.mb2]}>
                         <Text style={[styles.mb5]}>{translate('validationStep.description')}</Text>

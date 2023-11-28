@@ -19,11 +19,10 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -111,21 +110,25 @@ const defaultProps = {
 };
 
 function AttachmentModal(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
-    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
+    const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
+
+    const isOverlayModalVisible = (isAttachmentReceipt && isDeleteReceiptConfirmModalVisible) || (!isAttachmentReceipt && isAttachmentInvalid);
 
     const [file, setFile] = useState(
         props.originalFileName
@@ -173,13 +176,13 @@ function AttachmentModal(props) {
     );
 
     const setDownloadButtonVisibility = useCallback(
-        (shouldShowButton) => {
-            if (shouldShowDownloadButton === shouldShowButton) {
+        (isButtonVisible) => {
+            if (isDownloadButtonReadyToBeShown === isButtonVisible) {
                 return;
             }
-            setShouldShowDownloadButton(shouldShowButton);
+            setIsDownloadButtonReadyToBeShown(isButtonVisible);
         },
-        [shouldShowDownloadButton],
+        [isDownloadButtonReadyToBeShown],
     );
 
     /**
@@ -191,7 +194,7 @@ function AttachmentModal(props) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, file.name);
+        fileDownload(sourceURL, lodashGet(file, 'name', ''));
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -359,12 +362,8 @@ function AttachmentModal(props) {
         }
         const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
-        const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-        const isSettled = ReportUtils.isSettled(props.parentReport.reportID);
 
-        const isAdmin = Policy.isAdminOfFreePolicy([props.policy]) && ReportUtils.isExpenseReport(props.parentReport);
-        const isRequestor = ReportUtils.isMoneyRequestReport(props.parentReport) && lodashGet(props.session, 'accountID', null) === parentReportAction.actorAccountID;
-        const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
@@ -391,16 +390,27 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+
+    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
+    // isAttachmentReceipt will be null until its certain what the file is, in which case it will then be true|false.
+    let headerTitle = props.headerTitle;
+    let shouldShowDownloadButton = false;
+    let shouldShowThreeDotsButton = false;
+    if (!_.isNull(isAttachmentReceipt)) {
+        headerTitle = translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment');
+        shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !isAttachmentReceipt && !isOffline;
+        shouldShowThreeDotsButton = isAttachmentReceipt && isModalOpen;
+    }
 
     return (
         <>
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={closeModal}
+                onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
-                backgroundColor={themeColors.componentBG}
+                backgroundColor={theme.componentBG}
                 onModalShow={() => {
                     props.onModalShow();
                     setShouldLoadAttachment(true);
@@ -417,15 +427,15 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={headerTitle}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
+                    shouldShowDownloadButton={shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt && isModalOpen}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay

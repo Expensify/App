@@ -7,7 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import StateSelectorModal from './StateSelectorModal';
 
 const propTypes = {
@@ -36,6 +36,7 @@ const defaultProps = {
 };
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');

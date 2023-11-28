@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +10,7 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import * as Task from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -116,11 +117,12 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: Record<string, ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActions>,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
@@ -147,7 +149,9 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+    const reportsToDisplay = allReportsDictValues.filter((report) =>
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
+    );
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -156,18 +160,6 @@ function getOrderedReportIDs(
             reportsToDisplay.push(conciergeChatReport);
         }
     }
-
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-    });
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -182,7 +174,18 @@ function getOrderedReportIDs(
     const draftReports: Report[] = [];
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
+
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
+
         const isPinned = report.isPinned ?? false;
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
@@ -219,73 +222,9 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type OptionData = {
-    text?: string | null;
-    alternateText?: string | null;
-    pendingAction?: OnyxCommon.PendingAction | null;
-    allReportErrors?: OnyxCommon.Errors | null;
-    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
-    icons?: Icon[] | null;
-    tooltipText?: string | null;
-    ownerAccountID?: number | null;
-    subtitle?: string | null;
-    participantsList?: PersonalDetails[] | null;
-    login?: string | null;
-    accountID?: number | null;
-    managerID?: number | null;
-    reportID?: string | null;
-    policyID?: string | null;
-    status?: string | null;
-    type?: string | null;
-    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM> | null;
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS> | null;
-    phoneNumber?: string | null;
-    isUnread?: boolean | null;
-    isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
-    keyForList?: string | null;
-    searchText?: string | null;
-    isPinned?: boolean | null;
-    hasOutstandingIOU?: boolean | null;
-    hasOutstandingChildRequest?: boolean | null;
-    iouReportID?: string | null;
-    isIOUReportOwner?: boolean | null;
-    iouReportAmount?: number | null;
-    isChatRoom?: boolean | null;
-    isArchivedRoom?: boolean | null;
-    shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean | null;
-    isMoneyRequestReport?: boolean | null;
-    isExpenseRequest?: boolean | null;
-    isWaitingOnBankAccount?: boolean | null;
-    isAllowedToComment?: boolean | null;
-    isThread?: boolean | null;
-    isTaskReport?: boolean | null;
-    parentReportID?: string | null;
-    parentReportAction?: ReportAction;
-    notificationPreference?: string | number | null;
-    displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
-    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
-};
-
-type DisplayNamesWithTooltip = {
-    displayName?: string;
-    avatar?: string;
-    login?: string;
-    accountID?: number;
-    pronouns?: string;
-};
-
 type ActorDetails = {
     displayName?: string;
     accountID?: number;
-};
-
-type Icon = {
-    source?: string;
-    id?: number;
-    type?: string;
-    name?: string;
 };
 
 /**
@@ -298,7 +237,7 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
-): OptionData | undefined {
+): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -306,24 +245,16 @@ function getOptionData(
         return;
     }
 
-    const result: OptionData = {
-        text: null,
+    const result: ReportUtils.OptionData = {
         alternateText: null,
         pendingAction: null,
         allReportErrors: null,
         brickRoadIndicator: null,
-        icons: null,
         tooltipText: null,
-        ownerAccountID: null,
         subtitle: null,
-        participantsList: null,
         login: null,
         accountID: null,
-        managerID: null,
-        reportID: null,
-        policyID: null,
-        statusNum: null,
-        stateNum: null,
+        reportID: '',
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
@@ -333,7 +264,6 @@ function getOptionData(
         isPinned: false,
         hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
-        iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
         isChatRoom: false,
@@ -344,7 +274,6 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
-        chatType: null,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -376,9 +305,9 @@ function getOptionData(
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? null;
+    result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.notificationPreference = report.notificationPreference ?? null;
+    result.notificationPreference = report.notificationPreference ?? '';
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
@@ -390,7 +319,7 @@ function getOptionData(
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips: DisplayNamesWithTooltip[] = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
     const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
 
     // If the last actor's details are not currently saved in Onyx Collection,
@@ -435,10 +364,8 @@ function getOptionData(
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (ReportActionsUtils.isTaskAction(lastAction)) {
+            result.alternateText = Task.getTaskReportActionMessage(lastAction.actionName, report.reportID, false);
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
@@ -494,8 +421,8 @@ function getOptionData(
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result as Report);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

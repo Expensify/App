@@ -7,9 +7,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +43,7 @@ const defaultProps = {
 };
 
 function MoneyRequestCategoryPage({route, report, iou}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportID = lodashGet(route, 'params.reportID', '');
@@ -85,11 +87,20 @@ MoneyRequestCategoryPage.displayName = 'MoneyRequestCategoryPage';
 MoneyRequestCategoryPage.propTypes = propTypes;
 MoneyRequestCategoryPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    report: {
-        key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
-    },
-})(MoneyRequestCategoryPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+)(MoneyRequestCategoryPage);
