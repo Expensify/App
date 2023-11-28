@@ -46,7 +46,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
-            if (!reportAction || !reportAction.reportActionID) {
+            if (!reportAction?.reportActionID) {
                 reportAction = ReportActionsUtils.getParentReportAction(props.report);
             }
 
@@ -68,7 +68,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && isEmptyObjectOrString(props.report?.reportID);
         const isLoadingReportAction = isEmptyObjectOrString(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObjectOrString(getReportAction()));
-        const shouldHideReport = !isLoadingReport && (isEmptyObjectOrString(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {}));
+        const shouldHideReport = !isLoadingReport && (isEmptyObjectOrString(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, null));
 
         if ((isLoadingReport ?? isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
