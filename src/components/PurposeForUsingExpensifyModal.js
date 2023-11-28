@@ -80,10 +80,11 @@ function PurposeForUsingExpensifyModal() {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
             fullscreen
+            onClose={() => setIsModalOpen(false)}
         >
             <IllustratedHeaderPageLayout
                 backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
-                illustration={LottieAnimations.WorkspacePlanet}
+                illustration={LottieAnimations.Hands}
                 shouldShowCloseButton
                 shouldShowBackButton={false}
                 onCloseButtonPress={() => setIsModalOpen(false)}
