@@ -1,5 +1,5 @@
-import styles from '@styles/styles';
+import ContainerComposeStyles from './types';
 
-const containerComposeStyles = (stylesObject: typeof styles) => [stylesObject.textInputComposeSpacing];
+const containerComposeStyles: ContainerComposeStyles = (stylesObject) => [stylesObject.textInputComposeSpacing];
 
 export default containerComposeStyles;
