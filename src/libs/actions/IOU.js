@@ -388,8 +388,12 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
+    // TODO: Remove the following line once everything is tested
+    console.log('POLICY: ', policy);
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTags, policyTags, policy.requiresCategory, policyCategories);
 
+    // TODO: Remove the following line once everything is tested
+    console.log('ONYXDATA', violationsOnyxData);
     if (violationsOnyxData) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

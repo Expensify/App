@@ -58,6 +58,8 @@ const ViolationsUtils = {
             }
         }
 
+        // TODO: Remove the following line once everything is tested
+        console.log('ViolationsUtils.getViolationsOnyxData', newTransactionViolations);
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
