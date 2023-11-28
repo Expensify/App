@@ -7,6 +7,7 @@ import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {NullishDeep} from 'react-native-onyx/lib/types';
+import {PartialDeep} from 'type-fest';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -30,7 +31,7 @@ import ROUTES from '@src/ROUTES';
 import {PersonalDetails} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
-import ReportAction, {Message, ReportActionBase} from '@src/types/onyx/ReportAction';
+import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
@@ -1075,11 +1076,11 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
-    if (!reportActionID) {
+    if (!reportActionID || !originalReportID) {
         return;
     }
 
-    const deletedMessage = [
+    const deletedMessage: Message[] = [
         {
             translationKey: '',
             type: 'COMMENT',
@@ -1089,7 +1090,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
         },
     ];
-    const optimisticReportActions = {
+    const optimisticReportActions: NullishDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
@@ -1106,11 +1107,11 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
     if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions as ReportActions);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
         optimisticReport = {
             lastMessageTranslationKey,
             lastMessageText,
@@ -1162,22 +1163,28 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
-    const childVisibleActionCount = reportAction.childVisibleActionCount || 0;
+    const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
             originalReportID,
-            optimisticReport.lastVisibleActionCreated,
+            optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (!_.isEmpty(optimisticParentReportData)) {
+        if (isNotEmptyObject(optimisticParentReportData)) {
             optimisticData.push(optimisticParentReportData);
         }
     }
 
-    const parameters = {
+    type DeleteCommentParameters = {
+        reportID: string;
+        reportActionID: string;
+    };
+
+    const parameters: DeleteCommentParameters = {
         reportID: originalReportID,
         reportActionID,
     };
+
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
 
@@ -1188,7 +1195,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
  *      links=["https://www.google.com"]
  * returns: "test https://www.google.com test"
  */
-const removeLinksFromHtml = (html: string, links: string[]): string => {
+function removeLinksFromHtml(html: string, links: string[]): string {
     let htmlCopy = html.slice();
     links.forEach((link) => {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
@@ -1196,16 +1203,15 @@ const removeLinksFromHtml = (html: string, links: string[]): string => {
         htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
-};
+}
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
- * @returns
  */
-const handleUserDeletedLinksInHtml = (newCommentText: string, originalHtml: string): string => {
+function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string): string {
     const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
@@ -1213,20 +1219,22 @@ const handleUserDeletedLinksInHtml = (newCommentText: string, originalHtml: stri
     const htmlForNewComment = parser.replace(newCommentText);
     const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
-};
+}
 
-/**
- * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
- */
+/** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string, originalReportAction: ReportAction, textForNewComment: string) {
     const parser = new ExpensiMark();
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
+    if (!originalReportID) {
+        return;
+    }
+
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-    const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML).trim();
+    const originalCommentHTML = originalReportAction?.message?.[0]?.html;
+    const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === textForNewComment) {
@@ -1240,12 +1248,12 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
-        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
+        const autolinkFilter = {filterRules: parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty
-    if (_.isEmpty(htmlForNewComment)) {
+    if (!htmlForNewComment) {
         deleteReportComment(originalReportID, originalReportAction);
         return;
     }
@@ -1257,13 +1265,14 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
 
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
-    const originalMessage = lodashGet(originalReportAction, ['message', 0]);
-    const optimisticReportActions = {
+    const originalMessage = originalReportAction?.message?.[0];
+    const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [
                 {
                     ...originalMessage,
+                    type: '',
                     isEdited: true,
                     html: htmlForNewComment,
                     text: reportComment,
@@ -1272,7 +1281,7 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
         },
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1280,8 +1289,8 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-    if (reportActionID === lodashGet(lastVisibleAction, 'reportActionID')) {
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions as ReportActions);
+    if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageTranslationKey: '',
@@ -1294,7 +1303,7 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
         });
     }
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1307,7 +1316,7 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1319,25 +1328,28 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
         },
     ];
 
-    const parameters = {
+    type UpdateCommentParameters = {
+        reportID: string;
+        reportComment: string;
+        reportActionID: string;
+    };
+
+    const parameters: UpdateCommentParameters = {
         reportID: originalReportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
+
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Saves the draft for a comment report action. This will put the comment into "edit mode"
- */
+/** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
 }
 
-/**
- * Saves the number of lines for the report action draft
- */
+/** Saves the number of lines for the report action draft */
 function saveReportActionDraftNumberOfLines(reportID: string, reportActionID: string, numberOfLines: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
@@ -1349,14 +1361,15 @@ function updateNotificationPreference(
     navigate: boolean,
     parentReportID = 0,
     parentReportActionID = 0,
-    report = {},
+    report: OnyxEntry<Report> | EmptyObject = {},
 ) {
     if (previousValue === newValue) {
-        if (navigate && report.reportID) {
+        if (navigate && isNotEmptyObject(report) && report.reportID) {
             ReportUtils.goBackToDetailsPage(report);
         }
         return;
     }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1364,6 +1377,7 @@ function updateNotificationPreference(
             value: {notificationPreference: newValue},
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1371,6 +1385,7 @@ function updateNotificationPreference(
             value: {notificationPreference: previousValue},
         },
     ];
+
     if (parentReportID && parentReportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1383,8 +1398,16 @@ function updateNotificationPreference(
             value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
         });
     }
-    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    if (navigate) {
+
+    type UpdateReportNotificationPreferenceParameters = {
+        reportID: string;
+        notificationPreference: NotificationPreference;
+    };
+
+    const parameters: UpdateReportNotificationPreferenceParameters = {reportID, notificationPreference: newValue};
+
+    API.write('UpdateReportNotificationPreference', parameters, {optimisticData, failureData});
+    if (navigate && isNotEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
 }

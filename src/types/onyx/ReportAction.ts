@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 import {Receipt} from './Transaction';
+import { NotificationPreference } from './Report';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -79,6 +80,9 @@ type ReportActionBase = {
     /** report action message */
     message?: Message[];
 
+    /** report action message */
+    previousMessage?: Message[];
+
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
@@ -138,6 +142,10 @@ type ReportActionBase = {
     isAttachment?: boolean;
     childRecentReceiptTransactionIDs?: Record<string, string>;
     reportID?: string;
+    linkMetadata?: string[];
+
+    /** The current user's notification preference for this report's child */
+    childReportNotificationPreference?: NotificationPreference;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
