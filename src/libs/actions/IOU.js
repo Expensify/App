@@ -794,10 +794,10 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
     });
 
     if (_.has(transactionChanges, 'waypoints')) {
-        // Delete the backup transaction when editing waypoints when the server responds successfully and there are no errors
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             value: null,
         });
     }
@@ -2445,7 +2445,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        iouReport.total,
+        -iouReport.total,
         iouReport.currency,
         '',
         [recipient],
