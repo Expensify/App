@@ -15,7 +15,6 @@ import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -32,9 +31,6 @@ const propTypes = {
         description: PropTypes.string,
         parentReportID: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(
@@ -57,7 +53,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
     personalDetails: {},
     reports: {},
@@ -140,11 +135,6 @@ function NewTaskPage(props) {
         );
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -163,7 +153,14 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    // on iOS, navigation animation sometimes cause the scrollbar to appear
+                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
+                    // See: https://github.com/Expensify/App/issues/31441
+                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
+                >
                     <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
@@ -224,9 +221,6 @@ NewTaskPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },
