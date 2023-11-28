@@ -4,18 +4,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
+    /**
+     * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction violations.
+     */
     getViolationsOnyxData(
-        /** The transaction to check for policy violations. */
         transaction: Transaction,
-        /** An array of existing transaction violations. */
         transactionViolations: TransactionViolation[],
-        /** Indicates if the policy requires tags. */
         policyRequiresTags: boolean,
-        /** Collection of policy tags and their enabled states. */
         policyTags: PolicyTags,
-        /** Indicates if the policy requires categories. */
         policyRequiresCategories: boolean,
-        /** Collection of policy categories and their enabled states. */
         policyCategories: PolicyCategories,
     ): {
         onyxMethod: string;
