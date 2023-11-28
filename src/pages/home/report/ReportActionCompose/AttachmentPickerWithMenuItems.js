@@ -1,4 +1,3 @@
-import withNavigationFocus from '@components/withNavigationFocus';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -9,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -305,6 +305,5 @@ function AttachmentPickerWithMenuItems({
 AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
-
 
 export default withNavigationFocus(AttachmentPickerWithMenuItems);
