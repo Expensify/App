@@ -1391,7 +1391,7 @@ function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
 }
 
 /**
- * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+ * Get the style for setting the maximum height of the composer component
  */
 function getComposerMaxHeightStyle(maxLines: number, isComposerFullSize: boolean): ViewStyle | undefined {
     const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
