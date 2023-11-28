@@ -1,4 +1,4 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 import overflowAuto from './overflowAuto';
 import overscrollBehaviorContain from './overscrollBehaviorContain';
 
@@ -27,4 +27,4 @@ export default {
     overscrollBehaviorContain,
 
     overflowAuto,
-} satisfies Record<string, CSSProperties>;
+} satisfies Record<string, ViewStyle>;

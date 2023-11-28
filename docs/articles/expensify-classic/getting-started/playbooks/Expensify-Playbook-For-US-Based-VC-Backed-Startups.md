@@ -1,6 +1,7 @@
 ---
 title: Expensify Playbook for US-Based VC-Backed Startups
 description: Best practices for how to deploy Expensify for your business
+redirect_from: articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups/
 ---
 This playbook details best practices on how Seed to Series A startups with under 100 employees can use Expensify to prioritize top-line revenue growth while managing spend responsibly.
 

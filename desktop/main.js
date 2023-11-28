@@ -14,6 +14,11 @@ const Localize = require('../src/libs/Localize');
 const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
+// Setup google api key in process environment, we are setting it this way intentionally. It is required by the
+// geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
+// Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
+process.env.GOOGLE_API_KEY = CONFIG.GOOGLE_GEOLOCATION_API_KEY;
+
 app.setName('New Expensify');
 
 /**
@@ -85,7 +90,7 @@ _.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
-const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
+const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
@@ -169,11 +174,11 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
  * Trigger event to show keyboard shortcuts
  * @param {BrowserWindow} browserWindow
  */
-const showKeyboardShortcutsModal = (browserWindow) => {
+const showKeyboardShortcutsPage = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
+    browserWindow.webContents.send(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE);
 };
 
 // Actual auto-update listeners
@@ -221,7 +226,7 @@ const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
 
-    const loadURL = __DEV__ ? (win) => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__ ? (win) => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
@@ -325,9 +330,9 @@ const mainWindow = () => {
                             {
                                 id: 'viewShortcuts',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
-                                accelerator: 'CmdOrCtrl+I',
+                                accelerator: 'CmdOrCtrl+J',
                                 click: () => {
-                                    showKeyboardShortcutsModal(browserWindow);
+                                    showKeyboardShortcutsPage(browserWindow);
                                 },
                             },
                             {type: 'separator'},

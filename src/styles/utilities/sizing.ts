@@ -38,12 +38,20 @@ export default {
         minWidth: 120,
     },
 
+    w40: {
+        width: '40%',
+    },
+
     w50: {
         width: '50%',
     },
 
     w70: {
         width: '70%',
+    },
+
+    w80: {
+        width: '80%',
     },
 
     w100: {

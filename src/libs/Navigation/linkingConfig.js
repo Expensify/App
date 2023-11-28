@@ -1,10 +1,10 @@
-import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
-import NAVIGATORS from '../../NAVIGATORS';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 export default {
-    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -15,8 +15,12 @@ export default {
             [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
+            SAMLSignIn: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -69,6 +73,30 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
+                            Settings_Wallet_DomainCard: {
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_ReportVirtualCardFraud: {
+                                path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
@@ -79,6 +107,18 @@ export default {
                             },
                             Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
+                                exact: true,
+                            },
+                            Settings_ReportCardLostOrDamaged: {
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_Card_Activate: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {
@@ -118,7 +158,7 @@ export default {
                                 exact: true,
                             },
                             Settings_ContactMethods: {
-                                path: ROUTES.SETTINGS_CONTACT_METHODS,
+                                path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                                 exact: true,
                             },
                             Settings_ContactMethodDetails: {
@@ -147,6 +187,10 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
+                            Settings_PersonalDetails_Address_Country: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
+                                exact: true,
+                            },
                             Settings_TwoFactorAuth: {
                                 path: ROUTES.SETTINGS_2FA,
                                 exact: true,
@@ -168,6 +212,9 @@ export default {
                             },
                             Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
+                            },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
                             },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,
@@ -202,6 +249,9 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
+                            },
+                            KeyboardShortcuts: {
+                                path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                         },
                     },
@@ -259,7 +309,7 @@ export default {
                     },
                     NewTask: {
                         screens: {
-                            NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                            NewTask_Root: ROUTES.NEW_TASK,
                             NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
                             NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
                             NewTask_Details: ROUTES.NEW_TASK_DETAILS,
@@ -295,6 +345,16 @@ export default {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
                         },
                     },
+                    RoomInvite: {
+                        screens: {
+                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
+                        },
+                    },
+                    RoomMembers: {
+                        screens: {
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
+                        },
+                    },
                     MoneyRequest: {
                         screens: {
                             Money_Request: {
@@ -325,8 +385,9 @@ export default {
                             Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
+                            Money_Request_Edit_Waypoint: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
                             Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                            Money_Request_Address: ROUTES.MONEY_REQUEST_ADDRESS.route,
+                            Money_Request_Distance: ROUTES.MONEY_REQUEST_DISTANCE.route,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -335,6 +396,8 @@ export default {
                     SplitDetails: {
                         screens: {
                             SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
                         },
                     },
                     Task_Details: {
@@ -373,6 +436,11 @@ export default {
                     SignIn: {
                         screens: {
                             SignIn_Root: ROUTES.SIGN_IN_MODAL,
+                        },
+                    },
+                    Referral: {
+                        screens: {
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
                 },

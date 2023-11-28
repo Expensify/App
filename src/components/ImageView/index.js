@@ -1,13 +1,13 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Image from '../Image';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Image from '@components/Image';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -22,13 +22,17 @@ const propTypes = {
 
     /** image file name */
     fileName: PropTypes.string.isRequired,
+
+    onError: PropTypes.func,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    onError: () => {},
 };
 
-function ImageView({isAuthTokenRequired, url, fileName}) {
+function ImageView({isAuthTokenRequired, url, fileName, onError}) {
+    const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -238,6 +242,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
                 {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
@@ -258,7 +263,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                 }}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGE}
                 accessibilityLabel={fileName}
             >
                 <Image
@@ -268,6 +273,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     resizeMode={Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
             </PressableWithoutFeedback>
 

@@ -1,7 +1,8 @@
-import CONST from '../CONST';
-import * as TransactionUtils from './TransactionUtils';
+import {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
-import {Report, Transaction} from '../types/onyx';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -35,8 +36,8 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false): Report {
-    if (currency !== iouReport.currency) {
+function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+    if (currency !== iouReport?.currency) {
         return iouReport;
     }
 
@@ -77,7 +78,7 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
  * Checks if the iou type is one of request, send, or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND];
     return moneyRequestType.includes(iouType);
 }
 

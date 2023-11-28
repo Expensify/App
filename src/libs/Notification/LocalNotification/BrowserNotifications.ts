@@ -1,8 +1,8 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import * as AppUpdate from '../../actions/AppUpdate';
-import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
-import * as ReportUtils from '../../ReportUtils';
-import {PushParams, ReportCommentParams} from './types';
+import _ from 'underscore';
+import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
 
 const DEFAULT_DELAY = 4000;
@@ -95,7 +95,7 @@ export default {
         const plainTextMessage = message?.find((f) => f.type === 'COMMENT')?.text;
 
         if (isChatRoom) {
-            const roomName = report.displayName ?? '';
+            const roomName = ReportUtils.getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -106,6 +106,16 @@ export default {
         push({
             title: title ?? '',
             body,
+            delay: 0,
+            onClick,
+            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
+        });
+    },
+
+    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
+        push({
+            title: _.map(reportAction.person, (f) => f.text).join(', '),
+            body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',

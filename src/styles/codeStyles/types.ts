@@ -1,8 +1,7 @@
-import {CSSProperties} from 'react';
 import {TextStyle, ViewStyle} from 'react-native';
 
-type CodeWordWrapperStyles = ViewStyle | CSSProperties;
-type CodeWordStyles = TextStyle | CSSProperties;
-type CodeTextStyles = TextStyle | CSSProperties;
+type CodeWordWrapperStyles = ViewStyle;
+type CodeWordStyles = TextStyle;
+type CodeTextStyles = TextStyle;
 
-export type {CodeWordWrapperStyles, CodeWordStyles, CodeTextStyles};
+export type {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles};

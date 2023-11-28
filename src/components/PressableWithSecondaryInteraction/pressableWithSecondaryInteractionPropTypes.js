@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import refPropTypes from '../refPropTypes';
-import stylePropTypes from '../../styles/stylePropTypes';
+import refPropTypes from '@components/refPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** The function that should be called when this pressable is pressed */
@@ -48,6 +48,12 @@ const propTypes = {
 
     /** Used to apply styles to the Pressable */
     style: stylePropTypes,
+
+    /** Whether the view needs to be rendered offscreen (for Android only) */
+    needsOffscreenAlphaCompositing: PropTypes.bool,
+
+    /** Whether the text has a gray highlights on press down (for IOS only) */
+    suppressHighlighting: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,6 +65,8 @@ const defaultProps = {
     withoutFocusOnSecondaryInteraction: false,
     activeOpacity: 1,
     enableLongPressWithHover: false,
+    needsOffscreenAlphaCompositing: false,
+    suppressHighlighting: false,
 };
 
 export {propTypes, defaultProps};

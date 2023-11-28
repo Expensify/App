@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import Section from '../../../components/Section';
-import ConnectBankAccountButton from '../../../components/ConnectBankAccountButton';
+import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -16,6 +16,7 @@ const propTypes = {
 };
 
 function WorkspaceTravelNoVBAView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Section

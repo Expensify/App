@@ -1,5 +1,6 @@
 ---
 title: Request Money
 description: Request Money
+redirect_from: articles/request-money/Request-and-Split-Bills/
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

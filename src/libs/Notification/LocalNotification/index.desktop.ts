@@ -9,8 +9,13 @@ function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
+function showModifiedExpenseNotification({report, reportAction, onClick}: ReportCommentParams) {
+    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, onClick});
+}
+
 const LocalNotification: LocalNotificationModule = {
     showCommentNotification,
     showUpdateAvailableNotification,
+    showModifiedExpenseNotification,
 };
 export default LocalNotification;
