@@ -40,7 +40,7 @@ import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 
-type ColorScheme = 'light' | 'dark';
+type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
 
 type AnchorPosition = {
     horizontal: number;

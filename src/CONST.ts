@@ -697,11 +697,11 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
-    STATUS_BAR_AND_SCROLLBAR_THEME: {
+    COLOR_SCHEME: {
         LIGHT: 'light',
         DARK: 'dark',
     },
-    STATUS_BAR_THEME: {
+    STATUS_BAR_CONTENT_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
     },

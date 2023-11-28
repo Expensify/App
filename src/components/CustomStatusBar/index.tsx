@@ -13,7 +13,7 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
     const statusBarContentTheme = useMemo(
-        () => (theme.statusBarContentTheme === CONST.STATUS_BAR_AND_SCROLLBAR_THEME.LIGHT ? CONST.STATUS_BAR_THEME.LIGHT_CONTENT : CONST.STATUS_BAR_THEME.DARK_CONTENT),
+        () => (theme.statusBarContentTheme === CONST.COLOR_SCHEME.LIGHT ? CONST.STATUS_BAR_CONTENT_STYLE.LIGHT_CONTENT : CONST.STATUS_BAR_CONTENT_STYLE.DARK_CONTENT),
         [theme.statusBarContentTheme],
     );
 

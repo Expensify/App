@@ -1,6 +1,6 @@
+import {ColorScheme} from '@styles/styles';
 import CONST from '@src/CONST';
 
-type StatusBarAndScrollbarTheme = 'light' | 'dark';
 type Color = string;
 
 type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
@@ -94,8 +94,8 @@ type ThemeColors = {
     // Status bar and scroll bars need to adapt their theme based on the active user theme for good contrast
     // Therefore, we need to define specific themes for these elements
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
-    statusBarContentTheme: StatusBarAndScrollbarTheme;
-    scrollBarTheme: StatusBarAndScrollbarTheme;
+    statusBarContentTheme: ColorScheme;
+    scrollBarTheme: ColorScheme;
 };
 
-export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color, type StatusBarAndScrollbarTheme};
+export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

@@ -1,4 +1,5 @@
 import colors from '@styles/colors';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import {ThemeColors} from './types';
 
@@ -100,8 +101,8 @@ const lightTheme = {
         [SCREENS.SETTINGS.ROOT]: colors.lightHighlightBackground,
     },
 
-    statusBarContentTheme: 'dark',
-    scrollBarTheme: 'light',
+    statusBarContentTheme: CONST.COLOR_SCHEME.DARK,
+    scrollBarTheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 
 export default lightTheme;
