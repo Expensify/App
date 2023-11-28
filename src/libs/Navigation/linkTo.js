@@ -1,10 +1,10 @@
 import {getActionFromState} from '@react-navigation/core';
 import _ from 'lodash';
-import NAVIGATORS from '../../NAVIGATORS';
-import linkingConfig from './linkingConfig';
-import getTopmostReportId from './getTopmostReportId';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import getStateFromPath from './getStateFromPath';
-import CONST from '../../CONST';
+import getTopmostReportId from './getTopmostReportId';
+import linkingConfig from './linkingConfig';
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -41,7 +41,7 @@ function getMinimalAction(action, state) {
     return currentAction;
 }
 
-export default function linkTo(navigation, path, type) {
+export default function linkTo(navigation, path, type, isActiveRoute) {
     if (navigation === undefined) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -83,6 +83,17 @@ export default function linkTo(navigation, path, type) {
     if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
+            // There are situations where a route already exists on the current navigation stack
+            // But we want to push the same route instead of going back in the stack
+            // Which would break the user navigation history
+            if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            }
+            // There are situations when the user is trying to access a route which he has no access to
+            // So we want to redirect him to the right one and replace the one he tried to access
+            if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+            }
             root.dispatch(minimalAction);
             return;
         }

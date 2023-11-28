@@ -1,16 +1,17 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
+import compose from '@libs/compose';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import variables from '../styles/variables';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
-import styles from '../styles/styles';
-import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
@@ -21,6 +22,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Optional styles for the container */
+    style: stylePropTypes,
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -29,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
+    style: [],
 };
 
 const setStyles = (containerStyles, isSmallScreenWidth) => {

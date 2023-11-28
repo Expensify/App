@@ -1,22 +1,31 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
-import Button from '../Button';
-import FixedFooter from '../FixedFooter';
-import OptionsList from '../OptionsList';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
-import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
-import setSelection from '../../libs/setSelection';
-import compose from '../../libs/compose';
-import getPlatform from '../../libs/getPlatform';
+import React, {Component} from 'react';
+import {ScrollView, View} from 'react-native';
+import _ from 'underscore';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
+import OptionsList from '@components/OptionsList';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import ShowMoreButton from '@components/ShowMoreButton';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
+import setSelection from '@libs/setSelection';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -31,13 +40,23 @@ const propTypes = {
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
+    /** Whether referral CTA should be displayed */
+    shouldShowReferralCTA: PropTypes.bool,
+
+    /** Referral content type */
+    referralContentType: PropTypes.string,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    shouldShowReferralCTA: false,
+    referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -52,17 +71,27 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
+        this.updateSearchValue = this.updateSearchValue.bind(this);
+        this.incrementPage = this.incrementPage.bind(this);
+        this.sliceSections = this.sliceSections.bind(this);
+        this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+        const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
+            sections,
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            shouldShowReferralModal: false,
+            errorMessage: '',
+            paginationPage: 1,
         };
     }
 
@@ -70,7 +99,7 @@ class BaseOptionsSelector extends Component {
         this.subscribeToKeyboardShortcut();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
-            setTimeout(() => {
+            this.focusTimeout = setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
         }
@@ -78,7 +107,7 @@ class BaseOptionsSelector extends Component {
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
                 this.subscribeToKeyboardShortcut();
@@ -96,14 +125,24 @@ class BaseOptionsSelector extends Component {
             }, CONST.ANIMATED_TRANSITION);
         }
 
+        if (prevState.paginationPage !== this.state.paginationPage) {
+            const newSections = this.sliceSections();
+
+            this.setState({
+                sections: newSections,
+            });
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
+        const newSections = this.sliceSections();
         const newOptions = this.flattenSections();
 
         if (prevProps.preferredLocale !== this.props.preferredLocale) {
             this.setState({
+                sections: newSections,
                 allOptions: newOptions,
             });
             return;
@@ -114,8 +153,9 @@ class BaseOptionsSelector extends Component {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
+                sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
+                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -146,14 +186,14 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
-        if (_.isNumber(this.props.initialFocusedIndex)) {
-            return this.props.initialFocusedIndex;
+        let defaultIndex;
+        if (this.props.shouldTextInputAppearBelowOptions) {
+            defaultIndex = allOptions.length;
+        } else if (this.props.focusedIndex >= 0) {
+            defaultIndex = this.props.focusedIndex;
+        } else {
+            defaultIndex = this.props.selectedOptions.length;
         }
-
-        if (this.props.selectedOptions.length > 0) {
-            return this.props.selectedOptions.length;
-        }
-        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
         if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
             return defaultIndex;
         }
@@ -165,6 +205,53 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    /**
+     * Maps sections to render only allowed count of them per section.
+     *
+     * @returns {Objects[]}
+     */
+    sliceSections() {
+        return _.map(this.props.sections, (section) => {
+            if (_.isEmpty(section.data)) {
+                return section;
+            }
+
+            return {
+                ...section,
+                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(this.state, 'paginationPage', 1)),
+            };
+        });
+    }
+
+    /**
+     * Calculates all currently visible options based on the sections that are currently being shown
+     * and the number of items of those sections.
+     *
+     * @returns {Number}
+     */
+    calculateAllVisibleOptionsCount() {
+        let count = 0;
+
+        _.forEach(this.state.sections, (section) => {
+            count += lodashGet(section, 'data.length', 0);
+        });
+
+        return count;
+    }
+
+    updateSearchValue(value) {
+        this.setState({
+            paginationPage: 1,
+            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+        });
+
+        this.props.onChangeText(value);
+    }
+
+    handleReferralModal() {
+        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     subscribeToKeyboardShortcut() {
@@ -294,12 +381,16 @@ class BaseOptionsSelector extends Component {
         const itemIndex = option.index;
         const sectionIndex = option.sectionIndex;
 
+        if (!lodashGet(this.state.sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
+            return;
+        }
+
         // Note: react-native's SectionList automatically strips out any empty sections.
         // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(this.state.sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
@@ -316,7 +407,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -344,7 +435,7 @@ class BaseOptionsSelector extends Component {
      * @param {Object} option
      */
     addToSelection(option) {
-        if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+        if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
             this.textInput.focus();
             if (this.textInput.isFocused()) {
                 setSelection(this.textInput, 0, this.props.value.length);
@@ -353,7 +444,17 @@ class BaseOptionsSelector extends Component {
         this.props.onAddToSelection(option);
     }
 
+    /**
+     * Increments a pagination page to show more items
+     */
+    incrementPage() {
+        this.setState((prev) => ({
+            paginationPage: prev.paginationPage + 1,
+        }));
+    }
+
     render() {
+        const shouldShowShowMoreButton = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
@@ -365,14 +466,15 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                onChangeText={this.updateSearchValue}
+                errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
+                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
-                    if (!this.props.shouldFocusOnSelectRow) {
+                    if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
                         return;
                     }
                     this.relatedTarget = e.relatedTarget;
@@ -381,6 +483,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+                isLoading={this.props.isLoadingNewOptions}
             />
         );
         const optionsList = (
@@ -388,7 +491,7 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.props.sections}
+                sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
@@ -396,7 +499,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
@@ -412,40 +515,112 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                isLoadingNewOptions={this.props.isLoadingNewOptions}
+                shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
+                nestedScrollEnabled={this.props.nestedScrollEnabled}
+                bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
+                renderFooterContent={() =>
+                    shouldShowShowMoreButton && (
+                        <ShowMoreButton
+                            containerStyle={{...styles.mt2, ...styles.mb5}}
+                            currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage}
+                            totalCount={this.state.allOptions.length}
+                            onPress={this.incrementPage}
+                        />
+                    )
+                }
             />
         );
+
+        const optionsAndInputsBelowThem = (
+            <>
+                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                    {this.props.children}
+                    {this.props.shouldShowTextInput && textInput}
+                </View>
+            </>
+        );
+
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.state.allOptions.length - 1}
+                maxIndex={this.calculateAllVisibleOptionsCount() - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                    {this.props.shouldTextInputAppearBelowOptions ? (
-                        <>
-                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                                {this.props.children}
-                                {this.props.shouldShowTextInput && textInput}
-                            </View>
-                        </>
-                    ) : (
+                    {/*
+                     * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
+                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                     * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
+                     */}
+                    {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <ScrollView
+                                horizontal
+                                bounces={false}
+                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                            >
+                                {optionsAndInputsBelowThem}
+                            </ScrollView>
+                        </ScrollView>
+                    )}
+
+                    {this.props.shouldTextInputAppearBelowOptions && !this.props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+
+                    {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
                             </View>
                             {optionsList}
                         </>
                     )}
                 </View>
+                {this.props.shouldShowReferralCTA && (
+                    <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
+                            }}
+                            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                            accessibilityLabel="referral"
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        >
+                            <Text>
+                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
+                                <Text
+                                    color={colors.green400}
+                                    style={styles.textStrong}
+                                >
+                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
+                                </Text>
+                            </Text>
+                            <Icon
+                                src={Info}
+                                height={20}
+                                width={20}
+                            />
+                        </PressableWithoutFeedback>
+                    </View>
+                )}
+
                 {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowDefaultConfirmButton && (

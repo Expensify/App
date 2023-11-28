@@ -1,16 +1,13 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 import styles from './styles';
-import variables from './variables';
 import themeColors from './themes/default';
+import variables from './variables';
 
-type StylesArray = Array<ViewStyle | CSSProperties>;
-
-const defaultWrapperStyle: ViewStyle | CSSProperties = {
+const defaultWrapperStyle: ViewStyle = {
     backgroundColor: themeColors.componentBG,
 };
 
-const miniWrapperStyle: StylesArray = [
+const miniWrapperStyle: ViewStyle[] = [
     styles.flexRow,
     defaultWrapperStyle,
     {
@@ -18,11 +15,12 @@ const miniWrapperStyle: StylesArray = [
         borderWidth: 1,
         borderColor: themeColors.border,
         // In Safari, when welcome messages use a code block (triple backticks), they would overlap the context menu below when there is no scrollbar without the transform style.
-        transform: 'translateZ(0)',
+        // NOTE: asserting "transform" to a valid type, because it isn't possible to augment "transform".
+        transform: 'translateZ(0)' as unknown as ViewStyle['transform'],
     },
 ];
 
-const bigWrapperStyle: StylesArray = [styles.flexColumn, defaultWrapperStyle];
+const bigWrapperStyle: ViewStyle[] = [styles.flexColumn, defaultWrapperStyle];
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
@@ -30,7 +28,7 @@ const bigWrapperStyle: StylesArray = [styles.flexColumn, defaultWrapperStyle];
  * @param isMini
  * @param isSmallScreenWidth
  */
-function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean): StylesArray {
+function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean): ViewStyle[] {
     if (isMini) {
         return miniWrapperStyle;
     }

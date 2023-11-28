@@ -1,14 +1,15 @@
-import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
-import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, startOfDay, subYears} from 'date-fns';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import {Report} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import {Report} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -73,7 +74,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return value.trim().length > 0;
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {
@@ -352,6 +353,25 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type ValuesType = Record<string, unknown>;
+
+/**
+ * This function is used to remove invisible characters from strings before validation and submission.
+ */
+function prepareValues(values: ValuesType): ValuesType {
+    const trimmedStringValues: ValuesType = {};
+
+    for (const [inputID, inputValue] of Object.entries(values)) {
+        if (typeof inputValue === 'string') {
+            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
+        } else {
+            trimmedStringValues[inputID] = inputValue;
+        }
+    }
+
+    return trimmedStringValues;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -385,4 +405,5 @@ export {
     isNumeric,
     isValidAccountRoute,
     isValidRecoveryCode,
+    prepareValues,
 };
