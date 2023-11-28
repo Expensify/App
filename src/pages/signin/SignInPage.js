@@ -14,6 +14,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as StyleUtils from '@styles/StyleUtils';
+import ThemeProvider from '@styles/themes/ThemeProvider';
+import ThemeStylesProvider from '@styles/ThemeStylesProvider';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -135,7 +137,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
+function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -269,18 +271,30 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
         </View>
     );
 }
+SignInPageInner.propTypes = propTypes;
+SignInPageInner.defaultProps = defaultProps;
+SignInPageInner.displayName = 'SignInPage';
 
-SignInPage.propTypes = propTypes;
-SignInPage.defaultProps = defaultProps;
-SignInPage.displayName = 'SignInPage';
+function SignInPage(props) {
+    return (
+        <ThemeProvider theme={CONST.THEME.DARK}>
+            <ThemeStylesProvider>
+                <SignInPageInner
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                />
+            </ThemeStylesProvider>
+        </ThemeProvider>
+    );
+}
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
-    /** 
-  This variable is only added to make sure the component is re-rendered 
-  whenever the activeClients change, so that we call the 
-  ActiveClientManager.isClientTheLeader function 
+    /**
+  This variable is only added to make sure the component is re-rendered
+  whenever the activeClients change, so that we call the
+  ActiveClientManager.isClientTheLeader function
   everytime the leader client changes.
   We use that function to prevent repeating code that checks which client is the leader.
   */

@@ -1,11 +1,10 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import _ from 'underscore';
 import CustomDevMenu from '@components/CustomDevMenu';
-import FocusTrapView from '@components/FocusTrapView';
 import HeaderGap from '@components/HeaderGap';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -40,8 +39,6 @@ const ScreenWrapper = React.forwardRef(
             shouldDismissKeyboardBeforeClose,
             onEntryTransitionEnd,
             testID,
-            shouldDisableFocusTrap,
-            shouldEnableAutoFocus,
         },
         ref,
     ) => {
@@ -51,7 +48,6 @@ const ScreenWrapper = React.forwardRef(
         const {isDevelopment} = useEnvironment();
         const {isOffline} = useNetwork();
         const navigation = useNavigation();
-        const isFocused = useIsFocused();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
         const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
@@ -150,27 +146,20 @@ const ScreenWrapper = React.forwardRef(
                                         style={styles.flex1}
                                         enabled={shouldEnablePickerAvoiding}
                                     >
-                                        <FocusTrapView
-                                            style={[styles.flex1, styles.noSelect]}
-                                            isEnabled={!shouldDisableFocusTrap}
-                                            shouldEnableAutoFocus={shouldEnableAutoFocus}
-                                            isActive={isFocused}
-                                        >
-                                            <HeaderGap styles={headerGapStyles} />
-                                            {isDevelopment && <TestToolsModal />}
-                                            {isDevelopment && <CustomDevMenu />}
-                                            {
-                                                // If props.children is a function, call it to provide the insets to the children.
-                                                _.isFunction(children)
-                                                    ? children({
-                                                          insets,
-                                                          safeAreaPaddingBottomStyle,
-                                                          didScreenTransitionEnd,
-                                                      })
-                                                    : children
-                                            }
-                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                        </FocusTrapView>
+                                        <HeaderGap styles={headerGapStyles} />
+                                        {isDevelopment && <TestToolsModal />}
+                                        {isDevelopment && <CustomDevMenu />}
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            _.isFunction(children)
+                                                ? children({
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd,
+                                                  })
+                                                : children
+                                        }
+                                        {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>
