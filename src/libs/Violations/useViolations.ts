@@ -48,7 +48,7 @@ type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-export default function useViolations(violations: TransactionViolation[]) {
+function useViolations(violations: TransactionViolation[]) {
     const {translate} = useLocalize();
 
     const violationsByField = useMemo((): ViolationsMap => {
@@ -84,3 +84,5 @@ export default function useViolations(violations: TransactionViolation[]) {
         getViolationsForField,
     };
 }
+
+export {useViolations, violationFields};
