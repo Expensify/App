@@ -5,24 +5,18 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from "@src/SCREENS";
 import useThemeStyles from "@styles/useThemeStyles";
+import useTheme from '@styles/themes/useTheme';
 import useWindowDimensions from "@hooks/useWindowDimensions";
-import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
-import ScreenWrapper from "./ScreenWrapper";
+import {View} from "react-native";
+import IllustratedHeaderPageLayout from "./IllustratedHeaderPageLayout";
+import LottieAnimations from "./LottieAnimations";
+import Text from "./Text";
 import MenuItemList from "./MenuItemList";
-import HeaderWithBackButton from "./HeaderWithBackButton";
-import Header from "./Header";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
-import HeaderGap from "./HeaderGap";
 import * as Expensicons from './Icon/Expensicons';
-import * as StyleUtils from "@styles/StyleUtils";
-import IllustratedHeaderPageLayout from "@components/IllustratedHeaderPageLayout";
-import SCREENS from "@src/SCREENS";
-import LottieAnimations from "@components/LottieAnimations";
-import useTheme from '@styles/themes/useTheme';
-import Text from "@components/Text";
-import {View} from "react-native";
 
 const propTypes = {
 
@@ -31,8 +25,6 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
-
-    ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
 };
@@ -120,7 +112,6 @@ PurposeForUsingExpensifyModal.displayName = 'AddPaymentMethodMenu';
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
