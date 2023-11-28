@@ -186,6 +186,7 @@ function OptionRow(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
+                            !props.isDisabled && styles.cursorPointer,
                             props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             props.shouldHaveOptionSeparator && styles.borderTop,
