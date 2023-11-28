@@ -2,10 +2,8 @@ import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
-import lodashGet from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
-import {type} from 'os';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {NullishDeep} from 'react-native-onyx/lib/types';
 import {PartialDeep, ValueOf} from 'type-fest';
@@ -1793,7 +1791,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+    const notificationPreference = allReports?.[reportID]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
@@ -1820,7 +1818,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
 
     // Only show notifications for supported types of report actions
     if (!ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: lodashGet(action, 'actionName')});
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action?.actionName});
         return false;
     }
 
@@ -2040,7 +2038,7 @@ function getCurrentUserAccountID(): number | undefined {
 
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = lodashGet(allReports, [reportID], {});
+    const report = allReports?.[reportID] ?? {};
     const reportKeys = _.keys(report);
 
     // Pusher's leavingStatus should be sent earlier.
@@ -2102,14 +2100,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     }
 }
 
-/**
- * Invites people to a room
- *
- * @param reportID
- * @param inviteeEmailsToAccountIDs
- */
+/** Invites people to a room */
 function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
-    const report = lodashGet(allReports, [reportID], {});
+    const report = allReports?.[reportID] ?? {};
 
     const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
@@ -2146,14 +2139,9 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
     );
 }
 
-/**
- * Removes people from a room
- *
- * @param reportID
- * @param targetAccountIDs
- */
+/** Removes people from a room */
 function removeFromRoom(reportID, targetAccountIDs) {
-    const report = lodashGet(allReports, [reportID], {});
+    const report = allReports?.[reportID] ?? {};
 
     const {participantAccountIDs} = report;
     const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
