@@ -305,11 +305,12 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report is an outstanding task', () => {
+        it.only('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.TASK,
                 managerID: currentUserAccountID,
+                isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
             };

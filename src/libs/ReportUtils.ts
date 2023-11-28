@@ -1519,7 +1519,12 @@ function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
     // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
     const lastMentionedTime = report.lastMentionedTime ?? '';
     const lastReadTime = report.lastReadTime ?? '';
-    return lastReadTime < lastMentionedTime;
+    return Boolean('isUnreadWithMention' in report && report.isUnreadWithMention) || lastReadTime < lastMentionedTime;
+}
+
+// Type guard to check the type of an object and it's an option
+function isOption(option: OnyxEntry<Report> | OptionData): option is OptionData {
+    return (option as OptionData).isUnreadWithMention !== undefined;
 }
 
 /**
@@ -1536,20 +1541,18 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
         return false;
     }
 
-    if (isArchivedRoom(option)) {
+    if (isArchivedRoom(option) || isArchivedRoom(getReport(option.parentReportID))) {
         return false;
     }
 
-    if (isArchivedRoom(getReport(option.parentReportID))) {
-        return false;
-    }
+    if (isOption(option)) {
+        if (isUnreadWithMention(option)) {
+            return true;
+        }
 
-    if (Boolean('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
-        return true;
-    }
-
-    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
-        return true;
+        if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+            return true;
+        }
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
