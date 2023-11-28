@@ -1,5 +1,6 @@
-import React, {useContext, useEffect} from 'react';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {EventListenerCallback, NavigationContainerEventMap} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect} from 'react';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
@@ -23,30 +24,37 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
+    const navigationStateListener = useCallback<EventListenerCallback<NavigationContainerEventMap, 'state'>>(() => {
         if (isDisabled) {
             return;
         }
 
-        Navigation.isNavigationReady().then(() => {
-            // Set the status bar colour depending on the current route.
-            // If we don't have any colour defined for a route, fall back to
-            // appBG color.
-            const currentRoute = navigationRef.getCurrentRoute();
-            let currentScreenBackgroundColor = theme.appBG;
-            let statusBarStyle;
-            if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
-                const screenTheme = theme.PAGE_THEMES[currentRoute.name];
-                currentScreenBackgroundColor = screenTheme.backgroundColor;
-                statusBarStyle = screenTheme.statusBarStyle;
-            }
+        // Set the status bar colour depending on the current route.
+        // If we don't have any colour defined for a route, fall back to
+        // appBG color.
+        const currentRoute = navigationRef.getCurrentRoute();
 
-            StatusBar.setBackgroundColor(currentScreenBackgroundColor, false);
-            if (statusBarStyle != null) {
-                StatusBar.setBarStyle(statusBarStyle, false);
-            }
-        });
-    }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
+        console.log({currentRoute});
+
+        let currentScreenBackgroundColor = theme.appBG;
+        let statusBarStyle;
+        if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
+            const screenTheme = theme.PAGE_THEMES[currentRoute.name];
+            currentScreenBackgroundColor = screenTheme.backgroundColor;
+            statusBarStyle = screenTheme.statusBarStyle;
+        }
+
+        StatusBar.setBackgroundColor(currentScreenBackgroundColor, true);
+        if (statusBarStyle != null) {
+            StatusBar.setBarStyle(statusBarStyle, true);
+        }
+    }, [isDisabled, theme.PAGE_THEMES, theme.appBG]);
+
+    useEffect(() => {
+        navigationRef.addListener('state', navigationStateListener);
+
+        return () => navigationRef.removeListener('state', navigationStateListener);
+    }, [navigationStateListener]);
 
     useEffect(() => {
         StatusBar.setBarStyle(theme.statusBarStyle, true);
