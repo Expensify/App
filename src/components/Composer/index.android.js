@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import {getComposerMaxHeightStyle} from '@styles/StyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
@@ -92,7 +92,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const maxHeightStyle = useMemo(() => getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
+    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
 
     return (
         <RNTextInput
