@@ -213,7 +213,7 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-        if (!messageManuallyMarkedUnread && lastReadTimeRef.current && lastReadTimeRef.current < report.lastReadTime) {
+        if (!messageManuallyMarkedUnread && (lastReadTimeRef.current || '') < report.lastReadTime) {
             cacheUnreadMarkers.delete(report.reportID);
         }
         lastReadTimeRef.current = report.lastReadTime;

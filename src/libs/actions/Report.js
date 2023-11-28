@@ -1374,11 +1374,12 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {boolean} navigate
  * @param {String} parentReportID
  * @param {String} parentReportActionID
+ * @param {Object} report
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0, report = {}) {
     if (previousValue === newValue) {
-        if (navigate) {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        if (navigate && report.reportID) {
+            ReportUtils.goBackToDetailsPage(report);
         }
         return;
     }
@@ -1410,7 +1411,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
     }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        ReportUtils.goBackToDetailsPage(report);
     }
 }
 
@@ -1546,14 +1547,11 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
  * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
-    const participants = _.unique([currentUserAccountID, ...members]);
+function addPolicyReport(policyID, reportName, visibility, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
+    const participants = [currentUserAccountID];
     const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
@@ -1989,7 +1987,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -2008,17 +2005,18 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat(true);
-                return;
-            }
-            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
-                Navigation.isNavigationReady().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const route = ReportUtils.getRouteFromLink(url);
+                if (route === ROUTES.CONCIERGE) {
+                    navigateToConciergeChat(true);
+                    return;
+                }
+                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn();
-                });
-                return;
-            }
-            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    return;
+                }
+                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            });
         });
     });
 }

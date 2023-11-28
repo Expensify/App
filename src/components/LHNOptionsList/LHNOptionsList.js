@@ -1,12 +1,14 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getReportActionsByReportID} from '@libs/ReportActionsUtils';
 import {getReportByID} from '@libs/ReportUtils';
+import stylePropTypes from '@styles/stylePropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -15,12 +17,10 @@ import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {
     /** Wrapper style for the section list */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: stylePropTypes,
 
     /** Extra styles for the section list container */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
+    contentContainerStyles: stylePropTypes.isRequired,
 
     /** Sections for the section list */
     data: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -55,32 +55,10 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-const keyExtractor = (item) => item;
+const keyExtractor = (item) => `report_${item}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, preferredLocale}) {
     const styles = useThemeStyles();
-    /**
-     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
-     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
-     * lists.
-     *
-     * @param {Array} itemData - This is the same as the data we pass into the component
-     * @param {Number} index the current item's index in the set of data
-     *
-     * @returns {Object}
-     */
-    const getItemLayout = useCallback(
-        (itemData, index) => {
-            const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-            return {
-                length: optionHeight,
-                offset: index * optionHeight,
-                index,
-            };
-        },
-        [optionMode],
-    );
-
     /**
      * Function which renders a row in the list
      *
@@ -118,20 +96,16 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     return (
         <View style={style || styles.flex1}>
-            <FlatList
+            <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={contentContainerStyles}
-                showsVerticalScrollIndicator={false}
                 data={data}
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}
-                stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
-                getItemLayout={getItemLayout}
-                initialNumToRender={20}
-                maxToRenderPerBatch={5}
-                windowSize={5}
+                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                showsVerticalScrollIndicator={false}
             />
         </View>
     );

@@ -102,7 +102,7 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
         }
 
         transactionWasSaved.current = true;
-        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
+        IOU.editMoneyRequest(transaction, report.reportID, {waypoints});
 
         // If the client is offline, then the modal can be closed as well (because there are no errors or other feedback to show them
         // until they come online again and sync with the server).
@@ -140,6 +140,6 @@ export default withOnyx({
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
     },
     transactionBackup: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}-backup`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
     },
 })(EditRequestDistancePage);
