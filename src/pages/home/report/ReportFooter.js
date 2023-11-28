@@ -72,7 +72,7 @@ function ReportFooter(props) {
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
-    
+
     return (
         <>
             {hideComposer && (
