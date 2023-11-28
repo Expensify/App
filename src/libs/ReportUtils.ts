@@ -1481,6 +1481,16 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 }
 
 /**
+ * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
+ */
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
+    const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
+
+    return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
+}
+
+/**
  * Returns the last visible message for a given report after considering the given optimistic actions
  *
  * @param reportID - the report for which last visible message has to be fetched
@@ -1684,7 +1694,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
-    if (report?.reportID && ReportActionsUtils.isReimbursementDeQueuedAction(report.reportID)) {
+    if (report?.reportID && ReportActionsUtils.isReimbursementDeQueued(report.reportID)) {
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.canceled')}`;
     }
 
@@ -4380,6 +4390,7 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getChannelLogMemberMessage,
     getRoom,
