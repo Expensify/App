@@ -16,13 +16,13 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
-import * as TaskUtils from '@libs/TaskUtils';
 
 /**
  * Gets the HTML version of the message in an action.

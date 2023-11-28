@@ -2,9 +2,9 @@ import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
+import * as CollectionUtils from './CollectionUtils';
 import {Report} from '../types/onyx';
 import lodashHas from 'lodash/has';
-import * as CollectionUtils from './CollectionUtils';
 
 const allReports: Record<string, Report> = {};
 Onyx.connect({
@@ -35,7 +35,7 @@ function getTaskReportActionMessage(actionName: string): string {
 }
 
 function getTaskTitle(taskReportID: string, taskName: string): string {
-    let taskReport = allReports[taskReportID] ?? {};
+    const taskReport = allReports[taskReportID] ?? {};
     return lodashHas(taskReport, 'reportID') && taskReport.reportName ? taskReport.reportName : taskName;
 }
 

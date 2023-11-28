@@ -32,9 +32,6 @@ import ROUTES from '@src/ROUTES';
 import * as TaskUtils from '../../libs/TaskUtils';
 
 const propTypes = {
-    /** All personal details associated with user */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
-
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
