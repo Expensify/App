@@ -17,7 +17,6 @@ const defaultProps = {
     data: [],
 };
 
-
 const BaseInvertedFlatList = forwardRef((props, ref) => (
     <FlatList
         // eslint-disable-next-line react/jsx-props-no-spreading

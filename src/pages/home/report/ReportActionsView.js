@@ -123,11 +123,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (!reportActionID || (!isLinkingToCattedMessage && !isLoadingLinkedMessage && !isLinkingToExtendedMessage)) {
             return allReportActions;
         }
-        if (
-            reportActionID &&
-            !isLinkingToCattedMessage &&
-            isLinkingToExtendedMessage
-        ) {
+        if (reportActionID && !isLinkingToCattedMessage && isLinkingToExtendedMessage) {
             return reportActionsBeforeAndIncludingLinkedExpanded;
         }
         return reportActionsBeforeAndIncludingLinked;
@@ -167,7 +163,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         setLinkingToCattedMessage(true);
         setLinkingToExtendedMessage(true);
         fetchReport();
-
     }, [route, reportActionID, fetchReport, scrollToBottom]);
 
     const isReportActionArrayCatted = useMemo(() => {
