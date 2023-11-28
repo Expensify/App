@@ -22,6 +22,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -51,18 +52,16 @@ const propTypes = {
     personalDetails: personalDetailsPropType,
 
     /** The policy of the current report */
-    policy: PropTypes.shape({
-        /** Whether the policy requires a tag */
-        requiresTag: PropTypes.bool,
+    policy: policyPropTypes,
 
-        /** Whether the policy requires a category */
-        requiresCategory: PropTypes.bool,
+    policyTags: PropTypes.shape({
+        /** List of tags */
+        tags: PropTypes.arrayOf(PropTypes.string),
+    }),
 
-        /** Whether there is more than one list of tags */
-        hasMultipleTagLists: PropTypes.bool,
-
-        /** Whether the policy has enable tax tracking */
-        isTrackingTaxEnabled: PropTypes.bool,
+    policyCategories: PropTypes.shape({
+        /** List of categories */
+        categories: PropTypes.arrayOf(PropTypes.string),
     }),
 
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -74,6 +73,7 @@ const defaultProps = {
     policyCategories: {},
     policyTags: {},
     iou: iouDefaultProps,
+    policy: policyDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -190,7 +190,9 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.category,
                 props.iou.tag,
                 props.iou.billable,
-                props.policy.id,
+                props.policy,
+                props.policyTags,
+                props.policyCategories,
             );
         },
         [
@@ -204,7 +206,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.category,
             props.iou.tag,
             props.iou.billable,
-            props.policy.id,
+            props.policy,
+            props.policyTags,
+            props.policyCategories,
         ],
     );
 
