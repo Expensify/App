@@ -9,18 +9,15 @@ const ViolationsUtils = {
         return transactionViolations.filter((violation) => possibleViolationsByField[field]?.includes(violation.name)).map((violation) => translate(violation.name));
     },
 
+    /**
+     *  Computes an updated array of transaction violations for the given transaction
+     */
     getViolationsOnyxData(
-        /** The transaction to check for policy violations. */
         transaction: Transaction,
-        /** An array of existing transaction violations. */
         transactionViolations: TransactionViolation[],
-        /** Indicates if the policy requires tags. */
         policyRequiresTags: boolean,
-        /** Collection of policy tags and their enabled states. */
         policyTags: PolicyTags,
-        /** Indicates if the policy requires categories. */
         policyRequiresCategories: boolean,
-        /** Collection of policy categories and their enabled states. */
         policyCategories: PolicyCategories,
     ): {
         onyxMethod: string;
