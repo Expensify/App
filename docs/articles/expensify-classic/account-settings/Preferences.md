@@ -26,11 +26,3 @@ If you prefer to set your time zone manually, leave the box unticked and select 
 When you add a comment to a report, all the report actions will be time-stamped in your local time. Adjusting your time zone to the appropriate location makes tracking and understanding submission and approval times much easier.
 
 ![ExpensifyHelp_Time]({{site.url}}/assets/images/ExpensifyHelp_Time.png){:width="100%"}
-
-# FAQ
-## The profile picture on my account updated automatically. Why did this happen? 
-Our focus is always on making your experience user-friendly and saving you valuable time. One of the ways we achieve this is by utilizing a public API to retrieve public data linked to your email address.
-
-This tool searches for public accounts or profiles associated with your email address, such as on LinkedIn. When it identifies one, it pulls in the uploaded profile picture and name to Expensify.
-
-While this automated process is generally accurate, there may be instances where it's not entirely correct. If this happens, we apologize for any inconvenience caused. The good news is that rectifying such situations is a straightforward process. You can quickly update your information manually by following the directions provided above, ensuring your data is accurate and up to date in no time.
