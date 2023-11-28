@@ -28,6 +28,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Breadcrumbs from '@components/Breadcrumbs';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -176,6 +177,31 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
+            </View>
+            <View style={[styles.mh5, styles.mb3]}>
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: 'expensify',
+                        },
+                        {
+                            text: 'Cathy`s Croissants',
+                            type: 'strong',
+                        },
+                        {
+                            text: 'Settings',
+                        },
+                        {
+                            text: 'Settings',
+                        },
+                        {
+                            text: 'Settings',
+                        },
+                        {
+                            text: 'Settings',
+                        },
+                    ]}
+                />
             </View>
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList

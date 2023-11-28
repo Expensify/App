@@ -1375,6 +1375,17 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumb: {
+            color: colors.darkSupportingText,
+            fontSize: variables.fontSizeh1,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbStrong: {
+            // TODO
+        },
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -3508,12 +3519,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            marginLeft: 0,
-            marginBottom: 2,
+            marginLeft: -8,
+            marginTop: -8,
             height: 12,
+            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
+            zIndex: -1,
         },
 
         headerEnvBadgeText: {
