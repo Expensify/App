@@ -98,12 +98,13 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         <RNTextInput
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            multiline
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
-            smartInsertDelete={false}
+            smartInsertDelete
             textAlignVertical="center"
             style={[...props.style, maxHeightStyle]}
             readOnly={isDisabled}

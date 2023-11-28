@@ -11,11 +11,14 @@ const updateNumberOfLines: UpdateNumberOfLines = (props, event) => {
     const lineHeight = styles.textInputCompose.lineHeight ?? 0;
     const paddingTopAndBottom = styles.textInputComposeSpacing.paddingVertical * 2;
     const inputHeight = event?.nativeEvent?.contentSize?.height ?? null;
+
     if (!inputHeight) {
         return;
     }
     const numberOfLines = getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
     updateIsFullComposerAvailable(props, numberOfLines);
+
+    return numberOfLines;
 };
 
 export default updateNumberOfLines;
