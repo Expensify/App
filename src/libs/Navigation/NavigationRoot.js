@@ -1,25 +1,14 @@
 import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
-import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
-import StatusBar from '@libs/StatusBar';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
-
-// https://reactnavigation.org/docs/themes
-const navigationTheme = {
-    ...DefaultTheme,
-    colors: {
-        ...DefaultTheme.colors,
-        background: themeColors.appBG,
-    },
-};
 
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
@@ -53,6 +42,7 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
+    const theme = useTheme();
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -79,56 +69,29 @@ function NavigationRoot(props) {
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth, props.authenticated]);
 
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarAnimation = useSharedValue(0);
-
-    const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
-    useAnimatedReaction(
-        () => statusBarAnimation.value,
-        (current, previous) => {
-            // Do not run if either of the animated value is null
-            // or previous animated value is greater than or equal to the current one
-            if ([current, previous].includes(null) || current <= previous) {
-                return;
-            }
-            const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
-            runOnJS(updateStatusBarBackgroundColor)(color);
-        },
-    );
-
-    const animateStatusBarBackgroundColor = () => {
-        const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
-
-        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-        statusBarBackgroundColor.current = currentScreenBackgroundColor;
-
-        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
-            return;
-        }
-
-        statusBarAnimation.value = 0;
-        statusBarAnimation.value = withDelay(
-            300,
-            withTiming(1, {
-                duration: 300,
-                easing: Easing.in,
-            }),
-        );
-    };
-
     const handleStateChange = (state) => {
         if (!state) {
             return;
         }
+
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
-        animateStatusBarBackgroundColor();
     };
+
+    // https://reactnavigation.org/docs/themes
+    const navigationTheme = useMemo(
+        () => ({
+            ...DefaultTheme,
+            colors: {
+                ...DefaultTheme.colors,
+                background: theme.appBG,
+            },
+        }),
+        [theme.appBG],
+    );
 
     return (
         <NavigationContainer
