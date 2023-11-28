@@ -97,6 +97,7 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): React.FC<SvgProps
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
+
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
     let accountIDHashBucket: AvatarRange;
