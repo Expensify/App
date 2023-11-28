@@ -178,6 +178,11 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageReimbursementDequeued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    originalMessage: unknown;
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -192,7 +197,8 @@ type OriginalMessage =
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
-    | OriginalMessageReimbursementQueued;
+    | OriginalMessageReimbursementQueued
+    | OriginalMessageReimbursementDequeued;
 
 export default OriginalMessage;
 export type {ChronosOOOEvent, Decision, Reaction, ActionName};
