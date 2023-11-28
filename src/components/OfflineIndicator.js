@@ -51,7 +51,7 @@ function OfflineIndicator(props) {
     }
 
     return (
-        <View style={[computedStyles(props.containerStyles, props.isSmallScreenWidth, styles), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
+        <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
