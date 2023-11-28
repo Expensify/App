@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -59,6 +59,7 @@ function SuggestionEmoji({
     forwardedRef,
     resetKeyboardInput,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -180,6 +181,13 @@ function SuggestionEmoji({
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
+    useEffect(() => {
+        if (!isComposerFocused) {
+            return;
+        }
+        calculateEmojiSuggestion(selection.end);
+    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
+
     const onSelectionChange = useCallback(
         (e) => {
             /**
@@ -201,6 +209,10 @@ function SuggestionEmoji({
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const resetEmojiSuggestions = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -220,11 +232,11 @@ function SuggestionEmoji({
 
     return (
         <EmojiSuggestions
-            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+            onClose={resetEmojiSuggestions}
             highlightedEmojiIndex={highlightedEmojiIndex}
             emojis={suggestionValues.suggestedEmojis}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
             onSelect={insertSelectedEmoji}
