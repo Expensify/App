@@ -9,7 +9,6 @@ import _ from 'underscore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as CollectionUtils from './CollectionUtils';
-import * as CurrencyUtils from './CurrencyUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -374,40 +373,6 @@ function getAllReportErrors(report, reportActions) {
 }
 
 /**
- * Get the preview message to be displayed in the option list.
- *
- * @param {Object} report
- * @param {Object} reportAction
- * @param {Boolean} [isPreviewMessageForParentChatReport]
- * @returns {String}
- */
-function getReportPreviewMessageForOptionList(report, reportAction, isPreviewMessageForParentChatReport = false) {
-    // For the request action preview we want to show the requestor instead of the user who owes the money
-    if (!isPreviewMessageForParentChatReport && reportAction.originalMessage && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
-        const amount = Math.abs(reportAction.originalMessage.amount);
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, report.currency);
-        const shouldShowActorName = currentUserAccountID !== reportAction.actorAccountID;
-        const actorDisplayName = shouldShowActorName ? `${ReportUtils.getDisplayNameForParticipant(reportAction.actorAccountID, true)}: ` : '';
-
-        return `${actorDisplayName}${Localize.translateLocal('iou.requestedAmount', {formattedAmount})}`;
-    }
-
-    const shouldShowWorkspaceName = ReportUtils.isExpenseReport(report) && isPreviewMessageForParentChatReport;
-    const actorID = report.managerID || reportAction.actorAccountID;
-    const actor = ReportUtils.getActorNameForPreviewMessage({
-        report,
-        shouldShowWorkspaceName,
-        actorID,
-        shouldUseShortForm: !isPreviewMessageForParentChatReport,
-    });
-    const shouldShowActorName = shouldShowWorkspaceName || isPreviewMessageForParentChatReport || currentUserAccountID !== actorID;
-    const actorDisplayName = shouldShowActorName && actor ? `${actor}${isPreviewMessageForParentChatReport ? ' ' : ': '}` : '';
-    const message = ReportUtils.getReportPreviewMessage(report, reportAction, true, isPreviewMessageForParentChatReport, true);
-
-    return `${actorDisplayName}${message}`;
-}
-
-/**
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
  * @returns {String}
@@ -418,7 +383,7 @@ function getLastMessageTextForReport(report) {
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessageForOptionList(report, lastReportAction, false);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -429,7 +394,7 @@ function getLastMessageTextForReport(report) {
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = getReportPreviewMessageForOptionList(iouReport, lastIOUMoneyReport, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
@@ -446,10 +411,7 @@ function getLastMessageTextForReport(report) {
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
-        const shouldShowLastActor =
-            ReportUtils.isThread(report) && (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) && currentUserAccountID !== report.lastActorAccountID;
-        const lastActorDisplayName = shouldShowLastActor ? `${ReportUtils.getDisplayNameForParticipant(report.lastActorAccountID, true)}: ` : '';
-        lastMessageTextFromReport = report ? `${lastActorDisplayName}${report.lastMessageText}` : '';
+        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
     return lastMessageTextFromReport;
 }
@@ -948,24 +910,19 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => {
-        // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
-
-        return {
-            text: tagName,
-            keyForList: tagName,
-            searchText: tagName,
-            tooltipText: tagName,
-            isDisabled: !tag.enabled,
-        };
-    });
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
 }
 
 /**
  * Build the section list for tags
  *
- * @param {Object[]} tags
+ * @param {Object[]} rawTags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -975,8 +932,14 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
+    const tags = _.map(rawTags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {...tag, name: tagName};
+    });
     const sortedTags = sortTags(tags);
     const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);

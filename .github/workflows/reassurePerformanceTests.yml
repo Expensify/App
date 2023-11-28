@@ -22,13 +22,11 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          CURRENT_BRANCH=$(git branch --show-current)
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
           npm install --force
           npx reassure --baseline
-          git switch "$CURRENT_BRANCH"
-          git merge --no-commit --no-ff "$BASELINE_BRANCH"
+          git switch --force --detach -
           npm install --force
           npx reassure --branch
 
