@@ -34,8 +34,6 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
         // appBG color.
         const currentRoute = navigationRef.getCurrentRoute();
 
-        console.log({currentRoute});
-
         let currentScreenBackgroundColor = theme.appBG;
         let statusBarStyle;
         if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
