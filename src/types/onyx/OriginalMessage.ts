@@ -169,12 +169,12 @@ type OriginalMessageReportPreview = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage?: ChangeLog;
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage?: ChangeLog;
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessagePolicyTask = {
