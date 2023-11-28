@@ -1,5 +1,5 @@
 import {ImageSourcePropType} from 'react-native';
-import {ReportAction, Report} from '../../../types/onyx';
+import {Report, ReportAction} from '@src/types/onyx';
 
 type PushParams = {
     title: string;
@@ -19,6 +19,7 @@ type ReportCommentParams = {
 type LocalNotificationModule = {
     showCommentNotification: (reportCommentParams: ReportCommentParams) => void;
     showUpdateAvailableNotification: () => void;
+    showModifiedExpenseNotification: (reportCommentParams: ReportCommentParams) => void;
 };
 
 export type {PushParams, ReportCommentParams, LocalNotificationModule};

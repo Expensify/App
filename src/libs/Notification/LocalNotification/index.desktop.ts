@@ -1,5 +1,5 @@
-import BrowserNotifications from './BrowserNotifications.js';
-import {LocalNotificationModule, ReportCommentParams} from './types.js';
+import BrowserNotifications from './BrowserNotifications';
+import {LocalNotificationModule, ReportCommentParams} from './types';
 
 function showCommentNotification({report, reportAction, onClick}: ReportCommentParams) {
     BrowserNotifications.pushReportCommentNotification({report, reportAction, onClick});

@@ -1,9 +1,9 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import _ from 'underscore';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
+import {PushParams, ReportCommentParams} from './types';
 
 const DEFAULT_DELAY = 4000;
 
@@ -112,9 +112,9 @@ export default {
         });
     },
 
-    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
+    pushModifiedExpenseNotification({reportAction, onClick}: ReportCommentParams, usesIcon = false) {
         push({
-            title: _.map(reportAction.person, (f) => f.text).join(', '),
+            title: reportAction.person?.map((f) => f.text).join(', ') ?? '',
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
