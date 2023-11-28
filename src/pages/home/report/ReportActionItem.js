@@ -692,7 +692,7 @@ function ReportActionItem(props) {
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
                                 shouldHideOnDelete={
                                     ReportActionsUtils.isCreatedTaskReportAction(props.action)
-                                        ? ReportUtils.shouldHideCanceledTaskReport({}, props.action)
+                                        ? ReportUtils.shouldHideCanceledTaskReport(props.action)
                                         : !ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)
                                 }
                                 errors={props.action.errors}
