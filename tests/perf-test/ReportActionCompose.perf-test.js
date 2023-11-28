@@ -22,10 +22,6 @@ jest.mock('react-native-reanimated', () => ({
     useAnimatedRef: jest.fn,
 }));
 
-jest.mock('../../src/libs/Permissions', () => ({
-    canUseTasks: jest.fn(() => true),
-}));
-
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
