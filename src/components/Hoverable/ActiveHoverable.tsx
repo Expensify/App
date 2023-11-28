@@ -1,25 +1,8 @@
-import {cloneElement, forwardRef, MutableRefObject, Ref, RefCallback, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {cloneElement, forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
+import assignRef from '@libs/assignRef';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
-
-/**
- * Assigns a ref to an element, either by setting the current property of the ref object or by calling the ref function
- *
- * @param ref The ref object or function.
- * @param element The element to assign the ref to.
- */
-function assignRef<E extends HTMLElement>(ref: RefCallback<E> | MutableRefObject<E | null>, element: E) {
-    if (!ref) {
-        return;
-    }
-    if (typeof ref === 'function') {
-        ref(element);
-    } else if ('current' in ref) {
-        // eslint-disable-next-line no-param-reassign
-        ref.current = element;
-    }
-}
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
