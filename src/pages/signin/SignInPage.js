@@ -111,7 +111,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
         Session.clearSignInData();
     }
 
-    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
+    const shouldShowLoginForm = (isClientTheLeader && !hasLogin && !hasValidateCode) || (hasInitiatedSAMLLogin && !_.isEmpty(account.errors));
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
@@ -194,9 +194,6 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     if (shouldInitiateSAMLLogin) {
         setHasInitiatedSAMLLogin(true);
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
-    } else if (hasInitiatedSAMLLogin) {
-        // Return early because we're already navigating to a different page
-        return;
     }
 
     let welcomeHeader = '';
@@ -238,7 +235,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
-    } else if (!shouldInitiateSAMLLogin) {
+    } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
 
