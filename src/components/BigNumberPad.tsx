@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
-import withLocalize from './withLocalize';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -15,14 +15,7 @@ type BigNumberPadProps = {
 
     /** Used to locate this view from native classes. */
     id?: string;
-
-    // TODO: Add withLocalize props (withLocalizePropTypes)
 };
-
-// const defaultProps = {
-//     longPressHandlerStateChanged: () => {},
-//     id: 'numPadView',
-// };
 
 const padNumbers = [
     ['1', '2', '3'],
@@ -31,9 +24,11 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-function BigNumberPad(props) {
+function BigNumberPad({numberPressed, longPressHandlerStateChanged, id}: BigNumberPadProps) {
+    const {toLocaleDigit} = useLocalize();
+
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState(null);
+    const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
@@ -45,7 +40,7 @@ function BigNumberPad(props) {
             return;
         }
 
-        longPressHandlerStateChanged(true);
+        longPressHandlerStateChanged?.(true);
 
         const newTimer = setInterval(() => {
             numberPressed(key);
@@ -57,7 +52,7 @@ function BigNumberPad(props) {
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            id={props.id}
+            id={id}
         >
             {padNumbers.map((row, rowIndex) => (
                 <View
@@ -86,9 +81,11 @@ function BigNumberPad(props) {
                                     }
 
                                     ControlSelection.unblock();
-                                    longPressHandlerStateChanged(false);
+                                    longPressHandlerStateChanged?.(false);
                                 }}
-                                onMouseDown={(e) => e.preventDefault()}
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                }}
                             />
                         );
                     })}
@@ -100,4 +97,4 @@ function BigNumberPad(props) {
 
 BigNumberPad.displayName = 'BigNumberPad';
 
-export default withLocalize(BigNumberPad);
+export default BigNumberPad;
