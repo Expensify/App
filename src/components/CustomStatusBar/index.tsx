@@ -34,18 +34,19 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
             // appBG color.
             const currentRoute = navigationRef.getCurrentRoute();
             let currentScreenBackgroundColor = theme.appBG;
-            let statusBarStyle = theme.statusBarStyle;
+            let statusBarStyle;
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
                 const screenTheme = theme.PAGE_THEMES[currentRoute.name];
                 currentScreenBackgroundColor = screenTheme.backgroundColor;
                 statusBarStyle = screenTheme.statusBarStyle;
             }
 
-            StatusBar.setBarStyle(statusBarStyle, false);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor, false);
+            if (statusBarStyle != null) {
+                StatusBar.setBarStyle(statusBarStyle, false);
+            }
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [theme.PAGE_THEMES, theme.appBG]);
+    }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
     useEffect(() => {
         StatusBar.setBarStyle(theme.statusBarStyle, true);
