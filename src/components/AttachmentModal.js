@@ -128,6 +128,8 @@ const AttachmentModal = forwardRef((props, ref) => {
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
+    const isOverlayModalVisible = (isAttachmentReceipt && isDeleteReceiptConfirmModalVisible) || (!isAttachmentReceipt && isAttachmentInvalid);
+
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -414,7 +416,7 @@ const AttachmentModal = forwardRef((props, ref) => {
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={closeModal}
+                onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 backgroundColor={theme.componentBG}
                 onModalShow={() => {
