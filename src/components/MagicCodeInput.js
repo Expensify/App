@@ -134,6 +134,12 @@ function MagicCodeInput(props) {
         inputRefs.current.focus();
     };
 
+    const setInputAndIndex = (index) => {
+        setInput(TEXT_INPUT_EMPTY_STATE);
+        setFocusedIndex(index);
+        setEditIndex(index);
+    }
+
     useImperativeHandle(props.innerRef, () => ({
         focus() {
             focusMagicCodeInput();
@@ -146,10 +152,8 @@ function MagicCodeInput(props) {
             focusMagicCodeInput();
         },
         clear() {
-            setInput(TEXT_INPUT_EMPTY_STATE);
-            setFocusedIndex(0);
             lastFocusedIndex.current = 0;
-            setEditIndex(0);
+            setInputAndIndex(0);
             inputRefs.current.focus();
             props.onChangeText('');
         },
@@ -193,9 +197,7 @@ function MagicCodeInput(props) {
     const onFocus = (event) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
-            setInput(TEXT_INPUT_EMPTY_STATE);
-            setFocusedIndex(lastFocusedIndex.current);
-            setEditIndex(lastFocusedIndex.current);
+            setInputAndIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
     };
@@ -213,9 +215,7 @@ function MagicCodeInput(props) {
         if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
             inputRefs.current.focus();
         }
-        setInput(TEXT_INPUT_EMPTY_STATE);
-        setFocusedIndex(index);
-        setEditIndex(index);
+        setInputAndIndex(index);
         lastFocusedIndex.current = index;
     };
 
@@ -247,9 +247,7 @@ function MagicCodeInput(props) {
         let numbers = decomposeString(props.value, props.maxLength);
         numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, props.maxLength)];
 
-        setFocusedIndex(updatedFocusedIndex);
-        setEditIndex(updatedFocusedIndex);
-        setInput(TEXT_INPUT_EMPTY_STATE);
+        setInputAndIndex(updatedFocusedIndex);
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
@@ -305,9 +303,7 @@ function MagicCodeInput(props) {
             // Saves the input string so that it can compare to the change text
             // event that will be triggered, this is a workaround for mobile that
             // triggers the change text on the event after the key press.
-            setInput(TEXT_INPUT_EMPTY_STATE);
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
+            setInputAndIndex(newFocusedIndex);
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
@@ -316,15 +312,11 @@ function MagicCodeInput(props) {
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-            setInput(TEXT_INPUT_EMPTY_STATE);
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
+            setInputAndIndex(newFocusedIndex);
             inputRefs.current.focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
-            setInput(TEXT_INPUT_EMPTY_STATE);
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
+            setInputAndIndex(newFocusedIndex);
             inputRefs.current.focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
