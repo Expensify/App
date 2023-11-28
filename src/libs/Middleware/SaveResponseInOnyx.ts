@@ -1,7 +1,7 @@
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as MemoryOnlyKeys from '../actions/MemoryOnlyKeys/MemoryOnlyKeys';
-import * as OnyxUpdates from '../actions/OnyxUpdates';
+import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
+import * as OnyxUpdates from '@userActions/OnyxUpdates';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of

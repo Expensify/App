@@ -1,4 +1,4 @@
-import CustomRefObject from '../../types/utils/CustomRefObject';
+import CustomRefObject from '@src/types/utils/CustomRefObject';
 
 type ControlSelectionModule = {
     block: () => void;

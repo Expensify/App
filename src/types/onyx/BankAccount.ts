@@ -1,10 +1,10 @@
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import AccountData from './AccountData';
 import * as OnyxCommon from './OnyxCommon';
 
 type BankAccount = {
     /** The bank account type */
-    accountType?: typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */
     description?: string;

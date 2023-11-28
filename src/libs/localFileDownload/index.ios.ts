@@ -1,6 +1,6 @@
 import {Share} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import * as FileUtils from '../fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import LocalFileDownload from './types';
 
 /**

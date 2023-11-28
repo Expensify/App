@@ -1,4 +1,4 @@
-import {OnyxKeyValue} from '../../ONYXKEYS';
+import {OnyxKeyValue} from '@src/ONYXKEYS';
 
 export default function reportWithoutHasDraftSelector(report: OnyxKeyValue<'report_'>) {
     if (!report) {

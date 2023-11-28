@@ -1,27 +1,27 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import * as Report from '../libs/actions/Report';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Timing from '../libs/actions/Timing';
-import CONST from '../CONST';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import Performance from '../libs/Performance';
-import networkPropTypes from '../components/networkPropTypes';
-import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,6 +45,7 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -65,15 +66,13 @@ class SearchPage extends Component {
         this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
+        this.updateOptions = this.updateOptions.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
-
         this.state = {
             searchValue: '',
-            recentReports,
-            personalDetails,
-            userToInvite,
+            recentReports: {},
+            personalDetails: {},
+            userToInvite: {},
         };
     }
 
@@ -186,11 +185,12 @@ class SearchPage extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={SearchPage.displayName}
+                onEntryTransitionEnd={this.updateOptions}
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton title={this.props.translate('common.search')} />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <View style={[this.props.themeStyles.flex1, this.props.themeStyles.w100, this.props.themeStyles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
@@ -204,6 +204,8 @@ class SearchPage extends Component {
                                 textInputAlert={
                                     this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
                                 }
+                                shouldShowReferralCTA
+                                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
@@ -219,6 +221,7 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
+SearchPage.displayName = 'SearchPage';
 
 export default compose(
     withLocalize,
@@ -239,4 +242,5 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
+    withThemeStyles,
 )(SearchPage);

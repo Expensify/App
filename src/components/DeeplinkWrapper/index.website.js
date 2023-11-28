@@ -1,15 +1,15 @@
-import PropTypes from 'prop-types';
-import {useRef, useState, useEffect} from 'react';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import {useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
-import * as Browser from '../../libs/Browser';
-import ROUTES from '../../ROUTES';
-import * as App from '../../libs/actions/App';
-import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
-import shouldPreventDeeplinkPrompt from '../../libs/Navigation/shouldPreventDeeplinkPrompt';
-import navigationRef from '../../libs/Navigation/navigationRef';
-import Navigation from '../../libs/Navigation/Navigation';
+import * as Browser from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import shouldPreventDeeplinkPrompt from '@libs/Navigation/shouldPreventDeeplinkPrompt';
+import * as App from '@userActions/App';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Children to render. */

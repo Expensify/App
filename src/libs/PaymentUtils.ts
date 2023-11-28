@@ -1,10 +1,10 @@
-import BankAccountModel from './models/BankAccount';
-import getBankIcon from '../components/Icon/BankIcons';
-import CONST from '../CONST';
+import getBankIcon from '@components/Icon/BankIcons';
+import CONST from '@src/CONST';
+import BankAccount from '@src/types/onyx/BankAccount';
+import Fund from '@src/types/onyx/Fund';
+import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import * as Localize from './Localize';
-import Fund from '../types/onyx/Fund';
-import BankAccount from '../types/onyx/BankAccount';
-import PaymentMethod from '../types/onyx/PaymentMethod';
+import BankAccountModel from './models/BankAccount';
 
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
 
@@ -26,7 +26,7 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
 
 function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData']): string {
     if (account) {
-        if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && 'accountNumber' in account) {
+        if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
             return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {

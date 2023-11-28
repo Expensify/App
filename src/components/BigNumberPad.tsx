@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import ControlSelection from '../libs/ControlSelection';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ControlSelection from '@libs/ControlSelection';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import withLocalize from './withLocalize';
 
@@ -14,10 +14,15 @@ type BigNumberPadProps = {
     longPressHandlerStateChanged?: (isUserLongPressingBackspace: boolean) => void;
 
     /** Used to locate this view from native classes. */
-    nativeID?: string;
+    id?: string;
 
     // TODO: Add withLocalize props (withLocalizePropTypes)
 };
+
+// const defaultProps = {
+//     longPressHandlerStateChanged: () => {},
+//     id: 'numPadView',
+// };
 
 const padNumbers = [
     ['1', '2', '3'],
@@ -26,8 +31,9 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, nativeID = 'numPadView'}: BigNumberPadProps) {
-    const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
+function BigNumberPad(props) {
+    const styles = useThemeStyles();
+    const [timer, setTimer] = useState(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
@@ -51,7 +57,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, n
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            nativeID={nativeID}
+            id={props.id}
         >
             {padNumbers.map((row, rowIndex) => (
                 <View

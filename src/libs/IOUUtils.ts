@@ -1,7 +1,8 @@
-import CONST from '../CONST';
-import * as TransactionUtils from './TransactionUtils';
+import {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
-import {Report, Transaction} from '../types/onyx';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -35,8 +36,8 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false): Report {
-    if (currency !== iouReport.currency) {
+function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+    if (currency !== iouReport?.currency) {
         return iouReport;
     }
 

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import useThemeStyles from '@styles/useThemeStyles';
 import Section from './Section';
-import styles from '../styles/styles';
 
 const propTypes = {
     /** Contents to display inside the section */
@@ -24,6 +24,7 @@ const defaultProps = {
 };
 
 function WalletSection({children, icon, subtitle, title}) {
+    const styles = useThemeStyles();
     return (
         <Section
             icon={icon}

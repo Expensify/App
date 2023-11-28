@@ -1,6 +1,6 @@
-import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {useIsFocused} from '@react-navigation/native';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithNavigationFocusProps = {
     isFocused: boolean;

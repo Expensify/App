@@ -1,20 +1,22 @@
-import _ from 'underscore';
+import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import Text from '../../Text';
-import YearPickerModal from './YearPickerModal';
+import _ from 'underscore';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import getButtonState from '@libs/getButtonState';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
-import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import CONST from '../../../CONST';
-import getButtonState from '../../../libs/getButtonState';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import YearPickerModal from './YearPickerModal';
 
 const propTypes = {
     /** An initial value of date string */
@@ -30,12 +32,13 @@ const propTypes = {
     onSelected: PropTypes.func,
 
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
     value: new Date(),
-    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
-    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
+    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected: () => {},
 };
 
@@ -46,16 +49,15 @@ class CalendarPicker extends React.PureComponent {
         if (props.minDate >= props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
-
-        let currentDateView = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING).toDate();
+        let currentDateView = new Date(props.value);
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
         }
 
-        const minYear = moment(this.props.minDate).year();
-        const maxYear = moment(this.props.maxDate).year();
+        const minYear = getYear(new Date(this.props.minDate));
+        const maxYear = getYear(new Date(this.props.maxDate));
 
         this.state = {
             currentDateView,
@@ -79,7 +81,7 @@ class CalendarPicker extends React.PureComponent {
 
     onYearSelected(year) {
         this.setState((prev) => {
-            const newCurrentDateView = moment(prev.currentDateView).set('year', year).toDate();
+            const newCurrentDateView = setYear(new Date(prev.currentDateView), year);
 
             return {
                 currentDateView: newCurrentDateView,
@@ -99,9 +101,9 @@ class CalendarPicker extends React.PureComponent {
     onDayPressed(day) {
         this.setState(
             (prev) => ({
-                currentDateView: moment(prev.currentDateView).set('date', day).toDate(),
+                currentDateView: setDate(new Date(prev.currentDateView), day),
             }),
-            () => this.props.onSelected(moment(this.state.currentDateView).format('YYYY-MM-DD')),
+            () => this.props.onSelected(format(new Date(this.state.currentDateView), CONST.DATE.FNS_FORMAT_STRING)),
         );
     }
 
@@ -109,41 +111,48 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'months').toDate()}));
+        this.setState((prev) => ({currentDateView: subMonths(new Date(prev.currentDateView), 1)}));
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'months').toDate()}));
+        this.setState((prev) => ({currentDateView: addMonths(new Date(prev.currentDateView), 1)}));
     }
 
     render() {
-        const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
-        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), (day) => day.toUpperCase());
+        const monthNames = _.map(DateUtils.getMonthNames(this.props.preferredLocale), Str.recapitalize);
+        const daysOfWeek = _.map(DateUtils.getDaysOfWeek(this.props.preferredLocale), (day) => day.toUpperCase());
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').endOf('day') >= moment(this.state.currentDateView).add(1, 'months');
-        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('month').startOf('day') <= moment(this.state.currentDateView).subtract(1, 'months');
+        const hasAvailableDatesNextMonth = startOfDay(endOfMonth(new Date(this.props.maxDate))) > addMonths(new Date(this.state.currentDateView), 1);
+        const hasAvailableDatesPrevMonth = startOfDay(new Date(this.props.minDate)) < endOfMonth(subMonths(new Date(this.state.currentDateView), 1));
 
         return (
             <View>
                 <View
-                    style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}
+                    style={[
+                        this.props.themeStyles.calendarHeader,
+                        this.props.themeStyles.flexRow,
+                        this.props.themeStyles.justifyContentBetween,
+                        this.props.themeStyles.alignItemsCenter,
+                        this.props.themeStyles.ph4,
+                        this.props.themeStyles.pr1,
+                    ]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <PressableWithFeedback
                         onPress={() => this.setState({isYearPickerVisible: true})}
-                        style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
-                        wrapperStyle={[styles.alignItemsCenter]}
+                        style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentStart]}
+                        wrapperStyle={[this.props.themeStyles.alignItemsCenter]}
                         hoverDimmingValue={1}
                         testID="currentYearButton"
                         accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
-                            style={styles.sidebarLinkTextBold}
+                            style={this.props.themeStyles.sidebarLinkTextBold}
                             testID="currentYearText"
                             accessibilityLabel={this.props.translate('common.currentYear')}
                         >
@@ -151,9 +160,9 @@ class CalendarPicker extends React.PureComponent {
                         </Text>
                         <ArrowIcon />
                     </PressableWithFeedback>
-                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                    <View style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentEnd]}>
                         <Text
-                            style={styles.sidebarLinkTextBold}
+                            style={this.props.themeStyles.sidebarLinkTextBold}
                             testID="currentMonthText"
                             accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
@@ -184,49 +193,53 @@ class CalendarPicker extends React.PureComponent {
                         </PressableWithFeedback>
                     </View>
                 </View>
-                <View style={styles.flexRow}>
+                <View style={this.props.themeStyles.flexRow}>
                     {_.map(daysOfWeek, (dayOfWeek) => (
                         <View
                             key={dayOfWeek}
-                            style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                            style={[
+                                this.props.themeStyles.calendarDayRoot,
+                                this.props.themeStyles.flex1,
+                                this.props.themeStyles.justifyContentCenter,
+                                this.props.themeStyles.alignItemsCenter,
+                            ]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
+                            <Text style={this.props.themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
                     ))}
                 </View>
                 {_.map(calendarDaysMatrix, (week) => (
                     <View
                         key={`week-${week}`}
-                        style={styles.flexRow}
+                        style={this.props.themeStyles.flexRow}
                     >
                         {_.map(week, (day, index) => {
-                            const currentDate = moment([currentYearView, currentMonthView, day]);
-                            const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');
-                            const isAfterMaxDate = currentDate > moment(this.props.maxDate).startOf('day');
+                            const currentDate = new Date(currentYearView, currentMonthView, day);
+                            const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
+                            const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day');
-
+                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
-                                    style={styles.calendarDayRoot}
+                                    style={this.props.themeStyles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
-                                    focusable={Boolean(day)}
+                                    tabIndex={day ? 0 : -1}
                                     accessible={Boolean(day)}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     {({hovered, pressed}) => (
                                         <View
                                             style={[
-                                                styles.calendarDayContainer,
-                                                isSelected ? styles.calendarDayContainerSelected : {},
+                                                this.props.themeStyles.calendarDayContainer,
+                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
                                                 !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
-                                            <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </PressableWithoutFeedback>
@@ -249,4 +262,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default withLocalize(CalendarPicker);
+export default compose(withLocalize, withThemeStyles)(CalendarPicker);

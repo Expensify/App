@@ -1,10 +1,10 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
+import * as OnyxTypes from '@src/types/onyx';
+import {Card} from '@src/types/onyx';
 import * as Localize from './Localize';
-import * as OnyxTypes from '../types/onyx';
-import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
-import {Card} from '../types/onyx';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({

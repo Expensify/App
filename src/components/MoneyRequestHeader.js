@@ -1,29 +1,29 @@
-import React, {useState, useCallback, useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import compose from '../libs/compose';
-import * as Expensicons from './Icon/Expensicons';
-import participantPropTypes from './participantPropTypes';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import * as IOU from '../libs/actions/IOU';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ConfirmModal from './ConfirmModal';
-import useLocalize from '../hooks/useLocalize';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as HeaderUtils from '../libs/HeaderUtils';
-import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
+import participantPropTypes from './participantPropTypes';
 import transactionPropTypes from './transactionPropTypes';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -66,6 +66,7 @@ const defaultProps = {
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
@@ -122,7 +123,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     report={{
                         ...report,
                         ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
-                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
                     }}
                     policy={policy}
                     personalDetails={personalDetails}

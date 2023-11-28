@@ -1,7 +1,7 @@
 import React from 'react';
-import ONYXKEYS from '../ONYXKEYS';
-import createOnyxContext from './createOnyxContext';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ComposeProviders from './ComposeProviders';
+import createOnyxContext from './createOnyxContext';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)

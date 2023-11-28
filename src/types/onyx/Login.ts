@@ -14,7 +14,7 @@ type Login = {
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.ErrorFields;
+    pendingFields?: OnyxCommon.PendingFields;
 };
 
 export default Login;
