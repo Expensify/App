@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -96,12 +96,10 @@ IOURequestStepTag.defaultProps = defaultProps;
 
 export default compose(
     withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
         },
     }),
 )(IOURequestStepTag);

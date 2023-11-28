@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -254,10 +255,8 @@ IOURequestStepWaypoint.defaultProps = defaultProps;
 
 export default compose(
     withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
     withOnyx({
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
-        },
         recentWaypoints: {
             key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 

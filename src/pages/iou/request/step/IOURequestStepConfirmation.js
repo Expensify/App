@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -347,12 +348,10 @@ IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 export default compose(
     withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

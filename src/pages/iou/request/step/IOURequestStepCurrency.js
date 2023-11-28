@@ -1,5 +1,4 @@
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -8,6 +7,7 @@ import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
 /**
  * IOU Currency selection for selecting currency
@@ -147,9 +148,9 @@ IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 IOURequestStepCurrency.propTypes = propTypes;
 IOURequestStepCurrency.defaultProps = defaultProps;
 
-export default withOnyx({
-    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
-    },
-})(IOURequestStepCurrency);
+export default compose(
+    withFullTransactionOrNotFound,
+    withOnyx({
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+    }),
+)(IOURequestStepCurrency);

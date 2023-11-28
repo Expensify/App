@@ -1,6 +1,4 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -10,10 +8,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -77,11 +75,4 @@ IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 IOURequestStepCategory.propTypes = propTypes;
 IOURequestStepCategory.defaultProps = defaultProps;
 
-export default compose(
-    withWritableReportOrNotFound,
-    withOnyx({
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
-        },
-    }),
-)(IOURequestStepCategory);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepCategory);

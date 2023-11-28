@@ -1,6 +1,5 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -10,10 +9,10 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -101,11 +100,4 @@ IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 IOURequestStepParticipants.propTypes = propTypes;
 IOURequestStepParticipants.defaultProps = defaultProps;
 
-export default compose(
-    withWritableReportOrNotFound,
-    withOnyx({
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
-        },
-    }),
-)(IOURequestStepParticipants);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepParticipants);

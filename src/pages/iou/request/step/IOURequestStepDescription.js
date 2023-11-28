@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
@@ -19,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -119,11 +119,4 @@ IOURequestStepDescription.propTypes = propTypes;
 IOURequestStepDescription.defaultProps = defaultProps;
 IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withOnyx({
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
-        },
-    }),
-)(IOURequestStepDescription);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDescription);

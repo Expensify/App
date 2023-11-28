@@ -1,7 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -12,10 +10,10 @@ import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
@@ -118,11 +116,4 @@ IOURequestStepAmount.propTypes = propTypes;
 IOURequestStepAmount.defaultProps = defaultProps;
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withOnyx({
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
-        },
-    }),
-)(IOURequestStepAmount);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepAmount);
