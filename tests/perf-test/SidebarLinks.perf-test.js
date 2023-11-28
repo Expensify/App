@@ -99,9 +99,9 @@ test('should scroll and click some of the items', () => {
         const lhnOptionsList = await screen.findByTestId('lhn-options-list');
 
         fireEvent.scroll(lhnOptionsList, eventData);
-
-        const button1 = await screen.findByTestId('1');
-        const button2 = await screen.findByTestId('2');
+        // find elements that are currently visible in the viewport
+        const button1 = await screen.findByTestId('7');
+        const button2 = await screen.findByTestId('8');
         fireEvent.press(button1);
         fireEvent.press(button2);
     };
