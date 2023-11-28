@@ -56,9 +56,7 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Whether ScrollWithContext should be used instead of regular ScrollView.
-     *  Set to true when there's a nested Picker component in Form.
-     */
+    /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
     scrollContextEnabled: PropTypes.bool,
 
     /** Container styles */
@@ -70,10 +68,17 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Should validate function be called when input loose focus */
     shouldValidateOnBlur: PropTypes.bool,
 
+    /** Should validate function be called when the value of the input is changed */
     shouldValidateOnChange: PropTypes.bool,
 };
+
+// In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
+// 200ms delay was chosen as a result of empirical testing.
+// More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
+const VALIDATE_DELAY = 200;
 
 const defaultProps = {
     isSubmitButtonVisible: true,
@@ -249,19 +254,34 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
-                    setTouchedInput(inputID);
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onTouched)) {
                         propsToParse.onTouched(event);
                     }
                 },
                 onPress: (event) => {
-                    setTouchedInput(inputID);
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onPress)) {
                         propsToParse.onPress(event);
                     }
                 },
-                onPressIn: (event) => {
-                    setTouchedInput(inputID);
+                onPressOut: (event) => {
+                    // To prevent validating just pressed inputs, we need to set the touched input right after
+                    // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
+                    // as the onValidate is delayed
+                    if (!propsToParse.shouldSetTouchedOnBlurOnly) {
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                        }, VALIDATE_DELAY);
+                    }
                     if (_.isFunction(propsToParse.onPressIn)) {
                         propsToParse.onPressIn(event);
                     }
@@ -282,7 +302,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);
                             }
-                        }, 200);
+                        }, VALIDATE_DELAY);
                     }
 
                     if (_.isFunction(propsToParse.onBlur)) {

@@ -1,0 +1,35 @@
+name: Test GitHub Actions workflows
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['.github/**']
+
+jobs:
+  testGHWorkflows:
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    name: test GitHub Workflows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Setup Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install Act
+        run: brew install act
+
+      - name: Set ACT_BINARY
+        run: echo "ACT_BINARY=$(which act)" >> "$GITHUB_ENV"
+
+      - name: Run tests
+        run: npm run workflow-test
