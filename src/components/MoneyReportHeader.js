@@ -119,6 +119,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
+                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
                         />
@@ -163,6 +164,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
+                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                             formattedAmount={formattedAmount}
                         />
                     </View>

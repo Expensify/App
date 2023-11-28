@@ -132,6 +132,7 @@ function SettlementButton({
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const isIOUReport = ReportUtils.isIOUReport(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
@@ -149,12 +150,11 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
         const paymentMethod = nvp_lastPaymentMethod[policyID] || '';
-        if (canUseWallet) {
+        if (ReportUtils.isIOUReport(iouReport)) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
         if (isExpenseReport) {
