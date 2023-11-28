@@ -1,4 +1,4 @@
-import {cloneElement, forwardRef, MutableRefObject, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {cloneElement, forwardRef, MutableRefObject, Ref, RefCallback, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
@@ -8,7 +8,7 @@ import HoverableProps from './types';
  * @param ref The ref object or function.
  * @param element The element to assign the ref to.
  */
-function assignRef(ref: ((instance: HTMLElement | null) => void) | MutableRefObject<HTMLElement | null>, element: HTMLElement) {
+function assignRef<E extends HTMLElement>(ref: RefCallback<E> | MutableRefObject<E | null>, element: E) {
     if (!ref) {
         return;
     }
