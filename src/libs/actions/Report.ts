@@ -26,10 +26,11 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {PersonalDetails} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase} from '@src/types/onyx/ReportAction';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -83,6 +84,14 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         isNetworkOffline = val?.isOffline ?? false;
+    },
+});
+
+let allPersonalDetails: OnyxCollection<PersonalDetails> = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val ?? {};
     },
 });
 
@@ -451,20 +460,29 @@ function reportActionsExist(reportID: string): boolean {
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID: string, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+function openReport(
+    reportID: string,
+    participantLoginList: string[] = [],
+    newReportObject: Partial<Report> = {},
+    parentReportActionID = '0',
+    isFromDeepLink = false,
+    participantAccountIDList: number[] = [],
+) {
     if (!reportID) {
         return;
     }
 
-    const optimisticReportData: OnyxUpdate[] = [
+    const optimisticReport = reportActionsExist(reportID)
+        ? {}
+        : {
+              reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+          };
+
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportActionsExist(reportID)
-                ? {}
-                : {
-                      reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-                  },
+            value: optimisticReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -477,7 +495,7 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
         },
     ];
 
-    const reportSuccessData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -500,7 +518,7 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
         },
     ];
 
-    const reportFailureData: OnyxUpdate[] = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -510,13 +528,17 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
         },
     ];
 
-    const onyxData = {
-        optimisticData: optimisticReportData,
-        successData: reportSuccessData,
-        failureData: reportFailureData,
+    type Parameters = {
+        reportID: string;
+        emailList?: string;
+        accountIDList?: string;
+        parentReportActionID?: string;
+        shouldRetry?: boolean;
+        createdReportActionID?: string;
+        clientLastReadTime?: string;
     };
 
-    const params = {
+    const parameters: Parameters = {
         reportID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
@@ -524,23 +546,24 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
     };
 
     if (isFromDeepLink) {
-        params.shouldRetry = false;
+        parameters.shouldRetry = false;
     }
 
+    const report = ReportUtils.getReport(reportID);
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
-    if (_.isEmpty(ReportUtils.getReport(reportID))) {
-        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+    if (isEmptyObject(report)) {
+        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (!_.isEmpty(newReportObject)) {
+    if (isNotEmptyObject(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-        onyxData.optimisticData[0].value = {
+        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+        optimisticData[0].value = {
+            ...optimisticReport,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...onyxData.optimisticData[0].value,
             ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -548,28 +571,33 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
             isOptimisticReport: true,
         };
 
-        let emailCreatingAction = CONST.REPORT.OWNER_EMAIL_FAKE;
+        let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+            emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
-        onyxData.optimisticData.push({
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
-        onyxData.successData.push({
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
         // Add optimistic personal details for new participants
-        const optimisticPersonalDetails = {};
-        const settledPersonalDetails = {};
-        _.map(participantLoginList, (login, index) => {
-            const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
+        const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        participantLoginList.forEach((login, index) => {
+            const accountID = newReportObject?.participantAccountIDs?.[index];
+
+            if (!accountID) {
+                return;
+            }
+
+            optimisticPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -577,36 +605,36 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
                 isOptimisticPersonalDetail: true,
             };
 
-            settledPersonalDetails[accountID] = allPersonalDetails[accountID] || null;
+            settledPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? null;
         });
-        onyxData.optimisticData.push({
+
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
         });
-
-        onyxData.successData.push({
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: settledPersonalDetails,
         });
-        onyxData.failureData.push({
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: settledPersonalDetails,
         });
 
         // Add the createdReportActionID parameter to the API call
-        params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
-            onyxData.optimisticData.push({
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
                 value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
-            onyxData.failureData.push({
+            failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
                 value: {[parentReportActionID]: {childReportID: '0', childType: ''}},
@@ -614,16 +642,16 @@ function openReport(reportID: string, participantLoginList = [], newReportObject
         }
     }
 
-    params.clientLastReadTime = lodashGet(currentReportData, [reportID, 'lastReadTime'], '');
+    parameters.clientLastReadTime = currentReportData?.[reportID]?.lastReadTime ?? '';
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+        API.makeRequestWithSideEffects('OpenReport', parameters, {optimisticData, successData, failureData}).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write('OpenReport', params, onyxData);
+        API.write('OpenReport', parameters, {optimisticData, successData, failureData});
     }
 }
 
