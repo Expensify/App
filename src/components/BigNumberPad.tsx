@@ -24,7 +24,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-function BigNumberPad({numberPressed, longPressHandlerStateChanged, id}: BigNumberPadProps) {
+function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView'}: BigNumberPadProps) {
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
@@ -40,7 +40,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged, id}: BigNumb
             return;
         }
 
-        longPressHandlerStateChanged?.(true);
+        longPressHandlerStateChanged(true);
 
         const newTimer = setInterval(() => {
             numberPressed(key);
@@ -81,7 +81,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged, id}: BigNumb
                                     }
 
                                     ControlSelection.unblock();
-                                    longPressHandlerStateChanged?.(false);
+                                    longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => {
                                     e.preventDefault();
