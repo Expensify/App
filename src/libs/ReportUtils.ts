@@ -4087,17 +4087,14 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
 }
 
 /**
- * Returns an array of the visible member accountIDs for a report
- *
- * @param {Object} report
- * @returns {Array}
+ * Returns an array of the visible member accountIDs for a report*
  */
 function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
         return [];
     }
 
-    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs || [];
+    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
 
     // Build participants list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
