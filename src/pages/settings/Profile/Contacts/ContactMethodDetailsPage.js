@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {Keyboard, ScrollView, View} from 'react-native';
+import {InteractionManager, Keyboard, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -264,6 +264,11 @@ class ContactMethodDetailsPage extends Component {
                         title={this.props.translate('contacts.removeContactMethod')}
                         onConfirm={this.confirmDeleteAndHideModal}
                         onCancel={() => this.toggleDeleteModal(false)}
+                        onModalHide={() => {
+                            InteractionManager.runAfterInteractions(() => {
+                                this.validateCodeFormRef.current.focusLastSelected();
+                            });
+                        }}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}
