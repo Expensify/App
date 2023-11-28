@@ -42,8 +42,9 @@ function CustomStatusBar({isNested = false}: CustomStatusBarProps): React.ReactE
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_BACKGROUND_COLORS) {
                 currentScreenBackgroundColor = theme.PAGE_BACKGROUND_COLORS[currentRoute.name];
             }
-            StatusBar.setBarStyle(statusBarContentTheme, true);
-            StatusBar.setBackgroundColor(currentScreenBackgroundColor);
+
+            StatusBar.setBarStyle(statusBarContentTheme, false);
+            StatusBar.setBackgroundColor(currentScreenBackgroundColor, false);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
