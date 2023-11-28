@@ -600,6 +600,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPENED: 'OPENED',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },

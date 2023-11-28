@@ -110,6 +110,7 @@ type OptimisticExpenseReport = Pick<
     | 'reportName'
     | 'state'
     | 'stateNum'
+    | 'statusNum'
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
@@ -2545,9 +2546,16 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // The expense report is always created with the policy's output currency
-    const outputCurrency = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? CONST.CURRENCY.USD;
+    const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const isFree = policy?.type === CONST.POLICY.TYPE.FREE;
+
+    // Definte the state and status of the report based on whether the policy is free or paid
+    const state = isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPENED;
+    const stateNum = isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE_NUM.OPEN;
+    const statusNum = isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATUS.OPEN;
 
     return {
         reportID: generateReportID(),
@@ -2560,8 +2568,9 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 
         // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
-        state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+        state,
+        stateNum,
+        statusNum,
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
