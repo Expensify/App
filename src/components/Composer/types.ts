@@ -51,7 +51,7 @@ type ComposerProps = {
     isFullComposerAvailable?: boolean;
 
     /** Allow the full composer to be opened */
-    setIsFullComposerAvailable?: () => void;
+    setIsFullComposerAvailable?: (value: boolean) => void;
 
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition?: boolean;

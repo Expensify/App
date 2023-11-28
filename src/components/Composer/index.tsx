@@ -89,7 +89,7 @@ function Composer(
     const {windowWidth} = useWindowDimensions();
     const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
-    const textInput = useRef<HTMLTextAreaElement & TextInput>();
+    const textInput = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const initialValue = defaultValue ? `${defaultValue}` : `${value ?? ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
@@ -118,7 +118,7 @@ function Composer(
     useEffect(() => {
         setSelection((prevSelection) => {
             if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
-                return prevSelection;
+                return;
             }
             return selectionProp;
         });

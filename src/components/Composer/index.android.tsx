@@ -1,42 +1,9 @@
 import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {StyleProp, StyleSheet, TextInput, TextStyle} from 'react-native';
+import {StyleSheet, TextInput} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import themeColors from '@styles/themes/default';
-import {TextSelection} from './types';
-
-type ComposerProps = {
-    /** Maximum number of lines in the text input */
-    maxLines: number;
-
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear: boolean;
-
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear: () => void;
-
-    /** Set focus to this component the first time it renders.
-     * Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
-    autoFocus: boolean;
-
-    /** Prevent edits and interactions like focus for this input. */
-    isDisabled: boolean;
-
-    /** Selection Object */
-    selection: TextSelection;
-
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable: boolean;
-
-    /** Allow the full composer to be opened */
-    setIsFullComposerAvailable: () => void;
-
-    /** Whether the composer is full size */
-    isComposerFullSize: boolean;
-
-    /** General styles to apply to the text input */
-    style: StyleProp<TextStyle>;
-};
+import {ComposerProps} from './types';
 
 function Composer(
     {
@@ -57,7 +24,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<TextInput>();
+    const textInput = useRef<TextInput | null>(null);
 
     /**
      * Set the TextInput Ref
@@ -110,12 +77,12 @@ function Composer(
             maxNumberOfLines={maxNumberOfLines}
             textAlignVertical="center"
             style={[composerStyles]}
-            readOnly={isDisabled}
             autoFocus={autoFocus}
             selection={selection}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            readOnly={isDisabled}
         />
     );
 }

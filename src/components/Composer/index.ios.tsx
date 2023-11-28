@@ -21,7 +21,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<TextInput>();
+    const textInput = useRef<TextInput | null>(null);
 
     const styles = useThemeStyles();
     const themeColors = useTheme();
@@ -78,11 +78,11 @@ function Composer(
             smartInsertDelete={false}
             style={[composerStyles, styles.verticalAlignMiddle]}
             maxNumberOfLines={maxNumberOfLines}
-            readOnly={isDisabled}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
+            readOnly={isDisabled}
         />
     );
 }
