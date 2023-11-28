@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useThemeStyles from "@styles/useThemeStyles";
 import useWindowDimensions from "@hooks/useWindowDimensions";
-import {useState} from "@types/react";
 import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 import ScreenWrapper from "./ScreenWrapper";
 import MenuItemList from "./MenuItemList";
