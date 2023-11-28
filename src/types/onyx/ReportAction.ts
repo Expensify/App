@@ -3,8 +3,8 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
+import {NotificationPreference} from './Report';
 import {Receipt} from './Transaction';
-import { NotificationPreference } from './Report';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
