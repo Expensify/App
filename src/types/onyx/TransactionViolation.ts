@@ -4,7 +4,7 @@
  */
 
 /**
- * Names of the various Transaction Violation types
+ * Names of transaction violations
  */
 type ViolationName =
     | 'fieldRequired'
