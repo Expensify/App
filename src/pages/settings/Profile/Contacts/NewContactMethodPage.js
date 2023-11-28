@@ -94,10 +94,8 @@ function NewContactMethodPage(props) {
     const onBackButtonPress = useCallback(() => {
         if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-
             return;
         }
-
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 

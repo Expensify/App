@@ -114,10 +114,8 @@ function ContactMethodsPage(props) {
     const onNewContactMethodButtonPress = useCallback(() => {
         if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
             Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.route);
-
             return;
         }
-
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
