@@ -29,11 +29,11 @@ const propTypes = {
         end: PropTypes.number,
     }),
 
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable: PropTypes.bool,
-
     /** Maximum number of lines in the text input */
     maxLines: PropTypes.number,
+
+    /** Whether the full composer can be opened */
+    isFullComposerAvailable: PropTypes.bool,
 
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
@@ -94,20 +94,17 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
 
-    // On native layers we like to have the Text Input not focused so the
-    // user can read new chats without the keyboard in the way of the view.
-    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
-    const propsToPass = _.omit(props, 'selection');
     return (
         <RNTextInput
             /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...propsToPass}
+            {...props}
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
+            textAlignVertical="center"
             style={[...props.style, maxHeightStyle]}
             readOnly={isDisabled}
         />
