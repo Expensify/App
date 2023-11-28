@@ -50,6 +50,9 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type Person = {
