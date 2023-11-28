@@ -183,8 +183,8 @@ function AttachmentPickerWithMenuItems({
         if (!didScreenBecomeInactive() || !isMenuVisible) {
             return;
         }
-        onPopoverMenuClose();
-    }, [didScreenBecomeInactive, onPopoverMenuClose, isMenuVisible]);
+        setMenuVisibility(false);
+    }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
     return (
         <AttachmentPicker>
