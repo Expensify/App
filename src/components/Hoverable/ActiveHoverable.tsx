@@ -111,7 +111,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         [updateIsHovered, childOnMouseEnter],
     );
 
-    const unsetHoverAndForwardOnMouseLeave = useCallback(
+    const unhoverAndForwardOnMouseLeave = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(false);
             childOnMouseLeave?.(e);
@@ -119,7 +119,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         [updateIsHovered, childOnMouseLeave],
     );
 
-    const disableHoveredOnBlur = useCallback(
+    const unhoverAndForwardOnBlur = useCallback(
         (event: MouseEvent) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
@@ -144,8 +144,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     return cloneElement(child, {
         ref: hijackRef,
         onMouseEnter: hoverAndForwardOnMouseEnter,
-        onMouseLeave: unsetHoverAndForwardOnMouseLeave,
-        onBlur: disableHoveredOnBlur,
+        onMouseLeave: unhoverAndForwardOnMouseLeave,
+        onBlur: unhoverAndForwardOnBlur,
     });
 }
 
