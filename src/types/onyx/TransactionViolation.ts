@@ -7,8 +7,11 @@
  * Names of the various Transaction Violation types
  */
 type ViolationName =
+    | 'fieldRequired'
     | 'perDayLimit'
+    | 'rter'
     | 'maxAge'
+    | 'futureDate'
     | 'overLimit'
     | 'overLimitAttendee'
     | 'overCategoryLimit'
@@ -16,11 +19,27 @@ type ViolationName =
     | 'missingCategory'
     | 'categoryOutOfPolicy'
     | 'missingTag'
+    | 'someTagLevelsRequired'
+    | 'allTagLevelsRequired'
     | 'tagOutOfPolicy'
     | 'missingComment'
     | 'taxRequired'
     | 'taxOutOfPolicy'
-    | 'billableExpense';
+    | 'taxRateChanged'
+    | 'taxAmountChanged'
+    | 'modifiedAmount'
+    | 'receiptNotSmartScanned'
+    | 'modifiedDate'
+    | 'cashExpenseWithNoReceipt'
+    | 'invoiceMarkup'
+    | 'duplicatedTransaction'
+    | 'smartscanFailed'
+    | 'conversionSurcharge'
+    | 'autoReportedRejectedExpense'
+    | 'nonExpensiworksExpense'
+    | 'billableExpense'
+    | 'customUnitOutOfPolicy'
+    | 'overAutoApprovalLimit'
 
 type ViolationType = string;
 
