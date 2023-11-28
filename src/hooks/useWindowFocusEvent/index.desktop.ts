@@ -1,3 +1,3 @@
-import useWindowFocusEvent from "./useWindowFocusEvent";
+import useWindowFocusEvent from './useWindowFocusEvent';
 
 export default useWindowFocusEvent;

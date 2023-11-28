@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import {useEffect} from 'react';
 
-type UseWindowFocusEventCallback = (event: FocusEvent) => void
-export type {UseWindowFocusEventCallback}
+type UseWindowFocusEventCallback = (event: FocusEvent) => void;
+export type {UseWindowFocusEventCallback};
 
 export default function useWindowFocusEvent(callback: UseWindowFocusEventCallback) {
     useEffect(() => {
@@ -9,6 +9,6 @@ export default function useWindowFocusEvent(callback: UseWindowFocusEventCallbac
 
         return () => {
             window.removeEventListener('focus', callback);
-        }
-    }, [callback])
+        };
+    }, [callback]);
 }
