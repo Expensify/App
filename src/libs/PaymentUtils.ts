@@ -1,9 +1,9 @@
 import getBankIcon from '@components/Icon/BankIcons';
+import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import BankAccount from '@src/types/onyx/BankAccount';
 import Fund from '@src/types/onyx/Fund';
 import PaymentMethod from '@src/types/onyx/PaymentMethod';
-import styles from '@styles/styles';
 import * as Localize from './Localize';
 import BankAccountModel from './models/BankAccount';
 
@@ -50,7 +50,9 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         }
 
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
-            bankName: bankAccount?.accountData?.additionalData?.bankName ?? '', isCard: false, themeStyles
+            bankName: bankAccount?.accountData?.additionalData?.bankName ?? '',
+            isCard: false,
+            themeStyles,
         });
         combinedPaymentMethods.push({
             ...bankAccount,
@@ -64,13 +66,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     });
 
     Object.values(fundList).forEach((card) => {
-        const {
-            icon,
-            iconSize,
-            iconHeight,
-            iconWidth,
-            iconStyles
-        } = getBankIcon({bankName: card?.accountData?.bank ?? '', isCard: true, themeStyles});
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank ?? '', isCard: true, themeStyles});
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
@@ -92,9 +88,4 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
-export {
-    hasExpensifyPaymentMethod,
-    getPaymentMethodDescription,
-    formatPaymentMethods,
-    calculateWalletTransferBalanceFee
-};
+export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee};

@@ -41,8 +41,8 @@ import SunTrustCard from '@assets/images/cardicons/suntrust.svg';
 import TdBankCard from '@assets/images/cardicons/td-bank.svg';
 import USBankCard from '@assets/images/cardicons/us-bank.svg';
 import USAACard from '@assets/images/cardicons/usaa.svg';
+import styles from '@styles/styles';
 import variables from '@styles/variables';
-import styles from "@styles/styles";
 
 type BankIcon = {
     icon: React.FC<SvgProps>;
@@ -56,7 +56,7 @@ type BankIconParams = {
     themeStyles: typeof styles;
     bankName?: string;
     isCard?: boolean;
-}
+};
 
 /**
  * Returns matching asset icon for bankName

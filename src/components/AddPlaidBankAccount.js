@@ -193,8 +193,7 @@ function AddPlaidBankAccount({
                         />
                     </View>
                 )}
-                {Boolean(plaidDataErrorMessage) &&
-                    <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
+                {Boolean(plaidDataErrorMessage) && <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
                 {Boolean(token) && !bankName && (
                     <PlaidLink
                         token={token}

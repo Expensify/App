@@ -239,6 +239,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         paymentMethod.selectedPaymentMethodType,
         bankAccountList,
         fundList,
+        styles,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
