@@ -4,10 +4,12 @@ import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
+import {type} from 'os';
 import {DeviceEventEmitter} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {NullishDeep} from 'react-native-onyx/lib/types';
-import {PartialDeep} from 'type-fest';
+import {PartialDeep, ValueOf} from 'type-fest';
+import {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -1356,11 +1358,11 @@ function saveReportActionDraftNumberOfLines(reportID: string, reportActionID: st
 
 function updateNotificationPreference(
     reportID: string,
-    previousValue: NotificationPreference,
+    previousValue: NotificationPreference | undefined,
     newValue: NotificationPreference,
     navigate: boolean,
-    parentReportID = 0,
-    parentReportActionID = 0,
+    parentReportID?: string,
+    parentReportActionID?: string,
     report: OnyxEntry<Report> | EmptyObject = {},
 ) {
     if (previousValue === newValue) {
@@ -1420,23 +1422,25 @@ function updateNotificationPreference(
  * @param parentReportID The reportID of the parent
  * @param prevNotificationPreference The previous notification preference for the child report
  */
-function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference: any) {
+function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0', prevNotificationPreference?: NotificationPreference) {
     if (childReportID !== '0') {
         openReport(childReportID);
-        const parentReportActionID = lodashGet(parentReportAction, 'reportActionID', '0');
+        const parentReportActionID = parentReportAction?.reportActionID ?? '0';
         if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportActionID);
         } else {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false, parentReportID, parentReportActionID);
         }
     } else {
-        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
-        const parentReport = allReports[parentReportID];
+        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])].filter(
+            (accountID): accountID is number => typeof accountID === 'number',
+        );
+        const parentReport = allReports?.[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
-            lodashGet(parentReportAction, ['message', 0, 'text']),
-            lodashGet(parentReport, 'chatType', ''),
-            lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+            parentReportAction?.message?.[0]?.text,
+            parentReport?.chatType,
+            parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
@@ -1447,11 +1451,11 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference =
             prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, false, parentReportID, parentReportAction.reportActionID);
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, false, parentReportID, parentReportAction?.reportActionID);
     }
 }
 
@@ -1463,6 +1467,7 @@ function updateWelcomeMessage(reportID: string, previousValue: string, newValue:
     }
 
     const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1477,7 +1482,15 @@ function updateWelcomeMessage(reportID: string, previousValue: string, newValue:
             value: {welcomeMessage: previousValue},
         },
     ];
-    API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
+
+    type UpdateWelcomeMessageParameters = {
+        reportID: string;
+        welcomeMessage: string;
+    };
+
+    const parameters: UpdateWelcomeMessageParameters = {reportID, welcomeMessage: parsedWelcomeMessage};
+
+    API.write('UpdateWelcomeMessage', parameters, {optimisticData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1502,7 +1515,14 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
         },
     ];
 
-    API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
+    type UpdateReportWriteCapabilityParameters = {
+        reportID: string;
+        writeCapability: WriteCapability;
+    };
+
+    const parameters: UpdateReportWriteCapabilityParameters = {reportID: report.reportID, writeCapability: newValue};
+
+    API.write('UpdateReportWriteCapability', parameters, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
@@ -1533,11 +1553,14 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 function addPolicyReport(
     policyID: string,
     reportName: string,
-    visibility: string,
-    policyMembersAccountIDs: number[],
+    visibility: ValueOf<typeof CONST.REPORT.VISIBILITY>,
     writeCapability: WriteCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
     welcomeMessage = '',
 ) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const participants = [currentUserAccountID];
     const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
     const policyReport = ReportUtils.buildOptimisticChatReport(
@@ -1611,26 +1634,34 @@ function addPolicyReport(
         },
     ];
 
-    API.write(
-        'AddWorkspaceRoom',
-        {
-            policyID: policyReport.policyID,
-            reportName,
-            visibility,
-            reportID: policyReport.reportID,
-            createdReportActionID: createdReportAction.reportActionID,
-            writeCapability,
-            welcomeMessage: parsedWelcomeMessage,
-        },
-        {optimisticData, successData, failureData},
-    );
+    type AddWorkspaceRoomParameters = {
+        policyID?: string;
+        reportName: string;
+        visibility: ValueOf<typeof CONST.REPORT.VISIBILITY>;
+        reportID: string;
+        createdReportActionID: string;
+        writeCapability: WriteCapability;
+        welcomeMessage: string;
+    };
+
+    const parameters: AddWorkspaceRoomParameters = {
+        policyID: policyReport.policyID,
+        reportName,
+        visibility,
+        reportID: policyReport.reportID,
+        createdReportActionID: createdReportAction.reportActionID,
+        writeCapability,
+        welcomeMessage: parsedWelcomeMessage,
+    };
+
+    API.write('AddWorkspaceRoom', parameters, {optimisticData, successData, failureData});
     Navigation.dismissModal(policyReport.reportID);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string) {
-    const report = allReports[reportID];
-    const onyxData = {
+    const report = allReports?.[reportID];
+    const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
     };
@@ -1676,6 +1707,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1711,7 +1743,15 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
             },
         },
     ];
-    API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+
+    type UpdatePolicyRoomNameParameters = {
+        reportID: string;
+        policyRoomName: string;
+    };
+
+    const parameters: UpdatePolicyRoomNameParameters = {reportID, policyRoomName};
+
+    API.write('UpdatePolicyRoomName', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1772,8 +1812,8 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // If this notification was delayed and the user saw the message already, don't show it
-    const report = allReports[reportID];
-    if (action && report && report.lastReadTime >= action.created) {
+    const report = allReports?.[reportID];
+    if (action && report?.lastReadTime && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
     }
@@ -1793,7 +1833,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     }
 
     Log.info('[LocalNotification] Creating notification');
-    const report = allReports[reportID];
+    const report = allReports?.[reportID];
 
     const notificationParams = {
         report,
@@ -1809,9 +1849,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
-/**
- * Clear the errors associated with the IOUs of a given report.
- */
+/** Clear the errors associated with the IOUs of a given report. */
 function clearIOUError(reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
@@ -1820,9 +1858,13 @@ function clearIOUError(reportID: string) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number = preferredSkinTone) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
@@ -1866,7 +1908,16 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         },
     ];
 
-    const parameters = {
+    type AddEmojiReactionParameters = {
+        reportID: string;
+        skinTone: string | number;
+        emojiCode: string;
+        reportActionID: string;
+        createdAt: string;
+        useEmojiReactions: boolean;
+    };
+
+    const parameters: AddEmojiReactionParameters = {
         reportID,
         skinTone,
         emojiCode: emoji.name,
@@ -1875,6 +1926,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
+
     API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
 }
 
@@ -1883,7 +1935,11 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji) {
-    const optimisticData = [
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
@@ -1897,13 +1953,21 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         },
     ];
 
-    const parameters = {
+    type RemoveEmojiReactionParameters = {
+        reportID: string;
+        reportActionID: string;
+        emojiCode: string;
+        useEmojiReactions: boolean;
+    };
+
+    const parameters: RemoveEmojiReactionParameters = {
         reportID,
         reportActionID,
         emojiCode: emoji.name,
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
+
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
