@@ -1,6 +1,6 @@
 ---
 title: Notification Troubleshooting
-description: some description here
+description: This article is about how to troubleshoot notifications from Expensify. 
 --- 
 
 # Overview 
