@@ -105,7 +105,7 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
 
 /**
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
- * @param [avatarSource] - the avatar source from user's personalDetails
+ * @param avatarSource - the avatar source from user's personalDetails
  */
 function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     if (typeof avatarSource === 'string') {
@@ -120,7 +120,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     }
 
     if (!avatarSource) {
-        // If null URL, we should also use a default avatar
+        // If null source, we should also use a default avatar
         return true;
     }
 
@@ -128,8 +128,8 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
 }
 
 /**
- * Provided a source URL, if source is a default avatar, return the associated SVG.
- * Otherwise, return the URL pointing to a user-uploaded avatar.
+ * Provided an avatar source, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL or SVG pointing to the user-uploaded avatar.
  *
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
