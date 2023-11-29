@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import perf from '@react-native-firebase/perf';
+import analytics from '@react-native-firebase/analytics';
 import * as Environment from '@libs/Environment/Environment';
-import {StartTrace, StopTrace, TraceMap} from './types';
+import {StartTrace, StopTrace, TrackScreen, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
@@ -46,7 +47,24 @@ const stopTrace: StopTrace = (customEventName) => {
     delete traceMap[customEventName];
 };
 
+const trackScreen: TrackScreen = (screenName: string) => {
+    if (Environment.isDevelopment()) {
+        return;
+    }
+    analytics().logScreenView({
+        screen_name: screenName,
+        screen_class: screenName,
+    });
+};
+
+
+// const removeListener = useRef();
+// removeListener.current = navigationRef.current.addListener('state', (event) => {
+//     setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
+// });
+
 export default {
     startTrace,
     stopTrace,
+    trackScreen,
 };
