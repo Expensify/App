@@ -16,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -25,7 +26,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -67,6 +68,7 @@ function dismissError(policyID) {
 }
 
 function WorkspaceInitialPage(props) {
+    const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -221,6 +223,15 @@ function WorkspaceInitialPage(props) {
         return items;
     }, [adminsRoom, announceRoom, translate]);
 
+    const prevPolicy = usePrevious(policy);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage =
+        _.isEmpty(policy) ||
+        !PolicyUtils.isPolicyAdmin(policy) ||
+        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
+        (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -229,7 +240,7 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={shouldShowNotFoundPage}
                     subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
@@ -294,9 +305,9 @@ function WorkspaceInitialPage(props) {
                                     </View>
                                 </View>
                                 {/*
-                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                                */}
+                   Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                   In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}

@@ -218,9 +218,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -249,19 +248,9 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
-        NEW_DOT_SAML: 'newDotSAML',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
@@ -469,7 +458,6 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
@@ -507,6 +495,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
@@ -567,6 +556,7 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -892,6 +882,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1120,7 +1111,8 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
@@ -1163,6 +1155,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {
@@ -1209,7 +1202,11 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+
+            // Often referred to as "control" workspaces
             CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
         ROLE: {
@@ -1366,6 +1363,10 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -2806,6 +2807,50 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
 } as const;
 
 export default CONST;

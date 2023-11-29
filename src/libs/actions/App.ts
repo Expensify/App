@@ -1,7 +1,5 @@
-// Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import 'moment/locale/es';
 import {AppState, AppStateStatus} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
@@ -15,8 +13,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
+import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
@@ -28,12 +27,12 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | string;
+let currentUserAccountID: number | null;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? '';
+        currentUserAccountID = val?.accountID ?? null;
         currentUserEmail = val?.email ?? '';
     },
 });
@@ -393,7 +392,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo');
+    const exitTo = url.searchParams.get('exitTo') as Route | null;
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
@@ -442,7 +441,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
     if (oldTimezoneData?.automatic ?? true) {
         newTimezoneData = {
             automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
         };
     }
 
@@ -454,30 +453,33 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
         timezone: JSON.stringify(newTimezoneData),
     };
 
-    API.write('OpenProfile', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: newTimezoneData,
+    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
+    if (typeof currentUserAccountID === 'number') {
+        API.write('OpenProfile', parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: newTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: oldTimezoneData,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: oldTimezoneData,
+                        },
                     },
                 },
-            },
-        ],
-    });
+            ],
+        });
+    }
 }
 
 /**

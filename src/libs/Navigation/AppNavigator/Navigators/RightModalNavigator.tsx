@@ -6,13 +6,14 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '@libs/Navigation/AppNavigator/types';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
 
 const Stack = createStackNavigator<RightModalNavigatorStackParamList>();
 
 function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -31,10 +32,6 @@ function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, 
                     <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Details"
@@ -111,6 +108,10 @@ function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, 
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
                     />
                     <Stack.Screen
                         name="Private_Notes"

@@ -2,16 +2,20 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-export default {
+
+const PROTECTED_SCREENS = {
     HOME: 'Home',
-    LOADING: 'Loading',
-    REPORT: 'Report',
+    CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
+} as const;
+
+const SCREENS = {
+    ...PROTECTED_SCREENS,
+    REPORT: 'Report',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
-    CONCIERGE: 'Concierge',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
@@ -36,7 +40,13 @@ export default {
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         LOUNGE_ACCESS: 'Settings_Lounge_Access',
         WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
+        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+        WALLET_CARD_GET_PHYSICAL: {
+            NAME: 'Settings_Card_Get_Physical_Name',
+            PHONE: 'Settings_Card_Get_Physical_Phone',
+            ADDRESS: 'Settings_Card_Get_Physical_Address',
+            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
+        },
         WALLET_TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
         WALLET_CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
         WALLET_ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
@@ -191,3 +201,6 @@ export default {
 
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
 } as const;
+
+export default SCREENS;
+export {PROTECTED_SCREENS};
