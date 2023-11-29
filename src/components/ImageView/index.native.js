@@ -27,7 +27,7 @@ const defaultProps = {
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange}) {
+function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError}) {
     return (
         <Lightbox
             source={url}
@@ -35,6 +35,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zo
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
             onPress={onPress}
+            onError={onError}
             style={style}
         />
     );

@@ -14,6 +14,7 @@ const imageViewPropTypes = {
     /** image file name */
     fileName: PropTypes.string.isRequired,
 
+    /** Handles errors while displaying the image */
     onError: PropTypes.func,
 };
 

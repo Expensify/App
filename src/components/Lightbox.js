@@ -26,12 +26,16 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
+    /** Handles errors while displaying the image */
+    onError: PropTypes.func,
+
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
+    /** Whether the Lightbox/image is currently active on screen */
     isActive: PropTypes.bool,
 
     /** Additional styles to add to the component */
@@ -44,10 +48,11 @@ const defaultProps = {
     isAuthTokenRequired: false,
     isActive: true,
     onPress: () => {},
+    onError: () => {},
     style: {},
 };
 
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive, zoomRange}) {
+function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, isActive: initialIsActive, zoomRange}) {
     const [isActive, setIsActive] = useState(initialIsActive);
     const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
     const imageDimensions = cachedDimensions.get(source);
@@ -105,6 +110,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, 
                                     source={{uri: source}}
                                     style={imageDimensions?.contentSize == null ? undefined : imageDimensions.contentSize}
                                     isAuthTokenRequired={isAuthTokenRequired}
+                                    onError={onError}
                                     onLoadStart={() => {
                                         setIsImageLoading(true);
                                     }}
@@ -156,6 +162,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, 
                             <Image
                                 source={{uri: source}}
                                 isAuthTokenRequired={isAuthTokenRequired}
+                                onError={onError}
                                 onLoadStart={() => {
                                     setIsFallbackLoading(true);
                                 }}

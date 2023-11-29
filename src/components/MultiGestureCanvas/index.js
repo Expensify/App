@@ -1,6 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
-
-/* eslint-disable es/no-nullish-coalescing-operators */
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -36,22 +33,24 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-function getDeepDefaultProps({contentSize: contentSizeProp, contentScaling: contentScalingProp, zoomRange: zoomRangeProp}) {
+function getDeepDefaultProps({contentSize: contentSizeProp = {}, contentScaling: contentScalingProp = {}, zoomRange: zoomRangeProp = {}}) {
     const contentSize = {
-        width: contentSizeProp?.width ?? 0,
-        height: contentSizeProp?.height ?? 0,
+        width: contentSizeProp.width == null ? 0 : contentSizeProp.width,
+        height: contentSizeProp.height == null ? 0 : contentSizeProp.width,
     };
 
+    const scaleX = contentScalingProp.scaleX == null ? 1 : contentScalingProp.scaleX;
+    const scaleY = contentScalingProp.scaleY == null ? 1 : contentScalingProp.scaleY;
     const contentScaling = {
-        scaleX: contentScalingProp?.scaleX ?? 1,
-        scaleY: contentScalingProp?.scaleY ?? 1,
-        scaledWidth: contentScalingProp?.scaledWidth ?? 0,
-        scaledHeight: contentScalingProp?.scaledHeight ?? 0,
+        scaleX,
+        scaleY,
+        scaledWidth: contentScalingProp.scaledWidth == null ? contentSize.width * scaleX : contentScalingProp.scaledWidth,
+        scaledHeight: contentScalingProp.scaledHeight == null ? contentSize.height * scaleY : contentScalingProp.scaledHeight,
     };
 
     const zoomRange = {
-        min: zoomRangeProp?.min ?? Constants.DEFAULT_MIN_ZOOM_SCALE,
-        max: zoomRangeProp?.max ?? Constants.DEFAULT_MAX_ZOOM_SCALE,
+        min: zoomRangeProp.min == null ? Constants.DEFAULT_MIN_ZOOM_SCALE : zoomRangeProp.min,
+        max: zoomRangeProp.max == null ? Constants.DEFAULT_MAX_ZOOM_SCALE : zoomRangeProp.max,
     };
 
     return {contentSize, contentScaling, zoomRange};
