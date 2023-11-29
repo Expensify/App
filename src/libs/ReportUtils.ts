@@ -4219,7 +4219,7 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent, inputRef: React.RefObject<TextInput>): boolean {
-    if (event.key === 'Tab' || event.key === 'Enter' || e.code === 'Space' || (event.key === 'Shift' && inputRef.current && !inputRef.current.isFocused())) {
+    if (event.key === 'Tab' || event.key === 'Enter' || event.code === 'Space' || (event.key === 'Shift' && inputRef.current && !inputRef.current.isFocused())) {
         return false;
     }
 
