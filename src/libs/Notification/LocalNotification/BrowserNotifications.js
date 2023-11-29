@@ -1,11 +1,12 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
 
-const DEFAULT_DELAY = 4000;
+const notificationCache = [];
 
 /**
  * Checks if the user has granted permission to show browser notifications
@@ -37,50 +38,39 @@ function canUseBrowserNotifications() {
  * Light abstraction around browser push notifications.
  * Checks for permission before determining whether to send.
  *
- * @param {Object} params
- * @param {String} params.title
- * @param {String} params.body
- * @param {String} [params.icon] Path to icon
- * @param {Number} [params.delay]
- * @param {Function} [params.onClick]
- * @param {String} [params.tag]
- *
- * @return {Promise} - resolves with Notification object or undefined
+ * @param {String} title
+ * @param {String} body
+ * @param {String} icon Path to icon
+ * @param {Object} data extra data to attach to the notification
+ * @param {Function} onClick
  */
-function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}) {
-    return new Promise((resolve) => {
-        if (!title || !body) {
-            throw new Error('BrowserNotification must include title and body parameter.');
+function push(title, body, icon = '', data = {}, onClick = () => {}) {
+    if (!title || !body) {
+        throw new Error('BrowserNotification must include title and body parameter.');
+    }
+
+    canUseBrowserNotifications().then((canUseNotifications) => {
+        if (!canUseNotifications) {
+            return;
         }
 
-        canUseBrowserNotifications().then((canUseNotifications) => {
-            if (!canUseNotifications) {
-                resolve();
-                return;
-            }
-
-            const notification = new Notification(title, {
-                body,
-                tag,
-                icon,
-            });
-
-            // If we pass in a delay param greater than 0 the notification
-            // will auto-close after the specified time.
-            if (delay > 0) {
-                setTimeout(notification.close.bind(notification), delay);
-            }
-
-            notification.onclick = () => {
-                onClick();
-                window.parent.focus();
-                window.focus();
-                focusApp();
-                notification.close();
-            };
-
-            resolve(notification);
+        // We cache these notifications so that we can clear them later
+        const notificationID = Str.guid();
+        notificationCache[notificationID] = new Notification(title, {
+            body,
+            icon,
+            data,
         });
+        notificationCache[notificationID].onclick = () => {
+            onClick();
+            window.parent.focus();
+            window.focus();
+            focusApp();
+            notificationCache[notificationID].close();
+        };
+        notificationCache[notificationID].onclose = () => {
+            delete notificationCache[notificationID];
+        };
     });
 }
 
@@ -92,15 +82,15 @@ export default {
     /**
      * Create a report comment notification
      *
-     * @param {Object} params
-     * @param {Object} params.report
-     * @param {Object} params.reportAction
-     * @param {Function} params.onClick
+     * @param {Object} report
+     * @param {Object} reportAction
+     * @param {Function} onClick
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
+    pushReportCommentNotification(report, reportAction, onClick, usesIcon = false) {
         let title;
         let body;
+        const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
         const isChatRoom = ReportUtils.isChatRoom(report);
 
@@ -119,36 +109,48 @@ export default {
             body = plainTextMessage;
         }
 
-        push({
-            title,
-            body,
-            delay: 0,
-            onClick,
-            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
-        });
+        const data = {
+            reportID: report.reportID,
+        };
+
+        push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
-        push({
-            title: _.map(reportAction.person, (f) => f.text).join(', '),
-            body: ReportUtils.getModifiedExpenseMessage(reportAction),
-            delay: 0,
-            onClick,
-            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
-        });
+    pushModifiedExpenseNotification(report, reportAction, onClick, usesIcon = false) {
+        const title = _.map(reportAction.person, (f) => f.text).join(', ');
+        const body = ReportUtils.getModifiedExpenseMessage(reportAction);
+        const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
+        const data = {
+            reportID: report.reportID,
+        };
+        push(title, body, icon, data, onClick);
     },
 
     /**
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push({
-            title: 'Update available',
-            body: 'A new version of this app is available!',
-            delay: 0,
-            onClick: () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
+        push('Update available', 'A new version of this app is available!', {}, () => {
+            AppUpdate.triggerUpdateAvailable();
+        });
+    },
+
+    /**
+     * Clears all open notifications where shouldClearNotification returns true
+     *
+     * @param {Function} shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
+     */
+    clearNotifications(shouldClearNotification) {
+        if (!_.isFunction(shouldClearNotification)) {
+            return;
+        }
+
+        _.keys(notificationCache).forEach((notificationID) => {
+            const notification = notificationCache[notificationID];
+
+            if (shouldClearNotification(notification.data || {})) {
+                notification.close();
+            }
         });
     },
 };

@@ -470,6 +470,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     if (!reportID) {
         return;
     }
+
+    LocalNotification.clearReportNotifications(reportID);
+
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1817,16 +1820,12 @@ function showReportActionNotification(reportID, reportAction) {
 
     Log.info('[LocalNotification] Creating notification');
     const report = allReports[reportID];
+    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
 
-    const notificationParams = {
-        report,
-        reportAction,
-        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
-    };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(notificationParams);
+        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
     } else {
-        LocalNotification.showCommentNotification(notificationParams);
+        LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
 
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);

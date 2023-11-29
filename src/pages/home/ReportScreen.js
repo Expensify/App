@@ -18,8 +18,10 @@ import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useWindowFocusEvent from '@hooks/useWindowFocusEvent';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -276,6 +278,18 @@ function ReportScreen({
             return () => clearTimeout(refID);
         },
         [route],
+    );
+
+    // Clear notifications for the current report when the window is focused (web/desktop only)
+    useWindowFocusEvent(
+        useCallback(() => {
+            // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
+            if (!isTopMostReportId) {
+                return;
+            }
+
+            LocalNotification.clearReportNotifications(report.reportID);
+        }, [report.reportID, isTopMostReportId]),
     );
 
     useEffect(() => {

@@ -1,13 +1,12 @@
 import BrowserNotifications from './BrowserNotifications';
 
 /**
- * @param {Object} options
- * @param {Object} options.report
- * @param {Object} options.reportAction
- * @param {Function} options.onClick
+ * @param {Object} report
+ * @param {Object} reportAction
+ * @param {Function} onClick
  */
-function showCommentNotification({report, reportAction, onClick}) {
-    BrowserNotifications.pushReportCommentNotification({report, reportAction, onClick}, true);
+function showCommentNotification(report, reportAction, onClick) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true);
 }
 
 function showUpdateAvailableNotification() {
@@ -15,17 +14,24 @@ function showUpdateAvailableNotification() {
 }
 
 /**
- * @param {Object} options
- * @param {Object} options.report
- * @param {Object} options.reportAction
- * @param {Function} options.onClick
+ * @param {Object} report
+ * @param {Object} reportAction
+ * @param {Function} onClick
  */
-function showModifiedExpenseNotification({report, reportAction, onClick}) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, onClick}, true);
+function showModifiedExpenseNotification(report, reportAction, onClick) {
+    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick, true);
+}
+
+/**
+ * @param {String} reportID
+ */
+function clearReportNotifications(reportID) {
+    BrowserNotifications.clearNotifications((notificationData) => notificationData.reportID === reportID);
 }
 
 export default {
     showCommentNotification,
     showUpdateAvailableNotification,
     showModifiedExpenseNotification,
+    clearReportNotifications,
 };
