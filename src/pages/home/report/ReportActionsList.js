@@ -335,6 +335,12 @@ function ReportActionsList({
         (reportAction, index) => {
             let shouldDisplay = false;
             if (!currentUnreadMarker) {
+                // Check if the report type is "REPORTREVIEW" and last actor is the current user.
+                // Return shouldDisplay new marker action (terminate flow).
+                // This is to avoid displaying the new line marker when a current userrequests money.
+                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.childLastActorAccountID === Report.getCurrentUserAccountID()) {
+                    return shouldDisplay;
+                }
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
