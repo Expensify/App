@@ -13,7 +13,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObjectOrString} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -58,7 +58,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.isSmallScreenWidth || (isEmptyObjectOrString(props.report) && isEmptyObjectOrString(reportAction))) {
+            if (!props.isSmallScreenWidth || (isEmptyObject(props.report) && isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
@@ -66,16 +66,16 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
         // Perform all the loading checks
-        const isLoadingReport = props.isLoadingReportData && isEmptyObjectOrString(props.report?.reportID);
-        const isLoadingReportAction = isEmptyObjectOrString(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObjectOrString(getReportAction()));
-        const shouldHideReport = !isLoadingReport && (isEmptyObjectOrString(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, null));
+        const isLoadingReport = props.isLoadingReportData && props.report?.reportID;
+        const isLoadingReportAction = isEmptyObject(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
+        const shouldHideReport = !isLoadingReport && (isEmptyObject(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, null));
 
         if ((isLoadingReport ?? isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
         }
 
         // Perform the access/not found checks
-        if (shouldHideReport || isEmptyObjectOrString(reportAction)) {
+        if (shouldHideReport || isEmptyObject(reportAction)) {
             return <NotFoundPage />;
         }
 
