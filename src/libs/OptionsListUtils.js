@@ -1453,6 +1453,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
 function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
     return _.map(participants, (participant) => ({
         ...participant,
+        text: participant.text || Localize.translateLocal('common.hidden'),
         descriptiveText: amountText,
     }));
 }
