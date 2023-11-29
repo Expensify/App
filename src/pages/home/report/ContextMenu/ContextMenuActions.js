@@ -7,6 +7,7 @@ import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactio
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import Clipboard from '@libs/Clipboard';
+import {prefixMailSeparatorsWithBreakOpportunities, trimMailTo} from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
@@ -31,30 +32,6 @@ import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './Repor
 function getActionText(reportAction) {
     const message = _.last(lodashGet(reportAction, 'message', null));
     return lodashGet(message, 'html', '');
-}
-
-/**
- * Trims the `mailto:` part from email address.
- * @param {string} email
- * @returns {String}
- */
-function trimMailTo(email) {
-    return email.replace('mailto:', '');
-}
-
-/**
- * Prepends a zero-width space (U+200B) character before all `.` and `@` characters
- * in the email addres to provide explicit line break opportunities for consistent
- * breaking across platforms.
- * @param {string} email
- * @returns {String}
- */
-function prefixMailSeparatorsWithBreakOpportunities(email) {
-    return email.replace(
-        /([.@])/g,
-        // below: zero-width space (U+200B) character
-        '​$1',
-    );
 }
 
 const CONTEXT_MENU_TYPES = {
