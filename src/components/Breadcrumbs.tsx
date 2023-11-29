@@ -28,13 +28,14 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
             {breadcrumbs.map((breadcrumb, index) => {
+                const key = `${breadcrumb.type}${breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? '' : breadcrumb.text}`;
                 const style = [styles.breadcrumb, breadcrumb.type === CONST.BREADCRUMB_TYPE.STRONG && styles.breadcrumbStrong];
                 const separatorStyle = [style, styles.breadcrumbSeparator];
 
                 return (
                     <>
                         {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
-                            <View>
+                            <View key={key}>
                                 <Header
                                     title={
                                         <LogoComponent
@@ -49,8 +50,20 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                             </View>
                         ) : (
                             <>
-                                {index !== 0 && <Text style={separatorStyle}>/</Text>}
-                                <Text style={style}>{breadcrumb.text}</Text>
+                                {index !== 0 && (
+                                    <Text
+                                        key={key}
+                                        style={separatorStyle}
+                                    >
+                                        /
+                                    </Text>
+                                )}
+                                <Text
+                                    key={key}
+                                    style={style}
+                                >
+                                    {breadcrumb.text}
+                                </Text>
                             </>
                         )}
                     </>
