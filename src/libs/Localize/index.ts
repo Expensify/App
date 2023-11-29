@@ -1,6 +1,7 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
@@ -8,8 +9,6 @@ import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
-import BaseLocale from "@libs/Localize/LocaleListener/types";
-import {MessageTextElement, MessageElementBase} from "@libs/MessageElement";
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -143,14 +142,11 @@ function formatList(components: string[]) {
 function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
     const listFormat = getPreferredListFormat();
     const parts = listFormat.formatToParts(elements.map((e) => e.content));
-
-    console.log(parts);
-
     const resultElements: Array<E | MessageTextElement> = [];
 
     let nextElementIndex = 0;
     for (const part of parts) {
-        if (part.type === "element") {
+        if (part.type === 'element') {
             /**
              * The standard guarantees that all input elements will be present in the constructed parts, each exactly
              * once, and without any modifications: https://tc39.es/ecma402/#sec-createpartsfromlist
@@ -160,7 +156,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
             resultElements.push(element);
         } else {
             const literalElement: MessageTextElement = {
-                kind: "text",
+                kind: 'text',
                 content: part.value,
             };
 
@@ -178,12 +174,5 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {
-    translate,
-    translateLocal,
-    translateIfPhraseKey,
-    formatList,
-    formatMessageElementList,
-    getDevicePreferredLocale
-};
+export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};

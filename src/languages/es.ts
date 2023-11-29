@@ -260,7 +260,6 @@ export default {
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
         required: 'Obligatorio',
-        serialComma: ' ',
         showing: 'Mostrando',
         of: 'de',
     },

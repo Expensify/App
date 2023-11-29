@@ -9,12 +9,12 @@ import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import {MessageTextElement, MessageElementBase} from "./MessageElement";
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
+import {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
@@ -34,10 +34,7 @@ type MemberChangeMessageRoomReferenceElement = {
     readonly roomID: number;
 } & MessageElementBase;
 
-type MemberChangeMessageElement =
-    MessageTextElement
-    | MemberChangeMessageUserMentionElement
-    | MemberChangeMessageRoomReferenceElement;
+type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -702,7 +699,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
         }
 
         return [];
-    }
+    };
 
     return [
         {

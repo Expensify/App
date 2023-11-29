@@ -270,7 +270,6 @@ export default {
         selectCurrency: 'Select a currency',
         card: 'Card',
         required: 'Required',
-        serialComma: ', ',
         showing: 'Showing',
         of: 'of',
     },
