@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -16,7 +17,6 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     ...withLocalizePropTypes,

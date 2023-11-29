@@ -7,13 +7,13 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** The children to show inside the layout */

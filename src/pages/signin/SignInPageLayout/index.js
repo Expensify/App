@@ -171,9 +171,7 @@ function SignInPageLayout(props) {
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer
-                            scrollPageToTop={scrollPageToTop}
-                        />
+                        <Footer scrollPageToTop={scrollPageToTop} />
                     </View>
                 </ScrollView>
             )}
