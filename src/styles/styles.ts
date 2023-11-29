@@ -1367,7 +1367,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
-            scrollbarWidth: 'none',
             paddingBottom: 4,
         },
 
@@ -1440,6 +1439,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
         },
 
         popoverMenuText: {
@@ -3980,5 +3984,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyle};

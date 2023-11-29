@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
       # because that would be a sign that the PR author did not rebuild the Github Actions
