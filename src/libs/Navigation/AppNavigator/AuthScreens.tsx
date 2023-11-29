@@ -129,7 +129,7 @@ const modalScreenListeners = {
 function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient = null, session = {email: undefined}, lastOpenedPublicRoomID = null, demoInfo = null}: AuthScreensProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {

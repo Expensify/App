@@ -1,6 +1,5 @@
 import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
@@ -13,7 +12,7 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth: boolean) => ({
+export default (isSmallScreenWidth: boolean, styles) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
