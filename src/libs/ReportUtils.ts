@@ -3401,15 +3401,11 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 function transactionHasViolation(transactionID: string): boolean {
-    const violations = transactionViolations ? transactionViolations?.[transactionID] : [];
+    const violations = transactionViolations ? transactionViolations[transactionID]?.values : [];
     if (!violations) {
         return false;
     }
     return violations.some((violation: TransactionViolation) => violation.type === 'violation');
-}
-
-function isOriginalMessageIOU(message: OriginalMessage): message is OriginalMessageIOU {
-    return (message as OriginalMessageIOU).actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
 function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean {
@@ -3423,12 +3419,11 @@ function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean 
     if (!parentReportAction) {
         return false;
     }
-    const transactionID = isOriginalMessageIOU(parentReportAction?.originalMessage as OriginalMessage)
-        ? (parentReportAction.originalMessage as OriginalMessageIOU).originalMessage.IOUTransactionID
-        : '';
-    const reportID = isOriginalMessageIOU(parentReportAction?.originalMessage as OriginalMessage)
-        ? (parentReportAction.originalMessage as OriginalMessageIOU).originalMessage.IOUReportID
-        : '';
+    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+    const transactionID = parentReportAction?.originalMessage?.IOUTransactionID;
+    const reportID = parentReportAction?.originalMessage?.IOUReportID;
     if (!transactionID || !reportID) {
         return false;
     }
