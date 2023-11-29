@@ -61,6 +61,15 @@ type BaseModalProps = WindowDimensionsProps &
          * See: https://github.com/react-native-modal/react-native-modal/pull/116
          * */
         hideModalContentWhileAnimating?: boolean;
+
+        /** how to re-focus after the modal is dismissed */
+        restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_TYPE>;
     };
 
+type ModalRef = {
+    removePromise: () => void;
+    setReadyToFocus: () => void;
+};
+
+export type {ModalRef};
 export default BaseModalProps;

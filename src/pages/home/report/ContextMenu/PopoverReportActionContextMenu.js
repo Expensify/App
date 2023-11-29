@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 
 function PopoverReportActionContextMenu(_props, ref) {
@@ -40,6 +41,7 @@ function PopoverReportActionContextMenu(_props, ref) {
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState(undefined);
 
     const contentRef = useRef(null);
     const anchorRef = useRef(null);
@@ -188,6 +190,7 @@ function PopoverReportActionContextMenu(_props, ref) {
      * After Popover shows, call the registered onPopoverShow callback and reset it
      */
     const runAndResetOnPopoverShow = () => {
+        setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DEFAULT);
         onPopoverShow.current();
 
         // After we have called the action, reset it.
@@ -298,6 +301,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                 fullscreen
                 withoutOverlay
                 anchorRef={anchorRef}
+                restoreFocusType={restoreFocusType}
             >
                 <BaseReportActionContextMenu
                     isVisible
@@ -312,6 +316,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                     isUnreadChat={hasUnreadMessages}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}
+                    onItemSelected={(action) => setRestoreFocusType(action.restoreType || CONST.MODAL.RESTORE_TYPE.DEFAULT)}
                     originalReportID={originalReportIDRef.current}
                 />
             </PopoverWithMeasuredContent>

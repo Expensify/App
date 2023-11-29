@@ -187,21 +187,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
-    const focus = () => {
-        if (composerRef === null || composerRef.current === null) {
-            return;
-        }
-        composerRef.current.focus(true);
-    };
-
-    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
-    const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
-            return;
-        }
-        focus();
-        isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, []);
+    const restoreKeyboardState = useCallback(() => {}, []);
 
     const containerRef = useRef(null);
     const measureContainer = useCallback((callback) => {
@@ -209,17 +195,6 @@ function ReportActionCompose({
             return;
         }
         containerRef.current.measureInWindow(callback);
-    }, []);
-
-    const onAddActionPressed = useCallback(() => {
-        if (!willBlurTextInputOnTapOutside) {
-            isKeyboardVisibleWhenShowingModalRef.current = composerRef.current.isFocused();
-        }
-        composerRef.current.blur();
-    }, []);
-
-    const onItemSelected = useCallback(() => {
-        isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -247,8 +222,7 @@ function ReportActionCompose({
     const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-        restoreKeyboardState();
-    }, [updateShouldShowSuggestionMenuToFalse, restoreKeyboardState]);
+    }, [updateShouldShowSuggestionMenuToFalse]);
 
     /**
      * Add a new comment to this chat
@@ -271,24 +245,19 @@ function ReportActionCompose({
         [onSubmit],
     );
 
-    const isNextModalWillOpenRef = useRef(false);
     const onTriggerAttachmentPicker = useCallback(() => {
         // Set a flag to block suggestion calculation until we're finished using the file picker,
         // which will stop any flickering as the file picker opens on non-native devices.
-        if (willBlurTextInputOnTapOutside) {
-            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        if (!willBlurTextInputOnTapOutside) {
+            return;
         }
-        isNextModalWillOpenRef.current = true;
-        isKeyboardVisibleWhenShowingModalRef.current = true;
+        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
     }, []);
 
-    const onBlur = useCallback((e) => {
+    const onBlur = useCallback(() => {
         setIsFocused(false);
         if (suggestionsRef.current) {
             suggestionsRef.current.resetSuggestions();
-        }
-        if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
         }
     }, []);
 
@@ -387,15 +356,12 @@ function ReportActionCompose({
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                         onCanceledAttachmentPicker={restoreKeyboardState}
                                         onMenuClosed={restoreKeyboardState}
-                                        onAddActionPressed={onAddActionPressed}
-                                        onItemSelected={onItemSelected}
                                         actionButtonRef={actionButtonRef}
                                     />
                                     <ComposerWithSuggestions
                                         ref={composerRef}
                                         animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
-                                        isNextModalWillOpenRef={isNextModalWillOpenRef}
                                         reportID={reportID}
                                         report={report}
                                         reportActions={reportActions}
@@ -432,7 +398,6 @@ function ReportActionCompose({
                         {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={focus}
                                 onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                                 emojiPickerID={report.reportID}
                             />

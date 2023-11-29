@@ -132,6 +132,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             return (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) && !ReportUtils.isThreadFirstChat(reportAction, reportID);
         },
+        restoreType: CONST.MODAL.RESTORE_TYPE.DELETE,
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -362,6 +363,7 @@ export default [
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        restoreType: CONST.MODAL.RESTORE_TYPE.DELETE,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
@@ -401,6 +403,7 @@ export default [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportActionsUtils.isMessageDeleted(reportAction),
+        restoreType: CONST.MODAL.RESTORE_TYPE.PRESERVE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

@@ -8,7 +8,6 @@ import Composer from '@components/Composer';
 import withKeyboardState from '@components/withKeyboardState';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -17,14 +16,12 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import containerComposeStyles from '@styles/containerComposeStyles';
@@ -52,8 +49,6 @@ const isMobileSafari = Browser.isMobileSafari();
 const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
     Report.broadcastUserIsTyping(reportID);
 }, 100);
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -102,8 +97,6 @@ function ComposerWithSuggestions({
     suggestionsRef,
     animatedRef,
     forwardedRef,
-    isNextModalWillOpenRef,
-    editFocused,
     // For testing
     children,
 }) {
@@ -401,23 +394,13 @@ function ComposerWithSuggestions({
 
     /**
      * Focus the composer text input
-     * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
-     * @memberof ReportActionCompose
      */
-    const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+    const focus = useCallback(() => {
+        if (!textInputRef.current) {
+            return;
+        }
+        textInputRef.current.focus();
     }, []);
-
-    const setUpComposeFocusManager = useCallback(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
-                return;
-            }
-
-            focus(false);
-        }, true);
-    }, [focus, isFocused]);
 
     /**
      * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
@@ -473,11 +456,8 @@ function ComposerWithSuggestions({
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
-            setUpComposeFocusManager();
         });
         KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
-
-        setUpComposeFocusManager();
 
         return () => {
             ReportActionComposeFocusManager.clear(true);
@@ -486,28 +466,8 @@ function ComposerWithSuggestions({
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
+    }, [focusComposerOnKeyPress, navigation]);
 
-    const prevIsModalVisible = usePrevious(modal.isVisible);
-    const prevIsFocused = usePrevious(isFocused);
-    useEffect(() => {
-        if (modal.isVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line no-param-reassign
-            isNextModalWillOpenRef.current = false;
-        }
-        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
-        // We avoid doing this on native platforms since the software keyboard popping
-        // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
-            return;
-        }
-
-        if (editFocused) {
-            InputFocus.inputFocusChange(false);
-            return;
-        }
-        focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
@@ -636,9 +596,6 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
-        },
-        editFocused: {
-            key: ONYXKEYS.INPUT_FOCUSED,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,

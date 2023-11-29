@@ -8,6 +8,7 @@ const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    keyboardHandlingEnabled: false,
 };
 
 /**

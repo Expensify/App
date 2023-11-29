@@ -66,6 +66,9 @@ const propTypes = {
      * */
     hideModalContentWhileAnimating: PropTypes.bool,
 
+    /** how to re-focus after the modal is dismissed */
+    restoreFocusType: PropTypes.oneOf(_.values(CONST.MODAL.RESTORE_TYPE)),
+
     ...windowDimensionsPropTypes,
 };
 

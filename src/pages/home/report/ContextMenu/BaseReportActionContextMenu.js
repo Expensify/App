@@ -164,7 +164,10 @@ function BaseReportActionContextMenu(props) {
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
+                            onPress={() => {
+                                props.onItemSelected(contextAction);
+                                interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction);
+                            }}
                             description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}

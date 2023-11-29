@@ -103,6 +103,7 @@ const getDataForUpload = (fileData) => {
 function AttachmentPicker({type, children, shouldHideCameraOption}) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState();
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
@@ -305,12 +306,14 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     return (
         <>
             <Popover
+                restoreFocusType={restoreFocusType}
                 onClose={() => {
                     close();
                     onCanceled.current();
                 }}
                 isVisible={isVisible}
                 anchorPosition={styles.createMenuPosition}
+                onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DEFAULT)}
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>
@@ -319,7 +322,10 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                             key={item.textTranslationKey}
                             icon={item.icon}
                             title={translate(item.textTranslationKey)}
-                            onPress={() => selectItem(item)}
+                            onPress={() => {
+                                setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.PRESERVE);
+                                selectItem(item);
+                            }}
                             focused={focusedIndex === menuIndex}
                         />
                     ))}

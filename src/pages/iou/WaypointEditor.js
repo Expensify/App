@@ -88,6 +88,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
+    const [restoreFocusType, setRestoreFocusType] = useState();
 
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
@@ -153,6 +154,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const deleteStopAndHideModal = () => {
+        setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DELETE);
         Transaction.removeWaypoint(transactionID, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
@@ -201,8 +203,12 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
+                    restoreFocusType={restoreFocusType}
                     onConfirm={deleteStopAndHideModal}
-                    onCancel={() => setIsDeleteStopModalOpen(false)}
+                    onCancel={() => {
+                        setRestoreFocusType(undefined);
+                        setIsDeleteStopModalOpen(false);
+                    }}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

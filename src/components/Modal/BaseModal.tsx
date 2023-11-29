@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -13,7 +13,8 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import ModalContent from './ModalContent';
+import BaseModalProps, {ModalRef} from './types';
 
 function BaseModal(
     {
@@ -36,10 +37,11 @@ function BaseModal(
         animationOutTiming,
         statusBarTranslucent = true,
         onLayout,
+        restoreFocusType,
         avoidKeyboard = false,
         children,
     }: BaseModalProps,
-    ref: React.ForwardedRef<View>,
+    ref: React.ForwardedRef<ModalRef>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -49,6 +51,13 @@ function BaseModal(
 
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
+
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+
+    const saveFocusState = () => {
+        ComposerFocusManager.saveFocusState(modalId);
+        ComposerFocusManager.resetReadyToFocus(modalId);
+    };
 
     /**
      * Hides modal
@@ -64,11 +73,9 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            if (!fullscreen) {
-                ComposerFocusManager.setReadyToFocus();
-            }
+            ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, fullscreen],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
     );
 
     useEffect(() => {
@@ -116,8 +123,17 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus();
+        ComposerFocusManager.setReadyToFocus(modalId);
     };
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            removePromise: () => ComposerFocusManager.removePromise(modalId),
+            setReadyToFocus: () => ComposerFocusManager.setReadyToFocus(modalId),
+        }),
+        [modalId],
+    );
 
     const {
         modalStyle,
@@ -178,7 +194,7 @@ function BaseModal(
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
-            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
+            onModalWillShow={saveFocusState}
             onDismiss={handleDismissModal}
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
@@ -201,12 +217,9 @@ function BaseModal(
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
         >
-            <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={ref}
-            >
-                {children}
-            </View>
+            <ModalContent onDismiss={handleDismissModal}>
+                <View style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}>{children}</View>
+            </ModalContent>
         </ReactNativeModal>
     );
 }

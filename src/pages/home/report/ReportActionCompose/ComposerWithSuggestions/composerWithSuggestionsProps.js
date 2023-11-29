@@ -102,9 +102,6 @@ const propTypes = {
 
     /** Ref for the composer */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
-
-    /** Ref for the isNextModalWillOpen */
-    isNextModalWillOpenRef: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
 };
 
 const defaultProps = {

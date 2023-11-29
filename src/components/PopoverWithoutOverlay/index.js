@@ -1,9 +1,12 @@
-import React from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import {isFunction, isObject} from 'underscore';
+import ModalContent from '@components/Modal/ModalContent';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -11,6 +14,8 @@ import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const styles = useThemeStyles();
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+    const containerRef = useRef();
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
@@ -34,6 +39,8 @@ function Popover(props) {
                 anchorRef: props.anchorRef,
             });
             removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
+            ComposerFocusManager.saveFocusState(modalId, containerRef.current);
+            ComposerFocusManager.resetReadyToFocus(modalId);
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -51,6 +58,15 @@ function Popover(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
 
+    const restoreFocusTypeRef = useRef();
+    restoreFocusTypeRef.current = props.restoreFocusType;
+    const handleDismissContent = () => {
+        ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusTypeRef.current);
+        // PopoverWithMeasuredContent delays the mounting of this popover, so here we also need to defer the restoration.
+        // In a follow-up PR, we can also consider how to improve the former.
+        setImmediate(() => ComposerFocusManager.setReadyToFocus(modalId));
+    };
+
     if (!props.isVisible) {
         return null;
     }
@@ -58,7 +74,15 @@ function Popover(props) {
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={props.withoutOverlayRef}
+            ref={(el) => {
+                containerRef.current = el;
+                if (isFunction(props.withoutOverlayRef)) {
+                    props.withoutOverlayRef(el);
+                } else if (isObject(props.withoutOverlayRef)) {
+                    // eslint-disable-next-line no-param-reassign
+                    props.withoutOverlayRef.current = el;
+                }
+            }}
         >
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
@@ -85,16 +109,18 @@ function Popover(props) {
                         insets,
                     });
                     return (
-                        <View
-                            style={{
-                                ...styles.defaultModalContainer,
-                                ...modalContainerStyle,
-                                ...modalPaddingStyles,
-                            }}
-                            ref={props.forwardedRef}
-                        >
-                            {props.children}
-                        </View>
+                        <ModalContent onDismiss={handleDismissContent}>
+                            <View
+                                style={{
+                                    ...styles.defaultModalContainer,
+                                    ...modalContainerStyle,
+                                    ...modalPaddingStyles,
+                                }}
+                                ref={props.forwardedRef}
+                            >
+                                {props.children}
+                            </View>
+                        </ModalContent>
                     );
                 }}
             </SafeAreaInsetsContext.Consumer>

@@ -1,5 +1,6 @@
 import React, {ForwardedRef, forwardRef} from 'react';
 import {Role, View} from 'react-native';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import GenericPressable from './BaseGenericPressable';
 import PressableProps from './types';
 
@@ -10,6 +11,7 @@ function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: 
         <GenericPressable
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            onPointerDown={ComposerFocusManager.saveFocusedElement}
             ref={ref}
             // change native accessibility props to web accessibility props
             focusable={focusable}

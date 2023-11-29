@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,6 +95,8 @@ Onyx.connect({
 });
 
 const RootStack = createCustomStackNavigator();
+const modalId = ComposerFocusManager.getId();
+
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
@@ -101,9 +104,11 @@ const RootStack = createCustomStackNavigator();
 
 const modalScreenListeners = {
     focus: () => {
+        ComposerFocusManager.saveFocusState(modalId);
         Modal.setModalVisibility(true);
     },
     beforeRemove: () => {
+        ComposerFocusManager.restoreFocusState(modalId, CONST.MODAL.RESTORE_TYPE.DEFAULT, true);
         Modal.setModalVisibility(false);
     },
 };
@@ -322,7 +327,6 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                         presentation: 'transparentModal',
                     }}
                     getComponent={loadReportAttachments}
-                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}

@@ -3,6 +3,7 @@ import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from '
 import {GestureResponderEvent, Pressable, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import styles from '@styles/styles';
@@ -107,6 +108,7 @@ function GenericPressable(
                 ref.current?.blur();
             }
             onPress(event);
+            ComposerFocusManager.removeFocusedElement();
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },

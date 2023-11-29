@@ -22,6 +22,9 @@ const propTypes = {
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
+
+    /** Callback to fire when a menu item is selected */
+    onItemSelected: PropTypes.func,
 };
 
 const defaultProps = {
@@ -29,6 +32,7 @@ const defaultProps = {
     isVisible: false,
     selection: '',
     draftMessage: '',
+    onItemSelected: () => {},
 };
 
 export {propTypes, defaultProps};

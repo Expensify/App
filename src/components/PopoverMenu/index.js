@@ -76,11 +76,13 @@ function PopoverMenu(props) {
 
     return (
         <PopoverWithMeasuredContent
+            restoreFocusType={props.restoreFocusType}
             anchorPosition={props.anchorPosition}
             anchorRef={props.anchorRef}
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             isVisible={props.isVisible}
+            onModalShow={props.onModalShow}
             onModalHide={() => {
                 setFocusedIndex(-1);
                 if (selectedItemIndex.current !== null) {
