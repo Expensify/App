@@ -1,6 +1,7 @@
 import {useCallback, useMemo} from 'react';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
 
+
 /**
  * Map from Violation Names to the field where that violation can occur
  */
@@ -46,27 +47,24 @@ const violationFields: Record<ViolationName, ViolationField> = {
 type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
+type HasViolationsMap = Map<ViolationField, boolean>;
 
 function useViolations(violations: TransactionViolation[]) {
-    const violationsByField = useMemo((): ViolationsMap => {
+    const {violationsByField, hasViolationsByField} = useMemo((): {violationsByField: ViolationsMap; hasViolationsByField: HasViolationsMap} => {
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
+        const hasViolationsMap = new Map<ViolationField, boolean>();
 
         for (const violation of violations) {
             const field = violationFields[violation.name];
             const existingViolations = violationGroups.get(field) ?? [];
             violationGroups.set(field, [...existingViolations, violation]);
+            hasViolationsMap.set(field, true);
         }
 
-        return violationGroups;
+        return {violationsByField: violationGroups, hasViolationsByField: hasViolationsMap};
     }, [violations]);
 
-    const hasViolations = useCallback(
-        (field: ViolationField) => {
-            const fieldViolations: TransactionViolation[] = violationsByField.get(field) ?? [];
-            return Boolean(fieldViolations.length > 0);
-        },
-        [violationsByField],
-    );
+    const hasViolations = useCallback((field: ViolationField) => Boolean(hasViolationsByField.get(field)), [violationsByField]);
 
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
