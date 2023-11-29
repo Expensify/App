@@ -1,15 +1,16 @@
 import React from 'react';
 import {Circle} from 'react-native-svg';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function AvatarSkeleton() {
+    const theme = useTheme();
     return (
         <SkeletonViewContentLoader
             animate
             height={40}
-            backgroundColor={themeColors.skeletonLHNIn}
-            foregroundColor={themeColors.skeletonLHNOut}
+            backgroundColor={theme.skeletonLHNIn}
+            foregroundColor={theme.skeletonLHNOut}
         >
             <Circle
                 cx={20}

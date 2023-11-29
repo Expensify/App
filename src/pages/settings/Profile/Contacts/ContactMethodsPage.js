@@ -16,7 +16,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,6 +58,7 @@ const defaultProps = {
 };
 
 function ContactMethodsPage(props) {
+    const styles = useThemeStyles();
     const loginNames = _.keys(props.loginList);
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
 

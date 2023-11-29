@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import RenderCommentHTML from './RenderCommentHTML';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function AttachmentCommentFragment({addExtraMargin, html, source}) {
+    const styles = useThemeStyles();
     return (
         <View style={addExtraMargin ? styles.mt2 : {}}>
             <RenderCommentHTML

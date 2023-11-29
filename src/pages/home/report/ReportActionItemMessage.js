@@ -6,7 +6,7 @@ import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -37,6 +37,7 @@ const defaultProps = {
 };
 
 function ReportActionItemMessage(props) {
+    const styles = useThemeStyles();
     const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     let iouMessage;

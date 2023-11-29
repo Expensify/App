@@ -25,11 +25,10 @@ import compose from '@libs/compose';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -38,7 +37,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './walletPagePropTypes';
 
-function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
+function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -104,7 +105,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     }, [shouldShowEmptyState, windowWidth]);
 
     const getSelectedPaymentMethodID = useCallback(() => {
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             return paymentMethod.selectedPaymentMethod.bankAccountID;
         }
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
@@ -150,12 +151,12 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         // The delete/default menu
         if (accountType) {
             let formattedSelectedPaymentMethod;
-            if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
                     description: PaymentUtils.getPaymentMethodDescription(accountType, account),
-                    type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+                    type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
@@ -200,7 +201,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
 
-        if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
             return;
         }
@@ -226,7 +227,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
@@ -241,7 +242,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     ]);
 
     const deletePaymentMethod = useCallback(() => {
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             BankAccounts.deletePaymentBankAccount(paymentMethod.selectedPaymentMethod.bankAccountID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deletePaymentCard(paymentMethod.selectedPaymentMethod.fundID);
@@ -292,7 +293,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
         let shouldResetPaymentMethodData = false;
 
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(bankAccountList[paymentMethod.methodID])) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && _.isEmpty(bankAccountList[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(fundList[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
@@ -307,8 +308,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
-        Permissions.canUseWallet(betas) &&
-        !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+        !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
@@ -343,7 +343,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                         <>
                                             {shouldShowLoadingSpinner ? (
                                                 <ActivityIndicator
-                                                    color={themeColors.spinner}
+                                                    color={theme.spinner}
                                                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                     style={[styles.mt7, styles.mb5]}
                                                 />
@@ -362,7 +362,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             <KYCWall
                                                 onSuccessfulKYC={(_iouPaymentType, source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod) => {
-                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                                                         return;
                                                     }
                                                     // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
@@ -399,8 +399,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             <View style={alertViewStyle}>
                                                                 <Icon
                                                                     src={Expensicons.Hourglass}
-                                                                    fill={themeColors.icon}
+                                                                    fill={theme.icon}
                                                                 />
+
                                                                 <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
                                                             </View>
                                                         );
@@ -411,8 +412,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             <View style={alertViewStyle}>
                                                                 <Icon
                                                                     src={Expensicons.Exclamation}
-                                                                    fill={themeColors.icon}
+                                                                    fill={theme.icon}
                                                                 />
+
                                                                 <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
                                                             </View>
                                                         );
@@ -445,6 +447,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             shouldShowAddPaymentMethodButton={false}
                                             shouldShowAssignedCards
                                             shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
                                             style={styles.mt5}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
@@ -560,9 +563,6 @@ WalletPage.displayName = 'WalletPage';
 export default compose(
     withNetwork(),
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },

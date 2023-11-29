@@ -3,7 +3,7 @@ import {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {AvatarSource} from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 type DisplayNamesTooltipItemProps = {
     index?: number;
@@ -40,6 +40,7 @@ function DisplayNamesTooltipItem({
     textStyles = [],
     childRefs = {current: []},
 }: DisplayNamesTooltipItemProps) {
+    const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (

@@ -2,13 +2,14 @@ import React, {Fragment, useCallback, useRef} from 'react';
 import {Text as RNText, View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
 function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
+    const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;

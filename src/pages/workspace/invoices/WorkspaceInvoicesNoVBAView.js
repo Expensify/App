@@ -6,7 +6,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function WorkspaceInvoicesNoVBAView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <WorkspaceInvoicesFirstSection policyID={props.policyID} />
