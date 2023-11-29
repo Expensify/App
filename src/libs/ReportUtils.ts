@@ -4151,8 +4151,8 @@ function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): stri
             ? 'invited'
             : 'removed';
 
-    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map(() => {
-        const personalDetail = allPersonalDetails?.accountID;
+    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map((accountID) => {
+        const personalDetail = allPersonalDetails?.[accountID];
         const displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || (personalDetail?.displayName ?? '') || Localize.translateLocal('common.hidden');
         return `@${displayNameOrLogin}`;
     });
