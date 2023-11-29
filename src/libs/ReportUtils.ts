@@ -547,6 +547,13 @@ function isReportApproved(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the supplied report is in Open state and status.
+ */
+function isReportDraft(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
+}
+
+/**
  * Given a collection of reports returns them sorted by last read
  */
 function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
@@ -1670,7 +1677,6 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
- *
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
@@ -1689,7 +1695,8 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (!!report?.hasOutstandingIOU || moneyRequestTotal === 0) {
+    // The report name should show as owed also for drafts
+    if (!!report?.hasOutstandingIOU || isReportDraft(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -4141,10 +4148,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         formattedAmount,
         comment: transactionDetails?.comment ?? '',
     });
-}
-
-function isReportDraft(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
