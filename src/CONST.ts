@@ -74,6 +74,12 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    BREADCRUMB_TYPE: {
+        ROOT: 'root_workspace',
+        STRONG: 'strong',
+        NORMAL: 'normal',
+    },
+
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 

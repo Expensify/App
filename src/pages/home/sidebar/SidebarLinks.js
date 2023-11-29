@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
+import Breadcrumbs from '@components/Breadcrumbs';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,7 +29,6 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Breadcrumbs from '@components/Breadcrumbs';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -182,11 +182,11 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 <Breadcrumbs
                     breadcrumbs={[
                         {
-                            type: 'expensify',
+                            type: CONST.BREADCRUMB_TYPE.ROOT,
                         },
                         {
                             text: 'Cathy`s Croissants',
-                            type: 'strong',
+                            type: CONST.BREADCRUMB_TYPE.STRONG,
                         },
                         {
                             text: 'Settings',

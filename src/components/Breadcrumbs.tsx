@@ -1,23 +1,24 @@
 import React from 'react';
-import { View } from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import {View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
-import Text from './Text';
+import CONST from '@src/CONST';
 import Header from './Header';
+import Text from './Text';
 
-type BreadcrumbRoot = {
-    type: 'expensify';
-}
+type BreadcrumbRootWorkspace = {
+    type: typeof CONST.BREADCRUMB_TYPE.ROOT;
+};
 
 type Breadcrumb = {
     text: string;
-    type?: 'strong' | 'normal';
-}
+    type?: typeof CONST.BREADCRUMB_TYPE.STRONG | typeof CONST.BREADCRUMB_TYPE.NORMAL;
+};
 
 type BreadcrumbsProps = {
-    breadcrumbs: Array<BreadcrumbRoot | Breadcrumb>;
+    breadcrumbs: Array<BreadcrumbRootWorkspace | Breadcrumb>;
 };
 
 function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
@@ -28,8 +29,8 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
         <View style={[styles.flexRow, styles.flexWrap, styles.alignSelfStart, styles.gap2]}>
             {breadcrumbs.map((breadcrumb, index) => (
                 <>
-                    {breadcrumb.type === 'expensify' ? (
-                        <View style={{ width: variables.lhnLogoWidth }}>
+                    {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
+                        <View style={{width: variables.lhnLogoWidth}}>
                             <Header
                                 title={
                                     <LogoComponent
@@ -43,12 +44,8 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                         </View>
                     ) : (
                         <>
-                            {index !== 0 && (
-                                <Text style={styles.breadcrumb}>/</Text>
-                            )}
-                            <Text style={styles.breadcrumb}>
-                                {breadcrumb.text}
-                            </Text>
+                            {index !== 0 && <Text style={styles.breadcrumb}>/</Text>}
+                            <Text style={styles.breadcrumb}>{breadcrumb.text}</Text>
                         </>
                     )}
                 </>
