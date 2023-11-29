@@ -134,7 +134,7 @@
     "react-native-google-places-autocomplete": "2.5.6",
     "react-native-haptic-feedback": "2.2.0",
     "react-native-image-pan-zoom": "^2.1.12",
-    "react-native-image-picker": "^5.1.0",
+    "react-native-image-picker": "^7.0.3",
     "react-native-image-size": "git+https://github.com/j-piasecki/react-native-image-size#ec6b8bcac5e007166c716af65304be34de8cbe62",
     "react-native-key-command": "^1.0.6",
     "react-native-linear-gradient": "^2.8.1",

@@ -1276,20 +1276,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-image-picker (5.1.0):
-    - hermes-engine
+  - react-native-image-picker (7.0.3):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
+    - React
     - React-Codegen
-    - React-Core
-    - React-ImageManager
-    - React-NativeModulesApple
     - React-RCTFabric
-    - React-rendererdebug
-    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-key-command (1.0.6):
     - glog
     - hermes-engine
@@ -2449,7 +2443,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: c9ac93d7b511413f4a0ed61c92ff6c7b1bcf4f94
   react-native-geolocation: af9841c1b9c614526137a43a0679317890d68ae6
   react-native-image-manipulator: b1ea2a30f15973629741b1f8dd0193d4b9d623a4
-  react-native-image-picker: b6f078f5da1359c6fef7e5762afb2cb5b32875e4
+  react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: b12d848a75768191fa0b06580591ee0c28fef321
   react-native-netinfo: 3005daaab9d1d79e4f83c691f86a9c9bd837dfa6
   react-native-pager-view: 6646edfa32d886a1210de8b0d7e1846bf2ed4f8e
@@ -2496,7 +2490,7 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNFlashList: d02cf31b6e4c3191d70c44be3a279689ae493298
+  RNFlashList: 3497a7dce4b8a23a8b51d5031c5b69bd123edc64
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 38016feaff9bd5d8282c78ddce37a89b3a1d595b
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0

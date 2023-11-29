@@ -40,31 +40,3 @@ index 6151f74..7e194ae 100644
          Uri toUri =  Uri.fromFile(createFile(context, fileType));
          copyUri(sharedStorageUri, toUri, contentResolver);
          return toUri;
-diff --git a/node_modules/react-native-image-picker/react-native-image-picker.podspec b/node_modules/react-native-image-picker/react-native-image-picker.podspec
-index 225f965..e9c07ec 100644
---- a/node_modules/react-native-image-picker/react-native-image-picker.podspec
-+++ b/node_modules/react-native-image-picker/react-native-image-picker.podspec
-@@ -17,22 +17,7 @@ Pod::Spec.new do |s|
-   s.pod_target_xcconfig = { 'OTHER_CPLUSPLUSFLAGS' => '-fcxx-modules' }
- 
-   if ENV['RCT_NEW_ARCH_ENABLED'] == '1'
--    folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
--
--    s.pod_target_xcconfig = {
--      'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/boost" "$(PODS_ROOT)/boost-for-react-native" "$(PODS_ROOT)/RCT-Folly"',
--      'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17'
--    }
--
--    s.compiler_flags  = folly_compiler_flags + ' -DRN_FABRIC_ENABLED -fmodules -fcxx-modules'
--
--    s.dependency "React"
--    s.dependency "React-RCTFabric" # This is for fabric component
--    s.dependency "React-Codegen"
--    s.dependency "RCT-Folly"
--    s.dependency "RCTRequired"
--    s.dependency "RCTTypeSafety"
--    s.dependency "ReactCommon/turbomodule/core"
-+    install_modules_dependencies(s)
-   else
-     s.dependency "React-Core"
-   end

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/RNFlashList.podspec b/node_modules/@shopify/flash-list/RNFlashList.podspec
-index 636be5a..da9be76 100644
+index 636be5a..946498d 100644
 --- a/node_modules/@shopify/flash-list/RNFlashList.podspec
 +++ b/node_modules/@shopify/flash-list/RNFlashList.podspec
-@@ -19,20 +19,7 @@ Pod::Spec.new do |s|
+@@ -19,22 +19,15 @@ Pod::Spec.new do |s|
    s.dependency "React-Core"
  
    if fabric_enabled
@@ -20,7 +20,15 @@ index 636be5a..da9be76 100644
 -    s.dependency "RCTRequired"
 -    s.dependency "RCTTypeSafety"
 -    s.dependency "ReactCommon/turbomodule/core"
-+    install_modules_dependencies(s)
      s.ios.deployment_target = "12.4"
      s.platforms        = { :ios => '12.4', :tvos => '12.0' }
++
++    install_modules_dependencies(s)
++
++    hash = s.to_hash
++    current_config = hash["pod_target_xcconfig"] != nil ? hash["pod_target_xcconfig"] : {}
++    current_config['OTHER_SWIFT_FLAGS'] = '-D RCT_NEW_ARCH_ENABLED'
++    s.pod_target_xcconfig = current_config
    else
+     # Settings for non-fabric builds
+     s.platforms        = { :ios => '11.0', :tvos => '12.0' }
