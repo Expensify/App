@@ -41,8 +41,8 @@ info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
 POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" ios/Podfile.lock)"
 info "Pod version from Podfile.lock: $POD_VERSION_FROM_PODFILE_LOCK"
 
-if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
-  success "Cocoapods version from Podfile.lock matches cocoapods version from Gemfile"
+if [[ "$POD_VERSION_FROM_GEMFILE" <= "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
+  success "Cocoapods version from Podfile.lock matches cocoapods version scope from Gemfile"
 else
   error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`npm run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
   EXIT_CODE=1
