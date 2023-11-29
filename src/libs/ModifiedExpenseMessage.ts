@@ -23,14 +23,7 @@ Onyx.connect({
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
- *
- * @param newValue
- * @param oldValue
- * @param valueName
- * @param valueInQuotes
- * @param shouldConvertToLowercase
  */
-
 function buildMessageFragmentForValue(
     newValue: string,
     oldValue: string,
@@ -59,13 +52,7 @@ function buildMessageFragmentForValue(
 
 /**
  * Get the message line for a modified expense.
- *
- * @param newValue
- * @param oldValue
- * @param valueName
- * @param valueInQuotes
  */
-
 function getMessageLine(prefix: string, messageFragments: string[]) {
     if (messageFragments.length === 0) {
         return '';
