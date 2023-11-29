@@ -29,6 +29,18 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
         utils.createStepAssertion('Configure MapBox SDK', true, null, 'ANDROID', 'Configure MapBox SDK'),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setting up Node'),
+        utils.createStepAssertion(
+            'Setup Java',
+            true,
+            null,
+            'ANDROID',
+            'Setup Java',
+            [
+                {key: 'distribution', value: 'oracle'},
+                {key: 'java-version', value: '17'},
+            ],
+            [],
+        ),
         utils.createStepAssertion('Setup Ruby', true, null, 'ANDROID', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
             {key: 'bundler-cache', value: 'true'},
