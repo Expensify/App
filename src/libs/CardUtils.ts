@@ -111,9 +111,8 @@ function findPhysicalCard(cards: Card[]) {
  * Checks if any of the cards in the list have detected fraud
  *
  * @param cardList - collection of assigned cards
- * @returns boolean
  */
-function hasDetectedFraud(cardList: Record<string, OnyxTypes.Card>) {
+function hasDetectedFraud(cardList: Record<string, OnyxTypes.Card>): boolean {
     return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
