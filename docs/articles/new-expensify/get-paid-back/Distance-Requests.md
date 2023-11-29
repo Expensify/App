@@ -22,11 +22,6 @@ Expensify allows you to request reimbursement for mileage by creating a distance
 
 # FAQs
 
-
-## How can I change the mileage rate used on my distance requests or add an additional rate?
-
-If you use a group workspace, then you can edit the default distance rate or add additional rates in your Workspace settings. In Expensify Classic, go to Settings > Workspaces > [Your Workspace] > Expenses and scroll down to the Distance section to update or add mileage rates. You must be a workspace admin to modify or add rates.
-
 ## Is there an easy way to reuse recent locations?
 
 Yes! We save your recently used locations and list them out on the page where you select the Start and Finish.
