@@ -21,8 +21,6 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
-    isMediumScreenWidth: boolean;
-    isLargeScreenWidth: boolean;
 };
 
 type GetModalStyles = {
@@ -39,7 +37,7 @@ type GetModalStyles = {
 };
 
 export default function getModalStyles(
-    type: ModalType,
+    type: ModalType | undefined,
     windowDimensions: WindowDimensions,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},

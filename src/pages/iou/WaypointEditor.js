@@ -19,7 +19,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +55,7 @@ const propTypes = {
             geometry: PropTypes.shape({
                 /** Data about the location */
                 location: PropTypes.shape({
-                    /** Lattitude of the location */
+                    /** Latitude of the location */
                     lat: PropTypes.number,
 
                     /** Longitude of the location */
@@ -77,6 +77,7 @@ const defaultProps = {
 };
 
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
@@ -86,10 +87,12 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const waypointCount = _.keys(allWaypoints).length;
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
 
-    const wayPointDescriptionKey = useMemo(() => {
+    const waypointCount = _.size(allWaypoints);
+    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+
+    const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
@@ -102,9 +105,11 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     const isEditingWaypoint = Boolean(threadReportID);
-    const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
     // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = totalWaypoints > 2;
+    const shouldShowThreeDotsButton = waypointCount > 2;
+    const shouldDisableEditor =
+        isFocused &&
+        (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
     const validate = (values) => {
         const errors = {};
@@ -113,7 +118,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
-        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
@@ -122,15 +127,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => {
-        if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        } else {
-            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
-        }
-    };
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
@@ -168,7 +165,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             address: values.address,
             name: values.name,
         };
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+        saveWaypoint(waypoint);
 
         if (isEditingWaypoint) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
@@ -184,9 +181,9 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
+            <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={translate(wayPointDescriptionKey)}
+                    title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
@@ -227,7 +224,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
-                            containerStyles={[styles.mt4]}
+                            containerStyles={[styles.mt3]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
                             onPress={selectWaypoint}

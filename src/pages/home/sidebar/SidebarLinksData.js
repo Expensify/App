@@ -12,7 +12,7 @@ import compose from '@libs/compose';
 import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -105,13 +106,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
+                onLinkClick={onLinkClick}
                 insets={insets}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
-                onLinkClick={onLinkClick}
             />
         </View>
     );
@@ -198,23 +199,28 @@ export default compose(
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
+            initialValue: {},
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+            initialValue: CONST.PRIORITY_MODE.DEFAULT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+            initialValue: [],
         },
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
+            initialValue: {},
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
+            initialValue: {},
         },
     }),
 )(SidebarLinksData);

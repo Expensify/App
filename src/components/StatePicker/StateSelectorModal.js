@@ -9,7 +9,7 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -100,6 +101,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}
                     shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>

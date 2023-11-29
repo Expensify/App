@@ -18,8 +18,8 @@ import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -59,7 +59,10 @@ function BaseSelectionList({
     disableKeyboardShortcuts = false,
     children,
     shouldStopPropagation = false,
+    shouldUseDynamicMaxToRenderPerBatch = false,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
@@ -69,6 +72,8 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
+    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -299,6 +304,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
+                isHide={!maxToRenderPerBatch}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
@@ -308,13 +314,23 @@ function BaseSelectionList({
         );
     };
 
-    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
-        if (!firstLayoutRef.current) {
-            return;
-        }
-        scrollToIndex(focusedIndex, false);
-        firstLayoutRef.current = false;
-    }, [focusedIndex, scrollToIndex]);
+    const scrollToFocusedIndexOnFirstRender = useCallback(
+        ({nativeEvent}) => {
+            if (shouldUseDynamicMaxToRenderPerBatch) {
+                const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
+                const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
+
+                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+            }
+
+            if (!firstLayoutRef.current) {
+                return;
+            }
+            scrollToIndex(focusedIndex, false);
+            firstLayoutRef.current = false;
+        },
+        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+    );
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -445,16 +461,16 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.white}
+                                    indicatorStyle={theme.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
-                                    maxToRenderPerBatch={5}
+                                    maxToRenderPerBatch={maxToRenderPerBatch}
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    style={[styles.flexGrow0]}
                                     onLayout={scrollToFocusedIndexOnFirstRender}
+                                    style={!maxToRenderPerBatch && styles.opacity0}
                                 />
                                 {children}
                             </>

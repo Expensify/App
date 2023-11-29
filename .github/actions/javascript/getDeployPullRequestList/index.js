@@ -4,6 +4,54 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 5847:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(5067);
+const core = __nccwpck_require__(2186);
+const github = __nccwpck_require__(5438);
+const ActionUtils = __nccwpck_require__(970);
+const GitUtils = __nccwpck_require__(669);
+const GithubUtils = __nccwpck_require__(7999);
+
+async function run() {
+    try {
+        const inputTag = core.getInput('TAG', {required: true});
+        const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
+        const deployEnv = isProductionDeploy ? 'production' : 'staging';
+
+        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
+
+        const completedDeploys = (
+            await GithubUtils.octokit.actions.listWorkflowRuns({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                workflow_id: 'platformDeploy.yml',
+                status: 'completed',
+                event: isProductionDeploy ? 'release' : 'push',
+            })
+        ).data.workflow_runs;
+
+        const priorTag = _.first(completedDeploys).head_branch;
+        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
+        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        console.log(`Found the pull request list: ${prList}`);
+        core.setOutput('PR_LIST', prList);
+    } catch (err) {
+        console.error(err.message);
+        core.setFailed(err);
+    }
+}
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
+
+
+/***/ }),
+
 /***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -63,6 +111,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
     },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
 };
 
 CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
@@ -84,23 +133,42 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
 
 /**
  * @param {String} tag
+ * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
-function fetchTag(tag) {
-    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                execSync(command);
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        console.error(e);
     }
 }
 
@@ -112,8 +180,10 @@ function fetchTag(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -190,16 +260,15 @@ function getValidMergedPRs(commits) {
  * @param {String} toTag
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
-        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-        // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList);
-        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
-    });
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 module.exports = {
@@ -19556,74 +19625,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
-const GitUtils = __nccwpck_require__(669);
-const GithubUtils = __nccwpck_require__(7999);
-
-const inputTag = core.getInput('TAG', {required: true});
-
-const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
-const itemToFetch = isProductionDeploy ? 'release' : 'tag';
-
-/**
- * Gets either releases or tags for a GitHub repo
- *
- * @param {boolean} fetchReleases
- * @returns {*}
- */
-function getTagsOrReleases(fetchReleases) {
-    if (fetchReleases) {
-        return GithubUtils.octokit.repos.listReleases({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-        });
-    }
-
-    return GithubUtils.octokit.repos.listTags({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-    });
-}
-
-console.log(`Fetching ${itemToFetch} list from github...`);
-getTagsOrReleases(isProductionDeploy)
-    .catch((githubError) => core.setFailed(githubError))
-    .then(({data}) => {
-        const keyToPluck = isProductionDeploy ? 'tag_name' : 'name';
-        const tags = _.pluck(data, keyToPluck);
-        const priorTagIndex = _.indexOf(tags, inputTag) + 1;
-
-        if (priorTagIndex === 0) {
-            console.log(`No ${itemToFetch} was found for input tag ${inputTag}. Comparing it to latest ${itemToFetch} ${tags[0]}`);
-        }
-
-        if (priorTagIndex === tags.length) {
-            const err = new Error("Somehow, the input tag was at the end of the paginated result, so we don't have the prior tag");
-            console.error(err.message);
-            core.setFailed(err);
-            return;
-        }
-
-        const priorTag = tags[priorTagIndex];
-        console.log(`Given ${itemToFetch}: ${inputTag}`);
-        console.log(`Prior ${itemToFetch}: ${priorTag}`);
-
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
-        console.log(`Found the pull request list: ${pullRequestList}`);
-        return core.setOutput('PR_LIST', pullRequestList);
-    })
-    .catch((error) => core.setFailed(error));
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(5847);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

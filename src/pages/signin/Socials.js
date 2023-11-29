@@ -4,8 +4,8 @@ import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -34,6 +34,8 @@ const socialsList = [
 ];
 
 function Socials() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {_.map(socialsList, (social) => (
@@ -53,7 +55,7 @@ function Socials() {
                             src={social.iconURL}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
-                            fill={hovered || pressed ? themeColors.link : themeColors.textLight}
+                            fill={hovered || pressed ? theme.link : theme.textLight}
                         />
                     )}
                 </PressableWithoutFeedback>
