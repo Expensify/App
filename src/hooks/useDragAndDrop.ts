@@ -87,7 +87,7 @@ export default function useDragAndDrop({
                     dragCounter.current++;
                     setDropEffect(event);
                     if (shouldClosePopover) {
-                        closePopover(); 
+                        closePopover();
                     }
                     if (isDraggingOver) {
                         return;
