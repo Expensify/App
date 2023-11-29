@@ -260,6 +260,7 @@ export default {
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
         required: 'Obligatorio',
+        serialComma: ' ',
     },
     location: {
         useCurrent: 'Usar ubicación actual',

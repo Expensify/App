@@ -270,6 +270,7 @@ export default {
         selectCurrency: 'Select a currency',
         card: 'Card',
         required: 'Required',
+        serialComma: ', ',
     },
     location: {
         useCurrent: 'Use current location',

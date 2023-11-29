@@ -667,6 +667,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
+
+    // currently, in the app we only have the logic show the message when invite the members
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
     const messageElements: MemberChangeMessageElement[] = [
@@ -729,7 +731,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
                 },
                 {
                     kind: 'text',
-                    content: `, `,
+                    content: `${Localize.translateLocal('common.serialComma')}`,
                 },
             );
         });
