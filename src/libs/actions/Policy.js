@@ -1433,6 +1433,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
 
 /**
  * @param {String} policyID
+ * @param {String} message
+ */
+function setWorkspaceInviteMessageDraft(policyID, message) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
+}
+
+/**
+ * @param {String} policyID
  */
 function clearErrors(policyID) {
     setWorkspaceErrors(policyID, {});
@@ -1893,4 +1901,5 @@ export {
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
+    setWorkspaceInviteMessageDraft,
 };
