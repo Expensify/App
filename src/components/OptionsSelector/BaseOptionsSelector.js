@@ -16,8 +16,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withTheme from '@components/withTheme';
-import withThemeStyles from '@components/withThemeStyles';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -51,6 +51,8 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
