@@ -270,6 +270,8 @@ export default {
         selectCurrency: 'Select a currency',
         card: 'Card',
         required: 'Required',
+        showing: 'Showing',
+        of: 'of',
     },
     location: {
         useCurrent: 'Use current location',
@@ -586,8 +588,8 @@ export default {
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
-        categorySelection: 'Select a category to add additional organization to your money',
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
+        categorySelection: 'Select a category to add additional organization to your money.',
         error: {
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
@@ -1189,7 +1191,7 @@ export default {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
-            website: 'Please enter a valid website',
+            website: 'Please enter a valid website. The website should be in lowercase.',
             zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
@@ -1950,7 +1952,7 @@ export default {
             buttonText1: 'Request money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Request money from a new Expensify account. Get  $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+            body1: `Request money from a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Send money, ',
