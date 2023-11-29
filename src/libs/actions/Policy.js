@@ -1433,6 +1433,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
 
 /**
  * @param {String} policyID
+ * @param {String} message
+ */
+function setWorkspaceInviteMessageDraft(policyID, message) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
+}
+
+/**
+ * @param {String} policyID
  */
 function clearErrors(policyID) {
     setWorkspaceErrors(policyID, {});
@@ -1800,7 +1808,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
         value: {
             [reportPreview.reportActionID]: {
                 ...reportPreview,
-                message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, false, newWorkspace),
+                message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
                 created: DateUtils.getDBTime(),
             },
         },
@@ -1812,7 +1820,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -1893,4 +1901,5 @@ export {
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
+    setWorkspaceInviteMessageDraft,
 };
