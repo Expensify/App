@@ -44,6 +44,7 @@ function ProfileAvatar(props) {
             onModalClose={() => {
                 Navigation.goBack();
             }}
+            originalFileName={lodashGet(personalDetail, 'originalFileName', '')}
             isLoading={props.isLoadingApp && _.isEmpty(props.personalDetails)}
         />
     );

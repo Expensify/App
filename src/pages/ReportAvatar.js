@@ -71,7 +71,7 @@ function ReportAvatar(props) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
             }}
             isWorkspaceAvatar
-            originalFileName={policyName}
+            originalFileName={lodashGet(props.policy, 'originalFileName', '')}
             shouldShowNotFoundPage={_.isEmpty(props.report.reportID) && !props.isLoadingReportData}
             isLoading={(_.isEmpty(props.report.reportID) || _.isEmpty(props.policy.id)) && props.isLoadingReportData}
         />

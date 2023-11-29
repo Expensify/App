@@ -62,7 +62,7 @@ function WorkspaceAvatar(props) {
                 Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(getPolicyIDFromRoute(props.route)));
             }}
             isWorkspaceAvatar
-            originalFileName={lodashGet(props.policy, 'name', '')}
+            originalFileName={lodashGet(props.policy, 'originalFileName', '')}
             shouldShowNotFoundPage={_.isEmpty(props.policy) && !props.isLoadingReportData}
             isLoading={_.isEmpty(props.policy) && props.isLoadingReportData}
         />
