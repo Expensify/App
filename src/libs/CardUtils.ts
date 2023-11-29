@@ -116,4 +116,14 @@ function hasDetectedFraud(cardList: Record<string, OnyxTypes.Card>): boolean {
     return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
-export {isExpensifyCard, isCorporateCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard, hasDetectedFraud};
+export {
+    isExpensifyCard,
+    isCorporateCard,
+    getDomainCards,
+    getMonthFromExpirationDateString,
+    getYearFromExpirationDateString,
+    maskCard,
+    getCardDescription,
+    findPhysicalCard,
+    hasDetectedFraud,
+};
