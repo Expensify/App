@@ -9,6 +9,7 @@ import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {MessageTextElement, MessageElementBase} from "./MessageElement";
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -22,28 +23,21 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-type MemberChangeMessageElementBase = {
-    readonly kind: string;
-    readonly content: string;
-};
-
-type MemberChangeMessageTextElement = {
-    readonly kind: 'text';
-    readonly content: string;
-};
-
 type MemberChangeMessageUserMentionElement = {
     readonly kind: 'userMention';
     readonly accountID: number;
-} & MemberChangeMessageElementBase;
+} & MessageElementBase;
 
 type MemberChangeMessageRoomReferenceElement = {
     readonly kind: 'roomReference';
     readonly roomName: string;
     readonly roomID: number;
-} & MemberChangeMessageElementBase;
+} & MessageElementBase;
 
-type MemberChangeMessageElement = MemberChangeMessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+type MemberChangeMessageElement =
+    MessageTextElement
+    | MemberChangeMessageUserMentionElement
+    | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -664,109 +658,64 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): MemberChangeMessageElement[] {
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
 
     // currently, in the app we only have the logic show the message when invite the members
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
-    const messageElements: MemberChangeMessageElement[] = [
-        {
-            kind: 'text',
-            content: `${verb} `,
-        },
-    ];
-
     const originalMessage = reportAction?.originalMessage as ChangeLog;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
 
-    const mentions = targetAccountIDs.map((accountID) => {
+    const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        return {content: `@${PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden')}`, accountID};
+        const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+
+        return {
+            kind: 'userMention',
+            content: `@${handleText}`,
+            accountID,
+        };
     });
 
-    const lastMention = mentions.pop();
-    if (!lastMention) {
+    const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
+        const roomName = originalMessage?.roomName;
+
+        if (roomName) {
+            const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
+
+            if (originalMessage.reportID) {
+                return [
+                    {
+                        kind: 'text',
+                        content: preposition,
+                    },
+                    {
+                        kind: 'roomReference',
+                        roomName,
+                        roomID: originalMessage.reportID,
+                        content: roomName,
+                    },
+                ];
+            }
+        }
+
         return [];
     }
 
-    if (mentions.length === 0) {
-        messageElements.push({
-            kind: 'userMention',
-            content: lastMention.content,
-            accountID: lastMention.accountID,
-        });
-    } else if (mentions.length === 1) {
-        messageElements.push(
-            {
-                kind: 'userMention',
-                content: mentions[0].content,
-                accountID: mentions[0].accountID,
-            },
-            {
-                kind: 'text',
-                content: ` ${Localize.translateLocal('common.and')} `,
-            },
-            {
-                kind: 'userMention',
-                content: lastMention.content,
-                accountID: lastMention.accountID,
-            },
-        );
-    } else {
-        mentions.forEach((mention) => {
-            messageElements.push(
-                {
-                    kind: 'userMention',
-                    accountID: mention.accountID,
-                    content: `${mention.content}`,
-                },
-                {
-                    kind: 'text',
-                    content: `${Localize.translateLocal('common.serialComma')}`,
-                },
-            );
-        });
-
-        messageElements.push(
-            {
-                kind: 'text',
-                content: `${Localize.translateLocal('common.and')} `,
-            },
-            {
-                kind: 'userMention',
-                content: lastMention.content,
-                accountID: lastMention.accountID,
-            },
-        );
-    }
-
-    const roomName = originalMessage?.roomName;
-    if (roomName) {
-        const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
-
-        if (originalMessage.reportID) {
-            messageElements.push(
-                {
-                    kind: 'text',
-                    content: preposition,
-                },
-                {
-                    kind: 'roomReference',
-                    roomName,
-                    roomID: originalMessage.reportID,
-                    content: roomName,
-                },
-            );
-        }
-    }
-
-    return messageElements;
+    return [
+        {
+            kind: 'text',
+            content: `${verb} `,
+        },
+        ...Localize.formatMessageElementList(mentionElements),
+        ...buildRoomElements(),
+    ];
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {

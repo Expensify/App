@@ -8,6 +8,8 @@ import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
+import BaseLocale from "@libs/Localize/LocaleListener/types";
+import {MessageTextElement, MessageElementBase} from "@libs/MessageElement";
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -27,6 +29,7 @@ LocaleListener.connect();
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
 let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
+
 function init() {
     CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
         // This is not a supported locale, so we'll use ES_ES instead
@@ -121,15 +124,51 @@ function translateIfPhraseKey(message: MaybePhraseKey): string {
     }
 }
 
-/**
- * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
- */
-function arrayToString(anArray: string[]) {
+function getPreferredListFormat(): Intl.ListFormat {
     if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
         init();
     }
-    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
-    return listFormat.format(anArray);
+
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+}
+
+/**
+ * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
+ */
+function formatList(components: string[]) {
+    const listFormat = getPreferredListFormat();
+    return listFormat.format(components);
+}
+
+function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
+    const listFormat = getPreferredListFormat();
+    const parts = listFormat.formatToParts(elements.map((e) => e.content));
+
+    console.log(parts);
+
+    const resultElements: Array<E | MessageTextElement> = [];
+
+    let nextElementIndex = 0;
+    for (const part of parts) {
+        if (part.type === "element") {
+            /**
+             * The standard guarantees that all input elements will be present in the constructed parts, each exactly
+             * once, and without any modifications: https://tc39.es/ecma402/#sec-createpartsfromlist
+             */
+            const element = elements[nextElementIndex++];
+
+            resultElements.push(element);
+        } else {
+            const literalElement: MessageTextElement = {
+                kind: "text",
+                content: part.value,
+            };
+
+            resultElements.push(literalElement);
+        }
+    }
+
+    return resultElements;
 }
 
 /**
@@ -139,5 +178,12 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
+export {
+    translate,
+    translateLocal,
+    translateIfPhraseKey,
+    formatList,
+    formatMessageElementList,
+    getDevicePreferredLocale
+};
 export type {PhraseParameters, Phrase, MaybePhraseKey};
