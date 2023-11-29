@@ -332,6 +332,10 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type LeftModalNavigatorParamList = {
+    Search: NavigatorScreenParams<SearchNavigatorParamList>;
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
@@ -405,6 +409,7 @@ type AuthScreensParamList = {
         name: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [CONST.DEMO_PAGES.MONEY2020]: undefined;
