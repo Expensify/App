@@ -3,14 +3,15 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails} from '@src/types/onyx';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() =>
@@ -37,12 +38,16 @@ const reportActions = createCollection<ReportAction>(
     (index) => createRandomReportAction(index),
 );
 
-const mockedResponseMap: Partial<Report> = getMockedReports(5000);
+const personalDetails = createCollection<PersonalDetails>(
+    (item) => item.accountID,
+    (index) => createPersonalDetails(index),
+);
+
+const mockedResponseMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 test('getOptionData on 5k reports', async () => {
     const report = createRandomReport(1);
-    const personalDetails = LHNTestUtils.fakePersonalDetails;
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
     const parentReportAction = createRandomReportAction(1);
