@@ -1,11 +1,15 @@
 import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
 
-function parseMessage(messageToParse) {
+type Message = {
+    text: string;
+    type?: string;
+};
+
+function parseMessage(messages: Message[]) {
     let nextStepHTML = '';
 
-    _.each(messageToParse, (part) => {
-        const tagType = part.type || 'span';
+    messages?.forEach((part) => {
+        const tagType = part.type ?? 'span';
         nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
     });
 
