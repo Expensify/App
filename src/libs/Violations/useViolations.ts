@@ -64,7 +64,7 @@ function useViolations(violations: TransactionViolation[]) {
         return {violationsByField: violationGroups, hasViolationsByField: hasViolationsMap};
     }, [violations]);
 
-    const hasViolations = useCallback((field: ViolationField) => Boolean(hasViolationsByField.get(field)), [violationsByField]);
+    const hasViolations = useCallback((field: ViolationField) => Boolean(hasViolationsByField.get(field)), [hasViolationsByField]);
 
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
