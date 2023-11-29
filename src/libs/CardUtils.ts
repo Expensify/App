@@ -39,6 +39,14 @@ function isExpensifyCard(cardID: number) {
 
 /**
  * @param cardID
+ * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
+ */
+function isCorporateCard(cardID: number) {
+    return !!allCards[cardID];
+}
+
+/**
+ * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID: number) {
@@ -99,4 +107,4 @@ function findPhysicalCard(cards: Card[]) {
     return cards.find((card) => !card.isVirtual);
 }
 
-export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
+export {isExpensifyCard, isCorporateCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
