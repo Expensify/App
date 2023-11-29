@@ -4216,7 +4216,7 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
-function shouldAutoFocusOnKeyPress(event, inputRef) {
+function shouldAutoFocusOnKeyPress(event: any, inputRef: any): boolean {
     if (event.key === 'Tab' || event.key === 'Enter' || (event.key === 'Shift' && inputRef.current && !inputRef.current.isFocused())) {
         return false;
     }
