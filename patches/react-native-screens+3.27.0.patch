@@ -1,18 +1,5 @@
-diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-index 34aed79..0587140 100644
---- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-+++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-@@ -297,7 +297,7 @@ class ScreenStack(context: Context?) : ScreenContainer<ScreenStackFragment>(cont
-     }
- 
-     private fun performDraw(op: DrawingOp) {
--        super.drawChild(op.canvas, op.child, op.drawingTime)
-+        super.drawChild(op.canvas!!, op.child, op.drawingTime)
-     }
- 
-     private fun obtainDrawingOp(): DrawingOp =
 diff --git a/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h b/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
-index 40a3c0a..9f8f3c1 100644
+index 40a3c0a..6c035c7 100644
 --- a/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
 +++ b/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSScreenComponentDescriptor.h
 @@ -12,24 +12,19 @@ class RNSScreenComponentDescriptor final
@@ -32,7 +19,7 @@ index 40a3c0a..9f8f3c1 100644
 -    auto layoutableShadowNode =
 -        std::static_pointer_cast<YogaLayoutableShadowNode>(screenShadowNode);
 +    auto& layoutableShadowNode =
-+        static_cast<YogaLayoutableShadowNode&>(screenShadowNode);
++      static_cast<YogaLayoutableShadowNode&>(screenShadowNode);
  
      auto state =
          std::static_pointer_cast<const RNSScreenShadowNode::ConcreteState>(

@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec b/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec
+index 3691d80..746e887 100644
+--- a/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec
++++ b/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec
+@@ -34,18 +34,6 @@ Pod::Spec.new do |s|
+   s.dependency "ReactCommon/turbomodule/core"
+ 
+   if fabric_enabled
+-    s.subspec "common" do |ss|
+-      ss.source_files         = "common/cpp/**/*.{cpp,h}"
+-      ss.header_dir           = "react/renderer/components/safeareacontext"
+-      ss.pod_target_xcconfig  = { "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/common/cpp\"" }
+-    end
+-
+-    s.subspec "fabric" do |ss|
+-      ss.dependency "React-Codegen"
+-      ss.dependency "React-RCTFabric"
+-      ss.dependency "react-native-safe-area-context/common"
+-      ss.source_files         = "ios/Fabric/**/*.{h,m,mm}"
+-      ss.pod_target_xcconfig  = { "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/common/cpp\"" }
+-    end
++    install_modules_dependencies(s)
+   end
+ end
