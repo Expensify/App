@@ -2,12 +2,12 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, Easing, interpolateColor} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Tooltip from '../Tooltip';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import useLocalize from '../../hooks/useLocalize';
-import FabPlusIcon from './FabPlusIcon';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import Tooltip from './Tooltip';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import useLocalize from '../hooks/useLocalize';
+import FabPlusIcon from './FloatingActionButton/FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
