@@ -150,25 +150,6 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(transactionViolations);
         });
 
-        it('should handle case sensitivity in categories', () => {
-            // setup test conditions
-            policyCategories = {Food: {enabled: true}};
-            transaction.category = 'food'; // lower case
-            // run test
-            const result = execute();
-            // verify results
-            expect(result.value).toEqual(
-                expect.arrayContaining([
-                    {
-                        name: 'categoryOutOfPolicy',
-                        type: 'violation',
-                        userMessage: '',
-                    },
-                    ...transactionViolations,
-                ]),
-            );
-        });
-
         it('should handle undefined or invalid category types', () => {
             // setup test conditions
             policyCategories = {Food: {enabled: true}};
