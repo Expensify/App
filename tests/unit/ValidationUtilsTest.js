@@ -318,6 +318,7 @@ describe('ValidationUtils', () => {
         test('Valid person name', () => {
             expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
             expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`a hyphenated-name`)).toBe(true);
         });
 
         test('Invalid person name', () => {
