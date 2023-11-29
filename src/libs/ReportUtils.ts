@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashEscape from 'lodash/escape';
@@ -14,7 +13,7 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -3500,7 +3499,7 @@ function getReportIDFromLink(url: string | null): string {
 /**
  * Get the report policyID given a reportID
  */
-function getReportPolicyID(reportID: string | undefined): string|undefined {
+function getReportPolicyID(reportID: string | undefined): string | undefined {
     return getReport(reportID)?.policyID;
 }
 
