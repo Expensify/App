@@ -118,7 +118,10 @@ function IOURequestStartPage({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
-                    <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+                    <DragAndDropProvider
+                        setIsDraggingOver={setIsDraggingOver}
+                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
+                    >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={tabTitles[iouType]}
