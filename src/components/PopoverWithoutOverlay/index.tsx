@@ -1,4 +1,4 @@
-import React, {ForwardedRef} from 'react';
+import React, {ForwardedRef, forwardRef, useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {PopoverContext} from '@components/PopoverProvider';
@@ -14,7 +14,7 @@ function Popover(
     ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
-    const {onOpen, close} = React.useContext(PopoverContext);
+    const {onOpen, close} = useContext(PopoverContext);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
@@ -29,7 +29,7 @@ function Popover(
         outerStyle,
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         let removeOnClose: () => void;
         if (isVisible && anchorRef && onOpen) {
             onModalShow();
@@ -104,4 +104,4 @@ function Popover(
 
 Popover.displayName = 'Popover';
 
-export default React.forwardRef(Popover);
+export default forwardRef(Popover);
