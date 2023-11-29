@@ -76,6 +76,8 @@ type PersonalDetails = {
     payPalMeAddress?: string;
 };
 
+type PersonalDetailsList = Record<string, PersonalDetails>;
+
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone};
+export type {Timezone, SelectedTimezone, PersonalDetailsList};

@@ -19,7 +19,7 @@ type Policy = {
     owner: string;
 
     /** The accountID of the policy owner */
-    ownerAccountID: number;
+    ownerAccountID?: number;
 
     /** The output currency for the policy */
     outputCurrency: string;
@@ -34,7 +34,7 @@ type Policy = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** A list of errors keyed by microtime */
-    errors: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors;
 
     /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
     isFromFullPolicy?: boolean;
@@ -46,16 +46,16 @@ type Policy = {
     customUnits?: Record<string, unknown>;
 
     /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
+    areChatRoomsEnabled?: boolean;
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
     /** Whether the scheduled submit is enabled */
-    autoReporting: boolean;
+    autoReporting?: boolean;
 
     /** The scheduled submit frequency set up on the this policy */
-    autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+    autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     /** The employee list of the policy */
     employeeList?: [];

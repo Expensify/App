@@ -117,7 +117,7 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
-    originalMessage: unknown;
+    originalMessage?: unknown;
 };
 
 type OriginalMessageRenamed = {
@@ -225,4 +225,4 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, OriginalMessageCreated, ChangeLog};

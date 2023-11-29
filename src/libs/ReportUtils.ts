@@ -16,8 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
-import {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -184,9 +184,10 @@ type OptimisticClosedReportAction = Pick<
 >;
 
 type OptimisticCreatedReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
->;
+    ReportActionBase,
+    'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+> &
+    OriginalMessageCreated;
 
 type OptimisticChatReport = Pick<
     Report,
@@ -311,7 +312,6 @@ type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronou
 
 type OptionData = {
     alternateText?: string | null;
-    pendingAction?: PendingAction | null;
     allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
