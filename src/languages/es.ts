@@ -1153,7 +1153,6 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        setStatusTitle: 'Establece tu estado',
         statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',

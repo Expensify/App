@@ -141,8 +141,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 validate={validateForm}
                 enabledWhenOffline
             >
-                <View style={[styles.mh5, styles.mv4]}>
-                    <Text style={[styles.textHeadline]}>{translate('statusPage.setStatusTitle')}</Text>
+                <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
                 <View style={[styles.mb2, styles.mt4]}>
