@@ -1,7 +1,7 @@
 import {MutableRefObject, RefCallback} from 'react';
 
 /**
- * Assigns a ref to an element, either by setting the current property of the ref object or by calling the ref function
+ * Assigns an element to ref, either by setting the `current` property of the ref object or by calling the ref function
  *
  * @param ref The ref object or function.
  * @param element The element to assign the ref to.
