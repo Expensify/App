@@ -1004,6 +1004,7 @@ function requestMoney(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     API.write(
         'RequestMoney',
@@ -1031,8 +1032,8 @@ function requestMoney(
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
-    Report.notifyNewAction(chatReport.reportID, payeeAccountID);
+    Navigation.dismissModal(activeReportID);
+    Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
 /**

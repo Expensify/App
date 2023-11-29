@@ -3988,5 +3988,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyle};

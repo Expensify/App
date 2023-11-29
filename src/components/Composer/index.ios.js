@@ -4,8 +4,8 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -66,6 +66,8 @@ const defaultProps = {
 
 function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
+    const styles = useThemeStyles();
+    const theme = useTheme();
 
     /**
      * Set the TextInput Ref
@@ -115,9 +117,9 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
     return (
         <RNTextInput
             autoComplete="off"
-            placeholderTextColor={themeColors.placeholderText}
+            placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             maxNumberOfLines={maxNumberOfLines}
