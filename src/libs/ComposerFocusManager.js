@@ -1,4 +1,3 @@
-import {forEach} from 'lodash';
 import {TextInput} from 'react-native';
 import _ from 'underscore';
 import CONST from '@src/CONST';
@@ -54,7 +53,7 @@ function releaseElement(el) {
     if (el === focusedElement) {
         focusedElement = null;
     }
-    forEach(focusMap, ([key, value]) => {
+    [...focusMap].forEach(([key, value]) => {
         if (value !== el) {
             return;
         }
