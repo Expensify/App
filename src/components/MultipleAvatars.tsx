@@ -67,7 +67,7 @@ function MultipleAvatars({
     fallbackIcon,
     icons = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle,
+    secondAvatarStyle: secondAvatarStyleProp,
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,
@@ -99,7 +99,7 @@ function MultipleAvatars({
         [styles],
     );
 
-    const secondAvatarDefaultStyles = secondAvatarStyle ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
+    const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
@@ -274,7 +274,7 @@ function MultipleAvatars({
                             </View>
                         </UserDetailsTooltip>
                         <View
-                            style={[secondAvatarStyles, secondAvatarDefaultStyles, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}
+                            style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}
                         >
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
