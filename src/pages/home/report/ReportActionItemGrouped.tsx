@@ -1,22 +1,16 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
-import stylePropTypes from '@styles/stylePropTypes';
+import React, {ReactNode} from 'react';
+import {View, ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 
-const propTypes = {
+type ReportActionItemGroupedProps = {
     /** Children view component for this action item */
-    children: PropTypes.node.isRequired,
+    children: ReactNode;
 
     /** Styles for the outermost View */
-    wrapperStyle: stylePropTypes,
+    wrapperStyle?: ViewStyle;
 };
 
-const defaultProps = {
-    wrapperStyle: undefined,
-};
-
-function ReportActionItemGrouped({wrapperStyle, children}) {
+function ReportActionItemGrouped({wrapperStyle, children}: ReportActionItemGroupedProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
@@ -25,7 +19,6 @@ function ReportActionItemGrouped({wrapperStyle, children}) {
     );
 }
 
-ReportActionItemGrouped.propTypes = propTypes;
-ReportActionItemGrouped.defaultProps = defaultProps;
 ReportActionItemGrouped.displayName = 'ReportActionItemGrouped';
+
 export default ReportActionItemGrouped;
