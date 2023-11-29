@@ -5,6 +5,8 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import React from 'react';
+import {TextInput} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -4216,7 +4218,7 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
-function shouldAutoFocusOnKeyPress(event: any, inputRef: any): boolean {
+function shouldAutoFocusOnKeyPress(event: KeyboardEvent, inputRef: React.RefObject<TextInput>): boolean {
     if (event.key === 'Tab' || event.key === 'Enter' || (event.key === 'Shift' && inputRef.current && !inputRef.current.isFocused())) {
         return false;
     }
