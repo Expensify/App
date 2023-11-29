@@ -21,9 +21,9 @@ function MoneyReportHeaderStatusBar({nextStep}) {
     const {translate} = useLocalize();
 
     const messageContent = useMemo(() => {
-        const messageArray = _.isEmpty(nextStep.expenseMessage) ? nextStep.message : nextStep.expenseMessage;
+        const messageArray = nextStep.message;
         return NextStepUtils.parseMessage(messageArray);
-    }, [nextStep.expenseMessage, nextStep.message]);
+    }, [nextStep.message]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
