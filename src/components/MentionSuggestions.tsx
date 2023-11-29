@@ -14,8 +14,11 @@ type Mention = {
     /** Display name of the user */
     text: string;
 
-    /** Email/phone number of the user */
+    /** The formatted email/phone number of the user */
     alternateText: string;
+
+    /** Email/phone number of the user */
+    login: string;
 
     /** Array of icons of the user. We use the first element of this array */
     icons: Icon[];

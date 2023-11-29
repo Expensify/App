@@ -200,7 +200,8 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
+    const isLowerCase = url === url.toLowerCase();
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -294,6 +295,13 @@ function isValidDisplayName(name: string): boolean {
  */
 function isValidLegalName(name: string): boolean {
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+}
+
+/**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
 }
 
 /**
@@ -406,4 +414,5 @@ export {
     isValidAccountRoute,
     isValidRecoveryCode,
     prepareValues,
+    isValidPersonName,
 };
