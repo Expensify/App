@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
-import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
