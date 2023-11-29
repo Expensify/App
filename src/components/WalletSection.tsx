@@ -1,29 +1,22 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, {ReactNode} from 'react';
 import useThemeStyles from '@styles/useThemeStyles';
 import Section from './Section';
 
-const propTypes = {
+type WalletSectionProps = {
     /** Contents to display inside the section */
-    children: PropTypes.node,
+    children?: ReactNode;
 
     /** The icon to display along with the title */
-    icon: PropTypes.func,
+    icon?: (props: unknown) => React.ReactNode;
 
     /** The text to display in the subtitle of the section */
-    subtitle: PropTypes.string,
+    subtitle?: string;
 
     /** The text to display in the title of the section */
-    title: PropTypes.string.isRequired,
+    title: string;
 };
 
-const defaultProps = {
-    children: null,
-    icon: null,
-    subtitle: null,
-};
-
-function WalletSection({children, icon, subtitle, title}) {
+function WalletSection({children, icon, subtitle, title}: WalletSectionProps) {
     const styles = useThemeStyles();
     return (
         <Section
@@ -39,8 +32,6 @@ function WalletSection({children, icon, subtitle, title}) {
     );
 }
 
-WalletSection.defaultProps = defaultProps;
 WalletSection.displayName = 'WalletSection';
-WalletSection.propTypes = propTypes;
 
 export default WalletSection;
