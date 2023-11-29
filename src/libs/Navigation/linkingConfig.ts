@@ -13,7 +13,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'https://dev.new.expensify.com',
-        'https://127.0.0.1',
         CONST.NEW_EXPENSIFY_URL,
         CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
