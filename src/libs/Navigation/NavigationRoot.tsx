@@ -1,5 +1,5 @@
 import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {ColorValue} from 'react-native';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -12,7 +12,7 @@ import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
-const propTypes = {
+type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
     authenticated: boolean;
 
@@ -42,10 +42,23 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
+    const theme = useTheme();
     const firstRenderRef = useRef(true);
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    // https://reactnavigation.org/docs/themes
+    const navigationTheme = useMemo(
+        () => ({
+            ...DefaultTheme,
+            colors: {
+                ...DefaultTheme.colors,
+                background: theme.appBG,
+            },
+        }),
+        [theme],
+    );
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -92,7 +105,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
         const backgroundColorFromRoute =
             currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
-        const backgroundColorFallback = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS] || themeColors.appBG;
+        const backgroundColorFallback = theme.PAGE_BACKGROUND_COLORS[currentRoute?.name!] || theme.appBG;
 
         // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
