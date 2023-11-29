@@ -1,5 +1,5 @@
 import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
@@ -16,11 +16,14 @@ function createModalStackNavigator(screens) {
     function ModalStack() {
         const styles = useThemeStyles();
 
-        const defaultSubRouteOptions = {
-            cardStyle: styles.navigationScreenCardStyle,
-            headerShown: false,
-            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        };
+        const defaultSubRouteOptions = useMemo(
+            () => ({
+                cardStyle: styles.navigationScreenCardStyle,
+                headerShown: false,
+                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }),
+            [styles],
+        );
 
         return (
             <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
