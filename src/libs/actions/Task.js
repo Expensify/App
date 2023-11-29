@@ -33,6 +33,13 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
+let allPolicies;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicies = val),
+});
+
 /**
  * Clears out the task info from the store
  */
@@ -881,10 +888,16 @@ function canModifyTask(taskReport, sessionAccountID) {
         return true;
     }
 
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
+    
+    if (ReportUtils.isChatRoom(parentReport) && lodashGet(policy, 'role', '') !== CONST.POLICY.ROLE.ADMIN) {
+        return false
+    }
+
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    const parentReport = ReportUtils.getParentReport(taskReport);
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
