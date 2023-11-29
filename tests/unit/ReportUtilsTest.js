@@ -305,7 +305,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
-        it.only('returns true when the report is an outstanding task', () => {
+        it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.TASK,
