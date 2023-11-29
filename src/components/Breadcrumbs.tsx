@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@styles/themes/useTheme';
@@ -33,7 +33,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                 const separatorStyle = [style, styles.breadcrumbSeparator];
 
                 return (
-                    <>
+                    <Fragment key={key}>
                         {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
                             <View key={key}>
                                 <Header
@@ -66,7 +66,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                                 </Text>
                             </>
                         )}
-                    </>
+                    </Fragment>
                 );
             })}
         </View>
