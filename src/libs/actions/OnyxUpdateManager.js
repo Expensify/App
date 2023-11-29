@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
-import Log from '../Log';
-import * as SequentialQueue from '../Network/SequentialQueue';
+import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as App from './App';
 import * as OnyxUpdates from './OnyxUpdates';
-import CONST from '../../CONST';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to

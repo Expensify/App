@@ -1,8 +1,8 @@
 import {Platform} from 'react-native';
 import Config, {NativeConfig} from 'react-native-config';
+import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
 import * as Url from './libs/Url';
-import CONST from './CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches
@@ -64,6 +64,7 @@ export default {
         CONCIERGE_URL_PATHNAME: 'concierge/',
         DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
+        SAML_URL: `${expensifyURL}authentication/saml/login`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
