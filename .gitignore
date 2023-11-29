@@ -107,6 +107,7 @@ tsconfig.tsbuildinfo
 
 # Workflow test logs
 /workflow_tests/logs/
+/workflow_tests/repo/
 
 # Yalc
 .yalc

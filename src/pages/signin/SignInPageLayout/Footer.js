@@ -16,15 +16,11 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     ...withLocalizePropTypes,
     scrollPageToTop: PropTypes.func.isRequired,
-    shouldShowSmallScreen: PropTypes.bool,
-};
-
-const defaultProps = {
-    shouldShowSmallScreen: false,
 };
 
 const navigateHome = (scrollPageToTop) => {
@@ -148,19 +144,19 @@ const columns = ({scrollPageToTop}) => [
 function Footer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isVertical = props.shouldShowSmallScreen;
-    const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
-    const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
-    const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const imageDirection = shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn;
+    const imageStyle = shouldUseNarrowLayout ? styles.pr0 : styles.alignSelfCenter;
+    const columnDirection = shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow;
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, shouldUseNarrowLayout ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
-    const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
-    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
+    const footerColumn = shouldUseNarrowLayout ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerWrapper = shouldUseNarrowLayout ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
-                {isVertical ? (
+                {shouldUseNarrowLayout ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
                     </View>
@@ -203,8 +199,8 @@ function Footer(props) {
                             </View>
                         ))}
                     </View>
-                    <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical ? (
+                    <View style={[!shouldUseNarrowLayout && styles.footerBottomLogo]}>
+                        {!shouldUseNarrowLayout ? (
                             <Expensicons.ExpensifyFooterLogo />
                         ) : (
                             <Expensicons.ExpensifyFooterLogoVertical

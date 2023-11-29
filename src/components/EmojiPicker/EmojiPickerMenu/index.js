@@ -19,8 +19,8 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +51,8 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 
 function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
+
+    const styles = useThemeStyles();
 
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -464,7 +466,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;

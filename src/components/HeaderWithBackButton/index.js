@@ -53,6 +53,7 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlay = false,
     singleExecution = (func) => func,
+    shouldNavigateToTopMostReport = false,
 }) {
     const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -74,11 +75,17 @@ function HeaderWithBackButton({
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                onBackButtonPress();
+                                const topmostReportId = Navigation.getTopmostReportId();
+                                if (shouldNavigateToTopMostReport && topmostReportId) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+                                } else {
+                                    onBackButtonPress();
+                                }
                             }}
                             style={[styles.touchableButtonImage]}
                             role="button"
                             accessibilityLabel={translate('common.back')}
+                            nativeID={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}

@@ -89,7 +89,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [policyType, isManager, isDraft, isApproved, isSettled]);
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
-    const shouldShowNextSteps = isDraft && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
+    const shouldShowNextSteps = isDraft && nextStep && !_.isEmpty(nextStep.message);
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
@@ -119,7 +119,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
                         />
@@ -164,7 +163,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
                             formattedAmount={formattedAmount}
                         />
                     </View>

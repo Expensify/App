@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -45,7 +45,6 @@ const propTypes = {
     /** Override the smaller hero body copy below the headline */
     customHeroBody: PropTypes.string,
 
-    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -62,12 +61,13 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
-    const shouldShowSmallScreen = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
+    const containerHeight = windowHeight - props.insets.top - props.insets.bottom;
 
-    if (shouldShowSmallScreen) {
+    if (shouldUseNarrowLayout) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -91,9 +91,11 @@ function SignInPageLayout(props) {
         scrollPageToTop();
     }, [props.welcomeHeader, props.welcomeText, prevPreferredLocale, props.preferredLocale]);
 
+    const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
+
     return (
         <View style={containerStyles}>
-            {!shouldShowSmallScreen ? (
+            {!shouldUseNarrowLayout ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
@@ -149,7 +151,7 @@ function SignInPageLayout(props) {
                 </View>
             ) : (
                 <ScrollView
-                    contentContainerStyle={scrollViewContentContainerStyles}
+                    contentContainerStyle={scrollViewStyles}
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
@@ -171,7 +173,6 @@ function SignInPageLayout(props) {
                     <View style={[styles.flex0]}>
                         <Footer
                             scrollPageToTop={scrollPageToTop}
-                            shouldShowSmallScreen
                         />
                     </View>
                 </ScrollView>
@@ -194,4 +195,4 @@ const SignInPageLayoutWithRef = forwardRef((props, ref) => (
 
 SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
 
-export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);
+export default compose(withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);
