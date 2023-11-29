@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
 
@@ -68,23 +68,27 @@ const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
     return activeValue;
 };
 
-const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
-    if (routesLength > 1) {
-        const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-        return position.interpolate({
-            inputRange,
-            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG)),
-        });
-    }
-    return themeColors.border;
-};
-
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+
+    const getBackgroundColor = useCallback(
+        (routesLength, tabIndex, affectedTabs) => {
+            if (routesLength > 1) {
+                const inputRange = Array.from({length: routesLength}, (v, i) => i);
+
+                return position.interpolate({
+                    inputRange,
+                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
+                });
+            }
+            return theme.border;
+        },
+        [theme, position],
+    );
 
     React.useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
