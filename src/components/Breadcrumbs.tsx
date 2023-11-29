@@ -44,7 +44,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                                             style={styles.breadcrumbLogo}
                                         />
                                     }
-                                    // shouldShowEnvironmentBadge
+                                    shouldShowEnvironmentBadge
                                 />
                             </View>
                         ) : (

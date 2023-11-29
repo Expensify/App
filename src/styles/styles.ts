@@ -3527,8 +3527,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            marginLeft: -8,
-            marginTop: -8,
+            position: 'absolute',
+            bottom: -8,
+            left: -8,
             height: 12,
             width: 22,
             paddingLeft: 4,
