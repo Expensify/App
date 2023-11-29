@@ -132,10 +132,7 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-    }));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 

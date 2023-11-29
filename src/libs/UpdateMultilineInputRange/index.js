@@ -1,3 +1,5 @@
+import * as Browser from '@libs/Browser';
+
 /**
  * Place the cursor at the end of the value (if there is a value in the input).
  *
@@ -10,7 +12,6 @@
  * @param {Object} input the input element
  * @param {boolean} shouldAutoFocus
  */
-// eslint-disable-next-line no-unused-vars
 export default function updateMultilineInputRange(input, shouldAutoFocus = true) {
     if (!input) {
         return;
@@ -18,7 +19,13 @@ export default function updateMultilineInputRange(input, shouldAutoFocus = true)
 
     if (input.value && input.setSelectionRange) {
         const length = input.value.length;
-        input.setSelectionRange(length, length);
+
+        // On mobile safari, setting a selection will focus the input even when the auto focus is false.
+        // So, don't set the selection if the browser is mobile safari and auto focus is false.
+        const shouldSetSelection = !(Browser.isMobileSafari() && !shouldAutoFocus);
+        if (shouldSetSelection) {
+            input.setSelectionRange(length, length);
+        }
         // eslint-disable-next-line no-param-reassign
         input.scrollTop = input.scrollHeight;
     }
