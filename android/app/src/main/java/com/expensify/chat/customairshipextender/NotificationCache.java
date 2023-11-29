@@ -8,7 +8,6 @@ import android.util.Base64;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
-import com.expensify.chat.MainApplication;
 import com.urbanairship.UAirship;
 
 import java.io.ByteArrayOutputStream;
@@ -126,7 +125,8 @@ public class NotificationCache {
         private final HashMap<String, String> icons = new HashMap<>();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
-        public int prevNotificationID = -1;
+        // The system provided notificationID. This can be used to cancel the
+        public int notificationID = -1;
 
         public NotificationData() {}
 

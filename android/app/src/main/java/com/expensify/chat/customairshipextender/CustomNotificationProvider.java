@@ -38,11 +38,8 @@ import com.urbanairship.util.ImageUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -229,8 +226,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Clear the previous notification associated to this conversation so it looks like we are
             // replacing them with this new one we just built.
-            if (notificationData.prevNotificationID != -1) {
-                NotificationManagerCompat.from(context).cancel(notificationData.prevNotificationID);
+            if (notificationData.notificationID != -1) {
+                NotificationManagerCompat.from(context).cancel(notificationData.notificationID);
             }
 
         } catch (Exception e) {
@@ -239,7 +236,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
         // Store the new notification ID so we can replace the notification if this conversation
         // receives more messages
-        notificationData.prevNotificationID = notificationID;
+        notificationData.notificationID = notificationID;
 
         NotificationCache.setNotificationData(reportID, notificationData);
     }
