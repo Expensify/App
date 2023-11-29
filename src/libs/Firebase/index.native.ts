@@ -57,12 +57,6 @@ const trackScreen: TrackScreen = (screenName: string) => {
     });
 };
 
-
-// const removeListener = useRef();
-// removeListener.current = navigationRef.current.addListener('state', (event) => {
-//     setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
-// });
-
 export default {
     startTrace,
     stopTrace,
