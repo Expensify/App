@@ -3897,7 +3897,7 @@ const styles = (theme: ThemeColors) =>
         timePickerSemiDot: {
             fontSize: 69,
             height: 84,
-            alignSelf: 'flex-end',
+            alignSelf: 'center',
         },
         timePickerSwitcherContainer: {
             flexDirection: 'row',
@@ -3930,7 +3930,7 @@ const styles = (theme: ThemeColors) =>
             minHeight: 54,
         },
         timePickerInputsContainer: {
-            maxHeight: 70,
+            maxHeight: 100,
         },
         timePickerButtonErrorText: {
             position: 'absolute',
