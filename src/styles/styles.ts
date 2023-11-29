@@ -1394,7 +1394,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumbLogo: {
-            marginTop: 3,
+            marginTop: 4,
         },
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>

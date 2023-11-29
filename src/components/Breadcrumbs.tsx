@@ -35,14 +35,16 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                 return (
                     <Fragment key={key}>
                         {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
-                            <View key={key}>
+                            <View
+                                key={key}
+                                style={styles.breadcrumbLogo}
+                            >
                                 <Header
                                     title={
                                         <LogoComponent
                                             fill={theme.text}
                                             width={variables.lhnLogoWidth}
                                             height={variables.lhnLogoHeight}
-                                            style={styles.breadcrumbLogo}
                                         />
                                     }
                                     shouldShowEnvironmentBadge
