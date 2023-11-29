@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Get number of CPU cores
         id: cpu-cores
@@ -46,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: ./.github/actions/composite/setupNode
 
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
 
       - name: Test CI git logic
         run: tests/unit/CIGitLogicTest.sh

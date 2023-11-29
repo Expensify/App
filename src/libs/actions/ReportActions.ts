@@ -20,14 +20,14 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID, reportAction.reportActionID);
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID ?? '', reportAction.reportActionID);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
 
         // Delete the failed task report too
         const taskReportID = reportAction.message?.[0]?.taskReportID;
-        if (taskReportID) {
+        if (taskReportID && ReportActionUtils.isCreatedTaskReportAction(reportAction)) {
             Report.deleteReport(taskReportID);
         }
         return;

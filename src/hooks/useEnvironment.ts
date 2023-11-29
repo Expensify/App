@@ -3,13 +3,13 @@ import {EnvironmentContext} from '@components/withEnvironment';
 import type {EnvironmentContextValue} from '@components/withEnvironment';
 import CONST from '@src/CONST';
 
-type UseEnvironment = Partial<EnvironmentContextValue> & {
+type UseEnvironment = EnvironmentContextValue & {
     isProduction: boolean;
     isDevelopment: boolean;
 };
 
 export default function useEnvironment(): UseEnvironment {
-    const {environment, environmentURL} = useContext(EnvironmentContext) ?? {};
+    const {environment, environmentURL} = useContext(EnvironmentContext);
     return {
         environment,
         environmentURL,

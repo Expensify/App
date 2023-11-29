@@ -127,8 +127,8 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
 
-    /** Initial focused index value */
-    initialFocusedIndex: PropTypes.number,
+    /** Index for option to focus on */
+    focusedIndex: PropTypes.number,
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
@@ -174,7 +174,7 @@ const defaultProps = {
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
-    initialFocusedIndex: undefined,
+    focusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
