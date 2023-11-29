@@ -1,9 +1,9 @@
 import {DefaultNavigatorOptions, DefaultRouterOptions, NavigatorScreenParams, ParamListBase, StackNavigationState} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackScreenProps} from '@react-navigation/stack';
 import {ValueOf} from 'type-fest';
-import CONST from '../../../CONST';
-import NAVIGATORS from '../../../NAVIGATORS';
-import SCREENS from '../../../SCREENS';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
 type AccountValidationParams = {
     /** AccountID associated with the validation link */
