@@ -2667,7 +2667,7 @@ function approveMoneyRequest(expenseReport) {
  */
 function submitReport(expenseReport) {
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
-    const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.parentReportID}`];
+    const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
 
     const optimisticData = [
         {
@@ -2692,16 +2692,20 @@ function submitReport(expenseReport) {
                 statusNum: CONST.REPORT.STATUS.SUBMITTED,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-            value: {
-                ...parentReport,
-                hasOutstandingIOU: false,
-                hasOutstandingChildRequest: false,
-                iouReportID: null,
-            },
-        },
+        ...(parentReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          ...parentReport,
+                          hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
+                          iouReportID: null,
+                      },
+                  },
+              ]
+            : []),
     ];
 
     const successData = [
@@ -2734,15 +2738,19 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-            value: {
-                hasOutstandingIOU: parentReport.hasOutstandingIOU,
-                hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
-                iouReportID: expenseReport.reportID,
-            },
-        },
+        ...(parentReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: parentReport.hasOutstandingIOU,
+                          hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
+            : []),
     ];
 
     API.write(

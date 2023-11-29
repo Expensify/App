@@ -2546,7 +2546,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = getPolicy(policyID);
 
     // The expense report is always created with the policy's output currency
     const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;

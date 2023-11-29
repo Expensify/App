@@ -89,7 +89,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [policyType, isManager, isDraft, isApproved, isSettled]);
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
-    const isFromPaidPolicy = policyType == CONST.POLICY.TYPE.TEAM || policyType == CONST.POLICY.TYPE.CORPORATE;
+    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextSteps = isFromPaidPolicy && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
