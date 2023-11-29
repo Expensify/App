@@ -262,7 +262,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsView that a new comment has arrived */
-function notifyNewAction(reportID: string, accountID: number | undefined, reportActionID: string | undefined) {
+function notifyNewAction(reportID: string, accountID?: number, reportActionID?: string) {
     const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
     if (!actionSubscriber) {
         return;
@@ -1857,7 +1857,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone ?? -1]: createdAt,
+                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
                             },
                         },
                     },

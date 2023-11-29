@@ -473,9 +473,8 @@ const getUniqueEmojiCodes = (emojiAsset: Emoji, users: Record<number, UserReacti
 const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiName: string): ReportActionReaction => {
     let oldestEmojiTimestamp: string | null = null;
 
-    const usersWithTimestamps: Record<number, UserReactions> = {};
-    Object.keys(emoji.users ?? {}).forEach((id) => {
-        const user = emoji?.users?.[Number(id)];
+    const usersWithTimestamps: Record<string, UserReactions> = {};
+    Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
         const userTimestamps = Object.values(user?.skinTones ?? {});
         const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (curr < min ? curr : min), userTimestamps[0]);
 
@@ -483,7 +482,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
             oldestEmojiTimestamp = oldestUserTimestamp;
         }
 
-        usersWithTimestamps[Number(id)] = {
+        usersWithTimestamps[id] = {
             ...user,
             id,
             oldestTimestamp: oldestUserTimestamp,
