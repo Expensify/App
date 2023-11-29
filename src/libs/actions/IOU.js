@@ -463,7 +463,7 @@ function getMoneyRequestInformation(
     if (isPolicyExpenseChat && iouReport) {
         const policyType = ReportUtils.getPolicy(iouReport.policyID).type || '';
         const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-        if (isFromPaidPolicy && !ReportUtils.isReportDraft(iouReport)) {
+        if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
             iouReport = null;
         }
     }

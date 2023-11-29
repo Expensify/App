@@ -549,7 +549,7 @@ function isReportApproved(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report is in Open state and status.
  */
-function isReportDraft(report: OnyxEntry<Report>): boolean {
+function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -1696,7 +1696,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     }
 
     // The report name should show as owed also for drafts
-    if (!!report?.hasOutstandingIOU || isReportDraft(report) || moneyRequestTotal === 0) {
+    if (!!report?.hasOutstandingIOU || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -2560,7 +2560,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const isFree = policy?.type === CONST.POLICY.TYPE.FREE;
 
     // Definte the state and status of the report based on whether the policy is free or paid
-    const state = isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPENED;
+    const state = isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN;
     const stateNum = isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE_NUM.OPEN;
     const statusNum = isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATUS.OPEN;
 
@@ -4384,7 +4384,7 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
-    isReportDraft,
+    isDraftExpenseReport,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
