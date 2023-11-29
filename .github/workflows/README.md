@@ -139,12 +139,11 @@ In order to bundle actions with their dependencies into a single Node.js executa
 
 - When calling your GitHub Action from one of our workflows, you must:
     - First call `@actions/checkout`.
-    - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
+    - Use the relative path of the action in GitHub from the root of this repo, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: ./.github/actions/javascript/bumpVersion
       ```
-       Do not try to use a relative path.
-- Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
+
 - You can't use any dynamic values or environment variables in a `uses` statement
 - In general, it is a best practice to minimize any side-effects of each action. Using atomic ("dumb") actions that have a clear and simple purpose will promote reuse and make it easier to understand the workflows that use them.

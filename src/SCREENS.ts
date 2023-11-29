@@ -9,13 +9,13 @@ const PROTECTED_SCREENS = {
     REPORT_ATTACHMENTS: 'ReportAttachments',
 } as const;
 
-export default {
+const SCREENS = {
     ...PROTECTED_SCREENS,
-    LOADING: 'Loading',
     REPORT: 'Report',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_HOME: 'SettingsHome',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
@@ -26,7 +26,13 @@ export default {
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
         WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
+        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+        WALLET_CARD_GET_PHYSICAL: {
+            NAME: 'Settings_Card_Get_Physical_Name',
+            PHONE: 'Settings_Card_Get_Physical_Phone',
+            ADDRESS: 'Settings_Card_Get_Physical_Address',
+            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -37,4 +43,5 @@ export default {
     SAML_SIGN_IN: 'SAMLSignIn',
 } as const;
 
+export default SCREENS;
 export {PROTECTED_SCREENS};

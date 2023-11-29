@@ -35,8 +35,8 @@ import CustomRouter from './createCustomStackNavigator/CustomRouter';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
