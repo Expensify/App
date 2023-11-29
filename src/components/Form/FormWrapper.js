@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormSubmit from '@components/FormSubmit';
-import refPropTypes from '@components/refPropTypes';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -65,7 +64,7 @@ const propTypes = {
 
     errors: errorsPropType.isRequired,
 
-    inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
+    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object])).isRequired,
 };
 
 const defaultProps = {
