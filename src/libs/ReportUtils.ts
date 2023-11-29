@@ -23,6 +23,7 @@ import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -345,6 +346,9 @@ type OnyxDataTaskAssigneeChat = {
     optimisticAssigneeAddComment?: OptimisticReportAction;
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
+
+let environmentURL: string;
+Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -4164,13 +4168,14 @@ function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): stri
         message = `${verb} ${mentions?.join(', ')}, and ${lastMention}`;
     }
 
+    const reportID = (reportAction?.originalMessage as ChangeLog)?.reportID ?? 0;
     const roomName = (reportAction?.originalMessage as ChangeLog)?.roomName ?? '';
-    if (roomName) {
+    if (reportID && roomName) {
         const preposition =
             reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                 ? ' to'
                 : ' from';
-        message += `${preposition} ${roomName}`;
+        message += `${preposition} <a href=\"${environmentURL}/r/${reportID}\" target=\"_blank\">${roomName}</a>`;
     }
 
     return message;

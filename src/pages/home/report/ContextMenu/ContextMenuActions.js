@@ -24,6 +24,20 @@ import ROUTES from '@src/ROUTES';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /**
+ * Sets the HTML string to Clipboard.
+ * @param {String} content
+ */
+function setClipboardHtmlMessage(content) {
+    const parser = new ExpensiMark();
+    if (!Clipboard.canSetHtml()) {
+        Clipboard.setString(parser.htmlToMarkdown(content));
+    } else {
+        const plainText = parser.htmlToText(content);
+        Clipboard.setHtml(content, plainText);
+    }
+}
+
+/**
  * Gets the HTML version of the message in an action.
  * @param {Object} reportAction
  * @return {String}
@@ -283,15 +297,9 @@ export default [
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
                     const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
-                    Clipboard.setString(logMessage);
+                    setClipboardHtmlMessage(logMessage);
                 } else if (content) {
-                    const parser = new ExpensiMark();
-                    if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
-                    } else {
-                        const plainText = parser.htmlToText(content);
-                        Clipboard.setHtml(content, plainText);
-                    }
+                    setClipboardHtmlMessage(content);
                 }
             }
 
