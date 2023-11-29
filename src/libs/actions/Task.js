@@ -890,9 +890,9 @@ function canModifyTask(taskReport, sessionAccountID) {
 
     const parentReport = ReportUtils.getParentReport(taskReport);
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
-    
+
     if (ReportUtils.isChatRoom(parentReport) && lodashGet(policy, 'role', '') !== CONST.POLICY.ROLE.ADMIN) {
-        return false
+        return false;
     }
 
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
