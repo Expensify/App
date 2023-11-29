@@ -117,12 +117,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * @param {Object} option
      */
     function toggleOption(option) {
-        const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.accountID === option.accountID);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
             newSelectedOptions = [...selectedOptions, option];
         }
