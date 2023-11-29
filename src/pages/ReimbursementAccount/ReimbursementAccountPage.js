@@ -103,6 +103,7 @@ class ReimbursementAccountPage extends React.Component {
         super(props);
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
+        this.goBackToWorkspace = this.goBackToWorkspace.bind(this);
         this.goBack = this.goBack.bind(this);
         this.requestorStepRef = React.createRef();
 
@@ -376,6 +377,10 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
+    goBackToWorkspace(policyID) {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }
+
     render() {
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -383,8 +388,7 @@ class ReimbursementAccountPage extends React.Component {
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        // const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const currentStep = CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
         const policyID = lodashGet(this.props.route.params, 'policyID');
 
@@ -470,6 +474,9 @@ class ReimbursementAccountPage extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
+                    onCloseButtonPress={() => {
+                        this.goBackToWorkspace(policyID);
+                    }}
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -482,11 +489,11 @@ class ReimbursementAccountPage extends React.Component {
         if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
             return (
                 <CompanyStep
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
-                    onBackButtonPress={this.goBack}
-                    getDefaultStateForField={this.getDefaultStateForField}
                     policyID={policyID}
+                    onBackButtonPress={this.goBack}
+                    onCloseButtonPress={() => {
+                        this.goBackToWorkspace(policyID);
+                    }}
                 />
             );
         }
@@ -496,8 +503,11 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <RequestorStep
                     ref={this.requestorStepRef}
-                    onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
+                    onBackButtonPress={this.goBack}
+                    onCloseButtonPress={() => {
+                        this.goBackToWorkspace(policyID);
+                    }}
                 />
             );
         }
@@ -507,9 +517,12 @@ class ReimbursementAccountPage extends React.Component {
                 <ACHContractStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
-                    onBackButtonPress={this.goBack}
                     companyName={achData.companyName}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    onBackButtonPress={this.goBack}
+                    onCloseButtonPress={() => {
+                        this.goBackToWorkspace(policyID);
+                    }}
                 />
             );
         }

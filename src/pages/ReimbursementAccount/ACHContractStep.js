@@ -25,6 +25,9 @@ import StepPropTypes from './StepPropTypes';
 const propTypes = {
     ...StepPropTypes,
 
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
+
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
 };
@@ -290,7 +293,12 @@ function ACHContractStep(props) {
         </ScreenWrapper>
     );
 
-    return <BeneficialOwnerInfo />;
+    return (
+        <BeneficialOwnerInfo
+            onBackButtonPress={props.onBackButtonPress}
+            onCloseButtonPress={props.onCloseButtonPress}
+        />
+    );
 }
 
 ACHContractStep.propTypes = propTypes;

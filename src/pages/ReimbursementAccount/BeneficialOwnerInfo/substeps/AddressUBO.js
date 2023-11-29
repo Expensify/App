@@ -1,13 +1,14 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 // import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,14 +53,14 @@ function AddressUBO({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        street: getDefaultStateForField({reimbursementAccount, fieldName: beneficialOwnerInfoKey.STREET, defaultValue: ''}),
-        city: getDefaultStateForField({reimbursementAccount, fieldName: beneficialOwnerInfoKey.CITY, defaultValue: ''}),
-        state: getDefaultStateForField({reimbursementAccount, fieldName: beneficialOwnerInfoKey.STATE, defaultValue: ''}),
-        zipCode: getDefaultStateForField({reimbursementAccount, fieldName: beneficialOwnerInfoKey.ZIP_CODE, defaultValue: ''}),
+        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoKey.STREET, ''),
+        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoKey.CITY, ''),
+        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoKey.STATE, ''),
+        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoKey.ZIP_CODE, ''),
     };
 
     return (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             // validate={validate}
@@ -76,7 +77,7 @@ function AddressUBO({reimbursementAccount, onNext, isEditing}) {
                 defaultValues={defaultValues}
                 streetTranslationKey="common.companyAddress"
             />
-        </Form>
+        </FormProvider>
     );
 }
 

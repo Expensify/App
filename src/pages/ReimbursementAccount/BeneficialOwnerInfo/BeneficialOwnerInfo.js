@@ -1,7 +1,6 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,18 +9,16 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
-import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
+import getInitialSubstepForBeneficialOwnerInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBeneficialOwnerInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import AddressUBO from './substeps/AddressUBO';
 import BeneficialOwnerCheckUBO from './substeps/BeneficialOwnerCheckUBO';
 import CompanyOwnersListUBO from './substeps/CompanyOwnersListUBO';
@@ -36,6 +33,12 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -48,12 +51,11 @@ const STEPS_HEADER_HEIGHT = 40;
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
+const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
-// const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
-
-function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft}) {
+function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}) {
     const {translate} = useLocalize();
-    const companyName = getDefaultStateForField(reimbursementAccount, 'companyName', '');
+    const companyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'companyName', '');
 
     const [isUserUBO, setIsUserUBO] = useState(false);
     const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(false);
@@ -61,30 +63,70 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft}) 
     const [isFormCompleted, setIsFormCompleted] = useState(false);
     const [areThereMoreUBO, setAreThereMoreUBO] = useState(false);
 
-    const currentUBOcheck = useRef(1);
+    const [currentUBOCheck, setCurrentUBOCheck] = useState(1);
 
-    const handleNextUBOcheck = (callback) => (value) => {
-        currentUBOcheck.current += 1;
+    const values = useMemo(() => getSubstepValues(beneficialOwnerInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    console.log(values);
+    console.log(reimbursementAccount, ' reimbursementAccount');
 
+    const submit = () => {
+        const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0);
+
+        const beneficialOwners = lodashGet(reimbursementAccountDraft, 'beneficialOwners', []);
+
+        const updatedBeneficialOwners = !values.hasOtherBeneficialOwners
+            ? []
+            : _.map(beneficialOwners, (ownerKey) => ({
+                  firstName: lodashGet(values, `beneficialOwner_${ownerKey}_firstName`),
+                  lastName: lodashGet(values, `beneficialOwner_${ownerKey}_lastName`),
+                  dob: lodashGet(values, `beneficialOwner_${ownerKey}_dob`),
+                  ssnLast4: lodashGet(values, `beneficialOwner_${ownerKey}_ssnLast4`),
+                  street: lodashGet(values, `beneficialOwner_${ownerKey}_street`),
+                  city: lodashGet(values, `beneficialOwner_${ownerKey}_city`),
+                  state: lodashGet(values, `beneficialOwner_${ownerKey}_state`),
+                  zipCode: lodashGet(values, `beneficialOwner_${ownerKey}_zipCode`),
+              }));
+        BankAccounts.updateBeneficialOwnersForBankAccount({
+            ownsMoreThan25Percent: values.ownsMoreThan25Percent,
+            hasOtherBeneficialOwners: values.hasOtherBeneficialOwners,
+            acceptTermsAndConditions: values.acceptTermsAndConditions,
+            certifyTrueInformation: values.certifyTrueInformation,
+            beneficialOwners: JSON.stringify(updatedBeneficialOwners),
+            bankAccountID,
+        });
+    };
+
+    const handleNextUBOCheck = (callback) => (value) => {
+        // user is not an owner and no one else is an owner
+        if (isUserUBO === false && isAnyoneElseUBO === false && currentUBOCheck === 2) {
+            submit();
+            return;
+        }
+
+        // user is an owner and no one else is an owner
+        if (isUserUBO === true && isAnyoneElseUBO === false && currentUBOCheck === 1) {
+            setCurrentUBOCheck(4);
+            return;
+        }
+
+        // someone else is an owner and possibly user is an owner (all the other cases)
+        setCurrentUBOCheck((currentValue) => currentValue + 1);
         callback(value);
     };
 
-    // const values = useMemo(() => getSubstepValues(beneficialOwnerInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-
-    // const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
-    const startFrom = 0;
+    const startFrom = useMemo(() => getInitialSubstepForBeneficialOwnerInfo(values), [values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: () => setIsFormCompleted(true)});
 
     const handleBackButtonPress = () => {
-        if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+        if (currentUBOCheck === 1) {
+            onBackButtonPress();
         } else {
-            prevScreen();
+            setCurrentUBOCheck((currentValue) => currentValue - 1);
         }
     };
 
-    console.log('🤢', {isUserUBO, isAnyoneElseUBO, currentUBOcheck, isFormCompleted});
+    console.log('🤢', {isUserUBO, isAnyoneElseUBO, currentUBOcheck: currentUBOCheck, isFormCompleted});
 
     return (
         <ScreenWrapper
@@ -96,6 +138,8 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft}) 
             <HeaderWithBackButton
                 title={translate('beneficialOwnerInfoStep.companyOwner')}
                 onBackButtonPress={handleBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
@@ -106,17 +150,17 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft}) 
                 />
             </View>
 
-            {currentUBOcheck.current === 1 && (
+            {currentUBOCheck === 1 && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
-                    onSelectedValue={handleNextUBOcheck(setIsUserUBO)}
+                    onSelectedValue={handleNextUBOCheck(setIsUserUBO)}
                 />
             )}
 
-            {currentUBOcheck.current === 2 && (
+            {currentUBOCheck === 2 && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
-                    onSelectedValue={handleNextUBOcheck(setIsAnyoneElseUBO)}
+                    onSelectedValue={handleNextUBOCheck(setIsAnyoneElseUBO)}
                 />
             )}
 
@@ -128,14 +172,14 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft}) 
                 />
             )}
 
-            {isFormCompleted && currentUBOcheck.current === 3 && (
+            {isFormCompleted && currentUBOCheck === 3 && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
-                    onSelectedValue={handleNextUBOcheck(setAreThereMoreUBO)}
+                    onSelectedValue={handleNextUBOCheck(setAreThereMoreUBO)}
                 />
             )}
 
-            {currentUBOcheck.current === 4 && <CompanyOwnersListUBO />}
+            {currentUBOCheck === 4 && <CompanyOwnersListUBO />}
         </ScreenWrapper>
     );
 }

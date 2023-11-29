@@ -11,7 +11,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +52,7 @@ function DateOfBirthUBO({reimbursementAccount, reimbursementAccountDraft, onNext
     const {translate} = useLocalize();
 
     const dobDefaultValue =
-        getDefaultStateForField({reimbursementAccount, fieldName: beneficialOwnerInfoDobKey, defaultValue: ''}) || lodashGet(reimbursementAccountDraft, beneficialOwnerInfoDobKey, '');
+        getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoDobKey, '') || lodashGet(reimbursementAccountDraft, beneficialOwnerInfoDobKey, '');
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);

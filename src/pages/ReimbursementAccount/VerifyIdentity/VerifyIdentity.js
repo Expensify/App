@@ -21,6 +21,9 @@ const propTypes = {
 
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -33,7 +36,7 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [OnfidoInitialize];
 
-function VerifyIdentity({reimbursementAccount, onBackButtonPress}) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -50,8 +53,10 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress}) {
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
             <HeaderWithBackButton
-                onBackButtonPress={onBackButtonPress}
                 title={translate('onfidoStep.verifyIdentity')}
+                onBackButtonPress={onBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

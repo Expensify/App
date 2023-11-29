@@ -10,7 +10,6 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import Navigation from '@libs/Navigation/Navigation';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -21,7 +20,6 @@ import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -38,6 +36,12 @@ const propTypes = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 
     /* The workspace policyID */
     policyID: PropTypes.string,
@@ -67,7 +71,7 @@ const bodyContent = [
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID}) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID, onBackButtonPress, onCloseButtonPress}) {
     const {translate} = useLocalize();
 
     /**
@@ -103,7 +107,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.HOME);
+            onBackButtonPress();
         } else {
             prevScreen();
         }
@@ -120,6 +124,8 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
                 title={translate('businessInfoStep.businessInfo')}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={handleBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

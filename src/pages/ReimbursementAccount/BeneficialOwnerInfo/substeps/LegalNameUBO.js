@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultStateForField from '@pages/ReimbursementAccount/utils/getDefaultStateForField';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,8 +30,8 @@ const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [FIR
 function LegalNameUBO({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultFirstName = getDefaultStateForField({reimbursementAccount, fieldName: FIRST_NAME, defaultValue: ''});
-    const defaultLastName = getDefaultStateForField({reimbursementAccount, fieldName: LAST_NAME, defaultValue: ''});
+    const defaultFirstName = getDefaultValueForReimbursementAccountField(reimbursementAccount, FIRST_NAME, '');
+    const defaultLastName = getDefaultValueForReimbursementAccountField(reimbursementAccount, LAST_NAME, '');
 
     // const bankAccountID = getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0});
 

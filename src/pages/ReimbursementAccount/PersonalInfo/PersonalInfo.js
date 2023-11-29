@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -46,7 +49,7 @@ const STEP_NAMES = ['1', '2', '3', '4', '5'];
 const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
+const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}, ref) => {
     const {translate} = useLocalize();
 
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -80,8 +83,10 @@ const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraf
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                onBackButtonPress={handleBackButtonPress}
                 title={translate('personalInfoStep.personalInfo')}
+                onBackButtonPress={handleBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

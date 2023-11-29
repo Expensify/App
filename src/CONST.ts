@@ -211,6 +211,11 @@ const CONST = {
         },
         BENEFICIAL_OWNER_INFO_STEP: {
             INPUT_KEY: {
+                OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
+                HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
+                BENEFICIAL_OWNERS: 'beneficialOwners',
+            },
+            BENEFICIAL_OWNER_DATA: {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
