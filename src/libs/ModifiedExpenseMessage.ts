@@ -229,8 +229,7 @@ function getForReportAction(reportAction: ReportAction): string {
     if (message === '') {
         return Localize.translateLocal('iou.changedTheRequest');
     }
-    message = `${message.substring(1, message.length)}`;
-    return message;
+    return `${message.substring(1, message.length)}`;
 }
 
 export default {
