@@ -190,6 +190,15 @@ function ReportActionItem(props) {
         [props.action.reportActionID, reactionListRef],
     );
 
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
+    useEffect(() => {
+        if (!isDeletedParentAction || !EmojiPickerAction.isActive(props.action.reportActionID)) {
+            return;
+        }
+
+        EmojiPickerAction.hideEmojiPicker(true);
+    }, [isDeletedParentAction, props.action.reportActionID]);
+
     useEffect(() => {
         if (prevDraftMessage || !props.draftMessage) {
             return;
