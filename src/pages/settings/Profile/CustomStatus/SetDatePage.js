@@ -19,7 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function CustomClearAfterPage({translate, customStatus}) {
+function SetDatePage({translate, customStatus}) {
     const styles = useThemeStyles();
     const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
@@ -43,7 +43,7 @@ function CustomClearAfterPage({translate, customStatus}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={CustomClearAfterPage.displayName}
+            testID={SetDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('statusPage.date')}
@@ -69,8 +69,8 @@ function CustomClearAfterPage({translate, customStatus}) {
     );
 }
 
-CustomClearAfterPage.propTypes = propTypes;
-CustomClearAfterPage.displayName = 'CustomClearAfterPage';
+SetDatePage.propTypes = propTypes;
+SetDatePage.displayName = 'SetDatePage';
 
 export default compose(
     withLocalize,
@@ -85,4 +85,4 @@ export default compose(
             key: `${ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}Draft`,
         },
     }),
-)(CustomClearAfterPage);
+)(SetDatePage);

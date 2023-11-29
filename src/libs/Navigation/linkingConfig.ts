@@ -213,17 +213,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             Settings_Status_Clear_After: {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
                             },
-                            Settings_Status_Clear_After_Custom: {
-                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM,
+                            Settings_Status_Clear_After_Date: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
                             },
                             Settings_Status_Clear_After_Time: {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
-                            },
-                            Settings_Status_SetTime: {
-                                path: ROUTES.SETTINGS_STATUS_SET_TIME,
-                            },
-                            Settings_Status_SetData: {
-                                path: ROUTES.SETTINGS_STATUS_SET_DATE,
                             },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL.route,

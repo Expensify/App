@@ -135,7 +135,7 @@ const ROUTES = {
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
-    SETTINGS_STATUS_CLEAR_AFTER_CUSTOM: 'settings/profile/status/clear-after/custom',
+    SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',

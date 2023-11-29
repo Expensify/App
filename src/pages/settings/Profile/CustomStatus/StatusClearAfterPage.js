@@ -200,7 +200,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 description={translate('statusPage.date')}
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
                                 errorText={customDateError}
                                 titleTextStyle={styles.flex1}
                                 brickRoadIndicator={redBrickDateIndicator}
