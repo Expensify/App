@@ -2,34 +2,54 @@ import {useCallback, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
 
+
 /**
  * Map from Violation Names to the field where that violation can occur
  */
 const violationFields: Record<ViolationName, ViolationField> = {
-    perDayLimit: 'amount',
+    allTagLevelsRequired: 'tag',
+    autoReportedRejectedExpense: 'amount',
+    billableExpense: 'billable',
+    cashExpenseWithNoReceipt: 'receipt',
+    categoryOutOfPolicy: 'category',
+    conversionSurcharge: 'amount',
+    customUnitOutOfPolicy: 'amount',
+    duplicatedTransaction: 'merchant',
+    fieldRequired: 'category',
+    futureDate: 'date',
+    invoiceMarkup: 'amount',
     maxAge: 'date',
+    missingCategory: 'category',
+    missingComment: 'comment',
+    missingTag: 'tag',
+    modifiedAmount: 'amount',
+    modifiedDate: 'date',
+    nonExpensiworksExpense: 'merchant',
+    overAutoApprovalLimit: 'amount',
+    overCategoryLimit: 'amount',
     overLimit: 'amount',
     overLimitAttendee: 'amount',
-    overCategoryLimit: 'amount',
+    perDayLimit: 'amount',
+    receiptNotSmartScanned: 'receipt',
     receiptRequired: 'receipt',
-    missingCategory: 'category',
-    categoryOutOfPolicy: 'category',
-    missingTag: 'tag',
+    rter: 'merchant',
+    smartscanFailed: 'receipt',
+    someTagLevelsRequired: 'tag',
     tagOutOfPolicy: 'tag',
-    missingComment: 'comment',
-    taxRequired: 'tax',
+    taxAmountChanged: 'tax',
     taxOutOfPolicy: 'tax',
-    billableExpense: 'billable',
+    taxRateChanged: 'tax',
+    taxRequired: 'tax',
 };
 
 /**
  * Names of Fields where violations can occur
  */
-type ViolationField = 'merchant' | 'amount' | 'category' | 'date' | 'tag' | 'comment' | 'billable' | 'receipt' | 'tax';
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-export default function useViolations(violations: TransactionViolation[]) {
+function useViolations(violations: TransactionViolation[]) {
     const {translate} = useLocalize();
 
     const violationsByField = useMemo((): ViolationsMap => {
@@ -65,3 +85,5 @@ export default function useViolations(violations: TransactionViolation[]) {
         getViolationsForField,
     };
 }
+
+export {useViolations, violationFields};
