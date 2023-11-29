@@ -3499,7 +3499,7 @@ function getReportIDFromLink(url: string | null): string {
 /**
  * Get the report policyID given a reportID
  */
-function getReportPolicyID(reportID: string | undefined): string | undefined {
+function getReportPolicyID(reportID?: string)?: string {
     return getReport(reportID)?.policyID;
 }
 
