@@ -52,7 +52,7 @@ function PurposeForUsingExpensifyModal() {
         {
             key: 'purposeForExpensify.submit',
             title: translate('purposeForExpensify.submit'),
-            icon: Expensicons.ReceiptSearch,
+            icon: Expensicons.Scan,
             iconRight: Expensicons.ArrowRight,
             onPress: () => {debugger;},
             shouldShowRightIcon: true,

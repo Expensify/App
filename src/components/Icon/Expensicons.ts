@@ -105,6 +105,7 @@ import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Send from '@assets/images/send.svg';
+import Scan from '@assets/images/scan.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
@@ -238,6 +239,7 @@ export {
     ReceiptSearch,
     Rotate,
     RotateLeft,
+    Scan,
     Send,
     Shield,
     Sync,
