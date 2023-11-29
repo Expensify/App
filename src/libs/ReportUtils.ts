@@ -4105,7 +4105,6 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
     return visibleChatMemberAccountIDs;
 }
 
-
 /**
  * Return iou report action display message
  */
