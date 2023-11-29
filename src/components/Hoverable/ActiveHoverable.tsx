@@ -55,6 +55,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         if (!isHovered) {
             return;
         }
+
         /**
          * Checks the hover state of a component and updates it based on the event target.
          * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
