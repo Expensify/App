@@ -3,18 +3,18 @@ import * as API from '@libs/API';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Response} from '@src/types/onyx';
+import type {Response} from '@src/types/onyx';
 
 function reportVirtualExpensifyCardFraud(cardID: number) {
     type ReportVirtualExpensifyCardFraudParams = {
         cardID: number;
     };
 
-    const reportVirtualExpensifyCardFraudParams: ReportVirtualExpensifyCardFraudParams = {
+    const parameters: ReportVirtualExpensifyCardFraudParams = {
         cardID,
     };
 
-    API.write('ReportVirtualExpensifyCardFraud', reportVirtualExpensifyCardFraudParams, {
+    API.write('ReportVirtualExpensifyCardFraud', parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -56,12 +56,12 @@ function requestReplacementExpensifyCard(cardId: number, reason: string) {
         reason: string;
     };
 
-    const requestReplacementExpensifyCardParams: RequestReplacementExpensifyCardParams = {
+    const parameters: RequestReplacementExpensifyCardParams = {
         cardId,
         reason,
     };
 
-    API.write('RequestReplacementExpensifyCard', requestReplacementExpensifyCardParams, {
+    API.write('RequestReplacementExpensifyCard', parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -102,12 +102,12 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID: number;
     };
 
-    const activatePhysicalExpensifyCardParams: ActivatePhysicalExpensifyCardParams = {
+    const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
     };
 
-    API.write('ActivatePhysicalExpensifyCard', activatePhysicalExpensifyCardParams, {
+    API.write('ActivatePhysicalExpensifyCard', parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -166,10 +166,10 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
     return new Promise((resolve, reject) => {
         type RevealExpensifyCardDetailsParams = {cardID: number};
 
-        const revealExpensifyCardDetailsParams: RevealExpensifyCardDetailsParams = {cardID};
+        const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', revealExpensifyCardDetailsParams)
+        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', parameters)
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));

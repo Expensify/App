@@ -30,14 +30,14 @@ function runMoney2020Demo() {
         activationConference: string;
     };
 
-    const createChatReportParams: CreateChatReportParams = {
+    const parameters: CreateChatReportParams = {
         emailList: `${currentUserEmail},money2020@expensify.com`,
         activationConference: 'money2020',
     };
 
     // We use makeRequestWithSideEffects here because we need to get the chat report ID to navigate to it after it's created
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('CreateChatReport', createChatReportParams).then((response) => {
+    API.makeRequestWithSideEffects('CreateChatReport', parameters).then((response) => {
         // If there's no response or no reportID in the response, navigate the user home so user doesn't get stuck.
         if (!response || !response.reportID) {
             Navigation.goBack();

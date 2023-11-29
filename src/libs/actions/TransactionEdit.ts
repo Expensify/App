@@ -1,6 +1,6 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.

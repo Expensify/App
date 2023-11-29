@@ -3,9 +3,10 @@ import * as API from '@libs/API';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 type CreationData = {
     reportID: string;
@@ -13,6 +14,8 @@ type CreationData = {
 };
 
 type ReportCreationData = Record<string, CreationData>;
+
+type ExpenseReportActionData = Record<string, OptimisticCreatedReportAction>;
 
 let sessionEmail = '';
 let sessionAccountID = 0;
@@ -27,7 +30,7 @@ Onyx.connect({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
+    callback: (value) => (allPersonalDetails = value),
 });
 
 function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string) {
@@ -74,7 +77,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail);
-    const expenseReportActionData = {
+    const expenseReportActionData: ExpenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
 

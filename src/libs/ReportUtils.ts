@@ -4383,4 +4383,4 @@ export {
     canEditWriteCapability,
 };
 
-export type {OptionData};
+export type {OptionData, OptimisticCreatedReportAction};
