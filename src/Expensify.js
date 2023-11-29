@@ -36,6 +36,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import ScreenTracker from './libs/ScreenTracker';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -125,6 +126,8 @@ function Expensify(props) {
 
         ActiveClientManager.init();
     };
+
+    ScreenTracker.track();
 
     const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
