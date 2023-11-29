@@ -53,7 +53,7 @@ function buildMessageFragmentForValue(
 /**
  * Get the message line for a modified expense.
  */
-function getMessageLine(prefix: string, messageFragments: string[]) {
+function getMessageLine(prefix: string, messageFragments: string[]): string {
     if (messageFragments.length === 0) {
         return '';
     }
@@ -74,7 +74,7 @@ function getMessageLine(prefix: string, messageFragments: string[]) {
     }, prefix);
 }
 
-function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
+function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
@@ -209,7 +209,7 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    let message =
+    const message =
         getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
