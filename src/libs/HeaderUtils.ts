@@ -1,13 +1,17 @@
+import {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OnyxReport from '@src/types/onyx/Report';
 import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
 
-/**
- * @param {Object} report
- * @returns {Object} pin/unpin object
- */
-function getPinMenuItem(report) {
+type MenuItem = {
+    icon: string | React.FC<SvgProps>;
+    text: string;
+    onSelected: () => void;
+};
+
+function getPinMenuItem(report: OnyxReport): MenuItem {
     if (!report.isPinned) {
         return {
             icon: Expensicons.Pin,
