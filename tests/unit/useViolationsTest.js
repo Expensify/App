@@ -1,12 +1,7 @@
 /* eslint-disable rulesdir/prefer-underscore-method -- Disabled because it incorrectly flags the use of `it.each` */
-import {renderHook} from '@testing-library/react-native';
-import {useViolations, violationFields} from '@libs/Violations/useViolations';
+import { renderHook } from '@testing-library/react-native';
+import { useViolations, violationFields } from '@libs/Violations/useViolations';
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
-        translate: jest.fn((key) => `translated:${key}`),
-    })),
-);
 
 // Derive test cases from the violationFields object
 const allViolations = Object.keys(violationFields).map((name) => ({name}));
@@ -40,7 +35,7 @@ describe('useViolations', () => {
         const {result} = callHook();
         const expectedField = violationFields[violation.name];
         expect(result.current.hasViolations(expectedField)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField)).toEqual([`translated:violations.${violation.name}`]);
+        expect(result.current.getViolationsForField(expectedField)).toEqual([violation]);
     });
 
     it('returns correct values when there are multiple violations on different fields', () => {
@@ -53,20 +48,19 @@ describe('useViolations', () => {
         const expectedField1 = violationFields[violation1.name];
         const expectedField2 = violationFields[violation2.name];
         expect(result.current.hasViolations(expectedField1)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField1)).toEqual([`translated:violations.${violation1.name}`]);
+        expect(result.current.getViolationsForField(expectedField1)).toEqual([violation1]);
         expect(result.current.hasViolations(expectedField2)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField2)).toEqual([`translated:violations.${violation2.name}`]);
+        expect(result.current.getViolationsForField(expectedField2)).toEqual([violation2]);
     });
 
     it('returns correct values when there are multiple violations on the same field', () => {
         violations = violationsByField.amount;
         const expectedField = 'amount';
-        const expectedTranslations = violations.map((violation) => `translated:violations.${violation.name}`);
 
         const {result} = callHook();
 
         expect(result.current.hasViolations(expectedField)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField)).toEqual(expectedTranslations);
+        expect(result.current.getViolationsForField(expectedField)).toEqual(violations);
     });
 
     it('returns correct values for empty violations', () => {
@@ -97,7 +91,7 @@ describe('useViolations', () => {
     describe('returns correct values for all violations', () => {
         it.each(fieldNames)('returns correct values for field %s', (field) => {
             const {result} = callHook();
-            const expectedViolations = (violationsByField[field] || []).map((violation) => `translated:violations.${violation.name}`);
+            const expectedViolations = violationsByField[field] || [];
             expect(result.current.hasViolations(field)).toBe(expectedViolations.length > 0);
             expect(result.current.getViolationsForField(field)).toEqual(expectedViolations);
         });
