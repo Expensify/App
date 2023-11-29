@@ -2679,7 +2679,7 @@ function submitReport(expenseReport) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
-        }, 
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
@@ -2691,7 +2691,7 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                 statusNum: CONST.REPORT.STATUS.SUBMITTED,
             },
-        }, 
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
