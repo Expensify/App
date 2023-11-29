@@ -54,10 +54,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
             style={[styles.flexColumn, styles.w100]}
             id={id}
         >
-            {padNumbers.map((row, rowIndex) => (
+            {padNumbers.map((row) => (
                 <View
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`NumberPadRow-${rowIndex}`}
+                    key={`NumberPadRow-${row[0]}`}
                     style={[styles.flexRow, styles.mt3]}
                 >
                     {row.map((column, columnIndex) => {
