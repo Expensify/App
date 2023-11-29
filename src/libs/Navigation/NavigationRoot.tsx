@@ -1,7 +1,7 @@
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useRef} from 'react';
-import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+import {ColorValue} from 'react-native';
+import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -14,17 +14,16 @@ import Navigation, {navigationRef} from './Navigation';
 
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
-    authenticated: PropTypes.bool.isRequired,
+    authenticated: boolean;
 
     /** Fired when react-navigation is ready */
-    onReady: PropTypes.func.isRequired,
+    onReady: () => void;
 };
 
 /**
  * Intercept navigation state changes and log it
- * @param {NavigationState} state
  */
-function parseAndLogRoute(state) {
+function parseAndLogRoute(state: NavigationState) {
     if (!state) {
         return;
     }
@@ -41,12 +40,11 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-function NavigationRoot(props) {
-    const theme = useTheme();
+function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
 
-    const {updateCurrentReportID} = useCurrentReportID();
+    const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -64,36 +62,24 @@ function NavigationRoot(props) {
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        if (!navigationRef.isReady() || !props.authenticated) {
+        if (!navigationRef.isReady() || !authenticated) {
             return;
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, props.authenticated]);
+    }, [isSmallScreenWidth, authenticated]);
 
     const prevStatusBarBackgroundColor = useRef(theme.appBG);
     const statusBarBackgroundColor = useRef(theme.appBG);
     const statusBarAnimation = useSharedValue(0);
 
-    // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(
-        () => ({
-            ...DefaultTheme,
-            colors: {
-                ...DefaultTheme.colors,
-                background: theme.appBG,
-            },
-        }),
-        [theme],
-    );
-
-    const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
+    const updateStatusBarBackgroundColor = (color: ColorValue) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
         (current, previous) => {
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
-            if ([current, previous].includes(null) || current <= previous) {
+            if (previous === null || current === null || current <= previous) {
                 return;
             }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
@@ -103,7 +89,14 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || theme.PAGE_BACKGROUND_COLORS[currentRoute.name] || theme.appBG;
+
+        const backgroundColorFromRoute =
+            currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
+        const backgroundColorFallback = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS] || themeColors.appBG;
+
+        // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const currentScreenBackgroundColor = backgroundColorFromRoute || backgroundColorFallback;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
@@ -113,22 +106,17 @@ function NavigationRoot(props) {
         }
 
         statusBarAnimation.value = 0;
-        statusBarAnimation.value = withDelay(
-            300,
-            withTiming(1, {
-                duration: 300,
-                easing: Easing.in,
-            }),
-        );
+        statusBarAnimation.value = withDelay(300, withTiming(1));
     };
 
-    const handleStateChange = (state) => {
+    const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
         }
+
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
-            updateCurrentReportID(state);
+            currentReportIDValue?.updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
@@ -137,7 +125,7 @@ function NavigationRoot(props) {
     return (
         <NavigationContainer
             onStateChange={handleStateChange}
-            onReady={props.onReady}
+            onReady={onReady}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
@@ -145,11 +133,11 @@ function NavigationRoot(props) {
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={props.authenticated} />
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }
 
 NavigationRoot.displayName = 'NavigationRoot';
-NavigationRoot.propTypes = propTypes;
+
 export default NavigationRoot;
