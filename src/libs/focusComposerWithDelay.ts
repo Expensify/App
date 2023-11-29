@@ -1,4 +1,5 @@
 import {Platform, TextInput} from 'react-native';
+import CONST from '@src/CONST';
 import * as EmojiPickerAction from './actions/EmojiPickerAction';
 import ComposerFocusManager from './ComposerFocusManager';
 
@@ -26,7 +27,7 @@ function focusComposerWithDelay(textInput: TextInput | HTMLTextAreaElement | nul
         if (!shouldDelay) {
             textInput.focus();
             if (forceSetSelection) {
-                if (Platform.OS === 'web') {
+                if (Platform.OS === CONST.PLATFORM.WEB) {
                     (textInput as HTMLTextAreaElement).setSelectionRange(forceSetSelection.start, forceSetSelection.end);
                 } else {
                     (textInput as TextInput).setSelection(forceSetSelection.start, forceSetSelection.end);
@@ -40,7 +41,7 @@ function focusComposerWithDelay(textInput: TextInput | HTMLTextAreaElement | nul
             }
             textInput.focus();
             if (forceSetSelection) {
-                if (Platform.OS === 'web') {
+                if (Platform.OS === CONST.PLATFORM.WEB) {
                     (textInput as HTMLTextAreaElement).setSelectionRange(forceSetSelection.start, forceSetSelection.end);
                 } else {
                     (textInput as TextInput).setSelection(forceSetSelection.start, forceSetSelection.end);

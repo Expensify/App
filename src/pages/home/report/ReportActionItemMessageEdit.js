@@ -338,13 +338,17 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} emoji
      */
     const addEmojiToTextBox = (emoji) => {
-        let newSelection = {
+        const newSelection = {
             start: selection.start + emoji.length + CONST.SPACE_LENGTH,
             end: selection.start + emoji.length + CONST.SPACE_LENGTH,
         };
         setSelection(newSelection);
 
-        if (isMobileChrome) emojiPickerSelectionRef.current = newSelection; // immediately set the selection again on Chrome mobile after focusing the inputm which seems to change the cursor position for a brief moment
+        if (isMobileChrome) {
+            // immediately set the selection again on Chrome mobile after focusing the
+            // input which seems to change the cursor position for a brief moment
+            emojiPickerSelectionRef.current = newSelection;
+        }
 
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
@@ -448,7 +452,7 @@ function ReportActionItemMessageEdit(props) {
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => {
-                                let emojiPickerSelection = emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined;
+                                const emojiPickerSelection = emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined;
                                 emojiPickerSelectionRef.current = undefined;
 
                                 focus(true, emojiPickerSelection);
