@@ -27,7 +27,7 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import {PersonalDetails, ReportActionReactions} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
@@ -2017,7 +2017,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
-                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
     });
