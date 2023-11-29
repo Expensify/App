@@ -3,16 +3,31 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 describe('PhoneNumber', () => {
     describe('parsePhoneNumber', () => {
         it('Should return valid phone number', () => {
-            const givenPhone = '+1 (234) 567-8901';
-            const parsedPhone = parsePhoneNumber(givenPhone);
-            expect(parsedPhone.valid).toBe(true);
-            expect(parsedPhone.possible).toBe(true);
+            const validNumbers = ['+1 (234) 567-8901', '+12345678901', '+54 11 8765-4321', '+49 30 123456', '+44 20 8759 9036', '+34 606 49 95 99'];
+
+            validNumbers.forEach((givenPhone) => {
+                const parsedPhone = parsePhoneNumber(givenPhone);
+                expect(parsedPhone.valid).toBe(true);
+                expect(parsedPhone.possible).toBe(true);
+            });
         });
         it('Should return invalid phone number if US number has extra 1 after country code', () => {
-            const givenPhone = '+1 1 (234) 567-8901';
-            const parsedPhone = parsePhoneNumber(givenPhone);
-            expect(parsedPhone.valid).toBe(false);
-            expect(parsedPhone.possible).toBe(false);
+            const validNumbers = ['+1 1 (234) 567-8901', '+112345678901', '+115550123355'];
+
+            validNumbers.forEach((givenPhone) => {
+                const parsedPhone = parsePhoneNumber(givenPhone);
+                expect(parsedPhone.valid).toBe(false);
+                expect(parsedPhone.possible).toBe(false);
+            });
+        });
+        it('Should return invalid phone number', () => {
+            const invalidNumbers = ['+165025300001', 'John Doe', '123', 'email@domain.com'];
+
+            invalidNumbers.forEach((givenPhone) => {
+                const parsedPhone = parsePhoneNumber(givenPhone);
+                expect(parsedPhone.valid).toBe(false);
+                expect(parsedPhone.possible).toBe(false);
+            });
         });
     });
 });

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import {parsePhoneNumber as originalParsePhoneNumber, ParsedPhoneNumber, PhoneNumberParseOptions} from 'awesome-phonenumber';
+import {parsePhoneNumber as originalParsePhoneNumber, ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import CONST from '@src/CONST';
 
 /**
@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
  */
 function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions): ParsedPhoneNumber {
     const parsedPhoneNumber = originalParsePhoneNumber(phoneNumber, options);
-    if (!parsedPhoneNumber.possible || !parsedPhoneNumber.valid) {
+    if (!parsedPhoneNumber.possible) {
         return parsedPhoneNumber;
     }
 
@@ -35,7 +35,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             rfc3966: `tel:${countryCode}-${phoneNumberWithoutCountryCode}`,
             significant: phoneNumberWithoutCountryCode,
         },
-    };
+    } as ParsedPhoneNumberInvalid;
 }
 
 // eslint-disable-next-line no-restricted-imports
