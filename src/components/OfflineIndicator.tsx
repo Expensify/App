@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -17,25 +17,26 @@ type OfflineIndicatorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-const setStyles = (containerStyles: StyleProp<ViewStyle>, isSmallScreenWidth: boolean): StyleProp<ViewStyle> => {
-    if (containerStyles) {
-        return containerStyles;
-    }
-
-    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-};
-
 function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const computedStyles = useMemo((): StyleProp<ViewStyle> => {
+        if (containerStyles) {
+            return containerStyles;
+        }
+
+        return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    }, [containerStyles, isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
     if (!isOffline) {
         return null;
     }
 
     return (
-        <View style={[setStyles(containerStyles, isSmallScreenWidth), styles.flexRow, styles.alignItemsCenter, style]}>
+        <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
