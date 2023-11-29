@@ -400,25 +400,6 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-let allPolicyTags: Record<string, PolicyTags | null> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
-function getPolicyTags(policyID: string) {
-    return allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
 function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }

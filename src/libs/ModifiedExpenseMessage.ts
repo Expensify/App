@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import {PolicyTags, ReportAction} from '@src/types/onyx';
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
@@ -9,15 +9,16 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
 
-let allPolicyTags: OnyxCollection<PolicyTags> = {};
+let allPolicyTags: Record<string, PolicyTags | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
+            allPolicyTags = {};
             return;
         }
-        allPolicyTags = Object.fromEntries(Object.entries(value).filter(([, policyTags]) => !!policyTags));
+        allPolicyTags = value;
     },
 });
 
