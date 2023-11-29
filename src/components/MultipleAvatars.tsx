@@ -273,9 +273,7 @@ function MultipleAvatars({
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View
-                            style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}
-                        >
+                        <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
                                     accountID={icons[1].id}
