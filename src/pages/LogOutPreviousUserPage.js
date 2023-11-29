@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -8,6 +8,8 @@ import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
+import { InitialUrlContext } from '@src/InitialUrlContext';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -33,10 +35,12 @@ const defaultProps = {
 };
 
 function LogOutPreviousUserPage(props) {
-    useEffect(() => {
-        Linking.getInitialURL().then((transitionURL) => {
-            const sessionEmail = props.session.email;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
+    const initUrl = useContext(InitialUrlContext)
+    useEffect(
+        () => {
+            Linking.getInitialURL().then((transitionURL) => {
+                const sessionEmail = props.session.email;
+                const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(CONST.DEEPLINK_BASE_URL + initUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 Session.signOutAndRedirectToSignIn();
@@ -54,6 +58,7 @@ function LogOutPreviousUserPage(props) {
             }
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
+            // Navigation.navigate(exitTo, "FORCED_UP");
             if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);

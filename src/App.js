@@ -20,6 +20,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {InitialUrlContext} from './InitialUrlContext';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
@@ -42,36 +43,38 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-function App() {
+function App(props) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
-        <GestureHandlerRootView style={fill}>
-            <ComposeProviders
-                components={[
-                    OnyxProvider,
-                    SafeAreaProvider,
-                    PortalProvider,
-                    SafeArea,
-                    LocaleContextProvider,
-                    HTMLEngineProvider,
-                    WindowDimensionsProvider,
-                    KeyboardStateProvider,
-                    PopoverContextProvider,
-                    CurrentReportIDContextProvider,
-                    ReportAttachmentsProvider,
-                    PickerStateProvider,
-                    EnvironmentProvider,
-                    ThemeProvider,
-                    ThemeStylesProvider,
-                ]}
-            >
-                <CustomStatusBar />
-                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
-                </ErrorBoundary>
-            </ComposeProviders>
-        </GestureHandlerRootView>
+        <InitialUrlContext.Provider value={props.url}>
+            <GestureHandlerRootView style={fill}>
+                <ComposeProviders
+                    components={[
+                        OnyxProvider,
+                        SafeAreaProvider,
+                        PortalProvider,
+                        SafeArea,
+                        LocaleContextProvider,
+                        HTMLEngineProvider,
+                        WindowDimensionsProvider,
+                        KeyboardStateProvider,
+                        PopoverContextProvider,
+                        CurrentReportIDContextProvider,
+                        ReportAttachmentsProvider,
+                        PickerStateProvider,
+                        EnvironmentProvider,
+                        ThemeProvider,
+                        ThemeStylesProvider,
+                    ]}
+                >
+                    <CustomStatusBar />
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <Expensify />
+                    </ErrorBoundary>
+                </ComposeProviders>
+            </GestureHandlerRootView>
+        </InitialUrlContext.Provider>
     );
 }
 
