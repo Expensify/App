@@ -67,7 +67,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             filename: 'index.html',
             splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
             isWeb: platform === 'web',
-            isProduction: platform === '.env.production',
+            isProduction: envFile === '.env.production',
             isStaging: envFile === '.env.staging',
         }),
         new FontPreloadPlugin({
