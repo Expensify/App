@@ -12,17 +12,18 @@ type MenuItem = {
 };
 
 function getPinMenuItem(report: OnyxReport): MenuItem {
-    if (!report.isPinned) {
+    const isPinned = report?.isPinned;
+    if (!isPinned) {
         return {
             icon: Expensicons.Pin,
             text: Localize.translateLocal('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, !!isPinned)),
         };
     }
     return {
         icon: Expensicons.Pin,
         text: Localize.translateLocal('common.unPin'),
-        onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
+        onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, isPinned)),
     };
 }
 
