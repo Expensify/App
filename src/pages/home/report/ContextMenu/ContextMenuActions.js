@@ -33,6 +33,30 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
+/**
+ * Trims the `mailto:` part from email address.
+ * @param {string} email
+ * @returns {String}
+ */
+function trimMailTo(email) {
+    return email.replace('mailto:', '');
+}
+
+/**
+ * Prepends a zero-width space (U+200B) character before all `.` and `@` characters
+ * in the email addres to provide explicit line break opportunities for consistent
+ * breaking across platforms.
+ * @param {string} email
+ * @returns {String}
+ */
+function prefixMailSeparatorsWithBreakOpportunities(email) {
+    return email.replace(
+        /([.@])/g,
+        // below: zero-width space (U+200B) character
+        '​$1',
+    );
+}
+
 const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
@@ -243,15 +267,10 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.replace('mailto:', ''));
+            Clipboard.setString(trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: (selection) =>
-            selection.replace('mailto:', '').replace(
-                /([.@])/g,
-                // below: zero-width space (U+200B) character
-                '​$1',
-            ),
+        getDescription: (selection) => prefixMailSeparatorsWithBreakOpportunities(trimMailTo(selection)),
     },
     {
         isAnonymousAction: true,
