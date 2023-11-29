@@ -16,12 +16,11 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
+import OriginalMessage, {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import {TransactionViolation, TransactionViolations} from '@src/types/onyx/TransactionViolation';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
@@ -403,11 +402,16 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-const transactionViolations: OnyxCollection<TransactionViolations> = {};
+const transactionViolations: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (violations: OnyxCollection<TransactionViolation>, key) => {
-        if (!key || !violations) {
+    callback: (violations, key) => {
+        if (!key) {
+            return;
+        }
+
+        if (!violations) {
+            delete transactionViolations[key];
             return;
         }
 
@@ -3396,43 +3400,36 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
-/**
- * @param {String} transactionID
- * @returns {Boolean}
- */
-
-function transactionHasViolation(transactionID) {
-    const violations = lodashGet(transactionViolations, transactionID, []);
-    return _.some(violations, (violation) => violation.type === 'violation');
+function transactionHasViolation(transactionID: string): boolean {
+    const violations = transactionViolations ? transactionViolations?.[transactionID] : [];
+    if (!violations) {
+        return false;
+    }
+    return violations.some((violation: TransactionViolation) => violation.type === 'violation');
 }
 
-/**
- *
- * @param {Object} report
- * @param {Array<String> | null} betas
- * @returns {Boolean}
- */
+function isOriginalMessageIOU(message: OriginalMessage): message is OriginalMessageIOU {
+    return (message as OriginalMessageIOU).actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
 
-function transactionThreadHasViolations(report, betas) {
-    if (!Permissions.canUseViolations(betas)) {
+function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean {
+    if (!Permissions.canUseViolations(betas) || !reportActions) {
         return false;
     }
     if (!report.parentReportActionID) {
         return false;
     }
-
-    const parentReportAction = lodashGet(reportActions, `${report.parentReportID}.${report.parentReportActionID}`);
+    const parentReportAction = reportActions[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
     if (!parentReportAction) {
         return false;
     }
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const transactionID = parentReportAction.originalMessage.IOUTransactionID ?? 0;
-    if (!transactionID) {
-        return false;
-    }
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const reportID = parentReportAction.originalMessage.IOUReportID ?? 0;
-    if (!reportID) {
+    const transactionID = isOriginalMessageIOU(parentReportAction?.originalMessage as OriginalMessage)
+        ? (parentReportAction.originalMessage as OriginalMessageIOU).originalMessage.IOUTransactionID
+        : '';
+    const reportID = isOriginalMessageIOU(parentReportAction?.originalMessage as OriginalMessage)
+        ? (parentReportAction.originalMessage as OriginalMessageIOU).originalMessage.IOUReportID
+        : '';
+    if (!transactionID || !reportID) {
         return false;
     }
     if (!isCurrentUserSubmitter(reportID)) {
@@ -3441,14 +3438,9 @@ function transactionThreadHasViolations(report, betas) {
     return transactionHasViolation(transactionID);
 }
 
-/**
- * @param {String} reportID
- * @returns {Boolean}
- */
-
-function reportHasViolations(reportID) {
+function reportHasViolations(reportID: string): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
-    return _.some(transactions, (transaction) => transactionHasViolation(transaction.transactionID));
+    return transactions.some((transaction) => transactionHasViolation(transaction.transactionID));
 }
 
 /**
@@ -3524,7 +3516,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && transactionThreadHasViolations(report)) {
+    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas)) {
         return true;
     }
 
