@@ -43,7 +43,8 @@ const ViolationsUtils = {
             }
 
             // Add missingCategory violation if category is required and not set
-            if (!hasMissingCategoryViolation && isCategoryInPolicy && !transaction.category) {
+
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !transaction.category) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
@@ -60,6 +61,11 @@ const ViolationsUtils = {
             // Remove 'missingTag' violation if tag is valid according to policy
             if (isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
+            }
+
+            // Add missingTag violation if tag is required and not set
+            if (!hasTagViolation && !transaction.tag && policyRequiresTags) {
+                newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
         }
 
