@@ -1,5 +1,6 @@
 import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
+import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
@@ -12,7 +13,7 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth: boolean, styles) => ({
+export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
@@ -41,7 +42,7 @@ export default (isSmallScreenWidth: boolean, styles) => ({
 
             // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
             transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
-            ...(isSmallScreenWidth ? {} : styles.borderRight),
+            ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
         },
     } as StackNavigationOptions,
     fullScreen: {
