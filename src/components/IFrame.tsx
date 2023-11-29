@@ -1,10 +1,9 @@
-/* eslint-disable es/no-nullish-coalescing-operators */
-import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Session} from '@src/types/onyx';
 
-function getNewDotURL(url) {
+function getNewDotURL(url: string | URL) {
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
     const pathname = urlObj.pathname.slice(1);
@@ -48,7 +47,7 @@ function getNewDotURL(url) {
     return pathname;
 }
 
-function getOldDotURL(url) {
+function getOldDotURL(url: string | URL) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     const paths = pathname.slice(1).split('/');
@@ -86,18 +85,13 @@ function getOldDotURL(url) {
     return pathname;
 }
 
-const propTypes = {
-    // The session of the logged in person
-    session: PropTypes.shape({
-        // The email of the logged in person
-        email: PropTypes.string,
-
-        // The authToken of the logged in person
-        authToken: PropTypes.string,
-    }).isRequired,
+type OldDotIFrameOnyxProps = {
+    session: OnyxEntry<Session>;
 };
 
-function OldDotIFrame({session}) {
+type OldDotIFrameProps = OldDotIFrameOnyxProps;
+
+function OldDotIFrame({session}: OldDotIFrameProps) {
     const [oldDotURL, setOldDotURL] = useState('https://staging.expensify.com');
 
     useEffect(() => {
@@ -106,15 +100,18 @@ function OldDotIFrame({session}) {
         window.addEventListener('message', (event) => {
             const url = event.data;
             // TODO: use this value to navigate to a new path
-            // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const newDotURL = getNewDotURL(url);
         });
     }, []);
 
     useEffect(() => {
+        if (!session) {
+            return;
+        }
         document.cookie = `authToken=${session.authToken}; domain=expensify.com.dev; path=/;`;
         document.cookie = `email=${session.email}; domain=expensify.com.dev; path=/;`;
-    }, [session.authToken, session.email]);
+    }, [session]);
 
     return (
         <iframe
@@ -125,9 +122,7 @@ function OldDotIFrame({session}) {
     );
 }
 
-OldDotIFrame.propTypes = propTypes;
-
-export default withOnyx({
+export default withOnyx<OldDotIFrameProps, OldDotIFrameOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
