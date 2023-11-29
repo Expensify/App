@@ -217,6 +217,5 @@ function Footer(props) {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
-Footer.defaultProps = defaultProps;
 
 export default withLocalize(Footer);

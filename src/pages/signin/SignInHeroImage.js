@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
@@ -45,6 +44,5 @@ function SignInHeroImage(props) {
 
 SignInHeroImage.displayName = 'SignInHeroImage';
 SignInHeroImage.propTypes = propTypes;
-SignInHeroImage.defaultProps = defaultProps;
 
 export default withWindowDimensions(SignInHeroImage);

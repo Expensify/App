@@ -8,7 +8,6 @@ import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import * as StyleUtils from '@styles/StyleUtils';
