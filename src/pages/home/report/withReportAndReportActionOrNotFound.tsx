@@ -40,7 +40,7 @@ type ComponentProps = OnyxProps &
         route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
     };
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
