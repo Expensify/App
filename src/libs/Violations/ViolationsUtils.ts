@@ -2,15 +2,10 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
-import possibleViolationsByField, {ViolationField} from './possibleViolationsByField';
 
 const ViolationsUtils = {
-    getViolationForField(transactionViolations: TransactionViolation[], field: ViolationField, translate: (key: string) => string): string[] {
-        return transactionViolations.filter((violation) => possibleViolationsByField[field]?.includes(violation.name)).map((violation) => translate(violation.name));
-    },
-
     /**
-     *  Computes an updated array of transaction violations for the given transaction
+     * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction violations.
      */
     getViolationsOnyxData(
         transaction: Transaction,
@@ -27,30 +22,43 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
-            const categoryViolationExists = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
-            const categoryIsInPolicy = policyCategories[transaction.category]?.enabled;
+            const hasCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'categoryOutOfPolicy')));
+            const hasMissingCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'missingCategory')));
+
+            const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!categoryViolationExists && transaction.category && !categoryIsInPolicy) {
+            if (!hasCategoryViolation && transaction.category && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
+            // remove 'categoryOutOfPolicy' violation if category is in policy
+            if (hasCategoryViolation && transaction.category && isCategoryInPolicy) {
+                newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
+            }
+
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (categoryIsInPolicy) {
+            if (isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
+            }
+
+            // Add missingCategory violation if category is required and not set
+            if (!hasMissingCategoryViolation && isCategoryInPolicy && !transaction.category) {
+                newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
 
         if (policyRequiresTags) {
+            const hasTagViolation = Boolean(transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy'));
+            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            const tagViolationExists = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
-            const tagInPolicy = policyTags[transaction.tag]?.enabled;
-            if (!tagViolationExists && transaction.tag && !tagInPolicy) {
+            if (!hasTagViolation && transaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'missingTag' violation if tag is valid according to policy
-            if (tagInPolicy) {
+            if (isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
             }
         }

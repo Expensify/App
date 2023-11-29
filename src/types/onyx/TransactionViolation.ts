@@ -2,47 +2,45 @@
  * Names of transaction violations
  */
 type ViolationName =
+    | 'allTagLevelsRequired'
+    | 'autoReportedRejectedExpense'
+    | 'billableExpense'
+    | 'cashExpenseWithNoReceipt'
+    | 'categoryOutOfPolicy'
+    | 'conversionSurcharge'
+    | 'customUnitOutOfPolicy'
+    | 'duplicatedTransaction'
     | 'fieldRequired'
-    | 'perDayLimit'
-    | 'rter'
-    | 'maxAge'
     | 'futureDate'
+    | 'invoiceMarkup'
+    | 'maxAge'
+    | 'missingCategory'
+    | 'missingComment'
+    | 'missingTag'
+    | 'modifiedAmount'
+    | 'modifiedDate'
+    | 'nonExpensiworksExpense'
+    | 'overAutoApprovalLimit'
+    | 'overCategoryLimit'
     | 'overLimit'
     | 'overLimitAttendee'
-    | 'overCategoryLimit'
+    | 'perDayLimit'
+    | 'receiptNotSmartScanned'
     | 'receiptRequired'
-    | 'missingCategory'
-    | 'categoryOutOfPolicy'
-    | 'missingTag'
+    | 'rter'
+    | 'smartscanFailed'
     | 'someTagLevelsRequired'
-    | 'allTagLevelsRequired'
     | 'tagOutOfPolicy'
-    | 'missingComment'
-    | 'taxRequired'
+    | 'taxAmountChanged'
     | 'taxOutOfPolicy'
     | 'taxRateChanged'
-    | 'taxAmountChanged'
-    | 'modifiedAmount'
-    | 'receiptNotSmartScanned'
-    | 'modifiedDate'
-    | 'cashExpenseWithNoReceipt'
-    | 'invoiceMarkup'
-    | 'duplicatedTransaction'
-    | 'smartscanFailed'
-    | 'conversionSurcharge'
-    | 'autoReportedRejectedExpense'
-    | 'nonExpensiworksExpense'
-    | 'billableExpense'
-    | 'customUnitOutOfPolicy'
-    | 'overAutoApprovalLimit'
-
-type ViolationType = string;
+    | 'taxRequired';
 
 type TransactionViolation = {
-    type: ViolationType;
+    type: string;
     name: ViolationName;
     userMessage: string;
     data?: Record<string, string>;
 };
 
-export type {TransactionViolation, ViolationName, ViolationType};
+export type {TransactionViolation, ViolationName};
