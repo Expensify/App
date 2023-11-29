@@ -321,6 +321,13 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
@@ -453,4 +460,5 @@ export {
     isValidRecoveryCode,
     validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
+    isValidPersonName,
 };
