@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isExpensifyCard} from './CardUtils';
+import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 
@@ -335,10 +335,11 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 }
 
 /**
- * Determine whether a transaction is made with a card.
+ * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: Transaction): boolean {
-    return (transaction?.cardID ?? 0) > 0;
+    const cardID = transaction?.cardID ?? 0;
+    return isCorporateCard(cardID);
 }
 
 /**
