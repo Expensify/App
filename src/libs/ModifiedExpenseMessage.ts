@@ -1,10 +1,25 @@
 import {format} from 'date-fns';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import {PolicyTags, ReportAction} from '@src/types/onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+
+
+let allPolicyTags: OnyxCollection<PolicyTags> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allPolicyTags = Object.fromEntries(Object.entries(value).filter(([, policyTags]) => !!policyTags));
+    },
+});
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -95,8 +110,8 @@ function getForReportAction(reportAction: ReportAction): string {
         return '';
     }
     const reportActionOriginalMessage = reportAction.originalMessage;
-    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID ?? '');
-    const policyTags = PolicyUtils.getPolicyTags(policyID);
+    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 
     const removalFragments: string[] = [];

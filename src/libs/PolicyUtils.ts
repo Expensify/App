@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
@@ -8,22 +8,6 @@ import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
-
-let allPolicyTags: OnyxCollection<PolicyTags> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allPolicyTags = Object.fromEntries(Object.entries(value).filter(([, policyTags]) => !!policyTags));
-    },
-});
-
-function getPolicyTags(policyID: string) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -216,7 +200,6 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 
 export {
     getActivePolicies,
-    getPolicyTags,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
