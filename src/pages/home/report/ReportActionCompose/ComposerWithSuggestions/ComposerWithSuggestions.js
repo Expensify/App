@@ -535,7 +535,7 @@ function ComposerWithSuggestions({
 
     return (
         <>
-            <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+            <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
@@ -546,7 +546,7 @@ function ComposerWithSuggestions({
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
