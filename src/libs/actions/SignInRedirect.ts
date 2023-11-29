@@ -1,14 +1,14 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS, {OnyxKey} from '../../ONYXKEYS';
-import * as MainQueue from '../Network/MainQueue';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import HttpUtils from '@libs/HttpUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import * as MainQueue from '@libs/Network/MainQueue';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as SessionUtils from '@libs/SessionUtils';
+import ONYXKEYS, {OnyxKey} from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import * as PersistedRequests from './PersistedRequests';
-import NetworkConnection from '../NetworkConnection';
-import HttpUtils from '../HttpUtils';
-import navigationRef from '../Navigation/navigationRef';
-import SCREENS from '../../SCREENS';
-import Navigation from '../Navigation/Navigation';
-import * as ErrorUtils from '../ErrorUtils';
-import * as SessionUtils from '../SessionUtils';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;

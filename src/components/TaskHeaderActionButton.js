@@ -1,15 +1,16 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import reportPropTypes from '../pages/reportPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import styles from '../styles/styles';
+import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Button from './Button';
-import * as Task from '../libs/actions/Task';
-import * as ReportUtils from '../libs/ReportUtils';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -30,6 +31,7 @@ const defaultProps = {
 };
 
 function TaskHeaderActionButton(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
@@ -37,7 +39,7 @@ function TaskHeaderActionButton(props) {
                 isDisabled={!Task.canModifyTask(props.report, props.session.accountID)}
                 medium
                 text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={() => (ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report) : Task.completeTask(props.report))}
+                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report) : Task.completeTask(props.report)))}
                 style={[styles.flex1]}
             />
         </View>

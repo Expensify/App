@@ -1,4 +1,4 @@
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Check if the locale data is as expected on the device.

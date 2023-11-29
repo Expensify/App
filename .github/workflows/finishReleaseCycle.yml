@@ -13,12 +13,13 @@ jobs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -34,13 +35,13 @@ jobs:
             echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Reopen and comment on issue (not a team member)
         if: ${{ !fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) }}
-        uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
+        uses: ./.github/actions/javascript/reopenIssueWithComment
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
             Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
@@ -49,16 +50,16 @@ jobs:
       - name: Check for any deploy blockers
         if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) }}
         id: checkDeployBlockers
-        uses: Expensify/App/.github/actions/javascript/checkDeployBlockers@main
+        uses: ./.github/actions/javascript/checkDeployBlockers
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue (has blockers)
         if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS || 'false') }}
-        uses: Expensify/App/.github/actions/javascript/reopenIssueWithComment@main
+        uses: ./.github/actions/javascript/reopenIssueWithComment
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
             This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
@@ -66,7 +67,7 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -77,14 +78,14 @@ jobs:
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup Git for OSBotify
+      - name: Setup git for OSBotify
         id: setupGitForOSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -100,7 +101,7 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -108,7 +109,7 @@ jobs:
   createNewPatchVersion:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
       SEMVER_LEVEL: PATCH
@@ -119,13 +120,13 @@ jobs:
     needs: [updateProduction, createNewPatchVersion]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup Git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -141,6 +142,6 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,30 +1,24 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import * as Browser from '../../../../libs/Browser';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as IOU from '../../../../libs/actions/IOU';
-import * as Task from '../../../../libs/actions/Task';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Permissions from '../../../../libs/Permissions';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as IOU from '@userActions/IOU';
+import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** ID of the report */
@@ -87,7 +81,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     reportParticipantIDs: [],
 };
 
@@ -98,7 +91,6 @@ const defaultProps = {
  * @returns {React.Component}
  */
 function AttachmentPickerWithMenuItems({
-    betas,
     report,
     reportParticipantIDs,
     displayFileInModal,
@@ -117,6 +109,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
 
@@ -151,8 +144,7 @@ function AttachmentPickerWithMenuItems({
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+        if (!ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
 
@@ -163,7 +155,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
             },
         ];
-    }, [betas, report, reportID, translate]);
+    }, [report, reportID, translate]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -209,7 +201,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
                                         <Icon src={Expensicons.Collapse} />
@@ -228,7 +220,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
                                         <Icon src={Expensicons.Expand} />
@@ -248,7 +240,7 @@ function AttachmentPickerWithMenuItems({
                                     }}
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
                                     <Icon src={Expensicons.Plus} />
@@ -287,8 +279,4 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(AttachmentPickerWithMenuItems);
+export default AttachmentPickerWithMenuItems;

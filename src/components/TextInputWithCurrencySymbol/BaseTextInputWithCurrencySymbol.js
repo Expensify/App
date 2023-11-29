@@ -1,9 +1,9 @@
 import React from 'react';
-import AmountTextInput from '../AmountTextInput';
-import CurrencySymbolButton from '../CurrencySymbolButton';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import useLocalize from '../../hooks/useLocalize';
-import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
+import AmountTextInput from '@components/AmountTextInput';
+import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
 
 function BaseTextInputWithCurrencySymbol(props) {
@@ -63,10 +63,14 @@ BaseTextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes
 BaseTextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 BaseTextInputWithCurrencySymbol.displayName = 'BaseTextInputWithCurrencySymbol';
 
-export default React.forwardRef((props, ref) => (
+const BaseTextInputWithCurrencySymbolWithRef = React.forwardRef((props, ref) => (
     <BaseTextInputWithCurrencySymbol
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseTextInputWithCurrencySymbolWithRef.displayName = 'BaseTextInputWithCurrencySymbolWithRef';
+
+export default BaseTextInputWithCurrencySymbolWithRef;

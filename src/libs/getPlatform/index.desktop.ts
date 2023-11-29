@@ -1,4 +1,4 @@
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import Platform from './types';
 
 export default function getPlatform(): Platform {

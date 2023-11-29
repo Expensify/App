@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function setIsOffline(isOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});

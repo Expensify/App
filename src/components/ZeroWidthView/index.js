@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as Browser from '../../libs/Browser';
-import Text from '../Text';
+import React from 'react';
+import Text from '@components/Text';
+import * as Browser from '@libs/Browser';
+import * as EmojiUtils from '@libs/EmojiUtils';
 
 const propTypes = {
     /** If this is the Concierge chat, we'll open the modal for requesting a setup call instead of showing popover menu */

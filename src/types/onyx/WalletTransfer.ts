@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import PaymentMethod from './PaymentMethod';
 
@@ -25,7 +25,7 @@ type WalletTransfer = {
     paymentMethodType?: ValueOf<Pick<PaymentMethod, 'accountType'>>;
 };
 
-type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null;
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT | null;
 
 export default WalletTransfer;
 
