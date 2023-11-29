@@ -135,7 +135,7 @@
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
         <% if (htmlWebpackPlugin.options.isProduction) { %>
-            <!-- Google Tag Manager will only be loaded on web for now -->
+            <!-- Google Tag Manager - This was provided by our partner marketing agency -->
             <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N4M3FLJZ');</script>
             <!-- End Google Tag Manager -->
         <% } %>
