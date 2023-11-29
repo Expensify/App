@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -62,28 +62,28 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
-    const [headerTitle, setHeaderTitle] = useState();
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
-    useEffect(() => {
+    const headerTitle = useMemo(() => {
         if (isDistanceRequest) {
-            setHeaderTitle(translate('common.distance'));
-            return;
+            return translate('common.distance');
         }
 
         if (isSendRequest) {
-            setHeaderTitle(translate('common.send'));
-            return;
+            return translate('common.send');
         }
 
         if (isScanRequest) {
-            setHeaderTitle(translate('tabSelector.scan'));
-            return;
+            return translate('tabSelector.scan');
         }
 
-        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
-    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
+        if (iou.splitRequest) {
+            return translate('iou.split');
+        }
+
+        return translate('tabSelector.manual');
+    }, [iou, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);

@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -97,12 +97,39 @@ function MoneyRequestParticipantsSelector({
 }) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [newChatOptions, setNewChatOptions] = useState({
-        recentReports: [],
-        personalDetails: [],
-        userToInvite: null,
-    });
     const {isOffline} = useNetwork();
+    const newChatOptions = useMemo(() => {
+        const chatOptions = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            participants,
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat.
+            iouType === CONST.IOU.TYPE.REQUEST,
+
+            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+            !isDistanceRequest,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+            !isDistanceRequest,
+            true,
+        );
+        return {
+            recentReports: chatOptions.recentReports,
+            personalDetails: chatOptions.personalDetails,
+            userToInvite: chatOptions.userToInvite,
+        };
+    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -223,39 +250,6 @@ function MoneyRequestParticipantsSelector({
         _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-
-    useEffect(() => {
-        const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
-            betas,
-            searchTerm,
-            participants,
-            CONST.EXPENSIFY_EMAILS,
-
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
-
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !isDistanceRequest,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            !isDistanceRequest,
-            true,
-        );
-        setNewChatOptions({
-            recentReports: chatOptions.recentReports,
-            personalDetails: chatOptions.personalDetails,
-            userToInvite: chatOptions.userToInvite,
-        });
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
