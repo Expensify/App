@@ -73,8 +73,7 @@ const fileDownload: FileDownload = (fileUrl, fileName) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
-        const name = fileName.length > 0 ? fileName : FileUtils.getFileName(fileUrl);
-        const attachmentName = FileUtils.appendTimeToFileName(name);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(fileUrl));
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
