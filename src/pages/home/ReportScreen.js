@@ -338,7 +338,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID, prevReport.chatType]);
 
     useEffect(() => {
         if (!ReportUtils.isValidReportIDFromPath(reportID)) {
