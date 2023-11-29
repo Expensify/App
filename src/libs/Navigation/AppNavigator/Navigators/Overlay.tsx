@@ -13,8 +13,7 @@ type OverlayProps = {
 function Overlay({onPress}: OverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
-    // TODO: remove type assertion when useLocalize is migrated
-    const {translate} = useLocalize() as unknown as {translate: (phrase: string) => string};
+    const {translate} = useLocalize();
 
     return (
         <Animated.View style={styles.overlayStyles(current)}>

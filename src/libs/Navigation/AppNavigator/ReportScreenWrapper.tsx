@@ -8,6 +8,7 @@ function ReportScreenWrapper({route, navigation}: ReportScreenWrapperProps) {
     // until the reportID is loaded and set in the route param
     return (
         <>
+            {/* @ts-expect-error Error will be resolved after ReportScreen migration  */}
             <ReportScreen route={route} />
             <ReportScreenIDSetter
                 route={route}

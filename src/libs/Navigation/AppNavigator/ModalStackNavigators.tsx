@@ -159,9 +159,13 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_DOMAIN_CARDS]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardName').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardPhone').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardAddress').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardConfirm').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: () => require('../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
@@ -223,6 +227,10 @@ const SignInModalStackNavigator = createModalStackNavigator({
     [SCREENS.SIGN_IN_ROOT]: () => require('../../../pages/signin/SignInModal').default as React.ComponentType,
 });
 
+const ReferralModalStackNavigator = createModalStackNavigator({
+    [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+});
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -248,4 +256,5 @@ export {
     SignInModalStackNavigator,
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
+    ReferralModalStackNavigator,
 };

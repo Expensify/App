@@ -30,19 +30,15 @@ const getLastAccessedReportID = (
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
-): number | string => {
+): string | undefined => {
     // If deeplink url contains reportID params, we should show the report that has this reportID.
     const currentRoute = Navigation.getActiveRoute();
-    // TODO: get rid of assertion when ReportUtils is migrated to TS
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute) as {reportID: string};
+    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
     if (reportID) {
         return reportID;
     }
 
-    // TODO: get rid of ignore when ReportUtils is migrated to TS
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore till ReportUtils file is migrated
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) as Report;
+    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom);
     return lastReport?.reportID;
 };
 

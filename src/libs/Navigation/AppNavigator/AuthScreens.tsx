@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as OnyxTypes from '@src/types/onyx';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
+import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -89,7 +90,7 @@ Onyx.connect({
         }
 
         timezone = val?.[currentAccountID]?.timezone ?? {};
-        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
@@ -309,6 +310,9 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={screenOptions.fullScreen}
+                    // TODO: fix TS issue
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     component={NotFoundPage}
                 />
                 <RootStack.Screen

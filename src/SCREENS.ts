@@ -89,6 +89,7 @@ const SCREENS = {
         PRIVATE_NOTES: 'Private_Notes',
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
+        REFERRAL: 'Referral',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -180,6 +181,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
+    REFERRAL_DETAILS: 'Referral_Details',
 
     SPLIT_DETAILS: {
         ROOT: 'SplitDetails_Root',
