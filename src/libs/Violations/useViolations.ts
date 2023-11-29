@@ -1,7 +1,5 @@
 import {useCallback, useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
-
 
 /**
  * Map from Violation Names to the field where that violation can occur
@@ -50,8 +48,6 @@ type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
 function useViolations(violations: TransactionViolation[]) {
-    const {translate} = useLocalize();
-
     const violationsByField = useMemo((): ViolationsMap => {
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
 
@@ -72,13 +68,7 @@ function useViolations(violations: TransactionViolation[]) {
         [violationsByField],
     );
 
-    const getViolationsForField = useCallback(
-        (field: ViolationField) => {
-            const fieldViolations: TransactionViolation[] = violationsByField.get(field) ?? [];
-            return fieldViolations.map((violation) => translate(`violations.${violation.name}`));
-        },
-        [translate, violationsByField],
-    );
+    const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
         hasViolations,
