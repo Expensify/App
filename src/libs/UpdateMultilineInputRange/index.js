@@ -20,8 +20,9 @@ export default function updateMultilineInputRange(input, shouldAutoFocus = true)
     if (input.value && input.setSelectionRange) {
         const length = input.value.length;
 
-        // On mobile safari, setting a selection will focus the input even when the auto focus is false.
-        // So, don't set the selection if the browser is mobile safari and auto focus is false.
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
         const shouldSetSelection = !(Browser.isMobileSafari() && !shouldAutoFocus);
         if (shouldSetSelection) {
             input.setSelectionRange(length, length);
