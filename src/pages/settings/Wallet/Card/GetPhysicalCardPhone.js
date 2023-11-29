@@ -72,7 +72,7 @@ function GetPhysicalCardPhone({
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={phoneNumber}
-                containerStyles={[styles.mt5, styles.mh5]}
+                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>
