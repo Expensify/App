@@ -1,6 +1,6 @@
 import {ViewStyle} from 'react-native';
-import styles from '@styles/styles';
+import themeStyles from '@styles/styles';
 
-type ContainerComposeStyles = (stylesObject: typeof styles) => ViewStyle[];
+type ContainerComposeStyles = (styles: typeof themeStyles) => ViewStyle[];
 
 export default ContainerComposeStyles;
