@@ -16,6 +16,7 @@ const restrictedImportPaths = [
     },
     {
         name: 'awesome-phonenumber',
+        importNames: ['parsePhoneNumber'],
         message: "Please use '@libs/PhoneNumber' instead.",
     },
 ];

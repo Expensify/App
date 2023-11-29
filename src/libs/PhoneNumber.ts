@@ -38,6 +38,5 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     } as ParsedPhoneNumberInvalid;
 }
 
-// eslint-disable-next-line no-restricted-imports
-export * from 'awesome-phonenumber';
+// eslint-disable-next-line import/prefer-default-export
 export {parsePhoneNumber};
