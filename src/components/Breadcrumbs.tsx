@@ -26,30 +26,36 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.alignSelfStart, styles.gap2]}>
-            {breadcrumbs.map((breadcrumb, index) => (
-                <>
-                    {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
-                        <View style={{width: variables.lhnLogoWidth}}>
-                            <Header
-                                title={
-                                    <LogoComponent
-                                        fill={theme.text}
-                                        width={variables.lhnLogoWidth}
-                                        height={variables.lhnLogoHeight}
-                                    />
-                                }
-                                shouldShowEnvironmentBadge
-                            />
-                        </View>
-                    ) : (
-                        <>
-                            {index !== 0 && <Text style={styles.breadcrumb}>/</Text>}
-                            <Text style={styles.breadcrumb}>{breadcrumb.text}</Text>
-                        </>
-                    )}
-                </>
-            ))}
+        <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
+            {breadcrumbs.map((breadcrumb, index) => {
+                const style = [styles.breadcrumb, breadcrumb.type === CONST.BREADCRUMB_TYPE.STRONG && styles.breadcrumbStrong];
+                const separatorStyle = [style, styles.breadcrumbSeparator];
+
+                return (
+                    <>
+                        {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
+                            <View>
+                                <Header
+                                    title={
+                                        <LogoComponent
+                                            fill={theme.text}
+                                            width={variables.lhnLogoWidth}
+                                            height={variables.lhnLogoHeight}
+                                            style={styles.breadcrumbLogo}
+                                        />
+                                    }
+                                    shouldShowEnvironmentBadge
+                                />
+                            </View>
+                        ) : (
+                            <>
+                                {index !== 0 && <Text style={separatorStyle}>/</Text>}
+                                <Text style={style}>{breadcrumb.text}</Text>
+                            </>
+                        )}
+                    </>
+                );
+            })}
         </View>
     );
 }

@@ -141,7 +141,7 @@ export default {
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     lhnLogoWidth: 95,
-    lhnLogoHeight: 24,
+    lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,

@@ -185,17 +185,17 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                             type: CONST.BREADCRUMB_TYPE.ROOT,
                         },
                         {
+                            text: 'Chats',
+                        },
+                    ]}
+                />
+            </View>
+            <View style={[styles.mh5, styles.mb3]}>
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
                             text: 'Cathy`s Croissants',
                             type: CONST.BREADCRUMB_TYPE.STRONG,
-                        },
-                        {
-                            text: 'Settings',
-                        },
-                        {
-                            text: 'Settings',
-                        },
-                        {
-                            text: 'Settings',
                         },
                         {
                             text: 'Settings',
