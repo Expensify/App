@@ -1,10 +1,10 @@
+import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Localize from './Localize';
-import * as CollectionUtils from './CollectionUtils';
 import {Report} from '../types/onyx';
-import lodashHas from 'lodash/has';
+import * as CollectionUtils from './CollectionUtils';
+import * as Localize from './Localize';
 
 const allReports: Record<string, Report> = {};
 Onyx.connect({
