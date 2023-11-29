@@ -1,19 +1,19 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
-import * as StyleUtils from '../styles/StyleUtils';
-import transactionPropTypes from './transactionPropTypes';
-import styles from '../styles/styles';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Icon from './Icon';
+import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
-import Icon from './Icon';
-import * as ReportUtils from '../libs/ReportUtils';
-import variables from '../styles/variables';
-import * as eReceiptBGs from './Icon/EReceiptBGs';
 import Image from './Image';
-import CONST from '../CONST';
+import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -42,6 +42,7 @@ function getBackgroundImage(transaction) {
 }
 
 function EReceiptThumbnail({transaction}) {
+    const styles = useThemeStyles();
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 

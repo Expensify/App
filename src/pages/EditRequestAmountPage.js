@@ -1,10 +1,11 @@
-import React, {useCallback, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import useLocalize from '../hooks/useLocalize';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import React, {useCallback, useRef} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
 const propTypes = {
@@ -42,7 +43,8 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
             <HeaderWithBackButton title={translate('iou.amount')} />

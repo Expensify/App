@@ -1,22 +1,22 @@
-import _ from 'underscore';
-import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
-import * as BankAccounts from '../libs/actions/BankAccounts';
-import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
-import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import Form from '../components/Form';
-import ROUTES from '../ROUTES';
+import React, {useCallback, useEffect, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
+import ConfirmationPage from '@components/ConfirmationPage';
+import FormProvider from '@components/Form/FormProvider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
-import ConfirmationPage from '../components/ConfirmationPage';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
-import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** Contains plaid data */
@@ -57,6 +57,7 @@ const defaultProps = {
 };
 
 function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const shouldShowSuccess = lodashGet(personalBankAccount, 'shouldShowSuccess', false);
@@ -112,7 +113,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
                     onButtonPress={() => exitFlow(true)}
                 />
             ) : (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
                     submitButtonText={translate('common.saveAndContinue')}
@@ -128,7 +129,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         selectedPlaidAccountID={selectedPlaidAccountId}
                     />
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );
@@ -136,6 +137,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default withOnyx({
     personalBankAccount: {

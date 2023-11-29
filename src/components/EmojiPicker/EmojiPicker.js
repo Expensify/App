@@ -1,15 +1,15 @@
-import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import withViewportOffsetTop from '../withViewportOffsetTop';
-import * as StyleUtils from '../../styles/StyleUtils';
-import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -21,6 +21,7 @@ const propTypes = {
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -134,6 +135,9 @@ const EmojiPicker = forwardRef((props, ref) => {
             });
         });
         return () => {
+            if (!emojiPopoverDimensionListener) {
+                return;
+            }
             emojiPopoverDimensionListener.remove();
         };
     }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);

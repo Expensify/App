@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
-import Text from './Text';
-import styles from '../styles/styles';
-import stylePropTypes from '../styles/stylePropTypes';
-import CONST from '../CONST';
-import * as Link from '../libs/actions/Link';
+import React from 'react';
+import _ from 'underscore';
+import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
+import Text from './Text';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -37,6 +37,7 @@ const defaultProps = {
 };
 
 function TextLink(props) {
+    const styles = useThemeStyles();
     const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
@@ -66,7 +67,7 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}
@@ -84,10 +85,15 @@ function TextLink(props) {
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;
 TextLink.displayName = 'TextLink';
-export default React.forwardRef((props, ref) => (
+
+const TextLinkWithRef = React.forwardRef((props, ref) => (
     <TextLink
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+TextLinkWithRef.displayName = 'TextLinkWithRef';
+
+export default TextLinkWithRef;

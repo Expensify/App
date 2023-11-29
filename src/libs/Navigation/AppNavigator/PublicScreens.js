@@ -1,14 +1,14 @@
-import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import SignInPage from '../../../pages/signin/SignInPage';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
-import SCREENS from '../../../SCREENS';
+import React from 'react';
+import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
+import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
+import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
+import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
+import SignInPage from '@pages/signin/SignInPage';
+import UnlinkLoginPage from '@pages/UnlinkLoginPage';
+import ValidateLoginPage from '@pages/ValidateLoginPage';
+import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
-import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
-import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
-import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPage';
-import SAMLSignInPage from '../../../pages/signin/SAMLSignInPage';
 
 const RootStack = createStackNavigator();
 
@@ -26,27 +26,27 @@ function PublicScreens() {
                 component={LogInWithShortLivedAuthTokenPage}
             />
             <RootStack.Screen
-                name="ValidateLogin"
+                name={SCREENS.VALIDATE_LOGIN}
                 options={defaultScreenOptions}
                 component={ValidateLoginPage}
             />
             <RootStack.Screen
-                name="UnlinkLogin"
+                name={SCREENS.UNLINK_LOGIN}
                 options={defaultScreenOptions}
                 component={UnlinkLoginPage}
             />
             <RootStack.Screen
-                name="AppleSignInDesktop"
+                name={SCREENS.SIGN_IN_WITH_APPLE_DESKTOP}
                 options={defaultScreenOptions}
                 component={AppleSignInDesktopPage}
             />
             <RootStack.Screen
-                name="GoogleSignInDesktop"
+                name={SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP}
                 options={defaultScreenOptions}
                 component={GoogleSignInDesktopPage}
             />
             <RootStack.Screen
-                name="SAMLSignIn"
+                name={SCREENS.SAML_SIGN_IN}
                 options={defaultScreenOptions}
                 component={SAMLSignInPage}
             />

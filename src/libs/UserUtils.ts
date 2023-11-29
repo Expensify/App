@@ -1,10 +1,11 @@
+import Str from 'expensify-common/lib/str';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
+import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import CONST from '@src/CONST';
+import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
-import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import Login from '../types/onyx/Login';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -190,6 +191,14 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
+/**
+ * Gets the secondary phone login number
+ */
+function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+    return parsedLoginList.find((login) => Str.isValidPhone(login));
+}
+
 export {
     hashText,
     hasLoginListError,
@@ -203,5 +212,6 @@ export {
     getSmallSizeAvatar,
     getFullSizeAvatar,
     generateAccountID,
+    getSecondaryPhoneLogin,
 };
 export type {AvatarSource};

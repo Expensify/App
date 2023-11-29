@@ -6,27 +6,32 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
+import DotLottieAnimation from '@components/LottieAnimations/types';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
 import codeStyles from './codeStyles';
+import colors from './colors';
 import fontFamily from './fontFamily';
 import fontWeightBold from './fontWeight/bold';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeDefault} from './themes/types';
+import {ThemeColors} from './themes/types';
+import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
 import flex from './utilities/flex';
+import objectFit from './utilities/objectFit';
 import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
 import sizing from './utilities/sizing';
 import spacing from './utilities/spacing';
-import borders from './utilities/borders';
+import textDecorationLine from './utilities/textDecorationLine';
 import textUnderline from './utilities/textUnderline';
 import userSelect from './utilities/userSelect';
 import visibility from './utilities/visibility';
@@ -34,8 +39,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import colors from './colors';
-import objectFit from './utilities/objectFit';
 
 type AnchorPosition = {
     horizontal: number;
@@ -79,7 +82,7 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobile
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
-const picker = (theme: ThemeDefault) =>
+const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
         color: theme.text,
@@ -95,14 +98,14 @@ const picker = (theme: ThemeDefault) =>
         textAlign: 'left',
     } satisfies TextStyle);
 
-const link = (theme: ThemeDefault) =>
+const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
         fontFamily: fontFamily.EXP_NEUE,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
-const baseCodeTagStyles = (theme: ThemeDefault) =>
+const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
         borderRadius: 5,
@@ -115,7 +118,7 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
-const webViewStyles = (theme: ThemeDefault) =>
+const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
@@ -180,7 +183,7 @@ const webViewStyles = (theme: ThemeDefault) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: fontFamily.MONOSPACE,
-                fontSize: 13,
+                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -210,7 +213,7 @@ const webViewStyles = (theme: ThemeDefault) =>
         },
     } satisfies WebViewStyle);
 
-const styles = (theme: ThemeDefault) =>
+const styles = (theme: ThemeColors) =>
     ({
         // Add all of our utility and helper styles
         ...spacing,
@@ -227,6 +230,7 @@ const styles = (theme: ThemeDefault) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -244,6 +248,11 @@ const styles = (theme: ThemeDefault) =>
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
         },
 
         emojiSuggestionsEmoji: {
@@ -319,8 +328,12 @@ const styles = (theme: ThemeDefault) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
+
+        verticalAlignTop: {
+            verticalAlign: 'top',
         },
 
         label: {
@@ -375,10 +388,6 @@ const styles = (theme: ThemeDefault) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -398,11 +407,6 @@ const styles = (theme: ThemeDefault) =>
             fontWeight: fontWeightBold,
         },
 
-        textItalic: {
-            fontFamily: fontFamily.EXP_NEUE_ITALIC,
-            fontStyle: 'italic',
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -419,20 +423,12 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightSizeh1,
         },
 
-        textDecorationNoLine: {
-            textDecorationLine: 'none',
-        },
-
         textWhite: {
             color: theme.textLight,
         },
 
         textBlue: {
             color: theme.link,
-        },
-
-        textUppercase: {
-            textTransform: 'uppercase',
         },
 
         textNoWrap: {
@@ -480,7 +476,9 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
             justifyContent: 'center',
+            alignItems: 'center',
             ...spacing.ph3,
+            ...spacing.pv0,
         },
 
         buttonContainer: {
@@ -507,18 +505,14 @@ const styles = (theme: ThemeDefault) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingTop: 4,
             paddingHorizontal: 14,
-            paddingBottom: 4,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingTop: 12,
             paddingRight: 16,
-            paddingBottom: 12,
             paddingLeft: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -526,9 +520,7 @@ const styles = (theme: ThemeDefault) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingTop: 8,
             paddingRight: 10,
-            paddingBottom: 8,
             paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -609,7 +601,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         buttonCTA: {
-            paddingVertical: 6,
             ...spacing.mh4,
         },
 
@@ -1048,7 +1039,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 12,
             paddingTop: 10,
             paddingBottom: 10,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         textInputPrefixWrapper: {
@@ -1067,7 +1058,7 @@ const styles = (theme: ThemeDefault) =>
             color: theme.text,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         pickerContainer: {
@@ -1341,7 +1332,7 @@ const styles = (theme: ThemeDefault) =>
 
         floatingActionButtonContainer: {
             position: 'absolute',
-            left: 16,
+            right: 20,
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
@@ -1350,8 +1341,8 @@ const styles = (theme: ThemeDefault) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -1376,7 +1367,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         sidebarListContainer: {
-            scrollbarWidth: 'none',
             paddingBottom: 4,
         },
 
@@ -1449,6 +1439,11 @@ const styles = (theme: ThemeDefault) =>
             width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
         },
 
         popoverMenuText: {
@@ -1643,9 +1638,13 @@ const styles = (theme: ThemeDefault) =>
             width: 18,
         },
 
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         chatContentScrollView: {
             flexGrow: 1,
-            justifyContent: 'flex-start',
+            justifyContent: 'flex-end',
             paddingBottom: 16,
         },
 
@@ -1789,13 +1788,13 @@ const styles = (theme: ThemeDefault) =>
                 ...overflowXHidden,
 
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-                // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+                // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
                 paddingHorizontal: variables.avatarChatSpacing,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
             },
             0,
         ),
@@ -1804,7 +1803,12 @@ const styles = (theme: ThemeDefault) =>
             alignSelf: 'stretch',
             flex: 1,
             maxHeight: '100%',
-            textAlignVertical: 'top',
+            verticalAlign: 'top',
+        },
+
+        textInputCollapseCompose: {
+            maxHeight: '100%',
+            flex: 4,
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2134,6 +2138,8 @@ const styles = (theme: ThemeDefault) =>
         pointerEventsNone,
 
         pointerEventsAuto,
+
+        pointerEventsBoxNone,
 
         headerBar: {
             overflow: 'hidden',
@@ -2471,7 +2477,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         flipUpsideDown: {
-            transform: [{rotate: '180deg'}],
+            transform: `rotate(180deg)`,
         },
 
         navigationScreenCardStyle: {
@@ -2561,7 +2567,7 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -2662,7 +2668,8 @@ const styles = (theme: ThemeDefault) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            marginRight: -10,
+            // This should "hide" the right border of the last avatar
+            marginRight: -2,
             marginBottom: 0,
         },
 
@@ -2772,7 +2779,7 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            shadowColor: theme.shadow,
+            boxShadow: `${theme.shadow}`,
             ...spacing.p5,
         },
 
@@ -2871,7 +2878,7 @@ const styles = (theme: ThemeDefault) =>
             },
             text: {
                 color: theme.textSupporting,
-                textAlignVertical: 'center',
+                verticalAlign: 'middle',
                 fontSize: variables.fontSizeLabel,
             },
             errorDot: {
@@ -2892,16 +2899,6 @@ const styles = (theme: ThemeDefault) =>
 
         sidebarPopover: {
             width: variables.sideBarWidth - 68,
-        },
-
-        cardOverlay: {
-            backgroundColor: theme.overlay,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: variables.overlayOpacity,
         },
 
         shortTermsBorder: {
@@ -3159,7 +3156,7 @@ const styles = (theme: ThemeDefault) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: 64,
+            height: variables.optionRowHeight,
         },
 
         archivedReportFooter: {
@@ -3222,11 +3219,11 @@ const styles = (theme: ThemeDefault) =>
         miniQuickEmojiReactionText: {
             fontSize: 15,
             lineHeight: 20,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         emojiReactionBubbleText: {
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
 
         reactionCounterText: {
@@ -3333,7 +3330,6 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmount: {
             ...headlineFont,
             fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
             color: colors.green400,
         },
 
@@ -3425,7 +3421,6 @@ const styles = (theme: ThemeDefault) =>
 
         linkPreviewImage: {
             flex: 1,
-            resizeMode: 'contain',
             borderRadius: 8,
             marginTop: 8,
         },
@@ -3578,7 +3573,8 @@ const styles = (theme: ThemeDefault) =>
         googlePillButtonContainer: {
             colorScheme: 'light',
             height: 40,
-            width: 219,
+            width: 300,
+            overflow: 'hidden',
         },
 
         thirdPartyLoadingContainer: {
@@ -3753,21 +3749,6 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImagesMoreCornerTriangle: {
             position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 0,
-            height: 0,
-            borderStyle: 'solid',
-            borderWidth: 0,
-            borderBottomWidth: 40,
-            borderLeftWidth: 40,
-            borderColor: 'transparent',
-            borderBottomColor: theme.cardBG,
-        },
-
-        reportActionItemImagesMoreCornerTriangleHighlighted: {
-            borderColor: 'transparent',
-            borderBottomColor: theme.border,
         },
 
         assignedCardsIconContainer: {
@@ -3807,7 +3788,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         rotate90: {
-            transform: [{rotate: '90deg'}],
+            transform: 'rotate(90deg)',
         },
 
         emojiStatusLHN: {
@@ -3840,6 +3821,11 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        moneyRequestAttachReceipt: {
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
         },
 
         mapViewContainer: {
@@ -3903,6 +3889,15 @@ const styles = (theme: ThemeDefault) =>
             width: '100%',
         },
 
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
@@ -3915,34 +3910,6 @@ const styles = (theme: ThemeDefault) =>
             ...flex.alignItemsCenter,
             gap: 12,
             marginBottom: 16,
-        },
-
-        globalNavigation: {
-            width: variables.globalNavigationWidth,
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationMenuContainer: {
-            marginTop: 13,
-        },
-
-        globalAndSubNavigationContainer: {
-            backgroundColor: theme.highlightBG,
-        },
-
-        globalNavigationSelectionIndicator: (isFocused: boolean) => ({
-            width: 4,
-            height: 52,
-            borderTopRightRadius: variables.componentBorderRadiusRounded,
-            borderBottomRightRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
-        }),
-
-        globalNavigationMenuItem: (isFocused: boolean) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
-
-        globalNavigationItemContainer: {
-            width: variables.globalNavigationWidth,
-            height: variables.globalNavigationWidth,
         },
 
         walletCard: {
@@ -4004,12 +3971,7 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
@@ -4024,12 +3986,10 @@ const styles = (theme: ThemeDefault) =>
         },
     } satisfies Styles);
 
-// For now we need to export the styles function that takes the theme as an argument
-// as something named different than "styles", because a lot of files import the "defaultStyles"
-// as "styles", which causes ESLint to throw an error.
-// TODO: Remove "stylesGenerator" and instead only return "styles" once the app is migrated to theme switching hooks and HOCs and "styles/theme/default.js" is not used anywhere anymore (GH issue: https://github.com/Expensify/App/issues/27337)
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator};
+export {stylesGenerator, type Styles, type ThemeStyle};
