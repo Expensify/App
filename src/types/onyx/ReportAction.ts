@@ -90,7 +90,6 @@ type ReportActionBase = {
     automatic?: boolean;
 
     shouldShow?: boolean;
-    reportID?: string;
 
     /** The ID of childReport */
     childReportID?: string;
