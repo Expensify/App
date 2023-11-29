@@ -1,21 +1,24 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {LinkingOptions} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {RootStackParamList} from './types';
 
-export default {
+const linkingConfig: LinkingOptions<RootStackParamList> = {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
             // Main Routes
-            ValidateLogin: ROUTES.VALIDATE_LOGIN,
-            UnlinkLogin: ROUTES.UNLINK_LOGIN,
+            [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
+            [SCREENS.UNLINK_LOGIN]: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
-            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
-            GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
-            SAMLSignIn: ROUTES.SAML_SIGN_IN,
+            [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: ROUTES.APPLE_SIGN_IN,
+            [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: ROUTES.GOOGLE_SIGN_IN,
+            [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
 
@@ -448,3 +451,5 @@ export default {
         },
     },
 };
+
+export default linkingConfig;
