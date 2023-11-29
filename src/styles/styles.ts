@@ -1378,20 +1378,23 @@ const styles = (theme: ThemeColors) =>
         breadcrumb: {
             color: colors.darkSupportingText,
             fontSize: variables.fontSizeh1,
+            marginTop: (variables.fontSizeXLarge - variables.fontSizeh1) / 2,
             ...headlineFont,
         },
 
         breadcrumbStrong: {
+            marginTop: 0,
             color: colors.darkPrimaryText,
             fontSize: variables.fontSizeXLarge,
         },
 
         breadcrumbSeparator: {
+            marginTop: 0,
             fontSize: variables.fontSizeXLarge,
         },
 
         breadcrumbLogo: {
-            marginTop: 3.5,
+            marginTop: 3,
         },
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
