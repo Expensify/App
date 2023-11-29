@@ -12,7 +12,6 @@ import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import Log from './Log';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -684,13 +683,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
 
     const mentions = targetAccountIDs.map((accountID) => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-
-        if (personalDetail) {
-            const displayNameOrLogin =
-                LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '') || (personalDetail?.displayName ? personalDetail?.displayName : Localize.translateLocal('common.hidden'));
-            return {content: `@${displayNameOrLogin}`, accountID};
-        }
-        return {content: `@${Localize.translateLocal('common.hidden')}`, accountID};
+        return {content: `@${PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden')}`, accountID};
     });
 
     const lastMention = mentions.pop();
