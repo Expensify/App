@@ -203,6 +203,32 @@ type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
+type ConversionSurchargeParams = {percentGreater: string};
+
+type TaxOutOfPolicyParams = {
+    taxName: string;
+};
+
+type MissingTagParams = {
+    tagName: string;
+};
+
+type CashExpenseWithNoReceiptParams = {
+    amount: number;
+};
+
+type MaxAgeParams = {
+    dayOverdue: number;
+};
+
+type OverLimitParams = {
+    amount: number;
+};
+
+type PerDayLimitParams = {
+    category: string;
+};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
@@ -321,4 +347,11 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    TaxOutOfPolicyParams,
+    MissingTagParams,
+    CashExpenseWithNoReceiptParams,
+    MaxAgeParams,
+    OverLimitParams,
+    PerDayLimitParams,
+    ConversionSurchargeParams,
 };
