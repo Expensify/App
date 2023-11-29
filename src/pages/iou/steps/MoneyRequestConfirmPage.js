@@ -238,6 +238,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                     props.iou.category,
                     reportID,
                 );
@@ -253,6 +254,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                     props.iou.category,
                 );
                 return;
@@ -276,6 +278,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
+            props.iou.merchant,
             props.iou.category,
             props.iou.receiptPath,
             props.iou.receiptFilename,
