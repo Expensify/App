@@ -52,6 +52,14 @@ const validate = (values) => {
         }
     }
 
+    if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
+        errors.firstName = 'bankAccount.error.firstName';
+    }
+
+    if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
+        errors.lastName = 'bankAccount.error.lastName';
+    }
+
     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
         errors.ssnLast4 = 'bankAccount.error.ssnLast4';
     }
@@ -138,7 +146,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
                 onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 scrollContextEnabled
             >
                 <Text>{translate('requestorStep.subtitle')}</Text>

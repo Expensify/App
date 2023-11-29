@@ -1441,6 +1441,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+        },
+
         popoverMenuText: {
             fontSize: variables.fontSizeNormal,
             color: theme.heading,
@@ -3979,5 +3984,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyle};
