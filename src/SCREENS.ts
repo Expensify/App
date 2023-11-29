@@ -9,9 +9,8 @@ const PROTECTED_SCREENS = {
     REPORT_ATTACHMENTS: 'ReportAttachments',
 } as const;
 
-export default {
+const SCREENS = {
     ...PROTECTED_SCREENS,
-    LOADING: 'Loading',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
@@ -19,6 +18,7 @@ export default {
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS: {
         ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
@@ -43,4 +43,5 @@ export default {
     SAML_SIGN_IN: 'SAMLSignIn',
 } as const;
 
+export default SCREENS;
 export {PROTECTED_SCREENS};
