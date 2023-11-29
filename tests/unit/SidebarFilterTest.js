@@ -111,7 +111,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
@@ -142,7 +141,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -195,7 +193,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -247,7 +244,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -380,7 +376,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
@@ -452,7 +447,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.VIOLATIONS],
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,

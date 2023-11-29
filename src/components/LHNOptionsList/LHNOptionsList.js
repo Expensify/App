@@ -80,7 +80,7 @@ const defaultProps = {
     personalDetails: {},
     transactions: {},
     draftComments: {},
-    betas: {},
+    betas: [],
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -194,6 +194,7 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+            initialValue: [],
         },
     }),
 )(LHNOptionsList);
