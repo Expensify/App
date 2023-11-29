@@ -390,6 +390,15 @@ type AuthScreensParamList = {
         reportID: string;
         source: string;
     };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
+    };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;

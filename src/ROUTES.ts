@@ -136,12 +136,12 @@ const ROUTES = {
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: string) => `a/${accountID}/avatar`,
+        getRoute: (accountID: string) => `a/${accountID}/avatar` as const,
     },
 
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
-        getRoute: (policyID: string) => `workspace/${policyID}/avatar`,
+        getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
@@ -157,7 +157,7 @@ const ROUTES = {
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
-        getRoute: (reportID: string) => `r/${reportID}/avatar`,
+        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
