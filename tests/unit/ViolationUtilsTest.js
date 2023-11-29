@@ -18,7 +18,7 @@ describe('getViolationsOnyxData', () => {
         ];
         policyRequiresTags = false;
         policyTags = {};
-        policyRequiresCategories = true;
+        policyRequiresCategories = false;
         policyCategories = {Food: {enabled: true}};
     });
 
@@ -26,9 +26,6 @@ describe('getViolationsOnyxData', () => {
 
     describe('ordinary operations', () => {
         it('should return an object with correct shape', () => {
-            // setup test conditions
-            policyRequiresTags = true;
-            policyTags = {Lunch: {enabled: true}};
             // run test
             const result = execute();
             // verify results
@@ -40,9 +37,6 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should handle single violation', () => {
-            // setup test conditions
-            transaction.category = null;
-            transaction.tag = null;
             transactionViolations = [transactionViolations[0]];
             // run test
             const result = execute();
@@ -59,11 +53,20 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
-    describe('categories', () => {
+    it('should handle empty transactionViolations', () => {
+        // setup test conditions
+        transactionViolations = [];
+        // run test
+        const result = execute();
+        // verify results
+        expect(result.value).toEqual([]);
+    });
+
+    describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
         });
-        it('should handle policyRequiresCategories correctly when categories are enabled', () => {
+        it('should not add a categoryOutOfPolicy violation when category is in policy', () => {
             // setup test conditions
             policyCategories = {Food: {enabled: true}};
             transaction.category = 'Food';
@@ -73,7 +76,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(transactionViolations);
         });
 
-        it('should handle missingCategory violation', () => {
+        it('should add missingCategory violation if no category is included', () => {
             // setup test conditions
             transaction.category = null;
             // run test
@@ -91,10 +94,9 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should handle categoryOutOfPolicy violation when category does not exist', () => {
+        it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             // setup test conditions
-            policyRequiresCategories = true;
-            policyCategories = {};
+            transaction.category = 'Bananas';
             // run test
             const result = execute();
             // verify results
@@ -110,7 +112,7 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should handle categoryOutOfPolicy violation when category is not enabled', () => {
+        it('should add categoryOutOfPolicy violation when category is not enabled in policy', () => {
             // setup test conditions
             policyRequiresCategories = true;
             policyCategories = {Food: {enabled: false}};
@@ -130,7 +132,7 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should handle policy with multiple categories', () => {
+        it('should return usual value when policy has multiple allowed categories', () => {
             // setup test conditions
             policyCategories = {Food: {enabled: true}, Drinks: {enabled: true}};
             transaction.category = 'Food';
@@ -140,17 +142,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(transactionViolations);
         });
 
-        it('should not add a categoryOutOfPolicy violation when category is in policy', () => {
-            // setup test conditions
-            policyCategories = {Food: {enabled: true}};
-            transaction.category = 'Food';
-            // run test
-            const result = execute();
-            // verify results
-            expect(result.value).toEqual(transactionViolations);
-        });
-
-        it('should handle undefined or invalid category types', () => {
+        it('should handle undefined category types', () => {
             // setup test conditions
             policyCategories = {Food: {enabled: true}};
             transaction.category = undefined; // or any invalid type
@@ -168,9 +160,90 @@ describe('getViolationsOnyxData', () => {
                 ]),
             );
         });
+
+        it('should not add a categoryOutOfPolicy violation when categories are not required', () => {
+            policyRequiresCategories = true;
+            policyCategories = {Food: {enabled: true}};
+            transaction.category = 'Drinks'; // or any invalid type
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
+        });
+
+        it('should handle invalid category types', () => {
+            // setup test conditions
+            policyCategories = {Food: {enabled: true}};
+            transaction.category = "Ceci n'est pas un Category"; // or any invalid type
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'categoryOutOfPolicy',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
+
+        it('should handle empty string for category', () => {
+            // setup test conditions
+            transaction.category = '';
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'missingCategory',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
+        it('should handle null category', () => {
+            // setup test conditions
+            transaction.category = null;
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'missingCategory',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
+        it('should handle undefined category', () => {
+            // setup test conditions
+            transaction.category = undefined;
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'missingCategory',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
     });
 
-    describe('tags', () => {
+    describe('policyRequiresTags', () => {
         beforeEach(() => {
             policyRequiresTags = true;
             policyTags = {Lunch: {enabled: true}};
@@ -183,7 +256,16 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(transactionViolations);
         });
 
-        it('should handle missingTag violation', () => {
+        it('should not add a missingTag violation when tags are not required', () => {
+            policyRequiresTags = false;
+            transaction.category = 'Drinks'; // or any invalid type
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
+        });
+
+        it('should add a missingTag violation if none is provided and policy requires tags', () => {
             // setup test conditions
             transaction.tag = null;
             // run test
@@ -200,7 +282,7 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should handle tagOutOfPolicy violation when tag does not exist', () => {
+        it('should add a tagOutOfPolicy violation when tag does not exist and policy requires tags', () => {
             // setup test conditions
             policyTags = {};
             // run test
@@ -217,7 +299,7 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should handle tagOutOfPolicy violation when tag is not enabled', () => {
+        it('should add tagOutOfPolicy violation when tag is not enabled and policy requires tags', () => {
             // setup test conditions
             policyRequiresTags = true;
             policyTags = {Lunch: {enabled: false}};
@@ -255,9 +337,44 @@ describe('getViolationsOnyxData', () => {
             // verify results
             expect(result.value).toEqual(transactionViolations);
         });
+
         it('should handle empty string for tag', () => {
             // setup test conditions
             transaction.tag = '';
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'missingTag',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
+        it('should handle null tag', () => {
+            // setup test conditions
+            transaction.tag = null;
+            // run test
+            const result = execute();
+            // verify results
+            expect(result.value).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'missingTag',
+                        type: 'violation',
+                        userMessage: '',
+                    },
+                    ...transactionViolations,
+                ]),
+            );
+        });
+        it('should handle undefined tag', () => {
+            // setup test conditions
+            transaction.tag = undefined;
             // run test
             const result = execute();
             // verify results
