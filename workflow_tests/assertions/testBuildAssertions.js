@@ -365,7 +365,7 @@ const assertPostGithubCommentJobExecuted = (
             'maintain-comment',
             [
                 {key: 'token', value: '***'},
-                {key: 'body-include', value: 'Use the links below to test this build in android and iOS. Happy testing!'},
+                {key: 'body-include', value: 'Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing!'},
                 {key: 'number', value: pullRequestNumber},
                 {key: 'delete', value: true},
             ],

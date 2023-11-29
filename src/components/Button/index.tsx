@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {ForwardedRef, useCallback} from 'react';
 import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
@@ -113,7 +114,6 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
-    isFocused: boolean;
 };
 
 function Button(
@@ -153,7 +153,6 @@ function Button(
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
         isLongPressDisabled = false,
-        isFocused,
 
         id = '',
         accessibilityLabel = '',
@@ -163,6 +162,7 @@ function Button(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
