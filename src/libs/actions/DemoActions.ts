@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -7,17 +6,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-let currentUserEmail;
+let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserEmail = lodashGet(val, 'email', '');
+        currentUserEmail = val?.email ?? '';
     },
 });
 
 function runMoney2020Demo() {
     // Try to navigate to existing demo chat if it exists in Onyx
-    const money2020AccountID = Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_MONEY2020', 15864555));
+    const money2020AccountID = Number(Config.EXPENSIFY_ACCOUNT_ID_MONEY2020 ?? 15864555);
     const existingChatReport = ReportUtils.getChatByParticipants([money2020AccountID]);
     if (existingChatReport) {
         // We must call goBack() to remove the demo route from nav history
@@ -26,12 +25,19 @@ function runMoney2020Demo() {
         return;
     }
 
-    // We use makeRequestWithSideEffects here because we need to get the chat report ID to navigate to it after it's created
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('CreateChatReport', {
+    type CreateChatReportParams = {
+        emailList: string;
+        activationConference: string;
+    };
+
+    const createChatReportParams: CreateChatReportParams = {
         emailList: `${currentUserEmail},money2020@expensify.com`,
         activationConference: 'money2020',
-    }).then((response) => {
+    };
+
+    // We use makeRequestWithSideEffects here because we need to get the chat report ID to navigate to it after it's created
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('CreateChatReport', createChatReportParams).then((response) => {
         // If there's no response or no reportID in the response, navigate the user home so user doesn't get stuck.
         if (!response || !response.reportID) {
             Navigation.goBack();
@@ -50,7 +56,7 @@ function runMoney2020Demo() {
 /**
  * Runs code for specific demos, based on the provided URL
  *
- * @param {String} url - URL user is navigating to via deep link (or regular link in web)
+ * @param url - URL user is navigating to via deep link (or regular link in web)
  */
 function runDemoByURL(url = '') {
     const cleanUrl = (url || '').toLowerCase();
