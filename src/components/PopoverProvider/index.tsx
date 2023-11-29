@@ -93,16 +93,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
         };
     }, [closePopover]);
 
-    React.useEffect(() => {
-        const listener = () => {
-            closePopover();
-        };
-        document.addEventListener('dragenter', listener);
-        return () => {
-            document.removeEventListener('dragenter', listener);
-        };
-    }, [closePopover]);
-
     const onOpen = React.useCallback(
         (popoverParams: AnchorRef) => {
             if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams?.ref) {

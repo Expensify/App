@@ -14,6 +14,7 @@ type DragAndDropParams = {
     dropZone: React.MutableRefObject<HTMLDivElement | View | null>;
     onDrop?: (event: DragEvent) => void;
     shouldAllowDrop?: boolean;
+    shouldClosePopover?: boolean;
     isDisabled?: boolean;
     shouldAcceptDrop?: (event: DragEvent) => boolean;
 };
@@ -25,7 +26,14 @@ type DragAndDropOptions = {
 /**
  * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
+export default function useDragAndDrop({
+    dropZone,
+    onDrop = () => {},
+    shouldAllowDrop = true,
+    isDisabled = false,
+    shouldClosePopover = false,
+    shouldAcceptDrop = () => true,
+}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
@@ -78,7 +86,9 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                 case DRAG_ENTER_EVENT:
                     dragCounter.current++;
                     setDropEffect(event);
-                    closePopover();
+                    if (shouldClosePopover) {
+                        closePopover(); 
+                    }
                     if (isDraggingOver) {
                         return;
                     }
@@ -101,7 +111,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop, closePopover],
+        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop, closePopover, shouldClosePopover],
     );
 
     useEffect(() => {

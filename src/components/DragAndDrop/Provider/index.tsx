@@ -26,6 +26,7 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
         dropZone,
         onDrop: onDropHandler.current,
         shouldAcceptDrop,
+        shouldClosePopover: true,
         isDisabled,
     });
 
