@@ -546,7 +546,7 @@ function ComposerWithSuggestions({
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
