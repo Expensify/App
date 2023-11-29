@@ -49,9 +49,7 @@ const defaultProps = {
 
 function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, style, isActive: initialIsActive, zoomRange}) {
     const [isActive, setIsActive] = useState(initialIsActive);
-
     const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
-
     const imageDimensions = cachedDimensions.get(source);
     const setImageDimensions = (newDimensions) => cachedDimensions.set(source, newDimensions);
 
