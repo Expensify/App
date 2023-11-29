@@ -56,7 +56,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 const endTime = new Date().valueOf();
                 const latency = (endTime - startTime) / 2;
                 const skew = serverTime - startTime + latency;
-                NetworkActions.setTimeSkew(skew);
+                NetworkActions.setTimeSkew(dateHeaderValue ? skew : 0);
             }
             return response;
         })
