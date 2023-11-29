@@ -7,14 +7,14 @@ import {TransactionViolation, ViolationName} from '@src/types/onyx';
  */
 const violationFields: Record<ViolationName, ViolationField> = {
     allTagLevelsRequired: 'tag',
-    autoReportedRejectedExpense: 'amount',
+    autoReportedRejectedExpense: 'merchant',
     billableExpense: 'billable',
     cashExpenseWithNoReceipt: 'receipt',
     categoryOutOfPolicy: 'category',
     conversionSurcharge: 'amount',
-    customUnitOutOfPolicy: 'amount',
+    customUnitOutOfPolicy: 'merchant',
     duplicatedTransaction: 'merchant',
-    fieldRequired: 'category',
+    fieldRequired: 'merchant',
     futureDate: 'date',
     invoiceMarkup: 'amount',
     maxAge: 'date',
