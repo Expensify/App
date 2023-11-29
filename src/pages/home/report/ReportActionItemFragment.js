@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
@@ -94,6 +94,7 @@ const defaultProps = {
 };
 
 function ReportActionItemFragment(props) {
+    const styles = useThemeStyles();
     const fragment = props.fragment;
 
     switch (fragment.type) {

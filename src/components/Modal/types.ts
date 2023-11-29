@@ -64,3 +64,4 @@ type BaseModalProps = WindowDimensionsProps &
     };
 
 export default BaseModalProps;
+export type {PopoverAnchorPosition};

@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -14,19 +13,17 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -37,8 +34,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Styles for the outermost View */
-    // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyles: PropTypes.arrayOf(PropTypes.object),
+    wrapperStyle: stylePropTypes,
 
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
@@ -65,7 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyle: undefined,
     showHeader: true,
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,
@@ -83,6 +79,7 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
+    const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -205,13 +202,13 @@ function ReportActionItemSingle(props) {
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status && status.emojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasEmojiStatus = !displayAllActors && status && status.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
     const statusText = lodashGet(status, 'text', '');
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
-        <View style={props.wrapperStyles}>
+        <View style={[styles.chatItem, props.wrapperStyle]}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -267,11 +264,4 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(ReportActionItemSingle);
+export default withLocalize(ReportActionItemSingle);

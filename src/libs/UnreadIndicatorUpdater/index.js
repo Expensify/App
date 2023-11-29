@@ -5,6 +5,7 @@ import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import updateUnread from './updateUnread/index';
 
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,

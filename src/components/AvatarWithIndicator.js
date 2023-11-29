@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
 import * as Expensicons from './Icon/Expensicons';
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function AvatarWithIndicator(props) {
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>

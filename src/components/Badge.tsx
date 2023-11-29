@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -29,16 +29,17 @@ type BadgeProps = {
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles, textStyles, onPress = () => {}}: BadgeProps) {
+    const styles = useThemeStyles();
     const textColorStyles = success || error ? styles.textWhite : undefined;
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [success, error, environment, badgeStyles],
+        [styles.badge, styles.ml2, success, error, environment, badgeStyles],
     );
 
     return (

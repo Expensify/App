@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -30,9 +31,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,8 +75,11 @@ const defaultProps = {
 };
 
 function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -100,12 +104,13 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
-    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -121,7 +126,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    if (isExpensifyCardTransaction) {
+    if (isCardTransaction) {
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
@@ -173,7 +178,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && Permissions.canUseViolations() && (
+                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
@@ -186,8 +191,8 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditAmount}
+                        shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -267,23 +272,22 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         />
                     </OfflineWithFeedback>
                 )}
-                {isExpensifyCardTransaction && (
+                {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
-                            interactive={canEdit}
                         />
                     </OfflineWithFeedback>
                 )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                        <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                        <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                         />
                     </View>
                 )}
