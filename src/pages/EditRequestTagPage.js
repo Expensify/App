@@ -36,18 +36,23 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
             shouldEnableMaxHeight
             testID={EditRequestTagPage.displayName}
         >
-            <HeaderWithBackButton
-                title={tagName || translate('common.tag')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
-            <TagPicker
-                selectedTag={defaultTag}
-                tag={tagName}
-                policyID={policyID}
-                onSubmit={selectTag}
-                shouldShowDisabledAndSelectedOption
-            />
+            {({insets}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={tagName || translate('common.tag')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
+                    <TagPicker
+                        selectedTag={defaultTag}
+                        tag={tagName}
+                        policyID={policyID}
+                        shouldShowDisabledAndSelectedOption
+                        insets={insets}
+                        onSubmit={selectTag}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }

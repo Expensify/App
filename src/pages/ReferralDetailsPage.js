@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,14 +40,19 @@ const defaultProps = {
 };
 
 function ReferralDetailsPage({route, account}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     let {contentType} = route.params;
 
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     }
+
     const contentHeader = translate(`referralProgram.${contentType}.header`);
-    const contentBody = translate(`referralProgram.${contentType}.body`);
+    const contentBody = translate(`referralProgram.${contentType}.body1`);
+    const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
+    const shouldShowBody2 = isShareCode;
+    const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
 
     function generateReferralURL(email) {
         return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
@@ -80,9 +85,9 @@ function ReferralDetailsPage({route, account}) {
                     width={178}
                     height={232}
                 />
-                <Text style={[styles.textHeadline, styles.mb3, styles.mt8]}>{contentHeader}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8]}>{contentHeader}</Text>
                 <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
-                {contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND && (
+                {shouldShowClipboard && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
                         <CopyTextToClipboard
                             text={translate('referralProgram.copyReferralLink')}
@@ -90,6 +95,11 @@ function ReferralDetailsPage({route, account}) {
                             urlToCopy={generateReferralURL(account.primaryLogin)}
                         />
                     </View>
+                )}
+                {shouldShowBody2 && (
+                    <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>
+                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.body2`)}
+                    </Text>
                 )}
                 <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate('requestorStep.learnMore')}</TextLink>
             </View>
