@@ -125,10 +125,10 @@ function FloatingActionButtonAndPopover(props) {
      */
     const hideCreateMenu = useCallback(
         () => {
-            setIsCreateMenuActive(false);
             if (!isCreateMenuActive) {
                 return;
             }
+            setIsCreateMenuActive(false);
             props.onHideCreateMenu();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
