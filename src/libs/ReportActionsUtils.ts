@@ -183,7 +183,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
 
-    // Mark the first item if shouldMarkTheFirstItem is true
+    // If shouldMarkTheFirstItem is true, label the first reportAction as isNewestReportAction
     if (shouldMarkTheFirstItem && sortedActions?.length > 0) {
         sortedActions[0] = {
             ...sortedActions[0],
