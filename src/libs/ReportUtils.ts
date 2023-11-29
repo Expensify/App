@@ -4175,7 +4175,7 @@ function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): stri
             reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                 ? ' to'
                 : ' from';
-        message += `${preposition} <a href=\"${environmentURL}/r/${reportID}\" target=\"_blank\">${roomName}</a>`;
+        message += `${preposition} <a href="${environmentURL}/r/${reportID}" target="_blank">${roomName}</a>`;
     }
 
     return message;
