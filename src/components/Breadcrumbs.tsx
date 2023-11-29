@@ -28,7 +28,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
             {breadcrumbs.map((breadcrumb, index) => {
-                const key = `${breadcrumb.type}${breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? '' : breadcrumb.text}`;
+                const key = `${breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? CONST.BREADCRUMB_TYPE.ROOT : breadcrumb.text}${index}`;
                 const style = [styles.breadcrumb, breadcrumb.type === CONST.BREADCRUMB_TYPE.STRONG && styles.breadcrumbStrong];
                 const separatorStyle = [style, styles.breadcrumbSeparator];
 
@@ -52,7 +52,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                             <>
                                 {index !== 0 && (
                                     <Text
-                                        key={key}
+                                        key={`${key}-separator`}
                                         style={separatorStyle}
                                     >
                                         /
