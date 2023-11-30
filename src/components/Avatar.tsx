@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import * as StyleUtils from '@styles/StyleUtils';
+import type {AvatarSizeName} from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -18,7 +18,7 @@ type AvatarProps = {
     source?: AvatarSource;
 
     /** Extra styles to pass to Image */
-    imageStyles?: ViewStyle[];
+    imageStyles?: StyleProp<ViewStyle>;
 
     /** Additional styles to pass to Icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -27,7 +27,7 @@ type AvatarProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Set the size of Avatar */
-    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    size?: AvatarSizeName;
 
     /**
      * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'
@@ -49,9 +49,9 @@ type AvatarProps = {
 
 function Avatar({
     source,
-    imageStyles = [],
-    iconAdditionalStyles = [],
-    containerStyles = [],
+    imageStyles,
+    iconAdditionalStyles,
+    containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
     fallbackIcon = Expensicons.FallbackAvatar,
@@ -75,9 +75,8 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
-    const imageStyle = imageStyles?.length ? [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius] : [StyleUtils.getAvatarStyle(size), styles.noBorderRadius];
-
-    const iconStyle = imageStyles?.length ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
+    const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
+    const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
