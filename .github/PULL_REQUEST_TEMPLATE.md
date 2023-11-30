@@ -18,8 +18,8 @@ $ https://github.com/Expensify/App/issues/<issueID(comment)>
 
 Do NOT only link the issue number like this: $ #<issueID>
 --->
-$
-PROPOSAL:
+$ 
+PROPOSAL: 
 
 
 ### Tests
