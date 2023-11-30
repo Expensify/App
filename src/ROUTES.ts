@@ -132,7 +132,7 @@ const ROUTES = {
     },
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
-        getRoute: (backTo?: string) => `${getUrlWithBackToParam('settings/profile/contact-methods/new', backTo)}`,
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
