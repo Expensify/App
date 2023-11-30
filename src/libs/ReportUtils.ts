@@ -1589,7 +1589,7 @@ function hasReimbursableTransactions(iouReportID: string | undefined): boolean {
 }
 
 function isMarkedAsDone(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
