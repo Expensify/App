@@ -50,7 +50,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         }
 
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
-            bankName: bankAccount?.accountData?.additionalData?.bankName ?? '',
+            bankName: bankAccount?.accountData?.additionalData?.bankName,
             isCard: false,
             styles,
         });
@@ -66,7 +66,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank ?? '', isCard: true, styles});
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, styles});
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
