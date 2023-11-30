@@ -7,7 +7,7 @@ import DisplayNamesProps from './types';
 function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldUseFullTitle, displayNamesWithTooltips}: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = fullTitle || translate('common.hidden');
-    
+
     if (!tooltipEnabled) {
         return (
             <DisplayNamesWithoutTooltip
