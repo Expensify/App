@@ -3,13 +3,13 @@ import styles from './styles';
 import {type ThemeColors} from './themes/types';
 import variables from './variables';
 
-const defaultWrapperStyle: (theme: ThemeColors) => ViewStyle = (theme) => ({
+const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
 });
 
-const miniWrapperStyle: (theme: ThemeColors) => ViewStyle[] = (theme) => [
+const getMiniWrapperStyle = (theme: ThemeColors): ViewStyle[] => [
     styles.flexRow,
-    defaultWrapperStyle(theme),
+    getDefaultWrapperStyle(theme),
     {
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
@@ -20,23 +20,21 @@ const miniWrapperStyle: (theme: ThemeColors) => ViewStyle[] = (theme) => [
     },
 ];
 
-const bigWrapperStyle: (theme: ThemeColors) => ViewStyle[] = (theme) => [styles.flexColumn, defaultWrapperStyle(theme)];
-
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
  * @param isMini
  * @param isSmallScreenWidth
+ * @param theme
  */
-function getReportActionContextMenuStyles(theme: ThemeColors, isMini: boolean, isSmallScreenWidth: boolean): ViewStyle[] {
+function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean, theme: ThemeColors): ViewStyle[] {
     if (isMini) {
-        return miniWrapperStyle(theme);
+        return getMiniWrapperStyle(theme);
     }
 
-    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return [
-        ...bigWrapperStyle(theme),
+        styles.flexColumn,
+        getDefaultWrapperStyle(theme),
 
         // Small screens use a bottom-docked modal that already has vertical padding.
         isSmallScreenWidth ? {} : styles.pv3,

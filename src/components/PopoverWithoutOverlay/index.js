@@ -16,12 +16,12 @@ function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
-        theme,
         {
             windowWidth: props.windowWidth,
             windowHeight: props.windowHeight,
             isSmallScreenWidth: false,
         },
+        theme,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,

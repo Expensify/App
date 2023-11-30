@@ -50,10 +50,10 @@ const defaultProps = {
     ...GenericReportActionContextMenuDefaultProps,
 };
 function BaseReportActionContextMenu(props) {
+    const theme = useTheme();
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const theme = useTheme();
-    const wrapperStyle = getReportActionContextMenuStyles(theme, props.isMini, props.isSmallScreenWidth);
+    const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth, theme);
     const {isOffline} = useNetwork();
 
     const reportAction = useMemo(() => {

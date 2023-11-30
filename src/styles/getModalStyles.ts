@@ -38,8 +38,8 @@ type GetModalStyles = {
 
 export default function getModalStyles(
     type: ModalType | undefined,
-    theme: ThemeColors,
     windowDimensions: WindowDimensions,
+    theme: ThemeColors,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},
     outerStyle: ViewStyle = {},
