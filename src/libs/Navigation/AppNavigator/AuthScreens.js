@@ -29,6 +29,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -40,7 +41,6 @@ const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScre
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default;
-const LoadDesktopSignInRedirectPage = () => require('../../../pages/signin/DesktopSignInRedirectPage').default;
 
 let timezone;
 let currentAccountID;
@@ -338,7 +338,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
-                    component={LoadDesktopSignInRedirectPage}
+                    component={DesktopSignInRedirectPage}
                 />
             </RootStack.Navigator>
         </View>
