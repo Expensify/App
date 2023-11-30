@@ -22,7 +22,7 @@ import useCarouselArrows from './useCarouselArrows';
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
