@@ -38,10 +38,10 @@ const propTypes = {
     enablePaymentsRoute: PropTypes.string.isRequired,
 
     /** Should we show the approve button? */
-    shouldShowApproveButton: PropTypes.bool,
+    shouldHidePaymentOptions: PropTypes.bool,
 
     /** Should we show the payment options? */
-    shouldShowPaymentOptions: PropTypes.bool,
+    shouldShowApproveButton: PropTypes.bool,
 
     /** The last payment method used per policy */
     nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
@@ -96,7 +96,7 @@ const defaultProps = {
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
-    shouldShowPaymentOptions: false,
+    shouldHidePaymentOptions: false,
     shouldShowApproveButton: false,
     style: [],
     policyID: '',
@@ -129,8 +129,8 @@ function SettlementButton({
     onPress,
     pressOnEnter,
     policyID,
+    shouldHidePaymentOptions,
     shouldShowApproveButton,
-    shouldShowPaymentOptions,
     style,
 }) {
     const {translate} = useLocalize();
@@ -167,10 +167,10 @@ function SettlementButton({
         };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
-        // TODO: Only show the Approve button if the user cannot pay the request
-        // if (shouldShowApproveButton) {
-        //     return [approveButtonOption];
-        // }
+        // Only show the Approve button if the user cannot pay the request
+        if (shouldHidePaymentOptions && shouldShowApproveButton) {
+            return [approveButtonOption];
+        }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
@@ -192,7 +192,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate, shouldShowPaymentOptions, shouldShowApproveButton]);
+    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
