@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useState} from 'react';
+import React, {forwardRef, useCallback, useContext} from 'react';
 import {FlatList} from 'react-native';
+import {ActionListContext} from '@pages/home/ReportScreenContext';
 
 const propTypes = {
     /** Same as for FlatList */
@@ -32,7 +33,7 @@ const defaultProps = {
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
 function CustomFlatList(props) {
-    const [scrollPosition, setScrollPosition] = useState({});
+    const {scrollPosition, setScrollPosition} = useContext(ActionListContext);
 
     const onScreenFocus = useCallback(() => {
         if (!props.innerRef.current || !scrollPosition.offset) {
