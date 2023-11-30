@@ -1583,12 +1583,12 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
  * Returns number of transactions that are reimbursable
  *
  */
-function hasReimbursableTransactions(iouReportID) {
+function hasReimbursableTransactions(iouReportID: string | undefined): boolean {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.filter(allTransactions, (transaction) => transaction.reimbursable === true).length > 0;
+    return allTransactions.filter((transaction) => transaction.reimbursable === true).length > 0;
 }
 
-function isMarkedAsDone(report) {
+function isMarkedAsDone(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
@@ -1697,7 +1697,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
-    const ownerName = getDisplayNameForParticipant(report.ownerAccountID);
+    const ownerName = getDisplayNameForParticipant(report?.ownerAccountID) ?? '';
     const isDone = isMarkedAsDone(report);
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
@@ -2872,7 +2872,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * Builds an optimistic CLOSED report action with a randomly generated reportActionID for an expense report marked as DONE.
  *
  */
-function buildOptimisticDoneReportAction(amount, currency, expenseReportID) {
+function buildOptimisticDoneReportAction(amount: number, currency: string, expenseReportID: string) {
     const originalMessage = {
         amount,
         currency,
@@ -2883,14 +2883,14 @@ function buildOptimisticDoneReportAction(amount, currency, expenseReportID) {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.CLOSED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
-                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
                 type: 'TEXT',
             },
         ],
