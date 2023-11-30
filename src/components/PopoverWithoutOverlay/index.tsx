@@ -5,6 +5,7 @@ import {PopoverContext} from '@components/PopoverProvider';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 import PopoverWithoutOverlayProps from './types';
@@ -24,6 +25,7 @@ function PopoverWithoutOverlay(
     }: PopoverWithoutOverlayProps,
     ref: ForwardedRef<View>,
 ) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {onOpen, close} = useContext(PopoverContext);
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -35,6 +37,7 @@ function PopoverWithoutOverlay(
             windowHeight,
             isSmallScreenWidth: false,
         },
+        theme,
         anchorPosition,
         innerContainerStyle,
         outerStyle,
