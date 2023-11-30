@@ -39,7 +39,7 @@ type GetModalStyles = {
 export default function getModalStyles(
     type: ModalType | undefined,
     windowDimensions: WindowDimensions,
-    themeColors: ThemeColors,
+    theme: ThemeColors,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},
     outerStyle: ViewStyle = {},
@@ -197,7 +197,7 @@ export default function getModalStyles(
             modalContainerStyle = {
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: themeColors.border,
+                borderColor: theme.border,
                 justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: variables.popoverMenuShadow,
