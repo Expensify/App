@@ -31,7 +31,7 @@ const ViolationsUtils = {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
-            // remove 'categoryOutOfPolicy' violation if category is in policy
+            // Remove 'categoryOutOfPolicy' violation if category is in policy
             if (hasCategoryViolation && transaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
