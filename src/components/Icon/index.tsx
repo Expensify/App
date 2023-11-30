@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
+import withTheme, {ThemeProps} from '@components/withTheme';
 import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
-import withTheme, {ThemeProps} from "@components/withTheme";
 import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
@@ -42,7 +42,8 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-} & ThemeStylesProps & ThemeProps;
+} & ThemeStylesProps &
+    ThemeProps;
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function

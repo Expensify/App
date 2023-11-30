@@ -21,8 +21,8 @@ import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import useTheme from "@styles/themes/useTheme";
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -167,10 +167,7 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined,
-                    ]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined]}
                 />
             );
         }
