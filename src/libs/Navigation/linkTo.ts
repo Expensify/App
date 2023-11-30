@@ -99,7 +99,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
         } else if (isModalNavigator(action.payload.name) && !isTargetNavigatorOnTop) {
             if (isModalNavigator(topRouteName)) {
-                dismissModal();
+                dismissModal('', navigation);
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
         }

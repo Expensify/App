@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {Route} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
-import dismissModal from './dismissModal';
+import originalDismissModal from './dismissModal';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -43,6 +43,9 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
+// Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
+const dismissModal = (targetReportId = '', ref = navigationRef) => originalDismissModal(targetReportId, ref);
+
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -55,7 +58,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in stateOrRoute && stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if ('name' in stateOrRoute && (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR)) {
         return 0;
     }
 
