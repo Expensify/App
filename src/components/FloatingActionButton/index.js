@@ -2,14 +2,14 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import styles from '@styles/styles';
 import FabPlusIcon from './FabPlusIcon';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import Tooltip from './Tooltip/PopoverAnchorTooltip';
-import withTheme, {withThemePropTypes} from './withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
