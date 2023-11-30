@@ -332,7 +332,6 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
             },
         },
         // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
-        // Subsequently, we revert it back to the default value (undefined) in 'successData' to ensure the user is logged out on refresh
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
@@ -342,6 +341,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
         },
     ];
 
+    // Subsequently, we revert it back to the default value of signedInWithShortLivedAuthToken (undefined) in 'successData' to ensure the user is logged out on refresh
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -365,6 +365,13 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: undefined,
             },
         },
     ];
