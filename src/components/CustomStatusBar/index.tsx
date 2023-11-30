@@ -67,7 +67,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     useEffect(() => {
         navigationRef.addListener('state', updateStatusBarStyle);
 
-        return () => navigationRef.removeListener('state', navigationStateListener);
+        return () => navigationRef.removeListener('state', updateStatusBarStyle);
     }, [updateStatusBarStyle]);
 
     useEffect(() => {
