@@ -1,6 +1,7 @@
-import SCREENS from '../../SCREENS';
-import colors from '../colors';
-import type {ThemeDefault} from './types';
+import colors from '@styles/colors';
+import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
+import {ThemeColors} from './types';
 
 const lightTheme = {
     // Figma keys
@@ -16,9 +17,9 @@ const lightTheme = {
     iconSuccessFill: colors.green400,
     iconReversed: colors.lightAppBackground,
     iconColorfulBackground: `${colors.ivory}cc`,
-    textColorfulBackground: colors.ivory,
     textSupporting: colors.lightSupportingText,
     text: colors.lightPrimaryText,
+    textColorfulBackground: colors.ivory,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.lightDefaultButton,
@@ -43,7 +44,7 @@ const lightTheme = {
     hoverComponentBG: colors.lightHighlightBackground,
     activeComponentBG: colors.lightBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.lightAppBackground,
+    sidebar: colors.lightHighlightBackground,
     sidebarHover: colors.lightBorders,
     heading: colors.lightPrimaryText,
     textLight: colors.white,
@@ -83,19 +84,53 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
-    PAGE_BACKGROUND_COLORS: {},
     white: colors.white,
-} satisfies ThemeDefault;
 
-lightTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: lightTheme.sidebar,
-    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
-    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-    [SCREENS.SETTINGS.STATUS]: colors.green700,
-    [SCREENS.SETTINGS.ROOT]: lightTheme.sidebar,
-};
+    // Adding a color here will animate the status bar to the right color when the screen is opened.
+    // Note that it needs to be a screen name, not a route url.
+    // The route urls from ROUTES.ts are only used for deep linking and configuring URLs on web.
+    // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
+    PAGE_THEMES: {
+        [SCREENS.HOME]: {
+            backgroundColor: colors.lightHighlightBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.REPORT]: {
+            backgroundColor: colors.lightAppBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SAVE_THE_WORLD.ROOT]: {
+            backgroundColor: colors.tangerine800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.PREFERENCES]: {
+            backgroundColor: colors.blue500,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.WORKSPACES]: {
+            backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.WALLET]: {
+            backgroundColor: colors.darkAppBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.SECURITY]: {
+            backgroundColor: colors.ice500,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SETTINGS.STATUS]: {
+            backgroundColor: colors.green700,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.ROOT]: {
+            backgroundColor: colors.lightHighlightBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+    },
+
+    statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+    colorScheme: CONST.COLOR_SCHEME.LIGHT,
+} satisfies ThemeColors;
 
 export default lightTheme;

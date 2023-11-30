@@ -1,19 +1,21 @@
-import _ from 'underscore';
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
-import {Dimensions} from 'react-native';
 import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
-import Navigation from '../../libs/Navigation/Navigation';
-import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
-import getClickedTargetLocation from '../../libs/getClickedTargetLocation';
-import * as PaymentUtils from '../../libs/PaymentUtils';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import ONYXKEYS from '../../ONYXKEYS';
-import Log from '../../libs/Log';
-import {propTypes, defaultProps} from './kycWallPropTypes';
-import * as Wallet from '../../libs/actions/Wallet';
-import * as ReportUtils from '../../libs/ReportUtils';
+import React from 'react';
+import {Dimensions} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PaymentUtils from '@libs/PaymentUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Policy from '@userActions/Policy';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {defaultProps, propTypes} from './kycWallPropTypes';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -93,10 +95,19 @@ class KYCWall extends React.Component {
      */
     selectPaymentMethod(paymentMethod) {
         this.props.onSelectPaymentMethod(paymentMethod);
-        if (paymentMethod === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             Navigation.navigate(this.props.addBankAccountRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(this.props.addDebitCardRoute);
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            if (ReportUtils.isIOUReport(this.props.iouReport)) {
+                const policyID = Policy.createWorkspaceFromIOUPayment(this.props.iouReport);
+
+                // Navigate to the bank account set up flow for this specific policy
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+                return;
+            }
+            Navigation.navigate(this.props.addBankAccountRoute);
         }
     }
 
@@ -135,7 +146,7 @@ class KYCWall extends React.Component {
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             if (!this.props.shouldIncludeDebitCard) {
-                this.selectPaymentMethod(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                this.selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                 return;
             }
             const clickedElementLocation = getClickedTargetLocation(targetElement);
@@ -164,6 +175,7 @@ class KYCWall extends React.Component {
             <>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
+                    iouReport={this.props.iouReport}
                     onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
                     anchorRef={this.anchorRef}
                     anchorPosition={{

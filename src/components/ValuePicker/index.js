@@ -1,14 +1,14 @@
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import styles from '../../styles/styles';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import refPropTypes from '@components/refPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
-import FormHelpMessage from '../FormHelpMessage';
-import refPropTypes from '../refPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
 
 const propTypes = {
     /** Form Error description */
@@ -44,6 +44,7 @@ const defaultProps = {
 };
 
 function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
+    const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -80,7 +81,6 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
             </View>
             <ValueSelectorModal
                 isVisible={isPickerVisible}
-                currentValue={selectedLabel || placeholder || ''}
                 label={label}
                 selectedItem={selectedItem}
                 items={items}

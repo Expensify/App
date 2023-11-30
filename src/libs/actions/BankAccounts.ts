@@ -1,16 +1,16 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../CONST';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ErrorUtils from '../ErrorUtils';
-import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
-import type PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
-import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
-import type {OnyxData} from '../../types/onyx/Request';
-import type {BankAccountStep, BankAccountSubStep} from '../../types/onyx/ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,

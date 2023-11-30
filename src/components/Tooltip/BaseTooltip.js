@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import Str from 'expensify-common/lib/str';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
-import Hoverable from '../Hoverable';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {Animated} from 'react-native';
+import _ from 'underscore';
+import Hoverable from '@components/Hoverable';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as tooltipPropTypes from './tooltipPropTypes';
+import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import usePrevious from '../../hooks/usePrevious';
-import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -167,6 +167,16 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         setIsVisible(false);
     }, []);
 
+    const updateTargetPositionOnMouseEnter = useCallback(
+        (e) => {
+            updateTargetAndMousePosition(e);
+            if (children.props.onMouseEnter) {
+                children.props.onMouseEnter(e);
+            }
+        },
+        [children.props, updateTargetAndMousePosition],
+    );
+
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
     if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
@@ -205,7 +215,9 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
                 >
-                    {children}
+                    {React.cloneElement(children, {
+                        onMouseEnter: updateTargetPositionOnMouseEnter,
+                    })}
                 </Hoverable>
             </BoundsObserver>
         </>

@@ -1,15 +1,14 @@
-import React, {Profiler, forwardRef} from 'react';
-import {Alert, InteractionManager} from 'react-native';
-import lodashTransform from 'lodash/transform';
-import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
-import {Performance as RNPerformance, PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
+import isObject from 'lodash/isObject';
+import lodashTransform from 'lodash/transform';
+import React, {forwardRef, Profiler} from 'react';
+import {Alert, InteractionManager} from 'react-native';
+import {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
 import {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
-
-import * as Metrics from './Metrics';
-import getComponentDisplayName from './getComponentDisplayName';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
+import getComponentDisplayName from './getComponentDisplayName';
+import * as Metrics from './Metrics';
 
 type WrappedComponentConfig = {id: string};
 
@@ -27,7 +26,7 @@ type GetPerformanceMetrics = () => PerformanceEntry[];
 type PrintPerformanceMetrics = () => void;
 type MarkStart = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
 type MarkEnd = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
-type MeasureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark: string) => void;
+type MeasureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => void;
 type MeasureTTI = (endMark: string) => void;
 type TraceRender = (id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>) => PerformanceMeasure | void;
 type WithRenderTrace = ({id}: WrappedComponentConfig) => WithRenderTraceHOC | BlankHOC;
@@ -91,7 +90,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
-    Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark: string) => {
+    Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => {
         try {
             rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
         } catch (error) {

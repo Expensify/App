@@ -1,5 +1,5 @@
 import {NativeModules} from 'react-native';
-import Log from '../Log';
+import Log from '@libs/Log';
 
 const BootSplash = NativeModules.BootSplash;
 

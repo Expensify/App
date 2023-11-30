@@ -1,29 +1,29 @@
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import {Linking, AppState} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import lodashGet from 'lodash/get';
-import {subMinutes, format, addSeconds, subSeconds} from 'date-fns';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
+import lodashGet from 'lodash/get';
+import React from 'react';
+import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
 import App from '../../src/App';
+import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import * as TestHelper from '../utils/TestHelper';
-import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/fontWeight/bold';
 import * as AppActions from '../../src/libs/actions/App';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
+import * as User from '../../src/libs/actions/User';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
-import * as User from '../../src/libs/actions/User';
+import * as Localize from '../../src/libs/Localize';
+import LocalNotification from '../../src/libs/Notification/LocalNotification';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import CONFIG from '../../src/CONFIG';
-import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import appSetup from '../../src/setup';
+import fontWeightBold from '../../src/styles/fontWeight/bold';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -78,7 +78,7 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible() {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge.props.style.transform[0].translateY) === 10;
+    return Math.round(badge.props.style.transform[0].translateY) === -40;
 }
 
 /**
@@ -130,7 +130,8 @@ function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
-        .then(() => {
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
             const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
@@ -248,8 +249,12 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            // Navigate to the unread chat from the sidebar
-            .then(() => navigateToSidebarOption(0))
+            .then(() => {
+                // Verify the unread indicator is present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
+            })
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
                 // Then navigate back to the sidebar
@@ -258,8 +263,14 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
+
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
+            })
+            .then(() => {
+                // Sending event to clear the unread indicator cache, given that the test doesn't behave as the app
+                DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING));
+                return waitForBatchedUpdatesWithAct();
             })
             .then(() => {
                 // Verify the unread indicator is not present

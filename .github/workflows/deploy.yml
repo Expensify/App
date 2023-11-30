@@ -10,12 +10,13 @@ jobs:
     if: github.ref == 'refs/heads/staging'
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v4
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -32,13 +33,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/production'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout
         with:
           ref: production
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -50,7 +52,7 @@ jobs:
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/App/.github/actions/javascript/getDeployPullRequestList@main
+        uses: ./.github/actions/javascript/getDeployPullRequestList
         with:
           TAG: ${{ env.PRODUCTION_VERSION }}
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
@@ -58,7 +60,7 @@ jobs:
 
       - name: Generate Release Body
         id: getReleaseBody
-        uses: Expensify/App/.github/actions/javascript/getReleaseBody@main
+        uses: ./.github/actions/javascript/getReleaseBody
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 

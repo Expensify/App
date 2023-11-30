@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import participantPropTypes from '../participantPropTypes';
+import participantPropTypes from '@components/participantPropTypes';
+import {ThreeDotsMenuItemPropTypes} from '@components/ThreeDotsMenu';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
 
 const propTypes = {
     /** Title of the Header */
@@ -93,6 +93,9 @@ const propTypes = {
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution: PropTypes.func,
+
+    /** Whether we should navigate to report page when the route have a topMostReport  */
+    shouldNavigateToTopMostReport: PropTypes.bool,
 };
 
 export default propTypes;

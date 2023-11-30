@@ -1,6 +1,6 @@
 import {NativeSyntheticEvent} from 'react-native';
-import * as Browser from '../Browser';
-import CONST from '../../CONST';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 
 /**
  * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).

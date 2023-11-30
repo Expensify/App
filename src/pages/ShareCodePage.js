@@ -1,28 +1,28 @@
-import React from 'react';
-import {View, ScrollView} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import QRShareWithDownload from '../components/QRShare/QRShareWithDownload';
-import compose from '../libs/compose';
+import React from 'react';
+import {ScrollView, View} from 'react-native';
+import _ from 'underscore';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import ContextMenuItem from '@components/ContextMenuItem';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withEnvironment from '@components/withEnvironment';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import Clipboard from '@libs/Clipboard';
+import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Url from '@libs/Url';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import reportPropTypes from './reportPropTypes';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
-import styles from '../styles/styles';
-import expensifyLogo from '../../assets/images/expensify-logo-round-transparent.png';
-import * as ReportUtils from '../libs/ReportUtils';
-import MenuItem from '../components/MenuItem';
-import Clipboard from '../libs/Clipboard';
-import * as Expensicons from '../components/Icon/Expensicons';
-import getPlatform from '../libs/getPlatform';
-import CONST from '../CONST';
-import ContextMenuItem from '../components/ContextMenuItem';
-import * as UserUtils from '../libs/UserUtils';
-import ROUTES from '../ROUTES';
-import withEnvironment from '../components/withEnvironment';
-import * as Url from '../libs/Url';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -33,6 +33,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -83,8 +84,8 @@ class ShareCodePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
-                <ScrollView style={[styles.flex1, styles.mt3]}>
-                    <View style={styles.shareCodePage}>
+                <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
+                    <View style={this.props.themeStyles.shareCodePage}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
@@ -107,6 +108,12 @@ class ShareCodePage extends React.Component {
                             onPress={() => Clipboard.setString(url)}
                         />
 
+                        <MenuItem
+                            title={this.props.translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                            icon={Expensicons.Cash}
+                            onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
+                        />
+
                         {isNative && (
                             <MenuItem
                                 isAnonymousAction
@@ -127,4 +134,4 @@ ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
+export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails, withThemeStyles)(ShareCodePage);

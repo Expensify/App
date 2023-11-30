@@ -1,7 +1,7 @@
-import React from 'react';
 import _ from 'lodash';
+import React from 'react';
+import Text from '@components/Text';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
-import Text from '../Text';
 
 function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;

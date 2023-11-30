@@ -1,27 +1,26 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import Permissions from '../../libs/Permissions';
-import ROUTES from '../../ROUTES';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
-import MenuItem from '../../components/MenuItem';
-import reportPropTypes from '../reportPropTypes';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Task from '@userActions/Task';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Task Creation Data */
@@ -32,9 +31,6 @@ const propTypes = {
         description: PropTypes.string,
         parentReportID: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(
@@ -57,13 +53,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
     personalDetails: {},
     reports: {},
 };
 
 function NewTaskPage(props) {
+    const styles = useThemeStyles();
     const [assignee, setAssignee] = useState({});
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), false);
     const [shareDestination, setShareDestination] = useState({});
@@ -139,11 +135,6 @@ function NewTaskPage(props) {
         );
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -162,7 +153,14 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    // on iOS, navigation animation sometimes cause the scrollbar to appear
+                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
+                    // See: https://github.com/Expensify/App/issues/31441
+                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
+                >
                     <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
@@ -223,9 +221,6 @@ NewTaskPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

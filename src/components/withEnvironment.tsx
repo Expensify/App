@@ -1,8 +1,8 @@
-import React, {ComponentType, RefAttributes, ReactNode, ForwardedRef, ReactElement, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactElement, ReactNode, RefAttributes, useContext, useEffect, useMemo, useState} from 'react';
 import {ValueOf} from 'type-fest';
-import * as Environment from '../libs/Environment/Environment';
-import CONST from '../CONST';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import * as Environment from '@libs/Environment/Environment';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import CONST from '@src/CONST';
 
 type EnvironmentProviderProps = {
     /** Actual content wrapped by this component */
@@ -19,7 +19,10 @@ type EnvironmentContextValue = {
     environmentURL: string;
 };
 
-const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
+const EnvironmentContext = createContext<EnvironmentContextValue>({
+    environment: CONST.ENVIRONMENT.PRODUCTION,
+    environmentURL: CONST.NEW_EXPENSIFY_URL,
+});
 
 function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement {
     const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
@@ -47,7 +50,7 @@ export default function withEnvironment<TProps extends EnvironmentContextValue, 
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): (props: Omit<TProps, keyof EnvironmentContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
     function WithEnvironment(props: Omit<TProps, keyof EnvironmentContextValue>, ref: ForwardedRef<TRef>): ReactElement {
-        const {environment, environmentURL} = useContext(EnvironmentContext) ?? {};
+        const {environment, environmentURL} = useContext(EnvironmentContext);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading

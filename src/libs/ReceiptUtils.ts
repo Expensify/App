@@ -1,18 +1,19 @@
 import Str from 'expensify-common/lib/str';
 import {ImageSourcePropType} from 'react-native';
+import ReceiptDoc from '@assets/images/receipt-doc.png';
+import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import ReceiptHTML from '@assets/images/receipt-html.png';
+import ReceiptSVG from '@assets/images/receipt-svg.png';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
-import CONST from '../CONST';
-import ReceiptHTML from '../../assets/images/receipt-html.png';
-import ReceiptDoc from '../../assets/images/receipt-doc.png';
-import ReceiptGeneric from '../../assets/images/receipt-generic.png';
-import ReceiptSVG from '../../assets/images/receipt-svg.png';
-import {Transaction} from '../types/onyx';
-import ROUTES from '../ROUTES';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
-    thumbnail: string | null;
+    thumbnail: ImageSourcePropType | string | null;
     transaction?: Transaction;
+    isLocalFile?: boolean;
 };
 
 type FileNameAndExtension = {
@@ -36,17 +37,19 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     const hasEReceipt = transaction?.hasEReceipt;
 
-    if (hasEReceipt) {
-        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
-    }
+    if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+        if (hasEReceipt) {
+            return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+        }
 
-    // For local files, we won't have a thumbnail yet
-    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {thumbnail: null, image: path};
-    }
+        // For local files, we won't have a thumbnail yet
+        if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
+            return {thumbnail: null, image: path};
+        }
 
-    if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path};
+        if (isReceiptImage) {
+            return {thumbnail: `${path}.1024.jpg`, image: path};
+        }
     }
 
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;
@@ -63,7 +66,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    return {thumbnail: null, image};
+    return {thumbnail: image, image: path, isLocalFile: true};
 }
 
 // eslint-disable-next-line import/prefer-default-export

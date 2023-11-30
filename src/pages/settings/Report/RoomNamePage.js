@@ -1,26 +1,26 @@
-import React, {useCallback, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import reportPropTypes from '../../reportPropTypes';
-import ROUTES from '../../../ROUTES';
-import * as Report from '../../../libs/actions/Report';
-import RoomNameInput from '../../../components/RoomNameInput';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormProvider from '@components/Form/FormProvider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -42,12 +42,8 @@ const defaultProps = {
     policy: {},
 };
 
-function RoomNamePage(props) {
-    const policy = props.policy;
-    const report = props.report;
-    const reports = props.reports;
-    const translate = props.translate;
-
+function RoomNamePage({policy, report, reports, translate}) {
+    const styles = useThemeStyles();
     const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
@@ -90,7 +86,7 @@ function RoomNamePage(props) {
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
@@ -100,13 +96,14 @@ function RoomNamePage(props) {
                 >
                     <View style={styles.mb4}>
                         <RoomNameInput
-                            ref={(ref) => (roomNameInputRef.current = ref)}
+                            ref={roomNameInputRef}
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
+                            roomName={report.reportName.slice(1)}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

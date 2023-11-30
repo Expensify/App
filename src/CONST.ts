@@ -50,6 +50,9 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
     AUTO_AUTH_STATE: {
@@ -144,7 +147,6 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
@@ -216,9 +218,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -247,19 +248,10 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_TAGS: 'newDotTags',
-        NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -466,9 +458,8 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
-    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -504,6 +495,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
@@ -564,6 +556,7 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -607,6 +600,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPEN: 'OPEN',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },
@@ -704,6 +698,14 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
+    },
+    COLOR_SCHEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
@@ -866,14 +868,19 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
+    },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
         URL: 'url',
-        DEFAULT: 'default',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -884,6 +891,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1112,7 +1120,8 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
@@ -1155,6 +1164,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {
@@ -1201,7 +1211,11 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+
+            // Often referred to as "control" workspaces
             CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
         ROLE: {
@@ -1312,6 +1326,7 @@ const CONST = {
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
@@ -1327,6 +1342,8 @@ const CONST = {
 
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
+        FIRST_SPACE: /.+?(?=\s)/,
+
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
@@ -1341,11 +1358,6 @@ const CONST = {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
         },
 
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        get MENTION_REPLACER() {
-            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
-        },
-
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
         ROUTES: {
@@ -1356,10 +1368,13 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -1479,7 +1494,6 @@ const CONST = {
         RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
-        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
         TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
@@ -2695,13 +2709,13 @@ const CONST = {
         BUTTON: 'button',
         LINK: 'link',
         MENUITEM: 'menuitem',
-        TEXT: 'text',
+        TEXT: 'presentation',
         RADIO: 'radio',
-        IMAGEBUTTON: 'imagebutton',
+        IMAGEBUTTON: 'img button',
         CHECKBOX: 'checkbox',
         SWITCH: 'switch',
-        ADJUSTABLE: 'adjustable',
-        IMAGE: 'image',
+        ADJUSTABLE: 'slider',
+        IMAGE: 'img',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -2772,12 +2786,10 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
-
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
-
     EVENTS: {
         SCROLLING: 'scrolling',
     },
@@ -2796,13 +2808,6 @@ const CONST = {
         FOOTER: 'footer',
     },
 
-    GLOBAL_NAVIGATION_OPTION: {
-        HOME: 'home',
-        CHATS: 'chats',
-        SPEND: 'spend',
-        WORKSPACES: 'workspaces',
-    },
-
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
     SEARCH_MAX_LENGTH: 500,
 
@@ -2810,6 +2815,76 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
 } as const;
 
 export default CONST;

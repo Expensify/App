@@ -1,12 +1,12 @@
-import Onyx from 'react-native-onyx';
 import NetInfo from '@react-native-community/netinfo';
 import throttle from 'lodash/throttle';
+import Onyx from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
-import * as NetworkActions from './actions/Network';
-import CONFIG from '../CONFIG';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;

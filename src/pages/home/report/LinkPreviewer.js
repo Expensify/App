@@ -1,14 +1,14 @@
-import React from 'react';
-import {View, Image} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {uniqBy} from 'lodash';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {Image, View} from 'react-native';
+import _ from 'underscore';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_HEIGHT = 180;
@@ -66,6 +66,8 @@ const defaultProps = {
 };
 
 function LinkPreviewer(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {
@@ -99,7 +101,7 @@ function LinkPreviewer(props) {
                         {!_.isEmpty(title) && (
                             <TextLink
                                 fontSize={variables.fontSizeNormal}
-                                style={[styles.mv2, StyleUtils.getTextColorStyle(themeColors.link), styles.alignSelfStart]}
+                                style={[styles.mv2, StyleUtils.getTextColorStyle(theme.link), styles.alignSelfStart]}
                                 href={url}
                             >
                                 {title}
