@@ -139,6 +139,7 @@ type Report = {
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
+    privateNotes?: Record<string, {note: string}>;
 };
 
 export default Report;
