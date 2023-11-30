@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
@@ -102,7 +102,7 @@ function LoginForm(props) {
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
-    const navigation = useNavigation();
+    const isFocusedLocal = useIsFocused();
 
     const {translate} = props;
 
@@ -209,7 +209,7 @@ function LoginForm(props) {
         if (props.isFocused && props.isVisible) {
             Session.clearAccountMessages();
         }
-        if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible || !navigation.isFocused()) {
+        if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible || !isFocusedLocal) {
             return;
         }
         let focusTimeout;
