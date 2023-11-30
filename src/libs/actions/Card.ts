@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Response} from '@src/types/onyx';
 
+type Reason = 'damaged' | 'stolen';
+
 function reportVirtualExpensifyCardFraud(cardID: number) {
     type ReportVirtualExpensifyCardFraudParams = {
         cardID: number;
@@ -48,9 +50,9 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
 /**
  * Call the API to deactivate the card and request a new one
  * @param cardId - id of the card that is going to be replaced
- * @param reason - reason for replacement ('damaged' | 'stolen')
+ * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardId: number, reason: string) {
+function requestReplacementExpensifyCard(cardId: number, reason: Reason) {
     type RequestReplacementExpensifyCardParams = {
         cardId: number;
         reason: string;

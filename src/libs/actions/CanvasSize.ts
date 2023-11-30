@@ -11,7 +11,7 @@ function retrieveMaxCanvasArea() {
     // More information at: https://github.com/jhildenbiddle/canvas-size/issues/13
     canvasSize
         .maxArea({
-            max: Browser.isMobile() ? 8192 : null,
+            max: Browser.isMobile() ? 8192 : undefined,
             usePromise: true,
             useWorker: false,
         })
@@ -27,7 +27,7 @@ function retrieveMaxCanvasArea() {
  */
 function retrieveMaxCanvasHeight() {
     canvasSize.maxHeight({
-        onSuccess: (width: number, height: number) => {
+        onSuccess: (width, height) => {
             Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, height);
         },
     });
@@ -38,7 +38,7 @@ function retrieveMaxCanvasHeight() {
  */
 function retrieveMaxCanvasWidth() {
     canvasSize.maxWidth({
-        onSuccess: (width: number) => {
+        onSuccess: (width) => {
             Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, width);
         },
     });
