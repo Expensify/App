@@ -2,10 +2,10 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import * as StyleUtils from '@styles/StyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
-import MultiGestureCanvasContentWrapper from './MultiGestureCanvas/MultiGestureCanvasContentWrapper';
 import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
 
 const cachedDimensions = new Map();
@@ -158,7 +158,10 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
                     {/* Keep rendering the image without gestures as fallback while ImageLightbox is loading the image */}
                     {isFallbackVisible && (
-                        <MultiGestureCanvasContentWrapper>
+                        <View
+                            collapsable={false}
+                            style={StyleUtils.getFullscreenCenteredContentStyles}
+                        >
                             <Image
                                 source={{uri: source}}
                                 isAuthTokenRequired={isAuthTokenRequired}
@@ -196,7 +199,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                         : {width: imageDimensions.contentScaling.scaledWidth, height: imageDimensions.contentScaling.scaledHeight}
                                 }
                             />
-                        </MultiGestureCanvasContentWrapper>
+                        </View>
                     )}
 
                     {/* Show activity indicator while ImageLightbox is still loading the image. */}

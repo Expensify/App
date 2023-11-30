@@ -14,9 +14,9 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Constants from './Constants';
-import MultiGestureCanvasContentWrapper from './MultiGestureCanvasContentWrapper';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
 const DOUBLE_TAP_SCALE = 3;
@@ -581,14 +581,17 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             ]}
         >
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, doubleTap, Gesture.Race(pinchGesture, singleTap, panGesture))}>
-                <MultiGestureCanvasContentWrapper>
+                <View
+                    collapsable={false}
+                    style={StyleUtils.getFullscreenCenteredContentStyles}
+                >
                     <Animated.View
                         collapsable={false}
                         style={animatedStyles}
                     >
                         {children}
                     </Animated.View>
-                </MultiGestureCanvasContentWrapper>
+                </View>
             </GestureDetector>
         </View>
     );

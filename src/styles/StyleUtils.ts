@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import styles from './styles';
+import styles, {ThemeStyle} from './styles';
 import themeColors from './themes/default';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
@@ -1390,6 +1390,10 @@ function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
+function getFullscreenCenteredContentStyles(themeStyles: ThemeStyle) {
+    return [StyleSheet.absoluteFill, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter];
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1474,4 +1478,5 @@ export {
     getContainerStyles,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getFullscreenCenteredContentStyles,
 };
