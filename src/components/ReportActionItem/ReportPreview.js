@@ -204,7 +204,7 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
     const shouldShowPayButton = ReportUtils.isGroupPolicyExpenseChat(props.chatReport)
-        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && !iouSettled && !iouCanceled
+        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && isApproved && !iouSettled && !iouCanceled
         : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
     const shouldShowApproveButton = useMemo(() => {
         if (!_.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType)) {
