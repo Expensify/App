@@ -5,7 +5,7 @@ type HoverableProps = {
     children: ((isHovered: boolean) => ReactElement & RefAttributes<HTMLElement>) | (ReactElement & RefAttributes<HTMLElement>);
 
     /** Whether to disable the hover action */
-    disabled?: boolean;
+    isDisabled?: boolean;
 
     /** Function that executes when the mouse moves over the children. */
     onHoverIn?: () => void;
