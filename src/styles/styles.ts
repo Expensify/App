@@ -3351,7 +3351,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            color: theme.text,
+            color: theme.textColorfulBackground,
         },
 
         eReceiptWaypointTitle: {
