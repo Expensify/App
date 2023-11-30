@@ -62,7 +62,7 @@ function BaseListItem({
                         <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(20),
+                                    StyleUtils.getCheckboxContainerStyle(20, theme),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,
