@@ -15,6 +15,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +34,7 @@ const propTypes = {
 
 function MentionUserRenderer(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
     const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');
@@ -79,7 +81,7 @@ function MentionUserRenderer(props) {
                         }}
                     >
                         <Text
-                            style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(theme, isOurMention), {color: StyleUtils.getMentionTextColor(theme, isOurMention)}]}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             testID="span"
                             href={`/${navigationRoute}`}
