@@ -77,7 +77,6 @@ function closeAccount(message) {
  * Resends a validation link to a given login
  *
  * @param {String} login
- * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login) {
     Session.resendValidateCode(login);
