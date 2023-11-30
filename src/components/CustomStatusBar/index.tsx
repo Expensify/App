@@ -42,7 +42,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
         };
     }, [disableRootStatusBar, isNested]);
 
-    const navigationStateListener = useCallback<EventListenerCallback<NavigationContainerEventMap, 'state'>>(() => {
+    const updateStatusBarStyle = useCallback<EventListenerCallback<NavigationContainerEventMap, 'state'>>(() => {
         if (isDisabled) {
             return;
         }
