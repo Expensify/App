@@ -233,8 +233,8 @@ function BaseSelectionList({
     };
 
     const selectFocusedOption = (e) => {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-key-for-list', 'value']);
-        const focusedOption = focusedItemKey ? flattenedSections.allOptions.find((option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedOption = focusedItemKey ? _.find(flattenedSections.allOptions, (option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
             return;
@@ -311,6 +311,7 @@ function BaseSelectionList({
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                keyForList={item.keyForList}
             />
         );
     };
