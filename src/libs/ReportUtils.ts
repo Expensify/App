@@ -654,14 +654,17 @@ function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
     return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
+/** Wether the provided report belongs to a Control policy
+ */
+function isGroupPolicy(report: OnyxEntry<Report>): boolean {
+    const policyType = getPolicyType(report, allPolicies);
+    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
+}
+
 /** Wether the provided report belongs to a Control or Collect policy and is an expense chat
  */
 function isGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    const policyType = getPolicyType(report, allPolicies);
-    if (policyType !== CONST.POLICY.TYPE.CORPORATE && policyType !== CONST.POLICY.TYPE.TEAM) {
-        return false;
-    }
-    return isPolicyExpenseChat(report);
+    return isPolicyExpenseChat(report) && isGroupPolicy(report);
 }
 
 /** Wether the provided report belongs to a Control policy and is an expense report
@@ -673,11 +676,7 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 /** Wether the provided report belongs to a Control or Collect policy and is an expense report
  */
 function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    const policyType = getPolicyType(report, allPolicies);
-    if (policyType !== CONST.POLICY.TYPE.CORPORATE && policyType !== CONST.POLICY.TYPE.TEAM) {
-        return false;
-    }
-    return isExpenseReport(report);
+    return isExpenseReport(report) && isGroupPolicy(report);
 }
 
 /**
