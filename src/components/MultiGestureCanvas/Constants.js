@@ -1,7 +1,11 @@
-const DEFAULT_MIN_ZOOM_SCALE = 1;
-const DEFAULT_MAX_ZOOM_SCALE = 20;
+const defaultZoomRange = {
+    min: 1,
+    max: 20,
+};
 
-const MIN_ZOOM_SCALE_BOUNCE = 0.7;
-const MAX_ZOOM_SCALE_BOUNCE = 1.5;
+const zoomScaleBounceFactors = {
+    min: 0.7,
+    max: 1.5,
+};
 
-export {DEFAULT_MIN_ZOOM_SCALE, DEFAULT_MAX_ZOOM_SCALE, MIN_ZOOM_SCALE_BOUNCE, MAX_ZOOM_SCALE_BOUNCE};
+export {defaultZoomRange, zoomScaleBounceFactors};

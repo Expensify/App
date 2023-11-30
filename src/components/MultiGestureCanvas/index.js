@@ -49,8 +49,8 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, contentScaling:
     };
 
     const zoomRange = {
-        min: zoomRangeProp.min == null ? Constants.DEFAULT_MIN_ZOOM_SCALE : zoomRangeProp.min,
-        max: zoomRangeProp.max == null ? Constants.DEFAULT_MAX_ZOOM_SCALE : zoomRangeProp.max,
+        min: zoomRangeProp.min == null ? Constants.defaultZoomRange.min : zoomRangeProp.min,
+        max: zoomRangeProp.max == null ? Constants.defaultZoomRange.max : zoomRangeProp.max,
     };
 
     return {contentSize, contentScaling, zoomRange};
@@ -470,7 +470,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         .onChange((evt) => {
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
-            if (zoomScale.value >= zoomRange.min * Constants.MIN_ZOOM_SCALE_BOUNCE && zoomScale.value <= zoomRange.max * Constants.MAX_ZOOM_SCALE_BOUNCE) {
+            if (zoomScale.value >= zoomRange.min * Constants.zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * Constants.zoomScaleBounceFactors.max) {
                 zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
@@ -583,7 +583,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, doubleTap, Gesture.Race(pinchGesture, singleTap, panGesture))}>
                 <View
                     collapsable={false}
-                    style={StyleUtils.getFullscreenCenteredContentStyles}
+                    style={StyleUtils.getFullscreenCenteredContentStyles(styles)}
                 >
                     <Animated.View
                         collapsable={false}
