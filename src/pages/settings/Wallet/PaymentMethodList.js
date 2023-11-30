@@ -266,7 +266,7 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+                iconFill: isMethodActive ? StyleUtils.getIconFillColor(theme, CONST.BUTTON_STATES.PRESSED) : null,
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(theme, CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };

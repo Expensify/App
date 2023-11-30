@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 
@@ -30,6 +31,7 @@ const defaultProps = {
 };
 
 function EmojiPickerButton(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const emojiPopoverAnchor = useRef(null);
 
@@ -54,7 +56,7 @@ function EmojiPickerButton(props) {
                 {({hovered, pressed}) => (
                     <Icon
                         src={Expensicons.Emoji}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                        fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed))}
                     />
                 )}
             </PressableWithoutFeedback>

@@ -551,20 +551,20 @@ function getButtonBackgroundColorStyle(theme: ThemeColors, buttonState: ButtonSt
  * @param buttonState - One of {'default', 'hovered', 'pressed'}
  * @param isMenuIcon - whether this icon is apart of a list
  */
-function getIconFillColor(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string {
+function getIconFillColor(theme: ThemeColors, buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.iconHovered;
+            return theme.iconHovered;
         case CONST.BUTTON_STATES.COMPLETE:
-            return themeColors.iconSuccessFill;
+            return theme.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
             if (isMenuIcon) {
-                return themeColors.iconMenu;
+                return theme.iconMenu;
             }
-            return themeColors.icon;
+            return theme.icon;
     }
 }
 
