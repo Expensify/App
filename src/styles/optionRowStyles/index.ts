@@ -1,7 +1,6 @@
-import OptionRowStyles from './types';
-import styles from '../styles';
+import CompactContentContainerStyles from './types';
 
-const compactContentContainerStyles: OptionRowStyles = styles.alignItemsBaseline;
+const compactContentContainerStyles: CompactContentContainerStyles = (styles) => styles.alignItemsBaseline;
 
 export {
     // eslint-disable-next-line import/prefer-default-export

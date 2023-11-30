@@ -1,15 +1,12 @@
-import {useEffect} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as ReportUtils from '../../ReportUtils';
-import reportPropTypes from '../../../pages/reportPropTypes';
-import {withNavigationPropTypes} from '../../../components/withNavigation';
-import * as App from '../../actions/App';
-import usePermissions from '../../../hooks/usePermissions';
-import CONST from '../../../CONST';
-import Navigation from '../Navigation';
+import usePermissions from '@hooks/usePermissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as App from '@userActions/App';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -40,7 +37,10 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...withNavigationPropTypes,
+    /* Navigation functions provided by React Navigation */
+    navigation: PropTypes.shape({
+        setParams: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -60,16 +60,7 @@ const defaultProps = {
  * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
-    // If deeplink url is of an attachment, we should show the report that the attachment comes from.
-    const currentRoute = Navigation.getActiveRoute();
-    const matches = CONST.REGEX.ATTACHMENT_ROUTE.exec(currentRoute);
-    const reportID = lodashGet(matches, 1, null);
-    if (reportID) {
-        return reportID;
-    }
-
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
-
     return lodashGet(lastReport, 'reportID');
 };
 

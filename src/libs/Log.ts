@@ -1,12 +1,13 @@
 // Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
+
 /* eslint-disable rulesdir/no-api-in-views */
-import {Merge} from 'type-fest';
 import Logger from 'expensify-common/lib/Logger';
-import getPlatform from './getPlatform';
+import {Merge} from 'type-fest';
 import pkg from '../../package.json';
-import requireParameters from './requireParameters';
+import getPlatform from './getPlatform';
 import * as Network from './Network';
+import requireParameters from './requireParameters';
 
 let timeout: NodeJS.Timeout;
 

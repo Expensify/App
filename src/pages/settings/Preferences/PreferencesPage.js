@@ -1,24 +1,24 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import Text from '../../../components/Text';
-import CONST from '../../../CONST';
-import * as User from '../../../libs/actions/User';
-import Switch from '../../../components/Switch';
-import TestToolMenu from '../../../components/TestToolMenu';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import SCREENS from '../../../SCREENS';
-import useEnvironment from '../../../hooks/useEnvironment';
-import useLocalize from '../../../hooks/useLocalize';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Switch from '@components/Switch';
+import TestToolMenu from '@components/TestToolMenu';
+import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The chat priority mode */
@@ -37,6 +37,8 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
 
@@ -44,7 +46,7 @@ function PreferencesPage(props) {
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={styles.mb6}>

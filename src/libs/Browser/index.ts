@@ -1,22 +1,15 @@
-function getBrowser() {
-    return '';
-}
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
 
-function isMobile() {
-    return false;
-}
+const getBrowser: GetBrowser = () => '';
 
-function isMobileSafari() {
-    return false;
-}
-function isMobileChrome() {
-    return false;
-}
+const isMobile: IsMobile = () => false;
 
-function isSafari() {
-    return false;
-}
+const isMobileSafari: IsMobileSafari = () => false;
 
-function openRouteInDesktopApp() {}
+const isMobileChrome: IsMobileChrome = () => false;
+
+const isSafari: IsSafari = () => false;
+
+const openRouteInDesktopApp: OpenRouteInDesktopApp = () => {};
 
 export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};
