@@ -2,13 +2,9 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import compose from '@libs/compose';
-import Permissions from '@libs/Permissions';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as Session from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 import SignInButton from './SignInButton';
@@ -19,22 +15,17 @@ const propTypes = {
 
     /** Whether the create menu is open or not */
     isCreateMenuOpen: PropTypes.bool,
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    betas: [],
     isCreateMenuOpen: false,
     currentUserPersonalDetails: {
         status: {emojiCode: ''},
     },
 };
 
-function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateMenuOpen, betas}) {
-    const statusEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
-    const emojiStatus = Permissions.canUseCustomStatus(betas) ? statusEmojiCode : '';
+function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateMenuOpen}) {
+    const emojiStatus = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
 
     if (Session.isAnonymousUser()) {
         return <SignInButton />;
@@ -53,11 +44,4 @@ function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateM
 SignInOrAvatarWithOptionalStatus.propTypes = propTypes;
 SignInOrAvatarWithOptionalStatus.defaultProps = defaultProps;
 SignInOrAvatarWithOptionalStatus.displayName = 'SignInOrAvatarWithOptionalStatus';
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(SignInOrAvatarWithOptionalStatus);
+export default withCurrentUserPersonalDetails(SignInOrAvatarWithOptionalStatus);
