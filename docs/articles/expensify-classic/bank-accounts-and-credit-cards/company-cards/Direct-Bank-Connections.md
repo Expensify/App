@@ -64,7 +64,13 @@ If you're using a connected accounting system such as NetSuite, Xero, Sage Intac
 ![Expensify domain cards settings](https://help.expensify.com/assets/images/ExpensifyHelp_UnassignCard-1.png){:width="100%"}
 
 
-You can access the remaining company card settings by navigating to **Settings > Domains > _Domain Name_ > Company Cards > Settings.**  More information on card settings can be found by searching **“How to configure company card settings”**. 
+You can access the remaining company card settings by navigating to **Settings > Domains > _Domain Name_ > Company Cards > Settings.**
+
+## Connecting multiple card programs to the same domain
+
+If you need to connect a separate card program from the same bank (that's accessed via a different set of login credentials), when you try to import it by clicking **Import Card/Bank**, the connection to your previous card is disconnected. 
+
+To fix this, you would need to contact your bank and request to combine all of your cards under a single set of login credentials. That way, you can connect all of your cards from that bank to Expensify using a single set of login credentials. 
 
 # FAQ
 ## How can I connect and manage my company’s cards centrally if I’m not a domain admin?
