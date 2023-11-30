@@ -42,7 +42,7 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
-import TransactionViolation from './TransactionViolation';
+import {TransactionViolation, TransactionViolations} from './TransactionViolation';
 import User from './User';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
@@ -105,6 +105,7 @@ export type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserWallet,
     WalletAdditionalDetails,

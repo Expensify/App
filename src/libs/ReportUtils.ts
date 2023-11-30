@@ -16,9 +16,9 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import OriginalMessage, {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -402,7 +402,7 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-const transactionViolations: OnyxCollection<TransactionViolation[]> = {};
+const transactionViolations: OnyxCollection<TransactionViolations> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (violations, key) => {
@@ -3400,13 +3400,23 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
+/**
+ *
+ *  Check if there are any violations belonging to the transaction in the transactionsViolations Onyx object
+ *  then checks that the violation is of the proper type
+ */
 function transactionHasViolation(transactionID: string): boolean {
-    const violations = transactionViolations ? transactionViolations[transactionID]?.values : [];
+    const violations = transactionViolations ? transactionViolations[transactionID]?.value : [];
     if (!violations) {
         return false;
     }
     return violations.some((violation: TransactionViolation) => violation.type === 'violation');
 }
+
+/**
+ *  Checks to see if a report's parentAction is a money request that contains a violation
+ *  This only pertains to report's that a user submitted and if it is open or processing
+ */
 
 function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean {
     if (!Permissions.canUseViolations(betas) || !reportActions) {
@@ -3430,9 +3440,15 @@ function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean 
     if (!isCurrentUserSubmitter(reportID)) {
         return false;
     }
+    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
+        return false;
+    }
     return transactionHasViolation(transactionID);
 }
 
+/**
+ *  Checks to see if a report contains a violation
+ */
 function reportHasViolations(reportID: string): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions.some((transaction) => transactionHasViolation(transaction.transactionID));
