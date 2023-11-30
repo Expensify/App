@@ -21,7 +21,7 @@ import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeColors} from './themes/types';
+import {type ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
