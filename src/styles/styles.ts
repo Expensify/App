@@ -1150,7 +1150,7 @@ const styles = (theme: ThemeColors) =>
         textReceiptUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -1158,7 +1158,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
-            color: theme.textLight,
+            color: theme.text,
         },
 
         furtherDetailsText: {
