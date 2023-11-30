@@ -586,7 +586,7 @@ const styles = (theme: ThemeColors) =>
         buttonDivider: {
             height: variables.dropDownButtonDividerHeight,
             borderWidth: 0.7,
-            borderColor: theme.text,
+            borderColor: theme.textLight,
         },
 
         noBorderRadius: {
