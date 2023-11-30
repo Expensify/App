@@ -6,6 +6,8 @@ import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as CollectionUtils from './CollectionUtils';
@@ -410,6 +412,8 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+    } else if (ReportActionsUtils.isCreatedTaskReportAction(lastReportAction)) {
+        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }

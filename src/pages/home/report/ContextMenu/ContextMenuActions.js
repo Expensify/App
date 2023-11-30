@@ -281,8 +281,8 @@ export default [
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
-                    const taskTitle = TaskUtils.getTaskTitle(reportAction.childReportID, reportAction.childReportName);
-                    Clipboard.setString(`task for ${taskTitle}`);
+                    const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
+                    Clipboard.setString(taskPreviewMessage);
                 } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
                     const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
                     Clipboard.setString(logMessage);

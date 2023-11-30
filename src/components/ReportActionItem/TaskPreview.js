@@ -21,6 +21,7 @@ import getButtonState from '@libs/getButtonState';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -29,7 +30,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as TaskUtils from '../../libs/TaskUtils';
 
 const propTypes = {
     /** The ID of the associated taskReport */

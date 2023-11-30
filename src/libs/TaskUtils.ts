@@ -1,5 +1,5 @@
-import lodashHas from 'lodash/has';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
+import ReportAction from '@src/types/onyx/ReportAction';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import {Report} from '../types/onyx';
@@ -34,9 +34,18 @@ function getTaskReportActionMessage(actionName: string): string {
     }
 }
 
-function getTaskTitle(taskReportID: string, taskName: string): string {
+function getTaskTitle(taskReportID: string, fallbackTitle: string = ''): string {
     const taskReport = allReports[taskReportID] ?? {};
-    return lodashHas(taskReport, 'reportID') && taskReport.reportName ? taskReport.reportName : taskName;
+    // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
+    // an optimistic report is created with the only property – reportName: 'Chat report',
+    // and it will be displayed as the task title without checking for reportID to be present.
+    return Object.hasOwn(taskReport, 'reportID') && taskReport.reportName ? taskReport.reportName : fallbackTitle;
 }
 
-export {getTaskReportActionMessage, getTaskTitle};
+function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
+    const taskReportID = reportAction?.childReportID ?? '';
+    const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
+    return Localize.translateLocal('task.messages.created', {title: taskTitle});
+}
+
+export {getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};

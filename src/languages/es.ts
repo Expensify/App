@@ -62,6 +62,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -1686,6 +1687,7 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
             canceled: 'tarea eliminado',
             reopened: 'marcada como incompleta',
