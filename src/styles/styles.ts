@@ -1016,7 +1016,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textInputDesktop: addOutlineWidth({}, 0),
+        textInputDesktop: addOutlineWidth({}, theme, 0),
 
         textInputIconContainer: {
             paddingHorizontal: 11,
@@ -1133,7 +1133,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.icon,
         },
 
-        noOutline: addOutlineWidth({}, 0),
+        noOutline: addOutlineWidth({}, theme, 0),
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1799,6 +1799,7 @@ const styles = (theme: ThemeColors) =>
                 alignSelf: 'center',
                 verticalAlign: 'middle',
             },
+            theme,
             0,
         ),
 
@@ -2625,6 +2626,7 @@ const styles = (theme: ThemeColors) =>
                 padding: 0,
                 lineHeight: undefined,
             },
+            theme,
             0,
         ),
 
