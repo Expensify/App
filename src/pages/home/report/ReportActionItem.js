@@ -45,6 +45,7 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';

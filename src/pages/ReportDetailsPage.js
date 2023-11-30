@@ -137,13 +137,13 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, props.session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -255,6 +255,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

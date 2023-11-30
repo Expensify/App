@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Additional styles for container */
@@ -32,6 +32,8 @@ const defaultProps = {
 
 function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}) {
     const {translate, preferredLocale} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
 
     const shouldShowCounter = _.isNumber(currentCount) && _.isNumber(totalCount);
 
@@ -51,7 +53,7 @@ function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}) {
                     style={styles.mh0}
                     small
                     shouldShowRightIcon
-                    iconFill={themeColors.icon}
+                    iconFill={theme.icon}
                     iconRight={Expensicons.DownArrow}
                     text={translate('common.showMore')}
                     accessibilityLabel={translate('common.showMore')}
