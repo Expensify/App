@@ -39,10 +39,9 @@ export default () => {
             // Since we used the same key that used to store another object, let's confirm that the current object is
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
-                value === null ||
-                !Object.hasOwn(value, 'type') ||
-                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && Object.hasOwn(value, 'request') && Object.hasOwn(value, 'response')) &&
-                    !(value.type === CONST.ONYX_UPDATE_TYPES.PUSHER && Object.hasOwn(value, 'updates')))
+                !(typeof value === 'object' && !!value) ||
+                !('type' in value) ||
+                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) && !(value.type === CONST.ONYX_UPDATE_TYPES.PUSHER && value.updates))
             ) {
                 console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);

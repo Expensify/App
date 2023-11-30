@@ -9,8 +9,8 @@ import ROUTES from '@src/ROUTES';
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = val?.email ?? '';
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
     },
 });
 
