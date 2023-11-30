@@ -407,7 +407,7 @@ function MagicCodeInput(props) {
                         <View
                             style={[
                                 styles.textInputContainer,
-                                StyleUtils.getHeightOfMagicCodeInput(),
+                                StyleUtils.getHeightOfMagicCodeInput(styles),
                                 props.hasError || props.errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}
