@@ -14,6 +14,9 @@ const attachmentViewPropTypes = {
     /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
     isUsedInCarousel: PropTypes.bool,
 
+    /** When "isUsedInCarousel" is set to true, determines whether there is only one item in the carousel */
+    isSingleCarouselItem: PropTypes.bool,
+
     /** Whether this AttachmentView is shown as part of an AttachmentModal */
     isUsedInAttachmentModal: PropTypes.bool,
 
@@ -33,6 +36,8 @@ const attachmentViewDefaultProps = {
         name: '',
     },
     isUsedInCarousel: false,
+    isSingleCarouselItem: false,
+    isSingleElement: false,
     isFocused: false,
     isUsedInAttachmentModal: false,
     onPress: undefined,

@@ -72,6 +72,7 @@ function AttachmentView({
     onToggleKeyboard,
     translate,
     isUsedInCarousel,
+    isSingleCarouselItem,
     isFocused,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
@@ -162,6 +163,7 @@ function AttachmentView({
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
                 isUsedInCarousel={isUsedInCarousel}
+                isSingleCarouselItem={isSingleCarouselItem}
                 isFocused={isFocused}
                 isImage={isImage}
                 onPress={onPress}

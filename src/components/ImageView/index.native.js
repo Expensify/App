@@ -27,7 +27,9 @@ const defaultProps = {
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError}) {
+function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError, isFocused, isUsedInCarousel, isSingleCarouselItem}) {
+    const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
+
     return (
         <Lightbox
             source={url}
@@ -36,6 +38,8 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zo
             onScaleChanged={onScaleChanged}
             onPress={onPress}
             onError={onError}
+            isActive={isFocused}
+            hasSiblingCarouselItems={hasSiblingCarouselItems}
             style={style}
         />
     );

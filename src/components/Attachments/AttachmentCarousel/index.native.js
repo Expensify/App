@@ -4,6 +4,7 @@ import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
@@ -120,39 +121,45 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             onMouseEnter={() => setShouldShowArrows(true)}
             onMouseLeave={() => setShouldShowArrows(false)}
         >
-            {page === -1 ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
-                />
+            {page == null ? (
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
+                    {page === -1 ? (
+                        <BlockingView
+                            icon={Illustrations.ToddBehindCloud}
+                            iconWidth={variables.modalTopIconWidth}
+                            iconHeight={variables.modalTopIconHeight}
+                            title={translate('notFound.notHere')}
+                        />
+                    ) : (
+                        <>
+                            <CarouselButtons
+                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
+                                page={page}
+                                attachments={attachments}
+                                onBack={() => cycleThroughAttachments(-1)}
+                                onForward={() => cycleThroughAttachments(1)}
+                                autoHideArrow={autoHideArrows}
+                                cancelAutoHideArrow={cancelAutoHideArrows}
+                            />
 
-                    <AttachmentCarouselPager
-                        items={attachments}
-                        renderItem={renderItem}
-                        initialIndex={page}
-                        onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onPinchGestureChange={(newIsPinchGestureRunning) => {
-                            setIsPinchGestureRunning(newIsPinchGestureRunning);
-                            if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                setShouldShowArrows(true);
-                            }
-                        }}
-                        onSwipeDown={onClose}
-                        ref={pagerRef}
-                    />
+                            <AttachmentCarouselPager
+                                items={attachments}
+                                renderItem={renderItem}
+                                initialIndex={page}
+                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                                onPinchGestureChange={(newIsPinchGestureRunning) => {
+                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
+                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                        setShouldShowArrows(true);
+                                    }
+                                }}
+                                onSwipeDown={onClose}
+                                ref={pagerRef}
+                            />
+                        </>
+                    )}
                 </>
             )}
         </View>
