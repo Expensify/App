@@ -63,4 +63,13 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters};
+/**
+ *  Replace all CRLF with LF
+ *  @param value - The input string
+ *  @returns The string with all CRLF replaced with LF
+ */
+function normalizeCRLF(value?: string): string | undefined {
+    return value?.replace(/\r\n/g, '\n');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};

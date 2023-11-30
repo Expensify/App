@@ -6,12 +6,13 @@ import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './tagPickerPropTypes';
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit, shouldShowDisabledAndSelectedOption}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption, insets, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -37,17 +38,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         ];
     }, [selectedTag]);
 
-    const initialFocusedIndex = useMemo(() => {
-        if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyTagList)
-                .values()
-                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
-                .value();
-        }
-
-        return 0;
-    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
-
     const enabledTags = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
             return policyTagList;
@@ -64,8 +54,11 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
 
+    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (policyTag) => policyTag.searchText === selectedTag)[0], 'keyForList');
+
     return (
         <OptionsSelector
+            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
             sections={sections}
@@ -77,7 +70,10 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            // Focus the first option when searching
+            focusedIndex={0}
+            // Focus the selected option on first load
+            initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
