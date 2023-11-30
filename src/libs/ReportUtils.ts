@@ -329,6 +329,7 @@ type OptionData = {
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
     isArchivedRoom?: boolean | null;
+    isDoneReport?: boolean | null;
     shouldShowSubscript?: boolean | null;
     isPolicyExpenseChat?: boolean | null;
     isMoneyRequestReport?: boolean | null;
