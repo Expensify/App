@@ -3,7 +3,7 @@ import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import styles from './styles';
-import themeColors from './themes/default';
+import {ThemeColors} from './themes/types';
 import variables from './variables';
 
 function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
@@ -39,6 +39,7 @@ type GetModalStyles = {
 export default function getModalStyles(
     type: ModalType | undefined,
     windowDimensions: WindowDimensions,
+    themeColors: ThemeColors,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},
     outerStyle: ViewStyle = {},
