@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     title: PropTypes.string.isRequired,
@@ -11,6 +11,7 @@ const propTypes = {
 };
 
 function DangerCardSection({title, description}) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.pageWrapper, styles.walletDangerSection]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>

@@ -25,11 +25,10 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -100,6 +99,7 @@ const getPhoneNumber = (details) => {
 };
 
 function ProfilePage(props) {
+    const styles = useThemeStyles();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
@@ -132,7 +132,7 @@ function ProfilePage(props) {
 
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
-    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
@@ -254,7 +254,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -290,9 +290,6 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         session: {
             key: ONYXKEYS.SESSION,

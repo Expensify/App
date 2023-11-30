@@ -36,12 +36,14 @@ import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
 import Request from './Request';
+import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
 import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
 import User from './User';
+import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
@@ -51,6 +53,7 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
+    UserLocation,
     AccountData,
     AddDebitCardForm,
     BankAccount,
@@ -94,6 +97,7 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     Request,
+    Response,
     ScreenShareRequest,
     SecurityGroup,
     Session,

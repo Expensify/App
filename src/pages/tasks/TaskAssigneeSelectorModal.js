@@ -18,7 +18,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +73,7 @@ const defaultProps = {
 };
 
 function TaskAssigneeSelectorModal(props) {
+    const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -195,10 +196,13 @@ function TaskAssigneeSelectorModal(props) {
 
         // Check to see if we're editing a task and if so, update the assignee
         if (report) {
-            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+            if (option.accountID !== report.managerID) {
+                const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
-            // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                // Pass through the selected assignee
+                Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+            }
+            return Navigation.dismissModal(report.reportID);
         }
     };
 

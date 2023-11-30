@@ -1,12 +1,12 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Overlay from './Overlay';
 
 const Stack = createStackNavigator();
@@ -19,13 +19,15 @@ const propTypes = {
 };
 
 function RightModalNavigator(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={RHPScreenOptions}>
+                <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name="Settings"
                         component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -37,10 +39,6 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Details"
@@ -117,6 +115,10 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
                     />
                     <Stack.Screen
                         name="Private_Notes"

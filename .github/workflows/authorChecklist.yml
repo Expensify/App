@@ -1,8 +1,10 @@
 name: PR Author Checklist
 
 on:
-  pull_request:
-    types: [opened, edited, reopened]
+  # We use pull_request_target here so that the GitHub token will have read/write access and be able to modify the PR description if needed.
+  # Warning: – when using the pull_request_target event, DO NOT checkout code from an untrusted branch: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
@@ -11,7 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: authorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
+        uses: ./.github/actions/javascript/authorChecklist
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
