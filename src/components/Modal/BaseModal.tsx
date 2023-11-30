@@ -134,14 +134,14 @@ function BaseModal(
     } = useMemo(
         () =>
             getModalStyles(
+                theme,
+                styles,
                 type,
                 {
                     windowWidth,
                     windowHeight,
                     isSmallScreenWidth,
                 },
-                theme,
-                styles,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
