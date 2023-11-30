@@ -187,7 +187,7 @@ function BaseTextInput(props) {
 
         if (value && value.length > 0) {
             hasValueRef.current = true;
-            // When the componment is uncontrolled, we need to manually activate the label:
+            // When the component is uncontrolled, we need to manually activate the label
             if (props.value === undefined) {
                 activateLabel();
             }
