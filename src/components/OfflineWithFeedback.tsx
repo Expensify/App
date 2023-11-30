@@ -3,8 +3,8 @@ import React from 'react';
 import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -60,7 +60,7 @@ type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | Tex
 /**
  * This method applies the strikethrough to all the children passed recursively
  */
-function applyStrikeThrough(children: React.ReactNode): React.ReactNode {
+function applyStrikeThrough(children: React.ReactNode, styles: any): React.ReactNode {
     return React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) {
             return child;
@@ -71,7 +71,7 @@ function applyStrikeThrough(children: React.ReactNode): React.ReactNode {
         };
 
         if (child.props.children) {
-            props.children = applyStrikeThrough(child.props.children);
+            props.children = applyStrikeThrough(child.props.children, styles);
         }
 
         return React.cloneElement(child, props);
@@ -93,6 +93,7 @@ function OfflineWithFeedback({
     style,
     ...props
 }: OfflineWithFeedbackProps) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const hasErrors = !isEmptyObject(errors);
@@ -109,7 +110,7 @@ function OfflineWithFeedback({
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
-        children = applyStrikeThrough(children);
+        children = applyStrikeThrough(children, styles);
     }
     return (
         <View style={style}>
