@@ -24,6 +24,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -45,6 +46,7 @@ const propTypes = {
 
 function TaskView(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     useEffect(() => {
         Task.setTaskReport({...props.report});
     }, [props.report]);
@@ -81,7 +83,7 @@ function TaskView(props) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
                             ]}
                             ref={props.forwardedRef}
@@ -121,7 +123,7 @@ function TaskView(props) {
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
                                                     src={Expensicons.ArrowRight}
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                    fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, false, disableState))}
                                                 />
                                             </View>
                                         )}
