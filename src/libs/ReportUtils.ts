@@ -4242,7 +4242,8 @@ function hasRequestError(reportActions: ReportAction[]) {
         }
         const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(ReportActionsUtils.getIOUReportIDFromReportActionPreview(action));
         const isSplitBillError =
-            ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(TransactionUtils.getTransaction(((action.originalMessage) as IOUMessage).IOUTransactionID ?? '0') as Transaction);
+            ReportActionsUtils.isSplitBillAction(action) &&
+            TransactionUtils.hasMissingSmartscanFields(TransactionUtils.getTransaction((action.originalMessage as IOUMessage).IOUTransactionID ?? '0') as Transaction);
         return isReportPreviewError || isSplitBillError;
     });
 }
