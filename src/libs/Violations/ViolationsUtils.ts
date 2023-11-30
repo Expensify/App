@@ -58,7 +58,7 @@ const ViolationsUtils = {
             }
 
             // Remove 'missingTag' violation if tag is valid according to policy
-            if (isTagInPolicy) {
+            if (hasMissingTagViolation && isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
             }
 
