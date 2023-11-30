@@ -2,16 +2,28 @@
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 
-# Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+def node_require(script)
+  # Resolve script with node to allow for hoisting
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve(
+      '#{script}',
+      {paths: [process.argv[1]]},
+    )", __dir__]).strip
+end
+
+node_require('react-native/scripts/react_native_pods.rb')
+node_require('react-native-permissions/scripts/setup.rb')
 
 # Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
 platform :ios, 13
 prepare_react_native_project!
+
+setup_permissions([
+  'Camera',
+  'LocationAccuracy',
+  'LocationAlways',
+  'LocationWhenInUse'
+])
 
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
 # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
@@ -51,8 +63,6 @@ pre_install do |installer|
 end
 
 target 'NewExpensify' do
-  permissions_path = '../node_modules/react-native-permissions/ios'
-
   project 'NewExpensify',
     'DebugDevelopment' => :debug,
     'DebugAdHoc' => :debug,
@@ -60,11 +70,6 @@ target 'NewExpensify' do
     'ReleaseDevelopment' => :release,
     'ReleaseAdHoc' => :release,
     'ReleaseProduction' => :release
-
-  pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
-  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
-  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
-  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   config = use_native_modules!
 

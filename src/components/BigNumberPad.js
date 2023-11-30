@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ControlSelection from '@libs/ControlSelection';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
-import ControlSelection from '../libs/ControlSelection';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
@@ -16,14 +16,14 @@ const propTypes = {
     longPressHandlerStateChanged: PropTypes.func,
 
     /** Used to locate this view from native classes. */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     longPressHandlerStateChanged: () => {},
-    nativeID: 'numPadView',
+    id: 'numPadView',
 };
 
 const padNumbers = [
@@ -34,6 +34,7 @@ const padNumbers = [
 ];
 
 function BigNumberPad(props) {
+    const styles = useThemeStyles();
     const [timer, setTimer] = useState(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
@@ -59,7 +60,7 @@ function BigNumberPad(props) {
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            nativeID={props.nativeID}
+            id={props.id}
         >
             {_.map(padNumbers, (row, rowIndex) => (
                 <View

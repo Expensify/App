@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** A reference forwarded to the inner View */

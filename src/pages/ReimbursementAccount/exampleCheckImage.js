@@ -1,6 +1,6 @@
-import exampleCheckImageEn from '../../../assets/images/example-check-image-en.png';
-import exampleCheckImageEs from '../../../assets/images/example-check-image-es.png';
-import CONST from '../../CONST';
+import exampleCheckImageEn from '@assets/images/example-check-image-en.png';
+import exampleCheckImageEs from '@assets/images/example-check-image-es.png';
+import CONST from '@src/CONST';
 
 const images = {
     [CONST.LOCALES.EN]: exampleCheckImageEn,

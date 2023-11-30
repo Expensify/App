@@ -1,10 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
-import CategoryPicker from '../components/CategoryPicker';
+import React from 'react';
+import CategoryPicker from '@components/CategoryPicker';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Transaction default category value */
@@ -18,6 +20,7 @@ const propTypes = {
 };
 
 function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const selectCategory = (category) => {
@@ -36,7 +39,7 @@ function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
                 title={translate('common.category')}
                 onBackButtonPress={Navigation.goBack}
             />
-
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
             <CategoryPicker
                 selectedCategory={defaultCategory}
                 policyID={policyID}

@@ -6,7 +6,7 @@ LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)"
 
 readonly SRC_DIR="${LIB_PATH}/src"
 readonly STYLES_DIR="${LIB_PATH}/src/styles"
-readonly STYLES_FILE="${LIB_PATH}/src/styles/styles.js"
+readonly STYLES_FILE="${LIB_PATH}/src/styles/styles.ts"
 readonly UTILITIES_STYLES_FILE="${LIB_PATH}/src/styles/utilities"
 readonly STYLES_KEYS_FILE="${LIB_PATH}/scripts/style_keys_list_temp.txt"
 readonly UTILITY_STYLES_KEYS_FILE="${LIB_PATH}/scripts/utility_keys_list_temp.txt"
@@ -210,7 +210,12 @@ find_theme_style_and_store_keys() {
     fi
 
     # Check if we are inside an arrow function
-    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Zgv 0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*([a-zA-Zgv 0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+      inside_arrow_function=true
+      continue
+    fi
+
+    if [[ "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
       inside_arrow_function=true
       continue
     fi
@@ -348,7 +353,7 @@ echo "🔍 Looking for styles."
 find_utility_styles_store_prefix
 find_utility_usage_as_styles
 
-# Find and store keys from styles.js
+# Find and store keys from styles.ts
 find_styles_object_and_store_keys "$STYLES_FILE"
 find_styles_functions_and_store_keys "$STYLES_FILE"
 collect_theme_keys_from_styles "$STYLES_FILE"
