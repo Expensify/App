@@ -1,4 +1,3 @@
-import styles from '@styles/styles';
 import CompactContentContainerStyles from './types';
 
 /**
@@ -7,7 +6,7 @@ import CompactContentContainerStyles from './types';
  *  keeping compactContentContainerStyles as it is.
  *  https://github.com/Expensify/App/issues/14148
  */
-const compactContentContainerStyles: CompactContentContainerStyles = styles.alignItemsCenter;
+const compactContentContainerStyles: CompactContentContainerStyles = (styles) => styles.alignItemsCenter;
 
 export {
     // eslint-disable-next-line import/prefer-default-export
