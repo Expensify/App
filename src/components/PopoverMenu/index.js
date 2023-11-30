@@ -1,18 +1,18 @@
-import _ from 'underscore';
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
-import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import styles from '../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import MenuItem from '../MenuItem';
-import {propTypes as createMenuPropTypes, defaultProps as createMenuDefaultProps} from './popoverMenuPropTypes';
-import refPropTypes from '../refPropTypes';
-import Text from '../Text';
-import CONST from '../../CONST';
-import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import _ from 'underscore';
+import MenuItem from '@components/MenuItem';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 
 const propTypes = {
     ...createMenuPropTypes,
@@ -34,6 +34,9 @@ const propTypes = {
     }),
 
     withoutOverlay: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -44,17 +47,19 @@ const defaultProps = {
     },
     anchorRef: () => {},
     withoutOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
 function PopoverMenu(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+    const selectedItemIndex = useRef(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
         props.onItemSelected(selectedItem, index);
-        setSelectedItemIndex(index);
+        selectedItemIndex.current = index;
     };
 
     useKeyboardShortcut(
@@ -78,9 +83,9 @@ function PopoverMenu(props) {
             isVisible={props.isVisible}
             onModalHide={() => {
                 setFocusedIndex(-1);
-                if (selectedItemIndex !== null) {
-                    props.menuItems[selectedItemIndex].onSelected();
-                    setSelectedItemIndex(null);
+                if (selectedItemIndex.current !== null) {
+                    props.menuItems[selectedItemIndex.current].onSelected();
+                    selectedItemIndex.current = null;
                 }
             }}
             animationIn={props.animationIn}
@@ -89,6 +94,7 @@ function PopoverMenu(props) {
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
             withoutOverlay={props.withoutOverlay}
+            shouldSetModalVisibility={props.shouldSetModalVisibility}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
@@ -98,7 +104,9 @@ function PopoverMenu(props) {
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
+                        iconFill={item.iconFill}
                         title={item.text}
+                        shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}

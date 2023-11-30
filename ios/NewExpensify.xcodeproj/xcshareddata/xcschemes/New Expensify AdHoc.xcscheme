@@ -57,7 +57,7 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug AdHoc"
+      buildConfiguration = "DebugAdHoc"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
@@ -75,7 +75,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug AdHoc"
+      buildConfiguration = "DebugAdHoc"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -96,7 +96,7 @@
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Release AdHoc"
+      buildConfiguration = "ReleaseAdHoc"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -113,10 +113,10 @@
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug AdHoc">
+      buildConfiguration = "DebugAdHoc">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release AdHoc"
+      buildConfiguration = "ReleaseAdHoc"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

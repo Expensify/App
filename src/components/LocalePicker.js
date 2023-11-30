@@ -1,15 +1,15 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import compose from '../libs/compose';
-import * as App from '../libs/actions/App';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as App from '@userActions/App';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -27,9 +27,13 @@ const defaultProps = {
 };
 
 function LocalePicker(props) {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        label: language.label,
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
+        value: language,
+        label: props.translate(`languagePage.languages.${language}.label`),
+        keyForList: language,
+        isSelected: props.preferredLocale === language,
     }));
     return (
         <Picker
@@ -45,7 +49,7 @@ function LocalePicker(props) {
             size={props.size}
             value={props.preferredLocale}
             containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
-            backgroundColor={themeColors.signInPage}
+            backgroundColor={theme.signInPage}
         />
     );
 }

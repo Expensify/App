@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
 import ViewShot from 'react-native-view-shot';
-import fileDownload from '../../../libs/fileDownload';
+import {withNetwork} from '@components/OnyxProvider';
+import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
+import {qrShareDefaultProps, qrSharePropTypes} from '@components/QRShare/propTypes';
+import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
-import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
-import getQrCodeFileName from '../getQrCodeDownloadFileName';
 
 class QRShareWithDownload extends Component {
     qrCodeScreenshotRef = React.createRef();
@@ -24,6 +25,7 @@ class QRShareWithDownload extends Component {
                 <QRShare
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
+                    logo={this.props.network.isOffline ? null : this.props.logo}
                 />
             </ViewShot>
         );
@@ -32,4 +34,4 @@ class QRShareWithDownload extends Component {
 QRShareWithDownload.propTypes = qrSharePropTypes;
 QRShareWithDownload.defaultProps = qrShareDefaultProps;
 
-export default QRShareWithDownload;
+export default withNetwork()(QRShareWithDownload);

@@ -1,13 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
+import * as Report from '../../src/libs/actions/Report';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
-import * as Report from '../../src/libs/actions/Report';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -36,8 +36,8 @@ describe('Sidebar', () => {
     );
 
     beforeEach(() => {
-        // Wrap Onyx each onyx action with waitForPromiseToResolve
-        wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Wrap Onyx each onyx action with waitForBatchedUpdates
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
@@ -64,7 +64,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with some personal details
                     .then(() =>
                         Onyx.multiSet({
@@ -88,7 +88,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -120,7 +120,7 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -166,7 +166,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -209,7 +209,7 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -262,7 +262,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -280,7 +280,7 @@ describe('Sidebar', () => {
                         // The changing of a route itself will re-render the component in the App, but since we are not performing this test
                         // inside the navigator and it has no access to the routes we need to trigger an update to the SidebarLinks manually.
                         LHNTestUtils.getDefaultRenderedSidebarLinks('1');
-                        return waitForPromisesToResolve();
+                        return waitForBatchedUpdates();
                     })
 
                     // Then the order of the reports should be 2 > 3 > 1
@@ -307,7 +307,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -344,7 +344,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -385,7 +385,7 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -396,6 +396,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 2,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -404,9 +405,8 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -430,8 +430,8 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
@@ -458,7 +458,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -518,7 +518,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -577,7 +577,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -614,7 +614,7 @@ describe('Sidebar', () => {
             const report4 = LHNTestUtils.getFakeReport([7, 8], 0, true);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // Given the sidebar is rendered in #focus mode (hides read chats)
                     // with all reports having unread comments
                     .then(() =>
@@ -669,7 +669,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -734,6 +734,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 2,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -744,6 +745,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 3,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -754,6 +756,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 4,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 100000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -764,6 +767,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 5,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -774,6 +778,7 @@ describe('Sidebar', () => {
                 ownerAccountID: 2,
                 managerID: 6,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -788,7 +793,7 @@ describe('Sidebar', () => {
             const currentlyLoggedInUserAccountID = 13;
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -814,8 +819,8 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Four owes $1,000.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Four owes $1,000.00');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six owes $100.00');
                         expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three owes $100.00');
                         expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
@@ -846,7 +851,7 @@ describe('Sidebar', () => {
 
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({

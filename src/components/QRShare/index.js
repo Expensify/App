@@ -1,21 +1,23 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import defaultTheme from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
-import variables from '../../styles/variables';
-import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
-import QRCode from '../QRCode';
+import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import QRCode from '@components/QRCode';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import variables from '@styles/variables';
+import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
 const propTypes = {
     ...qrSharePropTypes,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 class QRShare extends Component {
@@ -45,12 +47,12 @@ class QRShare extends Component {
     render() {
         return (
             <View
-                style={styles.shareCodeContainer}
+                style={this.props.themeStyles.shareCodeContainer}
                 onLayout={this.onLayout}
             >
-                <View style={styles.expensifyQrLogo}>
+                <View style={this.props.themeStyles.expensifyQrLogo}>
                     <ExpensifyWordmark
-                        fill={defaultTheme.borderFocus}
+                        fill={this.props.theme.QRLogo}
                         width="100%"
                         height="100%"
                     />
@@ -69,18 +71,17 @@ class QRShare extends Component {
                     family="EXP_NEW_KANSAS_MEDIUM"
                     fontSize={variables.fontSizeXLarge}
                     numberOfLines={2}
-                    style={styles.qrShareTitle}
+                    style={this.props.themeStyles.qrShareTitle}
                 >
                     {this.props.title}
                 </Text>
 
                 {!_.isEmpty(this.props.subtitle) && (
                     <Text
-                        family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}
                         numberOfLines={2}
-                        style={[styles.mt1, styles.textAlignCenter]}
-                        color={defaultTheme.textSupporting}
+                        style={[this.props.themeStyles.mt1, this.props.themeStyles.textAlignCenter]}
+                        color={this.props.theme.textSupporting}
                     >
                         {this.props.subtitle}
                     </Text>
@@ -92,4 +93,4 @@ class QRShare extends Component {
 QRShare.propTypes = propTypes;
 QRShare.defaultProps = qrShareDefaultProps;
 
-export default compose(withLocalize, withWindowDimensions)(QRShare);
+export default compose(withLocalize, withWindowDimensions, withThemeStyles, withTheme)(QRShare);

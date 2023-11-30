@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ROUTES from '../../../ROUTES';
-import Navigation from '../../Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 /**
  * Navigate to a specific step in the VBA flow
@@ -20,7 +20,7 @@ function goToWithdrawalAccountSetupStep(stepID, newAchData) {
  * @param {string} [backTo=''] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function navigateToBankAccountRoute(policyId, backTo) {
-    Navigation.navigate(ROUTES.getBankAccountRoute('', policyId, backTo));
+    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyId, backTo));
 }
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};

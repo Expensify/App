@@ -24,7 +24,7 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier', 'plugin:react-native-a11y/basic'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
     plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
@@ -37,16 +37,42 @@ module.exports = {
     overrides: [
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
+            plugins: ['react'],
             rules: {
+                'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
+                'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
                     'error',
                     {
                         touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                     },
                 ],
+                '@dword-design/import-alias/prefer-alias': [
+                    'warn',
+                    {
+                        alias: {
+                            '@assets': './assets',
+                            '@components': './src/components',
+                            '@hooks': './src/hooks',
+                            // This is needed up here, if not @libs/actions would take the priority
+                            '@userActions': './src/libs/actions',
+                            '@libs': './src/libs',
+                            '@navigation': './src/libs/Navigation',
+                            '@pages': './src/pages',
+                            '@styles': './src/styles',
+                            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                            '@src': './src',
+                        },
+                    },
+                ],
             },
+        },
+        // This helps disable the `prefer-alias` rule to be enabled for specific directories
+        {
+            files: ['tests/**/*.js', 'tests/**/*.ts', 'tests/**/*.jsx', 'assets/**/*.js', '.storybook/**/*.js'],
+            rules: {'@dword-design/import-alias/prefer-alias': ['off']},
         },
         {
             files: ['*.js', '*.jsx'],
@@ -75,6 +101,8 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
+                'react/display-name': 'error',
             },
         },
         {
@@ -114,7 +142,7 @@ module.exports = {
                     },
                     {
                         selector: ['parameter', 'method'],
-                        format: ['camelCase'],
+                        format: ['camelCase', 'PascalCase'],
                     },
                 ],
                 '@typescript-eslint/ban-types': [
@@ -161,10 +189,12 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
+                'you-dont-need-lodash-underscore/throttle': 'off',
             },
         },
         {
-            files: ['tests/**/*.{js,jsx,ts,tsx}', '.github/**/*.{js,jsx,ts,tsx}'],
+            files: ['workflow_tests/**/*.{js,jsx,ts,tsx}', 'tests/**/*.{js,jsx,ts,tsx}', '.github/**/*.{js,jsx,ts,tsx}'],
             rules: {
                 '@lwc/lwc/no-async-await': 'off',
                 'no-await-in-loop': 'off',

@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import * as Report from '../../actions/Report';
-import Log from '../../Log';
-import * as ReportActionUtils from '../../ReportActionsUtils';
+import Log from '@libs/Log';
+import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import * as Report from '@userActions/Report';
 
 /**
  * Returns whether the given Airship notification should be shown depending on the current state of the app

@@ -1,17 +1,16 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Session from '../../libs/actions/Session';
-import useLocalize from '../../hooks/useLocalize';
-import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
+import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
+import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps as validateLinkDefaultProps, propTypes as validateLinkPropTypes} from './validateLinkPropTypes';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -49,7 +48,6 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {preferredLocale} = useLocalize();
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
@@ -71,7 +69,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, validateCode, preferredLocale);
+        Session.signInWithValidateCode(accountID, validateCode);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

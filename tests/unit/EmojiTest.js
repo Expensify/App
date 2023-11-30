@@ -1,14 +1,14 @@
-import _ from 'underscore';
-import moment from 'moment';
-import Onyx from 'react-native-onyx';
+import {getUnixTime} from 'date-fns';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import Emoji from '../../assets/emojis';
+import CONST from '../../src/CONST';
+import * as User from '../../src/libs/actions/User';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as User from '../../src/libs/actions/User';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
-import CONST from '../../src/CONST';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
@@ -106,9 +106,39 @@ describe('EmojiTest', () => {
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
     });
 
+    it('will add a space after the last emoji', () => {
+        const text = 'Hi :smile::wave:';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 ');
+    });
+
     it('will add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:space after last emoji';
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+    });
+
+    it('will add a space after the last emoji if there is invalid emoji after it', () => {
+        const text = 'Hi :smile::wave:space when :invalidemoji: present';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space when :invalidemoji: present');
+    });
+
+    it('will not add a space after the last emoji if there if last emoji is immediately followed by a space', () => {
+        const text = 'Hi :smile::wave: space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+    });
+
+    it('will return correct cursor position', () => {
+        const text = 'Hi :smile: there :wave:!';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(15);
+    });
+
+    it('will return correct cursor position when space is not added by space follows last emoji', () => {
+        const text = 'Hi :smile: there!';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(6);
+    });
+
+    it('will return undefined cursor position when no emoji is replaced', () => {
+        const text = 'Hi there!';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(undefined);
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
@@ -170,8 +200,7 @@ describe('EmojiTest', () => {
 
         beforeEach(() => {
             spy.mockClear();
-            Onyx.clear();
-            return waitForPromisesToResolve();
+            return Onyx.clear();
         });
 
         it('should put a less frequent and recent used emoji behind', () => {
@@ -205,9 +234,9 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add a new emoji
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const smileEmoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
@@ -253,9 +282,9 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add an emoji that exists in the list
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
@@ -295,9 +324,9 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add multiple emojis that either exist or not exist in the list
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
@@ -466,9 +495,9 @@ describe('EmojiTest', () => {
             expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add new emojis
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 

@@ -1,14 +1,14 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './ValidateLoginPage/validateLinkPropTypes';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
-import * as Session from '../libs/actions/Session';
-import ROUTES from '../ROUTES';
-import usePrevious from '../hooks/usePrevious';
-import ONYXKEYS from '../ONYXKEYS';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import usePrevious from '@hooks/usePrevious';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {defaultProps as validateLinkDefaultProps, propTypes as validateLinkPropTypes} from './ValidateLoginPage/validateLinkPropTypes';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */

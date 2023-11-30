@@ -1,22 +1,25 @@
+import {createStackNavigator} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
-
-import * as ModalStackNavigators from '../ModalStackNavigators';
-import RHPScreenOptions from '../RHPScreenOptions';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {withNavigationPropTypes} from '../../../../components/withNavigation';
-import styles from '../../../../styles/styles';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import useThemeStyles from '@styles/useThemeStyles';
 import Overlay from './Overlay';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const Stack = createStackNavigator();
 
 const propTypes = {
-    ...withNavigationPropTypes,
+    /* Navigation functions provided by React Navigation */
+    navigation: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
 function RightModalNavigator(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -33,20 +36,8 @@ function RightModalNavigator(props) {
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
                     <Stack.Screen
-                        name="NewGroup"
-                        component={ModalStackNavigators.NewGroupModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
-                    />
-                    <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Details"
@@ -71,6 +62,14 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="Participants"
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomMembers"
+                        component={ModalStackNavigators.RoomMembersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomInvite"
+                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
                     />
                     <Stack.Screen
                         name="MoneyRequest"
@@ -115,6 +114,14 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Private_Notes"
+                        component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

@@ -1,19 +1,13 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../../../../styles/styles';
-import SidebarLinksData from '../SidebarLinksData';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Timing from '../../../../libs/actions/Timing';
-import CONST from '../../../../CONST';
-import Performance from '../../../../libs/Performance';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import ScreenWrapper from '@components/ScreenWrapper';
+import * as Browser from '@libs/Browser';
+import Performance from '@libs/Performance';
+import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import useThemeStyles from '@styles/useThemeStyles';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import sidebarPropTypes from './sidebarPropTypes';
-import * as Browser from '../../../../libs/Browser';
-
-const propTypes = {
-    ...sidebarPropTypes,
-    ...windowDimensionsPropTypes,
-};
 
 /**
  * Function called when a pinned chat is selected.
@@ -24,6 +18,7 @@ const startTimer = () => {
 };
 
 function BaseSidebarScreen(props) {
+    const styles = useThemeStyles();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -34,6 +29,7 @@ function BaseSidebarScreen(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            testID={BaseSidebarScreen.displayName}
         >
             {({insets}) => (
                 <>
@@ -41,7 +37,6 @@ function BaseSidebarScreen(props) {
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
-                            isSmallScreenWidth={props.isSmallScreenWidth}
                             onLayout={props.onLayout}
                         />
                     </View>
@@ -52,7 +47,7 @@ function BaseSidebarScreen(props) {
     );
 }
 
-BaseSidebarScreen.propTypes = propTypes;
+BaseSidebarScreen.propTypes = sidebarPropTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
-export default withWindowDimensions(BaseSidebarScreen);
+export default BaseSidebarScreen;

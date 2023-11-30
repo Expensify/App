@@ -1,143 +1,165 @@
-import {Keyboard, View, PanResponder} from 'react-native';
-import React from 'react';
-import _ from 'underscore';
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import React, {useEffect, useRef, useState} from 'react';
+import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import HeaderGap from '../HeaderGap';
-import OfflineIndicator from '../OfflineIndicator';
-import compose from '../../libs/compose';
-import withNavigation from '../withNavigation';
-import {withNetwork} from '../OnyxProvider';
-import {propTypes, defaultProps} from './propTypes';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import TestToolsModal from '../TestToolsModal';
-import withKeyboardState from '../withKeyboardState';
-import withWindowDimensions from '../withWindowDimensions';
-import withEnvironment from '../withEnvironment';
-import toggleTestToolsModal from '../../libs/actions/TestTool';
-import CustomDevMenu from '../CustomDevMenu';
-import * as Browser from '../../libs/Browser';
+import _ from 'underscore';
+import CustomDevMenu from '@components/CustomDevMenu';
+import HeaderGap from '@components/HeaderGap';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import TestToolsModal from '@components/TestToolsModal';
+import useEnvironment from '@hooks/useEnvironment';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import styles from '@styles/styles';
+import toggleTestToolsModal from '@userActions/TestTool';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './propTypes';
 
-class ScreenWrapper extends React.Component {
-    constructor(props) {
-        super(props);
+const ScreenWrapper = React.forwardRef(
+    (
+        {
+            shouldEnableMaxHeight,
+            shouldEnableMinHeight,
+            includePaddingTop,
+            keyboardAvoidingViewBehavior,
+            includeSafeAreaPaddingBottom,
+            shouldEnableKeyboardAvoidingView,
+            shouldEnablePickerAvoiding,
+            headerGapStyles,
+            children,
+            shouldShowOfflineIndicator,
+            offlineIndicatorStyle,
+            style,
+            shouldDismissKeyboardBeforeClose,
+            onEntryTransitionEnd,
+            testID,
+        },
+        ref,
+    ) => {
+        const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+        const {initialHeight} = useInitialDimensions();
+        const keyboardState = useKeyboardState();
+        const {isDevelopment} = useEnvironment();
+        const {isOffline} = useNetwork();
+        const navigation = useNavigation();
+        const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+        const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+        const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
+        const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
-        this.panResponder = PanResponder.create({
-            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
-            onPanResponderRelease: toggleTestToolsModal,
-        });
+        const isKeyboardShownRef = useRef();
 
-        this.keyboardDissmissPanResponder = PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (e, gestureState) => {
-                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = this.props.shouldDismissKeyboardBeforeClose && this.props.isKeyboardShown && Browser.isMobile();
-                return isHorizontalSwipe && shouldDismissKeyboard;
-            },
-            onPanResponderGrant: Keyboard.dismiss,
-        });
+        isKeyboardShownRef.current = lodashGet(keyboardState, 'isKeyboardShown', false);
 
-        this.state = {
-            didScreenTransitionEnd: false,
-        };
-    }
+        const panResponder = useRef(
+            PanResponder.create({
+                onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+                onPanResponderRelease: toggleTestToolsModal,
+            }),
+        ).current;
 
-    componentDidMount() {
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
-            // Prevent firing the prop callback when user is exiting the page.
-            if (lodashGet(event, 'data.closing')) {
-                return;
-            }
-            this.setState({didScreenTransitionEnd: true});
-            this.props.onEntryTransitionEnd();
-        });
+        const keyboardDissmissPanResponder = useRef(
+            PanResponder.create({
+                onMoveShouldSetPanResponderCapture: (e, gestureState) => {
+                    const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                    const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
 
-        // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
-        // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
-        // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
-        if (this.props.shouldDismissKeyboardBeforeClose) {
-            this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
-                if (!this.props.isKeyboardShown) {
+                    return isHorizontalSwipe && shouldDismissKeyboard;
+                },
+                onPanResponderGrant: Keyboard.dismiss,
+            }),
+        ).current;
+
+        useEffect(() => {
+            const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+                // Prevent firing the prop callback when user is exiting the page.
+                if (lodashGet(event, 'data.closing')) {
                     return;
                 }
-                Keyboard.dismiss();
+
+                setDidScreenTransitionEnd(true);
+                onEntryTransitionEnd();
             });
-        }
-    }
 
-    /**
-     * We explicitly want to ignore if props.modal changes, and only want to rerender if
-     * any of the other props **used for the rendering output** is changed.
-     * @param {Object} nextProps
-     * @param {Object} nextState
-     * @returns {boolean}
-     */
-    shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.state, nextState) || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
-    }
+            // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
+            // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
+            // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
+            const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
+                ? navigation.addListener('beforeRemove', () => {
+                      if (!isKeyboardShownRef.current) {
+                          return;
+                      }
+                      Keyboard.dismiss();
+                  })
+                : undefined;
 
-    componentWillUnmount() {
-        if (this.unsubscribeTransitionEnd) {
-            this.unsubscribeTransitionEnd();
-        }
-        if (this.beforeRemoveSubscription) {
-            this.beforeRemoveSubscription();
-        }
-    }
+            return () => {
+                unsubscribeTransitionEnd();
 
-    render() {
-        const maxHeight = this.props.shouldEnableMaxHeight ? this.props.windowHeight : undefined;
+                if (beforeRemoveSubscription) {
+                    beforeRemoveSubscription();
+                }
+            };
+            // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
 
         return (
             <SafeAreaConsumer>
                 {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
                     const paddingStyle = {};
 
-                    if (this.props.includePaddingTop) {
+                    if (includePaddingTop) {
                         paddingStyle.paddingTop = paddingTop;
                     }
 
                     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
+                    if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
                     return (
                         <View
-                            style={styles.flex1}
+                            ref={ref}
+                            style={[styles.flex1, {minHeight}]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
+                            {...(isDevelopment ? panResponder.panHandlers : {})}
+                            testID={testID}
                         >
                             <View
-                                style={[styles.flex1, paddingStyle, ...this.props.style]}
+                                style={[styles.flex1, paddingStyle, ...style]}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...this.keyboardDissmissPanResponder.panHandlers}
+                                {...keyboardDissmissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
                                     style={[styles.w100, styles.h100, {maxHeight}]}
-                                    behavior={this.props.keyboardAvoidingViewBehavior}
-                                    enabled={this.props.shouldEnableKeyboardAvoidingView}
+                                    behavior={keyboardAvoidingViewBehavior}
+                                    enabled={shouldEnableKeyboardAvoidingView}
                                 >
                                     <PickerAvoidingView
                                         style={styles.flex1}
-                                        enabled={this.props.shouldEnablePickerAvoiding}
+                                        enabled={shouldEnablePickerAvoiding}
                                     >
-                                        <HeaderGap styles={this.props.headerGapStyles} />
-                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
-                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                        <HeaderGap styles={headerGapStyles} />
+                                        {isDevelopment && <TestToolsModal />}
+                                        {isDevelopment && <CustomDevMenu />}
                                         {
                                             // If props.children is a function, call it to provide the insets to the children.
-                                            _.isFunction(this.props.children)
-                                                ? this.props.children({
+                                            _.isFunction(children)
+                                                ? children({
                                                       insets,
                                                       safeAreaPaddingBottomStyle,
-                                                      didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                      didScreenTransitionEnd,
                                                   })
-                                                : this.props.children
+                                                : children
                                         }
-                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                        {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>
@@ -146,10 +168,11 @@ class ScreenWrapper extends React.Component {
                 }}
             </SafeAreaConsumer>
         );
-    }
-}
+    },
+);
 
+ScreenWrapper.displayName = 'ScreenWrapper';
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
 
-export default compose(withNavigation, withEnvironment, withWindowDimensions, withKeyboardState, withNetwork())(ScreenWrapper);
+export default ScreenWrapper;

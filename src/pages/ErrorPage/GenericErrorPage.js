@@ -1,30 +1,31 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
-import Icon from '../../components/Icon';
-import defaultTheme from '../../styles/themes/default';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import Text from '../../components/Text';
-import Button from '../../components/Button';
-import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as Session from '../../libs/actions/Session';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
+import LogoWordmark from '@assets/images/expensify-wordmark.svg';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
-import TextLink from '../../components/TextLink';
-import CONST from '../../CONST';
-import SafeAreaConsumer from '../../components/SafeAreaConsumer';
-import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Callback to call on refresh button click */
-    onRefresh: PropTypes.func.isRequired,
 };
 
-function GenericErrorPage(props) {
+function GenericErrorPage({translate}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {resetBoundary} = useErrorBoundary();
+
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
@@ -36,16 +37,16 @@ function GenericErrorPage(props) {
                                     src={Expensicons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
-                                    fill={defaultTheme.iconSuccessFill}
+                                    fill={theme.iconSuccessFill}
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
+                                <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
                             </View>
                             <View style={styles.mb5}>
                                 <ErrorBodyText />
                                 <Text>
-                                    {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
+                                    {`${translate('genericErrorPage.body.helpTextConcierge')} `}
                                     <TextLink
                                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                                         style={[styles.link]}
@@ -59,17 +60,17 @@ function GenericErrorPage(props) {
                                     <Button
                                         success
                                         medium
-                                        onPress={props.onRefresh}
-                                        text={props.translate('genericErrorPage.refresh')}
+                                        onPress={resetBoundary}
+                                        text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                     />
                                     <Button
                                         medium
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
-                                            props.onRefresh();
+                                            resetBoundary();
                                         }}
-                                        text={props.translate('initialSettingsPage.signOut')}
+                                        text={translate('initialSettingsPage.signOut')}
                                     />
                                 </View>
                             </View>
@@ -80,7 +81,7 @@ function GenericErrorPage(props) {
                             <LogoWordmark
                                 height={30}
                                 width={80}
-                                fill={defaultTheme.textLight}
+                                fill={theme.textLight}
                             />
                         </View>
                     </View>

@@ -1,24 +1,30 @@
-import {render, fireEvent, within} from '@testing-library/react-native';
-import moment from 'moment';
+import {fireEvent, render, within} from '@testing-library/react-native';
+import {addYears, subYears} from 'date-fns';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
-moment.locale(CONST.LOCALES.EN);
-const monthNames = moment.localeData().months();
+const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-        preferredLocale="en"
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+                preferredLocale="en"
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -33,8 +39,8 @@ describe('CalendarPicker', () => {
 
     test('displays the current month and year', () => {
         const currentDate = new Date();
-        const maxDate = moment(currentDate).add(1, 'Y').toDate();
-        const minDate = moment(currentDate).subtract(1, 'Y').toDate();
+        const maxDate = addYears(new Date(currentDate), 1);
+        const minDate = subYears(new Date(currentDate), 1);
         const {getByText} = render(
             <CalendarPicker
                 maxDate={maxDate}
@@ -137,6 +143,19 @@ describe('CalendarPicker', () => {
         expect(getByTestId('next-month-arrow')).toBeDisabled();
     });
 
+    test('should allow navigating to the month of the max date when it has less days than the selected date', () => {
+        const maxDate = new Date('2003-11-27'); // This month has 30 days
+        const value = '2003-10-31';
+        const {getByTestId} = render(
+            <CalendarPicker
+                maxDate={maxDate}
+                value={value}
+            />,
+        );
+
+        expect(getByTestId('next-month-arrow')).not.toBeDisabled();
+    });
+
     test('should open the calendar on a month from max date if it is earlier than current month', () => {
         const onSelectedMock = jest.fn();
         const maxDate = new Date('2011-03-01');
@@ -211,7 +230,7 @@ describe('CalendarPicker', () => {
         expect(getByLabelText('16')).not.toBeDisabled();
     });
 
-    test('should not allow to press max date', () => {
+    test('should allow to press max date', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
         const {getByLabelText} = render(

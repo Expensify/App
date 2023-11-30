@@ -1,16 +1,17 @@
-import React, {useState, useRef} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import Icon from '../Icon';
-import PopoverMenu from '../PopoverMenu';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip';
-import * as Expensicons from '../Icon/Expensicons';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
-import CONST from '../../CONST';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Tooltip for the popup icon */
@@ -45,10 +46,20 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Whether the popover menu should overlay the current view */
+    shouldOverlay: PropTypes.bool,
+
+    /** Whether the menu is disabled */
+    disabled: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
     iconTooltip: 'common.more',
+    disabled: false,
     iconFill: undefined,
     iconStyles: [],
     icon: Expensicons.ThreeDots,
@@ -57,9 +68,12 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    shouldOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -87,9 +101,17 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        disabled={disabled}
+                        onMouseDown={(e) => {
+                            /* Keep the focus state on mWeb like we did on the native apps. */
+                            if (!Browser.isMobile()) {
+                                return;
+                            }
+                            e.preventDefault();
+                        }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
@@ -106,7 +128,8 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
-                withoutOverlay
+                withoutOverlay={!shouldOverlay}
+                shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
             />
         </>

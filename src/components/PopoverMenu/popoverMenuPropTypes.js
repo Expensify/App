@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback method fired when the user requests to close the modal */

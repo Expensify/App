@@ -1,23 +1,23 @@
+import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {format as tzFormat, utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import {format as tzFormat} from 'date-fns-tz';
-import {addMinutes, subHours, subMinutes, subSeconds, format, setMinutes, setHours, subDays, addDays} from 'date-fns';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const LOCALE = CONST.LOCALES.EN;
-
+const UTC = 'UTC';
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'UTC'}}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: UTC}}},
             },
         });
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => {
@@ -73,7 +73,7 @@ describe('DateUtils', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
             resolvedOptions: () => ({timeZone: 'America/Chicago'}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: UTC, automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
                 selected: 'America/Chicago',
@@ -84,12 +84,12 @@ describe('DateUtils', () => {
 
     it('should not update timezone if automatic and selected timezone match', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'UTC'}),
+            resolvedOptions: () => ({timeZone: UTC}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: UTC, automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
-                selected: 'UTC',
+                selected: UTC,
                 automatic: true,
             });
         });
@@ -130,6 +130,34 @@ describe('DateUtils', () => {
         expect(result).toBe(expectedDateTime);
     });
 
+    describe('Date Comparison Functions', () => {
+        const today = new Date();
+        const tomorrow = addDays(today, 1);
+        const yesterday = subDays(today, 1);
+
+        const todayInTimezone = utcToZonedTime(today, timezone);
+        const tomorrowInTimezone = utcToZonedTime(tomorrow, timezone);
+        const yesterdayInTimezone = utcToZonedTime(yesterday, timezone);
+
+        it('isToday should correctly identify today', () => {
+            expect(DateUtils.isToday(todayInTimezone, timezone)).toBe(true);
+            expect(DateUtils.isToday(tomorrowInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isToday(yesterdayInTimezone, timezone)).toBe(false);
+        });
+
+        it('isTomorrow should correctly identify tomorrow', () => {
+            expect(DateUtils.isTomorrow(tomorrowInTimezone, timezone)).toBe(true);
+            expect(DateUtils.isTomorrow(todayInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isTomorrow(yesterdayInTimezone, timezone)).toBe(false);
+        });
+
+        it('isYesterday should correctly identify yesterday', () => {
+            expect(DateUtils.isYesterday(yesterdayInTimezone, timezone)).toBe(true);
+            expect(DateUtils.isYesterday(todayInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isYesterday(tomorrowInTimezone, timezone)).toBe(false);
+        });
+    });
+
     describe('getDBTime', () => {
         it('should return the date in the format expected by the database', () => {
             const getDBTime = DateUtils.getDBTime();
@@ -152,6 +180,32 @@ describe('DateUtils', () => {
             const timestamp = 1669086850792;
             const getDBTime = DateUtils.getDBTime(timestamp);
             expect(getDBTime).toBe('2022-11-22 03:14:10.792');
+        });
+    });
+
+    describe('formatWithUTCTimeZone', () => {
+        describe('when the date is invalid', () => {
+            it('returns an empty string', () => {
+                const invalidDateStr = '';
+
+                const formattedDate = DateUtils.formatWithUTCTimeZone(invalidDateStr);
+
+                expect(formattedDate).toEqual('');
+            });
+        });
+
+        describe('when the date is valid', () => {
+            const scenarios = [
+                {dateFormat: CONST.DATE.FNS_FORMAT_STRING, expectedResult: '2022-11-07'},
+                {dateFormat: CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, expectedResult: '2022-11-07T00:00:00Z'},
+                {dateFormat: CONST.DATE.FNS_DB_FORMAT_STRING, expectedResult: '2022-11-07 00:00:00.000'},
+            ];
+
+            test.each(scenarios)('returns the date as string with the format "$dateFormat"', ({dateFormat, expectedResult}) => {
+                const formattedDate = DateUtils.formatWithUTCTimeZone(datetime, dateFormat);
+
+                expect(formattedDate).toEqual(expectedResult);
+            });
         });
     });
 });

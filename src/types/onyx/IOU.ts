@@ -16,9 +16,10 @@ type IOU = {
     merchant?: string;
     created?: string;
     receiptPath?: string;
-    receiptSource?: string;
+    receiptFilename?: string;
     transactionID?: string;
     participants?: Participant[];
+    tag?: string;
 };
 
 export default IOU;

@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
@@ -16,6 +16,9 @@ type UserWallet = {
     /** What step in the activation flow are we on? */
     currentStep: ValueOf<typeof CONST.WALLET.STEP>;
 
+    /** If the user failed the Onfido verification check */
+    hasFailedOnfido?: boolean;
+
     /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
     shouldShowFailedKYC?: boolean;
 
@@ -25,14 +28,17 @@ type UserWallet = {
     /** The user's wallet tier */
     tier?: number;
 
-    /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
-    shouldShowWalletActivationSuccess?: boolean;
+    /** Whether the Onfido result is pending. KYC is not complete and the wallet will not be activated until we have the Onfido verification result */
+    isPendingOnfidoResult?: boolean;
 
     /** The ID of the linked account */
     walletLinkedAccountID: number;
 
     /** The type of the linked account (debitCard or bankAccount) */
     walletLinkedAccountType: WalletLinkedAccountType;
+
+    /** The wallet's programID, used to show the correct terms. */
+    walletProgramID?: string;
 
     /** The user's bank account ID */
     bankAccountID?: number;

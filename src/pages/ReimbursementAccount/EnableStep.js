@@ -1,29 +1,29 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Text from '../../components/Text';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Button from '../../components/Button';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import MenuItem from '../../components/MenuItem';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import getBankIcon from '../../components/Icon/BankIcons';
+import _ from 'underscore';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import getBankIcon from '@components/Icon/BankIcons';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import userPropTypes from '@pages/settings/userPropTypes';
+import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import * as BankAccounts from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import userPropTypes from '../settings/userPropTypes';
-import Section from '../../components/Section';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import * as Link from '../../libs/actions/Link';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -35,6 +35,9 @@ const propTypes = {
     /* The workspace name */
     policyName: PropTypes.string,
 
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -44,6 +47,7 @@ const defaultProps = {
 };
 
 function EnableStep(props) {
+    const styles = useThemeStyles();
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
@@ -56,12 +60,14 @@ function EnableStep(props) {
         <ScreenWrapper
             style={[styles.flex1, styles.justifyContentBetween]}
             includeSafeAreaPaddingBottom={false}
+            testID={EnableStep.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('workspace.common.connectBankAccount')}
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                onBackButtonPress={props.onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section

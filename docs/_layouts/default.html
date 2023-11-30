@@ -96,12 +96,5 @@
             {% include footer.html %}
         </div>
     </div>
-
-    <!-- Use hidden input to pass hubs data to main.js -->
-    <input
-        id="hubs-data"
-        type="hidden"
-        value={{ site.data.routes.hubs | map: 'href' | jsonify }}
-    />
 </body>
 </html>

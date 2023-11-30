@@ -1,28 +1,29 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Animated, View} from 'react-native';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
-import {View, Animated} from 'react-native';
-import colors from '../../styles/colors';
-import Text from '../Text';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Pressables from '@components/Pressable';
+import Text from '@components/Text';
+import * as Growl from '@libs/Growl';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-import CONST from '../../CONST';
-import * as Growl from '../../libs/Growl';
-import * as Pressables from '../Pressable';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
         icon: Expensicons.Checkmark,
-        iconColor: colors.green,
+        iconColor: themeColors.success,
     },
     [CONST.GROWL.ERROR]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.red,
+        iconColor: themeColors.danger,
     },
     [CONST.GROWL.WARNING]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.yellow,
+        iconColor: themeColors.warning,
     },
 };
 
@@ -59,7 +60,7 @@ function GrowlNotification(_, ref) {
             Animated.spring(translateY, {
                 toValue: val,
                 duration: 80,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [translateY],

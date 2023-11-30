@@ -27,6 +27,9 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {

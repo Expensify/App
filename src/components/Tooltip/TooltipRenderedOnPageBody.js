@@ -1,10 +1,10 @@
-import React, {useLayoutEffect, useEffect, useState, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import getTooltipStyles from '../../styles/getTooltipStyles';
-import Text from '../Text';
-import Log from '../../libs/Log';
+import {Animated, View} from 'react-native';
+import Text from '@components/Text';
+import Log from '@libs/Log';
+import getTooltipStyles from '@styles/getTooltipStyles';
 
 const propTypes = {
     /** Window width */
@@ -86,6 +86,7 @@ function TooltipRenderedOnPageBody(props) {
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
+                rootWrapper.current,
                 props.animation,
                 props.windowWidth,
                 props.xOffset,
@@ -97,7 +98,6 @@ function TooltipRenderedOnPageBody(props) {
                 wrapperMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
-                rootWrapper.current,
             ),
         [
             props.animation,
