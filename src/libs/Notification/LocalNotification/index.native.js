@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-import {NativeModules} from 'react-native';
 
 /**
  * Local Notifications are only supported on web and desktop so these functions are a no-op on everything else
@@ -24,7 +23,5 @@ export default {
     /**
      * @param {String} reportID
      */
-    clearReportNotifications: (reportID) => {
-        NativeModules.NotificationModule.clearReportNotifications(reportID);
-    },
+    clearReportNotifications: (reportID) => {},
 };
