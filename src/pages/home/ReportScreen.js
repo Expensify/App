@@ -167,7 +167,10 @@ function ReportScreen({
     const reportID = getReportID(route);
 
     const isFocused = useIsFocused();
+
+    // Update the lastVisitTime when the report is focused
     useEffect(() => {
+        // We don't want to update the lastVisitTime if the report did not exist or if the report is not focused
         if (!report.reportID || !isFocused) {
             return;
         }
