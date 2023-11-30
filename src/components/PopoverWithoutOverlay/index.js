@@ -6,10 +6,12 @@ import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
@@ -19,21 +21,22 @@ function Popover(props) {
             windowHeight: props.windowHeight,
             isSmallScreenWidth: false,
         },
+        theme,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
     );
 
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(null),
-                onOpenCallback: () => Modal.setCloseModal(() => props.onClose(props.anchorRef)),
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -41,6 +44,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);

@@ -529,7 +529,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -730,6 +730,21 @@ function sortCategories(categories) {
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} tags
+ * @returns {Array<Object>}
+ */
+function sortTags(tags) {
+    const sortedTags = _.chain(tags)
+        .values()
+        .sortBy((tag) => tag.name)
+        .value();
+
+    return sortedTags;
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -907,7 +922,7 @@ function getTagsOptions(tags) {
 /**
  * Build the section list for tags
  *
- * @param {Object[]} tags
+ * @param {Object[]} rawTags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -917,9 +932,16 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const tags = _.map(rawTags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {...tag, name: tagName};
+    });
+    const sortedTags = sortTags(tags);
+    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 

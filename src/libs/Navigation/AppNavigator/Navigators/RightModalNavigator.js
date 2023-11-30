@@ -1,6 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -21,12 +21,13 @@ const propTypes = {
 function RightModalNavigator(props) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={RHPScreenOptions}>
+                <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name="Settings"
                         component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -114,6 +115,10 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Referral"
+                        component={ModalStackNavigators.ReferralModalStackNavigator}
                     />
                     <Stack.Screen
                         name="Private_Notes"

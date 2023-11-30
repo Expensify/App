@@ -52,6 +52,12 @@ type BankIcon = {
     iconStyles?: Array<ViewStyle | CSSProperties>;
 };
 
+type BankIconParams = {
+    themeStyles: typeof styles;
+    bankName?: string;
+    isCard?: boolean;
+};
+
 /**
  * Returns matching asset icon for bankName
  */
@@ -140,7 +146,7 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 
-export default function getBankIcon(bankName: string, isCard = false): BankIcon {
+export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -152,11 +158,11 @@ export default function getBankIcon(bankName: string, isCard = false): BankIcon 
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        bankIcon.iconStyles = [themeStyles.bankIconContainer];
     } else {
         bankIcon.iconHeight = variables.bankCardHeight;
         bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconStyles = [themeStyles.assignedCardsIconContainer];
     }
 
     return bankIcon;

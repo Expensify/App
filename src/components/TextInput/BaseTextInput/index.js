@@ -250,7 +250,7 @@ function BaseTextInput(props) {
     return (
         <>
             <View
-                style={styles.pointerEventsNone}
+                style={[styles.pointerEventsNone, ...props.containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
@@ -261,7 +261,6 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        ...props.containerStyles,
                     ]}
                 >
                     <View
