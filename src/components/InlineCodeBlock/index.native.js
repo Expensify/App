@@ -7,14 +7,12 @@ import WrappedText from './WrappedText';
 
 function InlineCodeBlock(props) {
     return (
-        <Text>
-            <WrappedText
-                textStyles={[props.textStyle]}
-                viewStyles={[props.boxModelStyle]}
-            >
-                {props.defaultRendererProps.tnode.data}
-            </WrappedText>
-        </Text>
+        <WrappedText
+            textStyles={[props.textStyle]}
+            viewStyles={[props.boxModelStyle]}
+        >
+            {props.defaultRendererProps.tnode.data}
+        </WrappedText>
     );
 }
 
