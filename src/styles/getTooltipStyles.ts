@@ -2,7 +2,7 @@ import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import {ThemeStyles} from './styles';
-import defaultTheme from './themes/default';
+import {ThemeColors} from "./themes/types";
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
@@ -112,7 +112,7 @@ type TooltipParams = {
     maxWidth: number;
     tooltipContentWidth: number;
     tooltipWrapperHeight: number;
-    theme: typeof defaultTheme;
+    theme: ThemeColors;
     themeStyles: ThemeStyles;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
