@@ -134,9 +134,8 @@ function ReportPreview(props) {
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
-    const isReportDraft = isPolicyExpenseChat && ReportUtils.isReportDraft(props.iouReport);
+    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
     const isApproved = ReportUtils.isReportApproved(props.iouReport);
-
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
@@ -158,7 +157,7 @@ function ReportPreview(props) {
             scanningReceipts: numberOfScanningReceipts,
         });
 
-    const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
         if (hasPendingWaypoints) {
@@ -203,15 +202,16 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+
     const shouldShowPayButton = ReportUtils.isGroupPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && isApproved && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
     const shouldShowApproveButton = useMemo(() => {
         if (!_.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType)) {
             return false;
         }
-        return isCurrentUserManager && !isReportDraft && !isApproved && !iouSettled;
-    }, [policyType, isCurrentUserManager, isReportDraft, isApproved, iouSettled]);
+        return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
+    }, [policyType, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
