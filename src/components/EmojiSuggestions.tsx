@@ -43,8 +43,8 @@ type EmojiSuggestionsProps = {
 const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}+${index}}`;
 
 function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     /**
      * Render an emoji suggestion menu item component.
      */
