@@ -2,7 +2,8 @@ import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef} from 'reac
 import {StyleSheet, TextInput} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import {ComposerProps} from './types';
 
 function Composer(
@@ -25,6 +26,9 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<TextInput | null>(null);
+
+    const styles = useThemeStyles();
+    const theme = useTheme();
 
     /**
      * Set the TextInput Ref
@@ -66,9 +70,9 @@ function Composer(
     return (
         <RNTextInput
             autoComplete="off"
-            placeholderTextColor={themeColors.placeholderText}
+            placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
             // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)

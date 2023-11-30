@@ -24,7 +24,7 @@ function Composer(
     const textInput = useRef<TextInput | null>(null);
 
     const styles = useThemeStyles();
-    const themeColors = useTheme();
+    const theme = useTheme();
 
     /**
      * Set the TextInput Ref
@@ -71,9 +71,9 @@ function Composer(
     return (
         <RNTextInput
             autoComplete="off"
-            placeholderTextColor={themeColors.placeholderText}
+            placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             style={[composerStyles, styles.verticalAlignMiddle]}
