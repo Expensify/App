@@ -61,6 +61,18 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setup Node', [], []),
         utils.createStepAssertion(
+            'Setup Java',
+            true,
+            null,
+            'ANDROID',
+            'Setup Java',
+            [
+                {key: 'distribution', value: 'oracle'},
+                {key: 'java-version', value: '17'},
+            ],
+            [],
+        ),
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
@@ -365,7 +377,7 @@ const assertPostGithubCommentJobExecuted = (
             'maintain-comment',
             [
                 {key: 'token', value: '***'},
-                {key: 'body-include', value: 'Use the links below to test this build in android and iOS. Happy testing!'},
+                {key: 'body-include', value: 'Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing!'},
                 {key: 'number', value: pullRequestNumber},
                 {key: 'delete', value: true},
             ],

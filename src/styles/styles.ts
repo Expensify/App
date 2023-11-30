@@ -1441,6 +1441,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        rightLabelMenuItem: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+        },
+
         popoverMenuText: {
             fontSize: variables.fontSizeNormal,
             color: theme.heading,
@@ -1799,6 +1804,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             maxHeight: '100%',
             verticalAlign: 'top',
+        },
+
+        textInputCollapseCompose: {
+            maxHeight: '100%',
+            flex: 4,
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -3979,5 +3989,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyle};
