@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import defaultStyles from './styles';
+import {ThemeStyle} from './styles';
 import {ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
@@ -186,7 +186,7 @@ function getAvatarSize(size: AvatarSizeName): number {
 /**
  * Return the height of magic code input container
  */
-function getHeightOfMagicCodeInput(styles: typeof defaultStyles): ViewStyle {
+function getHeightOfMagicCodeInput(styles: ThemeStyle): ViewStyle {
     return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
 }
 
@@ -203,7 +203,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName, theme: ThemeColors): AvatarStyle {
+function getAvatarStyle(theme: ThemeColors, size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -307,7 +307,7 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
 }
 
-function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean, styles: typeof defaultStyles): ViewStyle {
+function getZoomCursorStyle(styles: ThemeStyle, isZoomed: boolean, isDragging: boolean): ViewStyle {
     if (!isZoomed) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -388,7 +388,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns auto grow height text input style
  */
-function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number, styles: typeof defaultStyles): ViewStyle {
+function getAutoGrowHeightInputStyle(styles: ThemeStyle, textInputHeight: number, maxHeight: number): ViewStyle {
     if (textInputHeight > maxHeight) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -494,7 +494,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 /**
  * Generate a style for the background color of the Badge
  */
-function getBadgeColorStyle(isSuccess: boolean, isError: boolean, styles: typeof defaultStyles, isPressed = false, isAdHoc = false): ViewStyle {
+function getBadgeColorStyle(styles: ThemeStyle, isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
     if (isSuccess) {
         if (isAdHoc) {
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
@@ -648,7 +648,7 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(theme: ThemeColors, styles: typeof defaultStyles, isHovered = false): ViewStyle {
+function getReportActionItemStyle(styles: ThemeStyle, theme: ThemeColors, isHovered = false): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -666,7 +666,7 @@ function getReportActionItemStyle(theme: ThemeColors, styles: typeof defaultStyl
 /**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  */
-function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean, styles: typeof defaultStyles): ViewStyle {
+function getMiniReportActionContextMenuWrapperStyle(styles: ThemeStyle, isReportActionItemGrouped: boolean): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -748,7 +748,7 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @param bgColor - theme background color
  * @returns The theme color as an RGB value.
  */
-function getThemeBackgroundColor(bgColor: string, theme: ThemeColors): string {
+function getThemeBackgroundColor(theme: ThemeColors, bgColor: string): string {
     const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
@@ -979,7 +979,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyRepo
 /**
  * Gets styles for AutoCompleteSuggestion row
  */
-function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number, theme: ThemeColors): ViewStyle[] {
+function getAutoCompleteSuggestionItemStyle(theme: ThemeColors, highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
@@ -1107,7 +1107,7 @@ function displayIfTrue(condition: boolean): ViewStyle {
     return {display: condition ? 'flex' : 'none'};
 }
 
-function getGoogleListViewStyle(styles: typeof defaultStyles, shouldDisplayBorder: boolean): ViewStyle {
+function getGoogleListViewStyle(styles: ThemeStyle, shouldDisplayBorder: boolean): ViewStyle {
     if (shouldDisplayBorder) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -1212,7 +1212,7 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns link styles based on whether the link is disabled or not
  */
-function getDisabledLinkStyles(theme: ThemeColors, styles: typeof defaultStyles, isDisabled = false): ViewStyle {
+function getDisabledLinkStyles(styles: ThemeStyle, theme: ThemeColors, isDisabled = false): ViewStyle {
     const disabledLinkStyles = {
         color: theme.textSupporting,
         ...cursor.cursorDisabled,
@@ -1249,7 +1249,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
 /**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, theme: ThemeColors, borderRadius = 4): ViewStyle {
+function getCheckboxContainerStyle(theme: ThemeColors, size: number, borderRadius = 4): ViewStyle {
     return {
         backgroundColor: theme.componentBG,
         height: size,
@@ -1340,24 +1340,24 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, themeStyles: typeof defaultStyles, isInReportAction = false): ViewStyle[] {
+function getContainerStyles(styles: ThemeStyle, size: string, isInReportAction = false): ViewStyle[] {
     let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:
-            containerStyles = [themeStyles.emptyAvatarSmall, themeStyles.emptyAvatarMarginSmall];
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
             break;
         case CONST.AVATAR_SIZE.SMALLER:
-            containerStyles = [themeStyles.emptyAvatarSmaller, themeStyles.emptyAvatarMarginSmaller];
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
             break;
         case CONST.AVATAR_SIZE.MEDIUM:
-            containerStyles = [themeStyles.emptyAvatarMedium, themeStyles.emptyAvatarMargin];
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
             break;
         case CONST.AVATAR_SIZE.LARGE:
-            containerStyles = [themeStyles.emptyAvatarLarge, themeStyles.mb2, themeStyles.mr2];
+            containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
             break;
         default:
-            containerStyles = [themeStyles.emptyAvatar, isInReportAction ? themeStyles.emptyAvatarMarginChat : themeStyles.emptyAvatarMargin];
+            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
     }
 
     return containerStyles;
@@ -1373,7 +1373,7 @@ function getTransparentColor(color: string) {
 /**
  * Get the styles of the text next to dot indicators
  */
-function getDotIndicatorTextStyles(styles: typeof defaultStyles, isErrorText = true): TextStyle {
+function getDotIndicatorTextStyles(styles: ThemeStyle, isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 

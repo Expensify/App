@@ -49,7 +49,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     const renderItem = useCallback(
         ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
             <PressableWithFeedback
-                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index, theme)}
+                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(theme, highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={() => onSelect(index)}

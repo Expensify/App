@@ -29,7 +29,7 @@ function MiniReportActionContextMenu(props) {
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup, styles)}
+            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(styles, props.displayAsGroup)}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
         >
             <BaseReportActionContextMenu
