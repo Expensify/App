@@ -20,12 +20,12 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-function ReportTypingIndicator(props) {
+function ReportTypingIndicator({userTypingStatuses}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
-    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
+    const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
     const firstUserTypingID = useMemo(
         () => (firstUserTyping && Number.isNaN(Number(firstUserTyping)) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
