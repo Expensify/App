@@ -252,6 +252,13 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
+}
+
+/**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
 function isValidAddress(value: string): boolean {
@@ -406,4 +413,5 @@ export {
     isValidAccountRoute,
     isValidRecoveryCode,
     prepareValues,
+    isValidPersonName,
 };
