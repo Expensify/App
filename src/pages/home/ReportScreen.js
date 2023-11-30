@@ -168,9 +168,9 @@ function ReportScreen({
 
     const isFocused = useIsFocused();
 
-    // Update the lastVisitTime when the report is focused
+    // We need to update the lastVisitTime every time the report is focused
+    // because lastReadTime does not have up-to-date time stamp every time the user visits a report.
     useEffect(() => {
-        // We don't want to update the lastVisitTime if the report did not exist or if the report is not focused
         if (!report.reportID || !isFocused) {
             return;
         }
