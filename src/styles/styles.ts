@@ -40,6 +40,9 @@ import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 
+type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
+type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
+
 type AnchorPosition = {
     horizontal: number;
     vertical: number;
@@ -3984,12 +3987,14 @@ const styles = (theme: ThemeColors) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
     } satisfies Styles);
+
+type ThemeStyles = ReturnType<typeof styles>;
 
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
-type ThemeStyles = typeof defaultStyles;
-
 export default defaultStyles;
-export {stylesGenerator, type Styles, type ThemeStyles};
+export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};

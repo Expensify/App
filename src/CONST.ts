@@ -699,6 +699,14 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    COLOR_SCHEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
+    },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
