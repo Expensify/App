@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
+import SelectionList from '@components/SelectionList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as Report from '@libs/actions/Report';
@@ -274,6 +275,8 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
+    const shouldShowSplitButton = isAllowedToSplit && !shouldShowSplitBillErrorMessage && participants.length > 0;
+
     const footerContent = (
         <View>
             {shouldShowSplitBillErrorMessage && (
@@ -283,44 +286,52 @@ function MoneyRequestParticipantsSelector({
                     message="iou.error.splitBillMultipleParticipantsErrorMessage"
                 />
             )}
-            <Button
-                success
-                text={translate('iou.addToSplit')}
-                onPress={handleConfirmSelection}
-                pressOnEnter
-                isDisabled={shouldShowSplitBillErrorMessage}
-            />
         </View>
     );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <OptionsSelector
-                canSelectMultipleOptions={isAllowedToSplit}
-                shouldShowMultipleOptionSelectorAsButton
-                multipleOptionSelectorButtonText={translate('iou.split')}
-                onAddToSelection={addParticipantToSelection}
+            <SelectionList
+                canSelectMultiple={isAllowedToSplit}
+                showConfirmButton={shouldShowSplitButton}
+                confirmButtonText={translate('iou.addToSplit')}
+                onConfirm={handleConfirmSelection}
                 sections={sections}
-                selectedOptions={participants}
-                value={searchTerm}
-                onSelectRow={addSingleParticipant}
-                onChangeText={setSearchTermAndSearchInServer}
-                ref={forwardedRef}
-                headerMessage={headerMessage}
-                boldStyle
-                shouldShowConfirmButton={isAllowedToSplit}
-                onConfirmSelection={handleConfirmSelection}
+                textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                shouldShowOptions={isOptionsDataReady}
-                shouldShowReferralCTA
-                referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
+                textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                shouldDelayFocus
+                onSelectRow={addParticipantToSelection}
+                onRowPress={addSingleParticipant}
                 footerContent={isAllowedToSplit && footerContent}
-                isLoadingNewOptions={isSearchingForReports}
             />
+            {/* <OptionsSelector */}
+            {/*     canSelectMultipleOptions={isAllowedToSplit} */}
+            {/*     shouldShowMultipleOptionSelectorAsButton */}
+            {/*     multipleOptionSelectorButtonText={translate('iou.split')} */}
+            {/*     onAddToSelection={addParticipantToSelection} */}
+            {/*     sections={sections} */}
+            {/*     selectedOptions={participants} */}
+            {/*     value={searchTerm} */}
+            {/*     onSelectRow={addSingleParticipant} */}
+            {/*     onChangeText={setSearchTermAndSearchInServer} */}
+            {/*     ref={forwardedRef} */}
+            {/*     headerMessage={headerMessage} */}
+            {/*     boldStyle */}
+            {/*     shouldShowConfirmButton={isAllowedToSplit} */}
+            {/*     onConfirmSelection={handleConfirmSelection} */}
+            {/*     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')} */}
+            {/*     textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''} */}
+            {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
+            {/*     shouldShowOptions={isOptionsDataReady} */}
+            {/*     shouldShowReferralCTA */}
+            {/*     referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST} */}
+            {/*     shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()} */}
+            {/*     shouldDelayFocus */}
+            {/*     footerContent={isAllowedToSplit && footerContent} */}
+            {/*     isLoadingNewOptions={isSearchingForReports} */}
+            {/* /> */}
         </View>
     );
 }

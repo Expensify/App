@@ -219,6 +219,7 @@ function getParticipantsOption(participant, personalDetails) {
         ],
         phoneNumber: lodashGet(detail, 'phoneNumber', ''),
         selected: participant.selected,
+        isSelected: participant.selected,
         searchText: participant.searchText,
     };
 }
@@ -574,6 +575,7 @@ function getPolicyExpenseReportOption(report) {
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = report.selected;
+    option.isSelected = report.selected;
     return option;
 }
 

@@ -16,6 +16,9 @@ const commonListItemPropTypes = {
     canSelectMultiple: PropTypes.bool,
 
     /** Callback to fire when the item is pressed */
+    onRowPress: PropTypes.func,
+
+    /** Callback to fire when the item is selected */
     onSelectRow: PropTypes.func.isRequired,
 
     /** Callback to fire when an error is dismissed */

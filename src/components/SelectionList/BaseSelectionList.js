@@ -33,12 +33,14 @@ const propTypes = {
 function BaseSelectionList({
     sections,
     canSelectMultiple = false,
+    onRowPress,
     onSelectRow,
     onSelectAll,
     onDismissError,
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
+    textInputHint = '',
     textInputMaxLength,
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
@@ -292,6 +294,14 @@ function BaseSelectionList({
         );
     };
 
+    const handleRowPress = (item) => {
+        if (!onRowPress) {
+            selectRow(item, true);
+            return;
+        }
+        onRowPress(item);
+    };
+
     const renderItem = ({item, index, section}) => {
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled || item.isDisabled;
@@ -308,6 +318,7 @@ function BaseSelectionList({
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
+                onRowPress={handleRowPress}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
@@ -405,6 +416,7 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
+                                    hint={textInputHint}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}

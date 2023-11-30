@@ -23,6 +23,7 @@ function BaseListItem({
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
+    onRowPress,
     onDismissError = () => {},
 }) {
     const theme = useTheme();
@@ -39,7 +40,7 @@ function BaseListItem({
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
-                onPress={() => onSelectRow(item)}
+                onPress={() => onRowPress(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -59,7 +60,16 @@ function BaseListItem({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <View style={StyleUtils.getCheckboxPressableStyle()}>
+                        <PressableWithFeedback
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            style={StyleUtils.getCheckboxPressableStyle()}
+                            onPress={() => onSelectRow(item)}
+                            disabled={isDisabled}
+                            hoverDimmingValue={1}
+                            hoverStyle={styles.hoveredComponentBG}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                        >
                             <View
                                 style={[
                                     StyleUtils.getCheckboxContainerStyle(20),
@@ -79,7 +89,7 @@ function BaseListItem({
                                     />
                                 )}
                             </View>
-                        </View>
+                        </PressableWithFeedback>
                     )}
                     <ListItem
                         item={item}
