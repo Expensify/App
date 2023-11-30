@@ -150,7 +150,7 @@ function ReportDetailsPage(props) {
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
-    const icons = useMemo(() => ReportUtils.getIcons(props.report, null, '', -1, props.policies, props.personalDetails), [props.report, props.personalDetails, props.policies]);
+    const icons = useMemo(() => ReportUtils.getIcons(props.report, null, '', -1, policy, props.personalDetails), [props.report, props.personalDetails, policy]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <DisplayNames
@@ -254,7 +254,7 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportDetailsPage);
