@@ -37,7 +37,7 @@ const ViolationsUtils = {
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (isCategoryInPolicy) {
+            if (hasMissingCategoryViolation && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
