@@ -32,9 +32,13 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
             disableRootStatusBar(true);
         }
 
-        return () => disableRootStatusBar(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        return () => {
+            if (!isNested) {
+                return;
+            }
+            disableRootStatusBar(false);
+        };
+    }, [disableRootStatusBar, isNested]);
 
     const navigationStateListener = useCallback<EventListenerCallback<NavigationContainerEventMap, 'state'>>(() => {
         if (isDisabled) {
@@ -47,7 +51,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
         const currentRoute = navigationRef.getCurrentRoute();
 
         let currentScreenBackgroundColor = theme.appBG;
-        let statusBarStyle;
+        let statusBarStyle = theme.statusBarStyle;
         if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
             const screenTheme = theme.PAGE_THEMES[currentRoute.name];
             currentScreenBackgroundColor = screenTheme.backgroundColor;
@@ -55,10 +59,8 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
         }
 
         StatusBar.setBackgroundColor(currentScreenBackgroundColor, true);
-        if (statusBarStyle != null) {
-            StatusBar.setBarStyle(statusBarStyle, true);
-        }
-    }, [isDisabled, theme.PAGE_THEMES, theme.appBG]);
+        StatusBar.setBarStyle(statusBarStyle, true);
+    }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
     useEffect(() => {
         navigationRef.addListener('state', navigationStateListener);
@@ -67,8 +69,12 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     }, [navigationStateListener]);
 
     useEffect(() => {
+        if (isDisabled) {
+            return;
+        }
+
         StatusBar.setBarStyle(theme.statusBarStyle, true);
-    }, [theme.statusBarStyle]);
+    }, [isDisabled, theme.statusBarStyle]);
 
     if (isDisabled) {
         return null;
