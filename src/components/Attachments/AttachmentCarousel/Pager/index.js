@@ -89,8 +89,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     useEffect(() => {
         setActivePage(initialIndex);
         activeIndex.value = initialIndex;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialIndex]);
+    }, [activeIndex, initialIndex]);
 
     // we use reanimated for this since onPageSelected is called
     // in the middle of the pager animation
