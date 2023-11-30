@@ -1,15 +1,25 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ReportUtils from '@libs/ReportUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import updateUnread from './updateUnread/index';
+
+let allReports = [];
+
+const triggerUnreadUpdate = (reports = allReports) => {
+    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() : '';
+    const unreadReports = _.filter(reports, (report) => ReportUtils.isUnread(report) && ReportUtils.shouldReportBeInOptionList(report, currentReportID));
+    updateUnread(_.size(unreadReports));
+};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reportsFromOnyx) => {
-        const unreadReports = _.filter(reportsFromOnyx, (report) => ReportUtils.isUnread(report) && ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId()));
-        updateUnread(_.size(unreadReports));
+        allReports = reportsFromOnyx;
+        triggerUnreadUpdate();
     },
 });
+
+export default triggerUnreadUpdate;

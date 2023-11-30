@@ -1,8 +1,9 @@
 import {NavigationState} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {ComponentType, createContext, ForwardedRef, forwardRef, RefAttributes, useCallback, useMemo, useState} from 'react';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, RefAttributes, useCallback, useEffect, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
+import triggerUnreadUpdate from '@libs/UnreadIndicatorUpdater';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
@@ -54,6 +55,10 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
         }),
         [updateCurrentReportID, currentReportID],
     );
+
+    useEffect(() => {
+        triggerUnreadUpdate();
+    }, [currentReportID]);
 
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
 }
