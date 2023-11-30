@@ -3,7 +3,7 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {Beta, PersonalDetails} from '@src/types/onyx';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
@@ -51,13 +51,14 @@ test('getOptionData on 5k reports', async () => {
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
     const parentReportAction = createRandomReportAction(1);
+    const betas: Beta[] = [];
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
+    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction, betas), {runs});
 });
 
 test('getOrderedReportIDs on 5k reports', async () => {
