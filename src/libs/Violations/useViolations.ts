@@ -1,7 +1,6 @@
 import {useCallback, useMemo} from 'react';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
 
-
 /**
  * Map from Violation Names to the field where that violation can occur
  */
@@ -42,7 +41,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
 };
 
 /**
- * Names of Fields where violations can occur
+ * Names of fields where violations can occur
  */
 type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 

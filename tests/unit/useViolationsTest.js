@@ -56,9 +56,7 @@ describe('useViolations', () => {
     it('returns correct values when there are multiple violations on the same field', () => {
         violations = violationsByField.amount;
         const expectedField = 'amount';
-
         const {result} = callHook();
-
         expect(result.current.hasViolations(expectedField)).toBe(true);
         expect(result.current.getViolationsForField(expectedField)).toEqual(violations);
     });

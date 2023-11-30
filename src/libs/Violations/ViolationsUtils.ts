@@ -62,7 +62,7 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
             }
 
-            // Add missingTag violation if tag is required and not set
+            // Add 'missingTag' violation if tag is required and not set
             if (!hasTagViolation && !hasTag && policyRequiresTags) {
                 newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
