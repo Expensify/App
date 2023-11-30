@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -62,9 +62,6 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Array of parent report actions for this report */
-    parentReportActions: PropTypes.shape(reportActionPropTypes),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -138,11 +135,6 @@ function getReportID(route) {
     return String(lodashGet(route, 'params.reportID') || 0);
 }
 
-function getParentReportAction(parentReportActions, report) {
-    const parentReportActionID = report ? report.parentReportActionID : '0';
-    return lodashGet(parentReportActions, parentReportActionID, '');
-}
-
 function ReportScreen({
     betas,
     route,
@@ -159,7 +151,6 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
-    parentReportActions,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -187,14 +178,7 @@ function ReportScreen({
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
-    const parentReportAction = useMemo(() => {
-        if (!report.parentReportID || !report.parentReportActionID || !report.reportID || !parentReportActions) {
-            return {};
-        }
-        return parentReportActions[report.parentReportActionID];
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.parentReportActionID, parentReportActions]);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const isDeletedParentReportAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
@@ -548,20 +532,4 @@ export default compose(
         },
         true,
     ),
-    withOnyx({
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-)(
-    memo(ReportScreen, (prevProps, nextProps) => {
-        const prevParentReportAction = getParentReportAction(prevProps.parentReportActions, prevProps.report);
-        const nextParentReportAction = getParentReportAction(nextProps.parentReportActions, nextProps.report);
-
-        if (prevParentReportAction !== nextParentReportAction) {
-            return false;
-        }
-        return _.isEqual(_.omit(prevProps, 'parentReportActions'), _.omit(nextProps, 'parentReportActions'));
-    }),
-);
+)(ReportScreen);
