@@ -8,8 +8,8 @@ import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';
 
 type BankIconParams = {
     themeStyles: typeof styles;
-    bankName: BankName;
-    isCard: boolean;
+    bankName?: BankName;
+    isCard?: boolean;
 };
 
 /**
@@ -93,13 +93,15 @@ function getBankNameKey(bankName: string): BankNameKey {
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
-    const bankNameKey = getBankNameKey(bankName.toLowerCase());
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
+    if (bankName) {
+        const bankNameKey = getBankNameKey(bankName.toLowerCase());
 
-    if (bankNameKey && Object.keys(CONST.BANK_NAMES).includes(bankNameKey)) {
-        bankIcon.icon = getAssetIcon(bankNameKey, isCard);
+        if (bankNameKey && Object.keys(CONST.BANK_NAMES).includes(bankNameKey)) {
+            bankIcon.icon = getAssetIcon(bankNameKey, isCard);
+        }
     }
 
     // For default Credit Card icon the icon size should not be set.
