@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import * as ComponentUtils from '@libs/ComponentUtils';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '@src/CONST';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
-import CONST from '../../CONST';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import * as ComponentUtils from '../../libs/ComponentUtils';
 
 function FormSubmit({innerRef, children, onSubmit, style}) {
     /**
@@ -62,7 +62,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
         // Thus use capture phase.
         <View
-            accessibilityRole={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
+            role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
             ref={innerRef}
             onKeyDownCapture={submitForm}
             style={style}
@@ -75,10 +75,14 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const FormSubmitWithRef = React.forwardRef((props, ref) => (
     <FormSubmit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+FormSubmitWithRef.displayName = 'FormSubmitWithRef';
+
+export default FormSubmitWithRef;

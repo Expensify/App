@@ -1,6 +1,5 @@
 const {version} = require('../package.json');
 
-const isPublishing = process.argv.includes('--publish');
 const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
@@ -28,8 +27,7 @@ if (!isCorrectElectronEnv) {
 }
 
 /**
- * The configuration for the production and staging Electron builds.
- * It can be used to create local builds of the same, by omitting the `--publish` flag
+ * The configuration for the debug, production and staging Electron builds.
  */
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
@@ -44,6 +42,9 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
+        notarize: {
+            teamId: '368M544MTT',
+        },
     },
     dmg: {
         title: 'New Expensify',
@@ -58,7 +59,6 @@ module.exports = {
             path: s3Path[process.env.ELECTRON_ENV],
         },
     ],
-    afterSign: isPublishing ? './desktop/notarize.js' : undefined,
     files: ['dist', '!dist/www/{.well-known,favicon*}'],
     directories: {
         app: 'desktop',

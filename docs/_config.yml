@@ -4,6 +4,7 @@ description: Got a question about receipts, expenses, corporate cards, or anythi
 url: https://help.expensify.com
 author: Expensify
 logo: /assets/images/expensify-help.svg
+repository: Expensify/App
 open_url: true
 
 defaults:

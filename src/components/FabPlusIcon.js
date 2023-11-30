@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedProps, withTiming, interpolateColor, Easing} from 'react-native-reanimated';
+import React, {useEffect} from 'react';
+import Animated, {Easing, interpolateColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import themeColors from '../styles/themes/default';
+import themeColors from '@styles/themes/default';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 

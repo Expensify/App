@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Replaces spaces with dashes
