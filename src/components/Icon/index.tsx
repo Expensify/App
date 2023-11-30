@@ -47,7 +47,7 @@ type IconProps = {
 const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
-    fill: themeColors.icon,
+    fill: undefined,
     small: false,
     inline: false,
     additionalStyles: [],
@@ -55,10 +55,12 @@ const defaultProps = {
     pressed: false,
 };
 
-function Icon({src, width, height, fill, small, inline, hovered, pressed, themeStyles, additionalStyles}: IconProps) {
-    const effectiveWidth = small ? variables.iconSizeSmall : width;
-    const effectiveHeight = small ? variables.iconSizeSmall : height;
+function Icon({src, width, height, fill, small, inline, hovered, pressed, theme, themeStyles, additionalStyles}: IconProps) {
+    const iconWidth = small ? variables.iconSizeSmall : width;
+    const iconHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, themeStyles.pAbsolute, additionalStyles];
+    const iconFill = fill ?? theme.icon;
+    const IconComponent = src;
 
     if (inline) {
         return (
@@ -68,9 +70,9 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, themeS
             >
                 <View style={iconStyles}>
                     <IconComponent
-                        width={effectiveWidth}
-                        height={effectiveHeight}
-                        fill={fill}
+                        width={iconWidth}
+                        height={iconHeight}
+                        fill={iconFill}
                         hovered={hovered?.toString()}
                         pressed={pressed?.toString()}
                     />
@@ -85,9 +87,9 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, themeS
             style={additionalStyles}
         >
             <IconComponent
-                width={effectiveWidth}
-                height={effectiveHeight}
-                fill={fill}
+                width={iconWidth}
+                height={iconHeight}
+                fill={iconFill}
                 hovered={hovered?.toString()}
                 pressed={pressed?.toString()}
             />
@@ -98,4 +100,4 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, themeS
 Icon.defaultProps = defaultProps;
 Icon.displayName = 'Icon';
 
-export default withThemeStyles(Icon);
+export default withTheme(withThemeStyles(Icon));
