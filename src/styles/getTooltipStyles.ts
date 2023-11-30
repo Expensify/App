@@ -1,7 +1,7 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import styles from './styles';
+import {ThemeStyles} from './styles';
 import defaultTheme from './themes/default';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
@@ -113,7 +113,7 @@ type TooltipParams = {
     tooltipContentWidth: number;
     tooltipWrapperHeight: number;
     theme: typeof defaultTheme;
-    themeStyles: typeof styles;
+    themeStyles: ThemeStyles;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
 };
@@ -268,8 +268,8 @@ export default function getTooltipStyles({
             left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
-            ...styles.userSelectNone,
-            ...styles.pointerEventsNone,
+            ...themeStyles.userSelectNone,
+            ...themeStyles.pointerEventsNone,
         },
         textStyle: {
             color: theme.textReversed,
