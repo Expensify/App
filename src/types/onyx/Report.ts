@@ -108,8 +108,9 @@ type Report = {
     lastMessageHtml?: string;
     welcomeMessage?: string;
     lastActorAccountID?: number;
-    ownerAccountID?: number;
-    participantAccountIDs?: number[];
+    ownerAccountID?: string;
+    ownerEmail?: string;
+    participantAccountIDs?: string[];
     total?: number;
     currency?: string;
     parentReportActionIDs?: number[];
@@ -129,6 +130,8 @@ type Report = {
 
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
+
+    pendingAction?: string;
 
     /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;

@@ -79,7 +79,7 @@ function getAccountIDsByLogins(logins) {
 /**
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
- * @param {Array<number>} accountIDs Array of user accountIDs
+ * @param {Array<number | string>} accountIDs Array of user accountIDs
  * @returns {Array} - Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs) {
@@ -101,7 +101,11 @@ function getLoginsByAccountIDs(accountIDs) {
  *
  * @param {Array<string>} logins Array of user logins
  * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ * @typedef {Object} OnyxData
+ * @property {Array<Object>} optimisticData
+ * @property {Array<Object>} successData
+ * @property {Array<Object>} failureData
+ * @returns {OnyxData} - Object with optimisticData, successData and failureData (object of personal details objects)
  */
 function getNewPersonalDetailsOnyxData(logins, accountIDs) {
     const optimisticData = {};

@@ -2,6 +2,39 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
+type Unit = 'mi' | 'km';
+
+type Rate = {
+    name: string;
+    rate: number;
+    currency?: string;
+    customUnitRateID?: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: string;
+};
+
+type NewCustomUnit = {
+    name: string;
+    customUnitID?: string;
+    attributes: {
+        unit: Unit;
+    };
+    rates: Rate;
+    pendingAction?: string;
+    errors?: OnyxCommon.Errors;
+};
+
+type CustomUnit = {
+    name: string;
+    customUnitID?: string;
+    attributes: {
+        unit: Unit;
+    };
+    rates: Record<string, Rate>;
+    pendingAction?: string;
+    errors?: OnyxCommon.Errors;
+};
+
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -19,7 +52,7 @@ type Policy = {
     owner: string;
 
     /** The accountID of the policy owner */
-    ownerAccountID: number;
+    ownerAccountID?: number;
 
     /** The output currency for the policy */
     outputCurrency: string;
@@ -34,7 +67,7 @@ type Policy = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** A list of errors keyed by microtime */
-    errors: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors;
 
     /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
     isFromFullPolicy?: boolean;
@@ -43,22 +76,33 @@ type Policy = {
     lastModified?: string;
 
     /** The custom units data for this policy */
-    customUnits?: Record<string, unknown>;
+    customUnits?: Record<string, CustomUnit>;
 
     /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
+    areChatRoomsEnabled?: boolean;
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
     /** Whether the scheduled submit is enabled */
-    autoReporting: boolean;
+    autoReporting?: boolean;
 
     /** The scheduled submit frequency set up on the this policy */
-    autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+    autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    makeMeAdmin?: boolean;
+
+    pendingFields?: Record<string, unknown>;
+
+    originalFileName?: string;
+
+    alertMessage?: string;
+
+    primaryLoginsInvited?: Record<string, string>;
 };
 
 export default Policy;
+export type {CustomUnit, NewCustomUnit};
