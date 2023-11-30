@@ -7,9 +7,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
-import { InitialUrlContext } from '@src/InitialUrlContext';
+import {InitialUrlContext} from '@src/InitialUrlContext';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -35,12 +35,12 @@ const defaultProps = {
 };
 
 function LogOutPreviousUserPage(props) {
-    const initUrl = useContext(InitialUrlContext)
-    useEffect(
-        () => {
-            Linking.getInitialURL().then((transitionURL) => {
-                const sessionEmail = props.session.email;
-                const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(CONST.DEEPLINK_BASE_URL + initUrl, sessionEmail);
+    const initUrl = useContext(InitialUrlContext);
+    useEffect(() => {
+        Linking.getInitialURL().then((url) => {
+            const sessionEmail = props.session.email;
+            const transitionUrl = url || CONST.DEEPLINK_BASE_URL + initUrl;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 Session.signOutAndRedirectToSignIn();
@@ -58,14 +58,13 @@ function LogOutPreviousUserPage(props) {
             }
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            // Navigation.navigate(exitTo, "FORCED_UP");
             if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
                 });
             }
         });
-    }, [props]);
+    }, [initUrl, props]);
 
     return <FullScreenLoadingIndicator />;
 }
