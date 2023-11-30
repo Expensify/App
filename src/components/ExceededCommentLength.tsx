@@ -19,7 +19,7 @@ type ExceededCommentLengthProps = ExceededCommentLengthOnyxProps & {
     reportID: string;
 
     /** Text Comment */
-    comment: string;
+    comment?: string;
 
     /** Update UI on parent when comment length is exceeded */
     onExceededMaxCommentLength: () => void;
@@ -31,10 +31,10 @@ function ExceededCommentLength({comment = '', onExceededMaxCommentLength}: Excee
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
         () =>
-            debounce((newComment, onExceededMaxCommentLengthCallabck) => {
+            debounce((newComment, onExceededMaxCommentLengthCallback) => {
                 const newCommentLength = ReportUtils.getCommentLength(newComment);
                 setCommentLength(newCommentLength);
-                onExceededMaxCommentLengthCallabck(newCommentLength > CONST.MAX_COMMENT_LENGTH);
+                onExceededMaxCommentLengthCallback(newCommentLength > CONST.MAX_COMMENT_LENGTH);
             }, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME),
         [],
     );
