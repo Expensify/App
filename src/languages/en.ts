@@ -1191,7 +1191,7 @@ export default {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
-            website: 'Please enter a valid website',
+            website: 'Please enter a valid website. The website should be in lowercase.',
             zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
@@ -1673,6 +1673,7 @@ export default {
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
+        title: (year, monthName) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
     keyboardShortcutsPage: {

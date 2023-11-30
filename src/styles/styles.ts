@@ -1802,6 +1802,11 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'top',
         },
 
+        textInputCollapseCompose: {
+            maxHeight: '100%',
+            flex: 4,
+        },
+
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
         textInputComposeSpacing: {
             paddingVertical: 5,
@@ -3980,5 +3985,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
+type ThemeStyle = typeof defaultStyles;
+
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyle};
