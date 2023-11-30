@@ -101,7 +101,7 @@ function MultipleAvatars({
 
     const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
-    let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
+    let avatarContainerStyles = StyleUtils.getContainerStyles(styles, size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
@@ -161,7 +161,7 @@ function MultipleAvatars({
         );
     }
 
-    const oneAvatarSize = StyleUtils.getAvatarStyle(size);
+    const oneAvatarSize = StyleUtils.getAvatarStyle(theme, size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3;
 
@@ -197,6 +197,7 @@ function MultipleAvatars({
                                                 isPressed,
                                                 isInReportAction,
                                                 shouldUseCardBackground,
+                                                theme,
                                             }),
                                             StyleUtils.getAvatarBorderWidth(size),
                                         ]}
@@ -224,6 +225,7 @@ function MultipleAvatars({
                                             isPressed,
                                             isInReportAction,
                                             shouldUseCardBackground,
+                                            theme,
                                         }),
 
                                         // Set overlay background color with RGBA value so that the text will not inherit opacity

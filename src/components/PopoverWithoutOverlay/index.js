@@ -22,6 +22,7 @@ function Popover(props) {
             isSmallScreenWidth: false,
         },
         theme,
+        styles,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
