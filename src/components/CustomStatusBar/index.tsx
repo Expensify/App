@@ -11,6 +11,8 @@ type CustomStatusBarProps = {
 };
 
 const propTypes = {
+    /** Whether the CustomStatusBar is nested within another CustomStatusBar.
+     *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
     isNested: PropTypes.bool,
 };
 
