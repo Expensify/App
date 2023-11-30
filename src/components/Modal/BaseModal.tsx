@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -203,12 +204,14 @@ function BaseModal(
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
         >
-            <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={ref}
-            >
-                {children}
-            </View>
+            <ColorSchemeWrapper>
+                <View
+                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                    ref={ref}
+                >
+                    {children}
+                </View>
+            </ColorSchemeWrapper>
         </ReactNativeModal>
     );
 }
