@@ -544,7 +544,7 @@ function ReportActionItem(props) {
                 <ReportActionItemSingle
                     action={props.action}
                     showHeader={!props.draftMessage}
-                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    wrapperStyle={isWhisper ? styles.pt1 : {}}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     iouReport={props.iouReport}
@@ -556,7 +556,7 @@ function ReportActionItem(props) {
             );
         }
 
-        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
+        return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -586,7 +586,6 @@ function ReportActionItem(props) {
                             <ReportActionItemSingle
                                 action={parentReportAction}
                                 showHeader={!props.draftMessage}
-                                wrapperStyles={[styles.chatItem]}
                                 report={props.report}
                             >
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
