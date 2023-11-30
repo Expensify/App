@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
-type UseWaitForNavigation = (navigate: () => void) => () => Promise<void>
+type UseWaitForNavigation = (navigate: () => void) => () => Promise<void>;
 
 /**
  * Returns a promise that resolves when navigation finishes.
