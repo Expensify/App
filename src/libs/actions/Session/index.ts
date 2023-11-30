@@ -341,7 +341,6 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
         },
     ];
 
-    // Subsequently, we revert it back to the default value of signedInWithShortLivedAuthToken (undefined) in 'successData' to ensure the user is logged out on refresh
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -350,6 +349,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: false,
             },
         },
+        // Subsequently, we revert it back to the default value of signedInWithShortLivedAuthToken (undefined) in 'successData' to ensure the user is logged out on refresh
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
