@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
@@ -35,8 +36,11 @@ const propTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** Whether the Lightbox/image is currently active on screen */
+    /** Whether the Lightbox is currently active on screen/in the carousel */
     isActive: PropTypes.bool,
+
+    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
+    hasSiblingCarouselItems: PropTypes.bool,
 
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -47,12 +51,14 @@ const defaultProps = {
 
     isAuthTokenRequired: false,
     isActive: true,
+    hasSiblingCarouselItems: false,
     onPress: () => {},
     onError: () => {},
     style: {},
 };
 
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, isActive: initialIsActive, zoomRange}) {
+function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, isActive: initialIsActive, hasSiblingCarouselItems, zoomRange}) {
+    const styles = useThemeStyles();
     const [isActive, setIsActive] = useState(initialIsActive);
     const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
     const imageDimensions = cachedDimensions.get(source);
@@ -69,24 +75,45 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         }
     }, [initialIsActive]);
 
-    const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
-    const [isImageLoading, setIsImageLoading] = useState(true);
-    const [isFallbackLoading, setIsFallbackLoading] = useState(true);
-    const [showFallback, setShowFallback] = useState(true);
-
-    const isFallbackVisible = showFallback || !isActive;
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const isCanvasLoading = canvasSize.width === 0 || canvasSize.height === 0;
-    const isLoading = isCanvasLoading || (isActive && isFallbackVisible && isFallbackLoading) || isImageLoading;
+    const isLoading = isCanvasLoading || !isImageLoaded;
 
-    // We delay hiding the fallback image while image transformer is still rendering
+    const [keepInactiveFallbackVisible, setKeepInactiveFallbackVisible] = useState(isInactiveCarouselItem);
+    const [showFallback, setShowFallback] = useState(isInactiveCarouselItem);
+    const isFallbackVisible = showFallback || keepInactiveFallbackVisible;
+
     useEffect(() => {
-        if (isImageLoading || showFallback) {
-            setShowFallback(true);
-        } else {
-            setTimeout(() => setShowFallback(false), 100);
+        if (!hasSiblingCarouselItems) {
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isImageLoading]);
+
+        if (isActive) {
+            if (isImageLoaded) {
+                // We delay hiding the fallback image while image transformer is still rendering
+                setTimeout(() => {
+                    setShowFallback(false);
+                    setKeepInactiveFallbackVisible(false);
+                }, 100);
+            }
+        } else {
+            setKeepInactiveFallbackVisible(true);
+        }
+
+        // Show fallback when the image goes out of focus or when the image is loading
+        if (!isImageLoaded || !isActive) {
+            setShowFallback(true);
+        }
+    }, [hasSiblingCarouselItems, isActive, isImageLoaded]);
+
+    // Reload image once the item has become inactive
+    useEffect(() => {
+        if (isActive) {
+            return;
+        }
+        setIsImageLoaded(false);
+    }, [isActive]);
 
     return (
         <View
@@ -111,14 +138,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                     style={imageDimensions?.contentSize == null ? undefined : imageDimensions.contentSize}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
-                                    onLoadStart={() => {
-                                        setIsImageLoading(true);
-                                    }}
-                                    onLoadEnd={() => {
-                                        setInitialActivePageLoad(false);
-                                        setIsImageLoading(false);
-                                        setShowFallback(false);
-                                    }}
+                                    onLoadEnd={() => setIsImageLoaded(true)}
                                     onLoad={(evt) => {
                                         const width = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                         const height = (evt.nativeEvent?.height || 0) / PixelRatio.get();
@@ -142,36 +162,22 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                                 },
                                             });
                                         }
-
-                                        // On the initial render of the active page, the onLoadEnd event is never fired.
-                                        // That's why we instead set isImageLoading to false in the onLoad event.
-                                        if (initialActivePageLoad) {
-                                            setInitialActivePageLoad(false);
-                                            setIsImageLoading(false);
-                                            setTimeout(() => setShowFallback(false), 100);
-                                        }
                                     }}
                                 />
                             </MultiGestureCanvas>
                         </View>
                     )}
 
-                    {/* Keep rendering the image without gestures as fallback while ImageLightbox is loading the image */}
+                    {/* Keep rendering the image without gestures as fallback while the lightbox is loading the image or if the carousel item is not active */}
                     {isFallbackVisible && (
                         <View
                             collapsable={false}
-                            style={StyleUtils.getFullscreenCenteredContentStyles}
+                            style={StyleUtils.getFullscreenCenteredContentStyles(styles)}
                         >
                             <Image
                                 source={{uri: source}}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onError={onError}
-                                onLoadStart={() => {
-                                    setIsFallbackLoading(true);
-                                }}
-                                onLoadEnd={() => {
-                                    setIsFallbackLoading(false);
-                                }}
                                 onLoad={(evt) => {
                                     const width = evt.nativeEvent.width;
                                     const height = evt.nativeEvent.height;
@@ -202,7 +208,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                         </View>
                     )}
 
-                    {/* Show activity indicator while ImageLightbox is still loading the image. */}
+                    {/* Show activity indicator while the lightbox is still loading the image. */}
                     {isLoading && (
                         <ActivityIndicator
                             size="large"
