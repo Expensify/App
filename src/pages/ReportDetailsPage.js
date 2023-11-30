@@ -14,7 +14,6 @@ import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -138,13 +137,13 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, props.session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -154,28 +153,22 @@ function ReportDetailsPage(props) {
     const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <Text
-            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+        <DisplayNames
+            fullTitle={chatRoomSubtitle}
+            tooltipEnabled
             numberOfLines={1}
-        >
-            {chatRoomSubtitle}
-        </Text>
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
+            shouldUseFullTitle
+        />
     ) : null;
 
     return (
-        <ScreenWrapper
-            testID={ReportDetailsPage.displayName}
-            shouldEnableAutoFocus
-        >
+        <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
+                    shouldNavigateToTopMostReport
                     onBackButtonPress={() => {
-                        const topMostReportID = Navigation.getTopmostReportId();
-                        if (topMostReportID) {
-                            Navigation.goBack(ROUTES.HOME);
-                            return;
-                        }
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
                     }}
@@ -205,6 +198,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
@@ -261,6 +255,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);
