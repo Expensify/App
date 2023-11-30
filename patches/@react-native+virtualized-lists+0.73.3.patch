@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js b/node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js
-index 70b2e20..ca082b8 100644
+index 70b2e20..2b15e73 100644
 --- a/node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js
 +++ b/node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js
-@@ -1708,6 +1708,11 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+@@ -1708,6 +1708,10 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
        visibleLength,
        zoomScale,
      };
