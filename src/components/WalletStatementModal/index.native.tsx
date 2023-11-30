@@ -10,7 +10,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WalletStatementOnyxProps, WalletStatementProps} from './types';
 
-type WebViewNavigationEvent = WebViewNavigation & {type?: ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>};
+type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
+
+type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 
 const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
 const renderLoading = () => <FullScreenLoadingIndicator />;
