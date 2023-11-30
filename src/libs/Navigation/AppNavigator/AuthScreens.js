@@ -144,7 +144,7 @@ const defaultProps = {
 function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {

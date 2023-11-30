@@ -459,6 +459,15 @@ function getMoneyRequestInformation(
     const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
+    // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
+    if (isPolicyExpenseChat && iouReport) {
+        const policyType = ReportUtils.getPolicy(iouReport.policyID).type || '';
+        const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+        if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+            iouReport = null;
+        }
+    }
+
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
@@ -860,6 +869,7 @@ function requestMoney(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     API.write(
         'RequestMoney',
@@ -887,8 +897,8 @@ function requestMoney(
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
-    Report.notifyNewAction(chatReport.reportID, payeeAccountID);
+    Navigation.dismissModal(activeReportID);
+    Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
 /**
@@ -2658,30 +2668,46 @@ function approveMoneyRequest(expenseReport) {
  */
 function submitReport(expenseReport) {
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+    const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
 
-    const optimisticReportActionsData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-        value: {
-            [optimisticSubmittedReportAction.reportActionID]: {
-                ...optimisticSubmittedReportAction,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    ...optimisticSubmittedReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
-    };
-    const optimisticIOUReportData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-        value: {
-            ...expenseReport,
-            lastMessageText: optimisticSubmittedReportAction.message[0].text,
-            lastMessageHtml: optimisticSubmittedReportAction.message[0].html,
-            state: CONST.REPORT.STATE.SUBMITTED,
-            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-            statusNum: CONST.REPORT.STATUS.SUBMITTED,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                ...expenseReport,
+                lastMessageText: lodashGet(optimisticSubmittedReportAction, 'message.0.text', ''),
+                lastMessageHtml: lodashGet(optimisticSubmittedReportAction, 'message.0.html', ''),
+                state: CONST.REPORT.STATE.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+            },
         },
-    };
-    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+        ...(parentReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          ...parentReport,
+                          hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
+                          iouReportID: null,
+                      },
+                  },
+              ]
+            : []),
+    ];
 
     const successData = [
         {
@@ -2713,6 +2739,19 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
+        ...(parentReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: parentReport.hasOutstandingIOU,
+                          hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
+            : []),
     ];
 
     API.write(
