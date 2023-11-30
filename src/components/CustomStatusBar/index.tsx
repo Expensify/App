@@ -65,7 +65,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
     useEffect(() => {
-        navigationRef.addListener('state', navigationStateListener);
+        navigationRef.addListener('state', updateStatusBarStyle);
 
         return () => navigationRef.removeListener('state', navigationStateListener);
     }, [navigationStateListener]);
