@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import styles from './styles';
 import {type ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
@@ -661,16 +660,16 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(isHovered = false): ViewStyle {
+function getReportActionItemStyle(theme: ThemeColors, isHovered = false): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         display: 'flex',
         justifyContent: 'space-between',
         backgroundColor: isHovered
-            ? themeColors.hoverComponentBG
+            ? theme.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              themeColors.transparent,
+              theme.transparent,
         opacity: 1,
         ...styles.cursorInitial,
     };
