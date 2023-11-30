@@ -151,7 +151,7 @@ android {
             signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
             // thus we need to manually set the signing config, so that the e2e uses the debug config again.
-            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.
+            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode. 
             productFlavors.all { flavor ->
                 // All release builds should be signed with the release config ...
                 flavor.signingConfig signingConfigs.release
