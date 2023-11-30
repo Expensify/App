@@ -25,13 +25,13 @@ const propTypes = {
     accessibilityLabel: PropTypes.string.isRequired,
 
     /* An accessibility role for the button */
-    accessibilityRole: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired,
 
     ...withThemeStylesPropTypes,
     ...withThemePropTypes,
 };
 
-const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, accessibilityRole, theme, themeStyles}, ref) => {
+const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role, theme, themeStyles}, ref) => {
     const {translate} = useLocalize();
     const fabPressable = useRef(null);
     const animatedValue = useSharedValue(isActive ? 1 : 0);
@@ -65,7 +65,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                         }
                     }}
                     accessibilityLabel={accessibilityLabel}
-                    accessibilityRole={accessibilityRole}
+                    role={role}
                     pressDimmingValue={1}
                     onPress={(e) => {
                         // Drop focus to avoid blue focus ring.
