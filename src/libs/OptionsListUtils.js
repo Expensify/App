@@ -381,6 +381,7 @@ function getLastMessageTextForReport(report) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
+    const lastChildType = lodashGet(lastReportAction, 'childType', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
@@ -410,6 +411,8 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+    } else if (lastChildType === CONST.REPORT.TYPE.TASK) {
+        lastMessageTextFromReport = report ? report.lastMessageHtml || '' : '';
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
