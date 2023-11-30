@@ -57,7 +57,6 @@ const defaultProps = {
 function AddReactionBubble(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 

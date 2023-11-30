@@ -69,7 +69,6 @@ function PressableWithDelayToggle(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {

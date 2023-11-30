@@ -56,7 +56,6 @@ const defaultProps = {
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
