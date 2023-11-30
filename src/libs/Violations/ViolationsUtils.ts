@@ -5,7 +5,8 @@ import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@
 
 const ViolationsUtils = {
     /**
-     * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction violations.
+     * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
+     * violations.
      */
     getViolationsOnyxData(
         transaction: Transaction,
@@ -27,12 +28,12 @@ const ViolationsUtils = {
             const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryViolation && transaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
-            if (hasCategoryViolation && transaction.category && isCategoryInPolicy) {
+            if (hasCategoryOutOfPolicyViolation && transaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
@@ -50,11 +51,15 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
-            const hasTag = Boolean(transaction.tag);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            if (!hasTagViolation && hasTag && !isTagInPolicy) {
+            if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
+            }
+
+            // Remove 'tagOutOfPolicy' violation if tag is in policy
+            if (hasTagOutOfPolicyViolation && transaction.tag && isTagInPolicy) {
+                newTransactionViolations = reject(newTransactionViolations, {name: 'tagOutOfPolicy'});
             }
 
             // Remove 'missingTag' violation if tag is valid according to policy
@@ -63,7 +68,7 @@ const ViolationsUtils = {
             }
 
             // Add missingTag violation if tag is required and not set
-            if (!hasTagViolation && !hasTag && policyRequiresTags) {
+            if (!hasMissingTagViolation && !transaction.tag && policyRequiresTags) {
                 newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
         }
