@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {createNativeWrapper} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
@@ -85,6 +85,12 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     );
 
     const [activePage, setActivePage] = useState(initialIndex);
+
+    useEffect(() => {
+        setActivePage(initialIndex);
+        activeIndex.value = initialIndex;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialIndex]);
 
     // we use reanimated for this since onPageSelected is called
     // in the middle of the pager animation
