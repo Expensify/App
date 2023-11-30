@@ -22,4 +22,6 @@ Onyx.connect({
     },
 });
 
-export default triggerUnreadUpdate;
+navigationRef.addListener('state', () => {
+    triggerUnreadUpdate();
+});
