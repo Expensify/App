@@ -1,5 +1,9 @@
+import {DebouncedFunc, DebounceSettings} from 'lodash';
 import lodashDebounce from 'lodash/debounce';
 import {useCallback, useEffect, useRef} from 'react';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type GenericFunction = (...args: any[]) => void;
 
 /**
  * Create and return a debounced function.
@@ -7,27 +11,29 @@ import {useCallback, useEffect, useRef} from 'react';
  * Every time the identity of any of the arguments changes, the debounce operation will restart (canceling any ongoing debounce).
  * This is especially important in the case of func. To prevent that, pass stable references.
  *
- * @param {Function} func The function to debounce.
- * @param {Number} wait The number of milliseconds to delay.
- * @param {Object} options The options object.
- * @param {Boolean} options.leading Specify invoking on the leading edge of the timeout.
- * @param {Number} options.maxWait The maximum time func is allowed to be delayed before it’s invoked.
- * @param {Boolean} options.trailing Specify invoking on the trailing edge of the timeout.
- * @returns {Function} Returns a function to call the debounced function.
+ * @param func The function to debounce.
+ * @param wait The number of milliseconds to delay.
+ * @param options The options object.
+ * @param options.leading Specify invoking on the leading edge of the timeout.
+ * @param options.maxWait The maximum time func is allowed to be delayed before it’s invoked.
+ * @param options.trailing Specify invoking on the trailing edge of the timeout.
+ * @returns Returns a function to call the debounced function.
  */
-export default function useDebounce(func, wait, options) {
-    const debouncedFnRef = useRef();
-    const {leading, maxWait, trailing = true} = options || {};
+export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): T {
+    const debouncedFnRef = useRef<DebouncedFunc<T>>();
+    const {leading, maxWait, trailing = true} = options ?? {};
 
     useEffect(() => {
         const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
 
         debouncedFnRef.current = debouncedFn;
 
-        return debouncedFn.cancel;
+        return () => {
+            debouncedFn.cancel();
+        };
     }, [func, wait, leading, maxWait, trailing]);
 
-    const debounceCallback = useCallback((...args) => {
+    const debounceCallback = useCallback((...args: Parameters<T>) => {
         const debouncedFn = debouncedFnRef.current;
 
         if (debouncedFn) {
@@ -35,5 +41,5 @@ export default function useDebounce(func, wait, options) {
         }
     }, []);
 
-    return debounceCallback;
+    return debounceCallback as T;
 }
