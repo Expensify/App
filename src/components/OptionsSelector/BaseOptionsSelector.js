@@ -462,8 +462,8 @@ class BaseOptionsSelector extends Component {
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
-        const listContainerStyles = this.props.listContainerStyles || [this.props.themeStyles.flex1];
-        const optionHoveredStyle = this.props.optionHoveredStyle || this.props.themeStyles.hoveredComponentBG;
+        const listContainerStyles = this.props.listContainerStyles || [this.props.styles.flex1];
+        const optionHoveredStyle = this.props.optionHoveredStyle || this.props.styles.hoveredComponentBG;
 
         const textInput = (
             <TextInput
@@ -533,7 +533,7 @@ class BaseOptionsSelector extends Component {
                 renderFooterContent={() =>
                     shouldShowShowMoreButton && (
                         <ShowMoreButton
-                            containerStyle={{...this.props.themeStyles.mt2, ...this.props.themeStyles.mb5}}
+                            containerStyle={{...this.props.styles.mt2, ...this.props.styles.mb5}}
                             currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage}
                             totalCount={this.state.allOptions.length}
                             onPress={this.incrementPage}
@@ -545,24 +545,10 @@ class BaseOptionsSelector extends Component {
 
         const optionsAndInputsBelowThem = (
             <>
-                <View
-                    style={[
-                        this.props.themeStyles.flexGrow0,
-                        this.props.themeStyles.flexShrink1,
-                        this.props.themeStyles.flexBasisAuto,
-                        this.props.themeStyles.w100,
-                        this.props.themeStyles.flexRow,
-                    ]}
-                >
+                <View style={[this.props.styles.flexGrow0, this.props.styles.flexShrink1, this.props.styles.flexBasisAuto, this.props.styles.w100, this.props.styles.flexRow]}>
                     {optionsList}
                 </View>
-                <View
-                    style={
-                        this.props.shouldUseStyleForChildren
-                            ? [this.props.themeStyles.ph5, this.props.themeStyles.pv5, this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink0]
-                            : []
-                    }
-                >
+                <View style={this.props.shouldUseStyleForChildren ? [this.props.styles.ph5, this.props.styles.pv5, this.props.styles.flexGrow1, this.props.styles.flexShrink0] : []}>
                     {this.props.children}
                     {this.props.shouldShowTextInput && textInput}
                 </View>
@@ -577,18 +563,18 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
-                <View style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink1, this.props.themeStyles.flexBasisAuto]}>
+                <View style={[this.props.styles.flexGrow1, this.props.styles.flexShrink1, this.props.styles.flexBasisAuto]}>
                     {/*
                      * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
                      */}
                     {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
-                        <ScrollView contentContainerStyle={[this.props.themeStyles.flexGrow1]}>
+                        <ScrollView contentContainerStyle={[this.props.styles.flexGrow1]}>
                             <ScrollView
                                 horizontal
                                 bounces={false}
-                                contentContainerStyle={[this.props.themeStyles.flex1, this.props.themeStyles.flexColumn]}
+                                contentContainerStyle={[this.props.styles.flex1, this.props.styles.flexColumn]}
                             >
                                 {optionsAndInputsBelowThem}
                             </ScrollView>
@@ -599,13 +585,13 @@ class BaseOptionsSelector extends Component {
 
                     {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
-                            <View style={this.props.shouldUseStyleForChildren ? [this.props.themeStyles.ph5, this.props.themeStyles.pb3] : []}>
+                            <View style={this.props.shouldUseStyleForChildren ? [this.props.styles.ph5, this.props.styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
                                 {Boolean(this.props.textInputAlert) && (
                                     <FormHelpMessage
                                         message={this.props.textInputAlert}
-                                        style={[this.props.themeStyles.mb3]}
+                                        style={[this.props.styles.mb3]}
                                         isError={false}
                                     />
                                 )}
@@ -615,19 +601,19 @@ class BaseOptionsSelector extends Component {
                     )}
                 </View>
                 {this.props.shouldShowReferralCTA && (
-                    <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
+                    <View style={[this.props.styles.ph5, this.props.styles.pb5, this.props.styles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
                             }}
                             style={[
-                                this.props.themeStyles.p5,
-                                this.props.themeStyles.w100,
-                                this.props.themeStyles.br2,
-                                this.props.themeStyles.highlightBG,
-                                this.props.themeStyles.flexRow,
-                                this.props.themeStyles.justifyContentBetween,
-                                this.props.themeStyles.alignItemsCenter,
+                                this.props.styles.p5,
+                                this.props.styles.w100,
+                                this.props.styles.br2,
+                                this.props.styles.highlightBG,
+                                this.props.styles.flexRow,
+                                this.props.styles.justifyContentBetween,
+                                this.props.styles.alignItemsCenter,
                                 {gap: 10},
                             ]}
                             accessibilityLabel="referral"
@@ -637,7 +623,7 @@ class BaseOptionsSelector extends Component {
                                 {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
                                 <Text
                                     color={this.props.theme.success}
-                                    style={this.props.themeStyles.textStrong}
+                                    style={this.props.styles.textStrong}
                                 >
                                     {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
                                 </Text>
@@ -656,7 +642,7 @@ class BaseOptionsSelector extends Component {
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
-                                style={[this.props.themeStyles.w100]}
+                                style={[this.props.styles.w100]}
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter

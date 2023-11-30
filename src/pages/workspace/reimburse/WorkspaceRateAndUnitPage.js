@@ -163,7 +163,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                         submitButtonText={this.props.translate('common.save')}
-                        style={[this.props.themeStyles.mh5, this.props.themeStyles.flexGrow1]}
+                        style={[this.props.styles.mh5, this.props.styles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
                         onSubmit={this.submit}
@@ -182,7 +182,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             <TextInput
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
-                                containerStyles={[this.props.themeStyles.mt4]}
+                                containerStyles={[this.props.styles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 aria-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
@@ -195,7 +195,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 onChangeText={(value) => this.setState({rate: value})}
                             />
 
-                            <View style={[this.props.themeStyles.mt4]}>
+                            <View style={[this.props.styles.mt4]}>
                                 <Picker
                                     value={this.state.unit}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}

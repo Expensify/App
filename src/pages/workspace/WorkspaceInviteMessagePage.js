@@ -183,7 +183,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                     />
 
                     <Form
-                        style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.ph5]}
+                        style={[this.props.styles.flexGrow1, this.props.styles.ph5]}
                         formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                         validate={this.validate}
                         onSubmit={this.sendInvitation}
@@ -195,15 +195,15 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 role={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
-                                style={[this.props.themeStyles.mv2, this.props.themeStyles.alignSelfStart]}
+                                style={[this.props.styles.mv2, this.props.styles.alignSelfStart]}
                             >
-                                <View style={[this.props.themeStyles.flexRow]}>
-                                    <Text style={[this.props.themeStyles.mr1, this.props.themeStyles.label, this.props.themeStyles.link]}>{this.props.translate('common.privacy')}</Text>
+                                <View style={[this.props.styles.flexRow]}>
+                                    <Text style={[this.props.styles.mr1, this.props.styles.label, this.props.styles.link]}>{this.props.translate('common.privacy')}</Text>
                                 </View>
                             </PressableWithoutFeedback>
                         }
                     >
-                        <View style={[this.props.themeStyles.mv4, this.props.themeStyles.justifyContentCenter, this.props.themeStyles.alignItemsCenter]}>
+                        <View style={[this.props.styles.mv4, this.props.styles.justifyContentCenter, this.props.styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(
@@ -213,13 +213,13 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 )}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows
-                                secondAvatarStyle={[this.props.themeStyles.secondAvatarInline]}
+                                secondAvatarStyle={[this.props.styles.secondAvatarInline]}
                             />
                         </View>
-                        <View style={[this.props.themeStyles.mb5]}>
+                        <View style={[this.props.styles.mb5]}>
                             <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
-                        <View style={[this.props.themeStyles.mb3]}>
+                        <View style={[this.props.styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -229,8 +229,8 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
-                                inputStyle={[this.props.themeStyles.verticalAlignTop]}
-                                containerStyles={[this.props.themeStyles.autoGrowHeightMultilineInput]}
+                                inputStyle={[this.props.styles.verticalAlignTop]}
+                                containerStyles={[this.props.styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => {

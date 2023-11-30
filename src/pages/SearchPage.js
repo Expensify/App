@@ -190,7 +190,7 @@ class SearchPage extends Component {
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton title={this.props.translate('common.search')} />
-                        <View style={[this.props.themeStyles.flex1, this.props.themeStyles.w100, this.props.themeStyles.pRelative]}>
+                        <View style={[this.props.styles.flex1, this.props.styles.w100, this.props.styles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}

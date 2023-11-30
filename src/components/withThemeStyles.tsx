@@ -5,9 +5,9 @@ import {type ThemeStyles} from '@styles/styles';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const withThemeStylesPropTypes = {
-    themeStyles: PropTypes.object.isRequired,
+    styles: PropTypes.object.isRequired,
 };
-type ThemeStylesProps = {themeStyles: ThemeStyles};
+type ThemeStylesProps = {styles: ThemeStyles};
 
 export default function withThemeStyles<TProps extends ThemeStylesProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
@@ -18,7 +18,7 @@ export default function withThemeStyles<TProps extends ThemeStylesProps, TRef>(
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
-                themeStyles={themeStyles}
+                styles={themeStyles}
                 ref={ref}
             />
         );

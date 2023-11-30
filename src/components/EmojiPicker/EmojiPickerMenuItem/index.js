@@ -98,15 +98,15 @@ class EmojiPickerMenuItem extends PureComponent {
                 onBlur={this.props.onBlur}
                 ref={(ref) => (this.ref = ref)}
                 style={({pressed}) => [
-                    this.props.isFocused ? this.props.themeStyles.emojiItemKeyboardHighlighted : {},
-                    this.state.isHovered || this.props.isHighlighted ? this.props.themeStyles.emojiItemHighlighted : {},
+                    this.props.isFocused ? this.props.styles.emojiItemKeyboardHighlighted : {},
+                    this.state.isHovered || this.props.isHighlighted ? this.props.styles.emojiItemHighlighted : {},
                     Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(false, pressed)),
-                    this.props.themeStyles.emojiItem,
+                    this.props.styles.emojiItem,
                 ]}
                 accessibilityLabel={this.props.emoji}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <Text style={[this.props.themeStyles.emojiText]}>{this.props.emoji}</Text>
+                <Text style={[this.props.styles.emojiText]}>{this.props.emoji}</Text>
             </PressableWithoutFeedback>
         );
     }

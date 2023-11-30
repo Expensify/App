@@ -262,7 +262,7 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
-        const styles = this.props.themeStyles;
+        const styles = this.props.styles;
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -324,7 +324,7 @@ class PDFView extends Component {
     }
 
     render() {
-        const styles = this.props.themeStyles;
+        const styles = this.props.styles;
         return this.props.onPress ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}

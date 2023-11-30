@@ -136,25 +136,25 @@ class CalendarPicker extends React.PureComponent {
             <View>
                 <View
                     style={[
-                        this.props.themeStyles.calendarHeader,
-                        this.props.themeStyles.flexRow,
-                        this.props.themeStyles.justifyContentBetween,
-                        this.props.themeStyles.alignItemsCenter,
-                        this.props.themeStyles.ph4,
-                        this.props.themeStyles.pr1,
+                        this.props.styles.calendarHeader,
+                        this.props.styles.flexRow,
+                        this.props.styles.justifyContentBetween,
+                        this.props.styles.alignItemsCenter,
+                        this.props.styles.ph4,
+                        this.props.styles.pr1,
                     ]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <PressableWithFeedback
                         onPress={() => this.setState({isYearPickerVisible: true})}
-                        style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentStart]}
-                        wrapperStyle={[this.props.themeStyles.alignItemsCenter]}
+                        style={[this.props.styles.alignItemsCenter, this.props.styles.flexRow, this.props.styles.flex1, this.props.styles.justifyContentStart]}
+                        wrapperStyle={[this.props.styles.alignItemsCenter]}
                         hoverDimmingValue={1}
                         testID="currentYearButton"
                         accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
-                            style={this.props.themeStyles.sidebarLinkTextBold}
+                            style={this.props.styles.sidebarLinkTextBold}
                             testID="currentYearText"
                             accessibilityLabel={this.props.translate('common.currentYear')}
                         >
@@ -162,9 +162,9 @@ class CalendarPicker extends React.PureComponent {
                         </Text>
                         <ArrowIcon />
                     </PressableWithFeedback>
-                    <View style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentEnd]}>
+                    <View style={[this.props.styles.alignItemsCenter, this.props.styles.flexRow, this.props.styles.flex1, this.props.styles.justifyContentEnd]}>
                         <Text
-                            style={this.props.themeStyles.sidebarLinkTextBold}
+                            style={this.props.styles.sidebarLinkTextBold}
                             testID="currentMonthText"
                             accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
@@ -195,26 +195,21 @@ class CalendarPicker extends React.PureComponent {
                         </PressableWithFeedback>
                     </View>
                 </View>
-                <View style={this.props.themeStyles.flexRow}>
+                <View style={this.props.styles.flexRow}>
                     {_.map(daysOfWeek, (dayOfWeek) => (
                         <View
                             key={dayOfWeek}
-                            style={[
-                                this.props.themeStyles.calendarDayRoot,
-                                this.props.themeStyles.flex1,
-                                this.props.themeStyles.justifyContentCenter,
-                                this.props.themeStyles.alignItemsCenter,
-                            ]}
+                            style={[this.props.styles.calendarDayRoot, this.props.styles.flex1, this.props.styles.justifyContentCenter, this.props.styles.alignItemsCenter]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            <Text style={this.props.themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
+                            <Text style={this.props.styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
                     ))}
                 </View>
                 {_.map(calendarDaysMatrix, (week) => (
                     <View
                         key={`week-${week}`}
-                        style={this.props.themeStyles.flexRow}
+                        style={this.props.styles.flexRow}
                     >
                         {_.map(week, (day, index) => {
                             const currentDate = new Date(currentYearView, currentMonthView, day);
@@ -227,7 +222,7 @@ class CalendarPicker extends React.PureComponent {
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
-                                    style={this.props.themeStyles.calendarDayRoot}
+                                    style={this.props.styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
                                     tabIndex={day ? 0 : -1}
                                     accessible={Boolean(day)}
@@ -236,12 +231,12 @@ class CalendarPicker extends React.PureComponent {
                                     {({hovered, pressed}) => (
                                         <View
                                             style={[
-                                                this.props.themeStyles.calendarDayContainer,
-                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
+                                                this.props.styles.calendarDayContainer,
+                                                isSelected ? this.props.styles.calendarDayContainerSelected : {},
                                                 !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
-                                            <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? this.props.styles.buttonOpacityDisabled : this.props.styles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </PressableWithoutFeedback>
