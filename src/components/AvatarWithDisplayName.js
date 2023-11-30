@@ -4,10 +4,8 @@ import React, {useCallback, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as StyleUtils from '@styles/StyleUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -24,8 +22,6 @@ import participantPropTypes from './participantPropTypes';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -51,9 +47,6 @@ const propTypes = {
     /* Onyx Props */
     /** All of the actions of the report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -66,44 +59,52 @@ const defaultProps = {
     shouldEnableDetailPageNavigation: false,
 };
 
-function AvatarWithDisplayName(props) {
+function AvatarWithDisplayName({
+    report,
+    policy,
+    size,
+    isAnonymous,
+    parentReportActions,
+    personalDetails,
+    shouldEnableDetailPageNavigation,
+}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const title = ReportUtils.getReportName(props.report);
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
-    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
+    const title = ReportUtils.getReportName(report);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
+    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
+    const icons = ReportUtils.getIcons(report, personalDetails, policy);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([report.ownerAccountID], personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
-    const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
-    const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
-    const avatarBorderColor = props.isAnonymous ? theme.highlightBG : theme.componentBG;
-    const actorAccountID = useRef(null);
+    const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
+    const isExpenseRequest = ReportUtils.isExpenseRequest(report);
+    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
+    const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
+    const actorAccountID = useRef(null);
     useEffect(() => {
-        const parentReportAction = lodashGet(props.parentReportActions, [props.report.parentReportActionID], {});
+        const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID], {});
         actorAccountID.current = lodashGet(parentReportAction, 'actorAccountID', -1);
-    }, [props]);
+    }, [parentReportActions, report]);
 
     const showActorDetails = useCallback(() => {
         // We should navigate to the details page if the report is a IOU/expense report
-        if (props.shouldEnableDetailPageNavigation) {
-            return ReportUtils.navigateToDetailsPage(props.report);
+        if (shouldEnableDetailPageNavigation) {
+            return ReportUtils.navigateToDetailsPage(report);
         }
 
-        if (ReportUtils.isExpenseReport(props.report)) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(props.report.ownerAccountID));
+        if (ReportUtils.isExpenseReport(report)) {
+            Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
             return;
         }
 
-        if (ReportUtils.isIOUReport(props.report)) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
+        if (ReportUtils.isIOUReport(report)) {
+            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
             return;
         }
 
-        if (ReportUtils.isChatThread(props.report)) {
+        if (ReportUtils.isChatThread(report)) {
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current > 0) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
@@ -112,12 +113,12 @@ function AvatarWithDisplayName(props) {
         }
 
         // Report detail route is added as fallback but based on the current implementation this route won't be executed
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
-    }, [props]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+    }, [report, shouldEnableDetailPageNavigation]);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
-            {Boolean(props.report && title) && (
+            {Boolean(report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
@@ -134,7 +135,7 @@ function AvatarWithDisplayName(props) {
                         ) : (
                             <MultipleAvatars
                                 icons={icons}
-                                size={props.size}
+                                size={size}
                                 secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
                             />
                         )}
@@ -145,13 +146,13 @@ function AvatarWithDisplayName(props) {
                             displayNamesWithTooltips={displayNamesWithTooltips}
                             tooltipEnabled
                             numberOfLines={1}
-                            textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isMoneyRequestOrReport || props.isAnonymous}
+                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
                         />
                         {!_.isEmpty(parentNavigationSubtitleData) && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                parentReportID={props.report.parentReportID}
+                                parentReportID={report.parentReportID}
                             />
                         )}
                         {!_.isEmpty(subtitle) && (
@@ -168,13 +169,13 @@ function AvatarWithDisplayName(props) {
         </View>
     );
 
-    if (!props.shouldEnableDetailPageNavigation) {
+    if (!shouldEnableDetailPageNavigation) {
         return headerView;
     }
 
     return (
         <PressableWithoutFeedback
-            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+            onPress={() => ReportUtils.navigateToDetailsPage(report)}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -187,10 +188,7 @@ AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
+export default withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
         },
@@ -198,5 +196,4 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
-    }),
-)(AvatarWithDisplayName);
+    })(AvatarWithDisplayName);
