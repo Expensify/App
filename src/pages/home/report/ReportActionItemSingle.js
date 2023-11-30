@@ -21,8 +21,8 @@ import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from "@styles/themes/useTheme";
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -80,6 +80,7 @@ const showWorkspaceDetails = (reportID) => {
 
 function ReportActionItemSingle(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -167,8 +168,8 @@ function ReportActionItemSingle(props) {
                     isInReportAction
                     shouldShowTooltip
                     secondAvatarStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
-                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG) : undefined,
+                        StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
+                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined,
                     ]}
                 />
             );
