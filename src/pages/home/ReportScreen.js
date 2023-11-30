@@ -21,7 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import useWindowFocusEvent from '@hooks/useWindowFocusEvent';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import LocalNotification from '@libs/Notification/LocalNotification';
+import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -289,7 +289,7 @@ function ReportScreen({
                 return;
             }
 
-            LocalNotification.clearReportNotifications(report.reportID);
+            clearReportNotifications(report.reportID);
         }, [report.reportID, isTopMostReportId]),
     );
 

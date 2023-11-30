@@ -15,6 +15,7 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -471,7 +472,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         return;
     }
 
-    LocalNotification.clearReportNotifications(reportID);
+    clearReportNotifications(reportID);
 
     const optimisticReportData = [
         {
