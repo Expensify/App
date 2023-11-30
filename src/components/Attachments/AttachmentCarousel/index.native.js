@@ -108,11 +108,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ({item, isActive}) => (
             <CarouselItem
                 item={item}
+                isSingleItem={attachments.length === 1}
                 isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
