@@ -1,15 +1,15 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useRef, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -59,15 +59,7 @@ const defaultProps = {
     shouldEnableDetailPageNavigation: false,
 };
 
-function AvatarWithDisplayName({
-    report,
-    policy,
-    size,
-    isAnonymous,
-    parentReportActions,
-    personalDetails,
-    shouldEnableDetailPageNavigation,
-}) {
+function AvatarWithDisplayName({report, policy, size, isAnonymous, parentReportActions, personalDetails, shouldEnableDetailPageNavigation}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const title = ReportUtils.getReportName(report);
@@ -189,11 +181,11 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
 
 export default withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    })(AvatarWithDisplayName);
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        canEvict: false,
+    },
+})(AvatarWithDisplayName);
