@@ -1,5 +1,5 @@
 import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {ColorValue} from 'react-native';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -7,19 +7,10 @@ import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
-
-// https://reactnavigation.org/docs/themes
-const navigationTheme = {
-    ...DefaultTheme,
-    colors: {
-        ...DefaultTheme.colors,
-        background: themeColors.appBG,
-    },
-};
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -51,10 +42,23 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
+    const theme = useTheme();
     const firstRenderRef = useRef(true);
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    // https://reactnavigation.org/docs/themes
+    const navigationTheme = useMemo(
+        () => ({
+            ...DefaultTheme,
+            colors: {
+                ...DefaultTheme.colors,
+                background: theme.appBG,
+            },
+        }),
+        [theme],
+    );
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -78,8 +82,8 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth, authenticated]);
 
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
+    const prevStatusBarBackgroundColor = useRef(theme.appBG);
+    const statusBarBackgroundColor = useRef(theme.appBG);
     const statusBarAnimation = useSharedValue(0);
 
     const updateStatusBarBackgroundColor = (color: ColorValue) => StatusBar.setBackgroundColor(color);
@@ -101,7 +105,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
         const backgroundColorFromRoute =
             currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
-        const backgroundColorFallback = themeColors.PAGE_BACKGROUND_COLORS[currentRoute?.name as keyof typeof themeColors.PAGE_BACKGROUND_COLORS] || themeColors.appBG;
+        const backgroundColorFallback = currentRoute?.name ? theme.PAGE_BACKGROUND_COLORS[currentRoute.name] || theme.appBG : theme.appBG;
 
         // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -110,7 +114,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
+        if (currentScreenBackgroundColor === theme.appBG && prevStatusBarBackgroundColor.current === theme.appBG) {
             return;
         }
 

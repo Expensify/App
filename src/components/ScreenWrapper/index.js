@@ -16,7 +16,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './propTypes';
@@ -44,6 +44,7 @@ const ScreenWrapper = React.forwardRef(
     ) => {
         const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
         const {initialHeight} = useInitialDimensions();
+        const styles = useThemeStyles();
         const keyboardState = useKeyboardState();
         const {isDevelopment} = useEnvironment();
         const {isOffline} = useNetwork();
@@ -59,14 +60,14 @@ const ScreenWrapper = React.forwardRef(
 
         const panResponder = useRef(
             PanResponder.create({
-                onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+                onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
                 onPanResponderRelease: toggleTestToolsModal,
             }),
         ).current;
 
         const keyboardDissmissPanResponder = useRef(
             PanResponder.create({
-                onMoveShouldSetPanResponderCapture: (e, gestureState) => {
+                onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                     const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
                     const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
 
