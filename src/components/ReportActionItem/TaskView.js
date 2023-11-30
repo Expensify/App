@@ -23,6 +23,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -42,6 +43,7 @@ const propTypes = {
 };
 
 function TaskView(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     useEffect(() => {
         Task.setTaskReport({...props.report});
@@ -79,7 +81,7 @@ function TaskView(props) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
                             ]}
                             ref={props.forwardedRef}

@@ -8,6 +8,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withTheme from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -236,7 +237,7 @@ class CalendarPicker extends React.PureComponent {
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
                                                 isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
-                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
+                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
                                             <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
@@ -262,4 +263,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default compose(withLocalize, withThemeStyles)(CalendarPicker);
+export default compose(withLocalize, withTheme, withThemeStyles)(CalendarPicker);

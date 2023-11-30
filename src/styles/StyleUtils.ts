@@ -9,7 +9,7 @@ import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import styles from './styles';
-import themeColors from './themes/default';
+import {type ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
@@ -216,13 +216,13 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): AvatarStyle {
+function getAvatarStyle(theme: ThemeColors, size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
         width: avatarSize,
         borderRadius: avatarSize,
-        backgroundColor: themeColors.offline,
+        backgroundColor: theme.offline,
     };
 }
 
@@ -532,12 +532,12 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
  * @param buttonState - One of {'default', 'hovered', 'pressed'}
  * @param isMenuItem - whether this button is apart of a list
  */
-function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
+function getButtonBackgroundColorStyle(theme: ThemeColors, buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
+            return {backgroundColor: theme.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:

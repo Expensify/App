@@ -1013,7 +1013,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textInputDesktop: addOutlineWidth({}, 0),
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
 
         textInputIconContainer: {
             paddingHorizontal: 11,
@@ -1130,7 +1130,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.icon,
         },
 
-        noOutline: addOutlineWidth({}, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1776,6 +1776,7 @@ const styles = (theme: ThemeColors) =>
         // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
         // Make sure you run the following tests against any changes: #12669
         textInputCompose: addOutlineWidth(
+            theme,
             {
                 backgroundColor: theme.componentBG,
                 borderColor: theme.border,
@@ -2615,6 +2616,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         iouAmountTextInput: addOutlineWidth(
+            theme,
             {
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
@@ -3989,7 +3991,7 @@ const styles = (theme: ThemeColors) =>
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
-type ThemeStyle = typeof defaultStyles;
+type ThemeStyles = ReturnType<typeof styles>;
 
 export default defaultStyles;
-export {stylesGenerator, type Styles, type ThemeStyle};
+export {stylesGenerator, type Styles, type ThemeStyles};

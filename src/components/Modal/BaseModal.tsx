@@ -134,6 +134,7 @@ function BaseModal(
         () =>
             getModalStyles(
                 type,
+                theme,
                 {
                     windowWidth,
                     windowHeight,
@@ -143,7 +144,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth],
     );
 
     const {

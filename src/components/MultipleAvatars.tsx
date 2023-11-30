@@ -161,7 +161,7 @@ function MultipleAvatars({
         );
     }
 
-    const oneAvatarSize = StyleUtils.getAvatarStyle(size);
+    const oneAvatarSize = StyleUtils.getAvatarStyle(theme, size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3;
 
