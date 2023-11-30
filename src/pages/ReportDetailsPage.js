@@ -254,7 +254,7 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(ReportDetailsPage);
