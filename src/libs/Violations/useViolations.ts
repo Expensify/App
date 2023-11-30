@@ -1,6 +1,7 @@
 import {useCallback, useMemo} from 'react';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
 
+
 /**
  * Names of Fields where violations can occur
  */
@@ -46,10 +47,9 @@ const violationFields: Record<ViolationName, ViolationField> = {
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
-type HasViolationsMap = Map<ViolationField, boolean>;
 
 function useViolations(violations: TransactionViolation[]) {
-    const violationsByField = useMemo((): {violationsByField: ViolationsMap; hasViolationsByField: HasViolationsMap} => {
+    const violationsByField = useMemo((): ViolationsMap => {
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
 
         for (const violation of violations) {
@@ -62,7 +62,6 @@ function useViolations(violations: TransactionViolation[]) {
     }, [violations]);
 
     const hasViolations = useCallback((field: ViolationField) => Boolean(violationsByField.get(field)?.length > 0), [violationsByField]);
-
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
