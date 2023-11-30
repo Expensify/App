@@ -6,10 +6,12 @@ import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
@@ -19,6 +21,8 @@ function Popover(props) {
             windowHeight: props.windowHeight,
             isSmallScreenWidth: false,
         },
+        theme,
+        styles,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
