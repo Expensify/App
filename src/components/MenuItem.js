@@ -78,6 +78,7 @@ const defaultProps = {
     shouldGreyOutWhenDisabled: true,
     error: '',
     shouldRenderAsHTML: false,
+    rightLabel: '',
     rightComponent: undefined,
     shouldShowRightComponent: false,
     titleWithTooltips: [],
@@ -362,6 +363,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             src={Expensicons.DotIndicator}
                                             fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
+                                    </View>
+                                )}
+                                {Boolean(props.rightLabel) && (
+                                    <View style={styles.justifyContentCenter}>
+                                        <Text style={styles.rightLabelMenuItem}>{props.rightLabel}</Text>
                                     </View>
                                 )}
                                 {Boolean(props.shouldShowRightIcon) && (
