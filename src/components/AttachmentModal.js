@@ -363,7 +363,9 @@ function AttachmentModal(props) {
         const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
 
-        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+        const canEdit =
+            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT) &&
+            !TransactionUtils.isDistanceRequest(props.transaction);
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
