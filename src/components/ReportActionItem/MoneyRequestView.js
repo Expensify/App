@@ -109,7 +109,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isCancelled = ReportActionsUtils.isReimbursementDeQueued(moneyRequestReport.reportID);
+    const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 

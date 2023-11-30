@@ -1694,7 +1694,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
-    if (report?.reportID && ReportActionsUtils.isReimbursementDeQueued(report.reportID)) {
+    if (report?.isCancelledIOU) {
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.canceled')}`;
     }
 

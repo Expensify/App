@@ -109,18 +109,6 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-/**
- * Returns whether the report is dequeued only using reportID
- */
-function isReimbursementDeQueued(reportID: string): boolean {
-    if (!allReportActions) {
-        return false;
-    }
-
-    const reportAction = Object.values(allReportActions[`${reportID}`] ?? {});
-    return reportAction.some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED);
-}
-
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
 }
@@ -714,7 +702,6 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
-    isReimbursementDeQueued,
     isReimbursementDeQueuedAction,
 };
 
