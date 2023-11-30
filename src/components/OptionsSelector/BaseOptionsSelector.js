@@ -493,7 +493,7 @@ class BaseOptionsSelector extends Component {
         const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
-                optionHoveredStyle={this.props.optionHoveredStyle}
+                optionHoveredStyle={this.props.optionHoveredStyle || this.props.themeStyles.hoveredComponentBG}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}

@@ -1,12 +1,9 @@
 import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
-import {ColorValue} from 'react-native';
-import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
-import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
@@ -42,8 +39,8 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
-    const theme = useTheme();
     const firstRenderRef = useRef(true);
+    const theme = useTheme();
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -82,46 +79,6 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth, authenticated]);
 
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarAnimation = useSharedValue(0);
-
-    const updateStatusBarBackgroundColor = (color: ColorValue) => StatusBar.setBackgroundColor(color);
-    useAnimatedReaction(
-        () => statusBarAnimation.value,
-        (current, previous) => {
-            // Do not run if either of the animated value is null
-            // or previous animated value is greater than or equal to the current one
-            if (previous === null || current === null || current <= previous) {
-                return;
-            }
-            const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
-            runOnJS(updateStatusBarBackgroundColor)(color);
-        },
-    );
-
-    const animateStatusBarBackgroundColor = () => {
-        const currentRoute = navigationRef.getCurrentRoute();
-
-        const backgroundColorFromRoute =
-            currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
-        const backgroundColorFallback = currentRoute?.name ? theme.PAGE_BACKGROUND_COLORS[currentRoute.name] || theme.appBG : theme.appBG;
-
-        // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const currentScreenBackgroundColor = backgroundColorFromRoute || backgroundColorFallback;
-
-        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-        statusBarBackgroundColor.current = currentScreenBackgroundColor;
-
-        if (currentScreenBackgroundColor === theme.appBG && prevStatusBarBackgroundColor.current === theme.appBG) {
-            return;
-        }
-
-        statusBarAnimation.value = 0;
-        statusBarAnimation.value = withDelay(300, withTiming(1));
-    };
-
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
@@ -132,7 +89,6 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
             currentReportIDValue?.updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
-        animateStatusBarBackgroundColor();
     };
 
     return (
