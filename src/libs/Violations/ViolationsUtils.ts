@@ -22,9 +22,8 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
-            const hasCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'categoryOutOfPolicy')));
-            const hasMissingCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'missingCategory')));
-
+            const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
+            const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
