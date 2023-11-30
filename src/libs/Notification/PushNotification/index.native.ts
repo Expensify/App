@@ -9,13 +9,15 @@ import PushNotificationType, {ClearNotifications, Deregister, Init, OnReceived, 
 
 type NotificationEventActionCallback = (data: NotificationData) => void;
 
+type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
+
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: (val) => (isUserOptedInToPushNotifications = val ?? false),
+    callback: (value) => (isUserOptedInToPushNotifications = value ?? false),
 });
 
-const notificationEventActionMap: Partial<Record<EventType, Record<string, NotificationEventActionCallback>>> = {};
+const notificationEventActionMap: NotificationEventActionMap = {};
 
 /**
  * Handle a push notification event, and trigger and bound actions.
