@@ -9,6 +9,8 @@ let allReports = [];
 
 const triggerUnreadUpdate = (reports = allReports) => {
     const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() : '';
+
+    // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = _.filter(reports, (report) => ReportUtils.isUnread(report) && ReportUtils.shouldReportBeInOptionList(report, currentReportID));
     updateUnread(_.size(unreadReports));
 };
