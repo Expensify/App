@@ -11,7 +11,7 @@ import StepWrapperPropTypes from './StepWrapperPropTypes';
 function StepWrapper({
     title = '',
     stepCounter = null,
-    onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings,
+    onBackButtonPress = () => TwoFactorAuthActions.quitAndNavigateBack(),
     children = null,
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,
