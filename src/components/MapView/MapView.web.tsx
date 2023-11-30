@@ -10,14 +10,14 @@ import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
-import styles from '@src/styles/styles';
 import Direction from './Direction';
 import './mapbox.css';
 import {MapViewHandle} from './MapViewTypes';
@@ -42,6 +42,9 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     ) => {
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
+
+        const theme = useTheme();
+        const styles = useThemeStyles();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
@@ -179,7 +182,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                                 latitude: currentPosition?.latitude,
                                 zoom: initialState.zoom,
                             }}
-                            style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
+                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText) as React.CSSProperties}
                             mapStyle={styleURL}
                         >
                             {waypoints?.map(({coordinate, markerComponent, id}) => {
