@@ -45,9 +45,7 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
@@ -58,6 +56,8 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from "@styles/useThemeStyles";
+import useTheme from "@styles/themes/useTheme";
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -142,13 +142,15 @@ function ReportActionItem(props) {
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const downloadedPreviews = useRef([]);
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme.highlightBG]);
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
     // IOUDetails only exists when we are sending money
