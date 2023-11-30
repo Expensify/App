@@ -48,6 +48,8 @@ function BaseModal(
 
     const safeAreaInsets = useSafeAreaInsets();
 
+    console.log({safeAreaInsets});
+
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
@@ -204,14 +206,12 @@ function BaseModal(
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
         >
-            <ColorSchemeWrapper>
-                <View
-                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                    ref={ref}
-                >
-                    {children}
-                </View>
-            </ColorSchemeWrapper>
+            <View
+                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                ref={ref}
+            >
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+            </View>
         </ReactNativeModal>
     );
 }
