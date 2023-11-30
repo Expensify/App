@@ -648,7 +648,7 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(styles: ThemeStyle, theme: ThemeColors, isHovered = false): ViewStyle {
+function getReportActionItemStyle(theme: ThemeColors, styles: ThemeStyle, isHovered = false): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -1212,7 +1212,7 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns link styles based on whether the link is disabled or not
  */
-function getDisabledLinkStyles(styles: ThemeStyle, theme: ThemeColors, isDisabled = false): ViewStyle {
+function getDisabledLinkStyles(theme: ThemeColors, styles: ThemeStyle, isDisabled = false): ViewStyle {
     const disabledLinkStyles = {
         color: theme.textSupporting,
         ...cursor.cursorDisabled,
