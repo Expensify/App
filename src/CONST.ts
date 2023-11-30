@@ -2853,6 +2853,32 @@ const CONST = {
     },
 
     /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
      * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
