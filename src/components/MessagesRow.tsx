@@ -1,8 +1,10 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import * as Localize from '@libs/Localize';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -11,7 +13,7 @@ import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
     /** The messages to display */
-    messages: Record<string, string>;
+    messages: Record<string, Localize.MaybePhraseKey>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -30,7 +32,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (Object.keys(messages).length === 0) {
+    if (isEmptyObject(messages)) {
         return null;
     }
 

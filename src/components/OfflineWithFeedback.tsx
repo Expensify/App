@@ -1,4 +1,3 @@
-import lodashOmitBy from 'lodash/omitBy';
 import React from 'react';
 import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
@@ -8,7 +7,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -19,13 +18,13 @@ import MessagesRow from './MessagesRow';
 
 type OfflineWithFeedbackProps = ChildrenProps & {
     /** The type of action that's pending  */
-    pendingAction: OnyxCommon.PendingAction | null;
+    pendingAction: OnyxCommon.PendingAction;
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | null;
+    errors?: OnyxCommon.Errors;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
@@ -60,7 +59,7 @@ type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | Tex
 /**
  * This method applies the strikethrough to all the children passed recursively
  */
-function applyStrikeThrough(children: React.ReactNode, styles: any): React.ReactNode {
+function applyStrikeThrough(children: React.ReactNode, styles: ReturnType<typeof useThemeStyles>): React.ReactNode {
     return React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) {
             return child;
@@ -78,12 +77,17 @@ function applyStrikeThrough(children: React.ReactNode, styles: any): React.React
     });
 }
 
+function omitBy<T>(obj: Record<string, T> | undefined, predicate: (value: T) => boolean) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+    return Object.fromEntries(Object.entries(obj ?? {}).filter(([_, value]) => !predicate(value)));
+}
+
 function OfflineWithFeedback({
-    pendingAction = null,
+    pendingAction,
     canDismissError = true,
     contentContainerStyle,
     errorRowStyles,
-    errors = null,
+    errors,
     needsOffscreenAlphaCompositing = false,
     onClose = () => {},
     shouldDisableOpacity = false,
@@ -91,22 +95,22 @@ function OfflineWithFeedback({
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
     style,
-    ...props
+    ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const hasErrors = !isEmptyObject(errors);
+    const hasErrors = isNotEmptyObject(errors ?? {});
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = lodashOmitBy(errors, (e) => e === null);
-    const hasErrorMessages = !isEmptyObject(errorMessages);
+    const errorMessages = omitBy(errors, (e) => e === null);
+    const hasErrorMessages = isNotEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const needsOpacity = !shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError);
     const needsStrikeThrough = !shouldDisableStrikeThrough && isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
-    let children = props.children;
+    let children = rest.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
