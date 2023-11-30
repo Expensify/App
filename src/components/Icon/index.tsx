@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import withTheme, {ThemeProps} from '@components/withTheme';
 import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
-import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
@@ -102,4 +101,4 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
-export default compose(withTheme, withThemeStyles)(Icon);
+export default withTheme(withThemeStyles(Icon));
