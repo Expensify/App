@@ -80,4 +80,4 @@ type Policy = {
 
 export default Policy;
 
-export {Unit};
+export type {Unit};
