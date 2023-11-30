@@ -119,7 +119,7 @@ type PayerPaidAmountParams = {payer: string; amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
-type ManagerApprovedAmountParams = {manager: string; amount: number};
+type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
 
