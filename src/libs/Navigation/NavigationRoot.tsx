@@ -45,6 +45,18 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    // https://reactnavigation.org/docs/themes
+    const navigationTheme = useMemo(
+        () => ({
+            ...DefaultTheme,
+            colors: {
+                ...DefaultTheme.colors,
+                background: theme.appBG,
+            },
+        }),
+        [theme],
+    );
+
     useEffect(() => {
         if (firstRenderRef.current) {
             // we don't want to make the report back button go back to LHN if the user
@@ -78,18 +90,6 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         }, 0);
         parseAndLogRoute(state);
     };
-
-    // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(
-        () => ({
-            ...DefaultTheme,
-            colors: {
-                ...DefaultTheme.colors,
-                background: theme.appBG,
-            },
-        }),
-        [theme.appBG],
-    );
 
     return (
         <NavigationContainer
