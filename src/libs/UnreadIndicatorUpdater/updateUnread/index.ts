@@ -18,8 +18,8 @@ const updateUnread: UpdateUnread = (totalCount) => {
         // seems to improve this issue.
         document.title = '';
         document.title = hasUnread ? `(${totalCount}) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
-        const favicon = document.getElementById('favicon');
-        if (favicon && 'href' in favicon) {
+        const favicon = document.getElementById('favicon') as HTMLLinkElement | null;
+        if (favicon?.href) {
             favicon.href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
         }
     }, 0);
