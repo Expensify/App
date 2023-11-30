@@ -7,10 +7,21 @@ import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
-import PopoverProps from './types';
+import PopoverWithoutOverlayProps from './types';
 
-function Popover(
-    {anchorPosition = {}, anchorRef, withoutOverlayRef, innerContainerStyle = {}, outerStyle, onModalShow = () => {}, isVisible, onClose, onModalHide = () => {}, children}: PopoverProps,
+function PopoverWithoutOverlay(
+    {
+        anchorPosition = {},
+        anchorRef,
+        withoutOverlayRef,
+        innerContainerStyle = {},
+        outerStyle,
+        onModalShow = () => {},
+        isVisible,
+        onClose,
+        onModalHide = () => {},
+        children,
+    }: PopoverWithoutOverlayProps,
     ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
@@ -31,9 +42,9 @@ function Popover(
 
     useEffect(() => {
         let removeOnClose: () => void;
-        if (isVisible && anchorRef && onOpen) {
+        if (isVisible) {
             onModalShow();
-            onOpen({
+            onOpen?.({
                 ref: withoutOverlayRef,
                 close: onClose,
                 anchorRef,
@@ -102,6 +113,6 @@ function Popover(
     );
 }
 
-Popover.displayName = 'Popover';
+PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
 
-export default forwardRef(Popover);
+export default forwardRef(PopoverWithoutOverlay);
