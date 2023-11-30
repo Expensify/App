@@ -31,8 +31,8 @@ Default.args = {
     ],
 };
 
-const CustomPromptAndTooltip = Template.bind({});
-CustomPromptAndTooltip.args = {
+const FirstBreadcrumbStrong = Template.bind({});
+FirstBreadcrumbStrong.args = {
     breadcrumbs: [
         {
             text: 'Cathy`s Croissants',
@@ -57,4 +57,4 @@ AllBreadcrumbsNormal.args = {
 };
 
 export default story;
-export {Default, CustomPromptAndTooltip, AllBreadcrumbsNormal};
+export {Default, FirstBreadcrumbStrong, AllBreadcrumbsNormal};
