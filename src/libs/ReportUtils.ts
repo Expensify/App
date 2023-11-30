@@ -1582,8 +1582,6 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
 /**
  * Returns number of transactions that are reimbursable
  *
- * @param {String} iouReportID
- * @returns {Boolean}
  */
 function hasReimbursableTransactions(iouReportID) {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
@@ -1594,11 +1592,6 @@ function isMarkedAsDone(report) {
     return isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
-/**
- * @param {Object} report
- * @param {Object} allReportsDict
- * @returns {Number}
- */
 function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport: OnyxEntry<Report> | undefined;
@@ -2878,11 +2871,6 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 /**
  * Builds an optimistic CLOSED report action with a randomly generated reportActionID for an expense report marked as DONE.
  *
- * @param {Number} amount
- * @param {String} currency
- * @param {Number} expenseReportID
- *
- * @returns {Object}
  */
 function buildOptimisticDoneReportAction(amount, currency, expenseReportID) {
     const originalMessage = {
