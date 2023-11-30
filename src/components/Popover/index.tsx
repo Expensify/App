@@ -5,14 +5,30 @@ import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './popoverPropTypes';
+import {PopoverWithWindowDimensionsProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-function Popover(props) {
-    const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition, anchorRef} = props;
+
+function Popover(props: PopoverWithWindowDimensionsProps) {
+    const {
+        isVisible,
+        onClose,
+        isSmallScreenWidth,
+        fullscreen,
+        animationInTiming = CONST.ANIMATED_TRANSITION,
+        onLayout,
+        animationOutTiming,
+        disableAnimation = true,
+        withoutOverlay,
+        anchorPosition = {},
+        anchorRef = () => {},
+        animationIn = 'fadeIn',
+        animationOut = 'fadeOut',
+    } = props;
+
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -33,7 +49,7 @@ function Popover(props) {
     }, [onClose, isVisible]);
 
     const onCloseWithPopoverContext = () => {
-        if (popover) {
+        if (popover && 'current' in anchorRef) {
             close(anchorRef);
         }
         onClose();
@@ -51,6 +67,8 @@ function Popover(props) {
                 animationOutTiming={disableAnimation ? 1 : animationOutTiming}
                 shouldCloseOnOutsideClick
                 onLayout={onLayout}
+                animationIn={animationIn}
+                animationOut={animationOut}
             />,
             document.body,
         );
@@ -62,6 +80,8 @@ function Popover(props) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 withoutOverlayRef={withoutOverlayRef}
+                animationIn={animationIn}
+                animationOut={animationOut}
             />,
             document.body,
         );
@@ -78,12 +98,12 @@ function Popover(props) {
             animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
             animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
             onLayout={onLayout}
+            animationIn={animationIn}
+            animationOut={animationOut}
         />
     );
 }
 
-Popover.propTypes = propTypes;
-Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
 export default withWindowDimensions(Popover);
