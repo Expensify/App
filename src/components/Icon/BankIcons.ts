@@ -6,6 +6,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';
 
+type BankIconParams = {
+    themeStyles: typeof styles;
+    bankName: BankName;
+    isCard: boolean;
+};
+
 /**
  * Returns matching asset icon for bankName
  */
@@ -78,7 +84,7 @@ function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgPr
     return iconModule;
 }
 
-function getBankNameKey(bankName: string): BankNameKey | '' {
+function getBankNameKey(bankName: string): BankNameKey {
     const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => value?.toLowerCase() === bankName);
     return (bank?.[0] as BankNameKey) ?? '';
 }
@@ -86,10 +92,8 @@ function getBankNameKey(bankName: string): BankNameKey | '' {
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
-
-export default function getBankIcon(bankName: BankName | '', isCard = false): BankIcon {
+export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankNameKey = getBankNameKey(bankName.toLowerCase());
-
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -101,11 +105,11 @@ export default function getBankIcon(bankName: BankName | '', isCard = false): Ba
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        bankIcon.iconStyles = [themeStyles.bankIconContainer];
     } else {
         bankIcon.iconHeight = variables.bankCardHeight;
         bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconStyles = [themeStyles.assignedCardsIconContainer];
     }
 
     return bankIcon;
