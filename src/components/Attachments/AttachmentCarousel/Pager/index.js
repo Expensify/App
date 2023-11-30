@@ -86,8 +86,6 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
 
     const [activePage, setActivePage] = useState(initialIndex);
 
-    console.log({initialIndex});
-
     useEffect(() => {
         setActivePage(initialIndex);
         activeIndex.value = initialIndex;
