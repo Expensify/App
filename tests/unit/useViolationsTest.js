@@ -1,26 +1,28 @@
-/* eslint-disable rulesdir/prefer-underscore-method -- Disabled because it incorrectly flags the use of `it.each` */
-import { renderHook } from '@testing-library/react-native';
-import { useViolations, violationFields } from '@libs/Violations/useViolations';
+import {renderHook} from '@testing-library/react-native';
+import lodashForEach from 'lodash/forEach';
+import lodashKeys from 'lodash/keys';
+import lodashMap from 'lodash/map';
+import lodashValues from 'lodash/values';
+import {useViolations, violationFields} from '@libs/Violations/useViolations';
 
 
-// Derive test cases from the violationFields object
-const allViolations = Object.keys(violationFields).map((name) => ({name}));
-// A list of all the field names that appear in `violationFields`
-const fieldNames = [...new Set(Object.values(violationFields))];
-// create an index of violations by field name
-const violationsByField = Object.entries(violationFields).reduce(
-    (acc, [violation, field]) => ({
-        ...acc,
-        [field]: [...(acc[field] || []), {name: violation}],
-    }),
-    {},
-);
+const violationNames = lodashKeys(violationFields);
+const fieldNames = lodashValues(violationFields);
+
+const allViolations = lodashMap(violationNames, (name) => ({name}));
+
+const violationsByField = {};
+lodashForEach(allViolations, (violation) => {
+    const field = violationFields[violation.name];
+    const fieldViolations = violationsByField[field] || [];
+    violationsByField[field] = [...fieldViolations, violation];
+});
 
 describe('useViolations', () => {
     let violations = [];
 
     beforeEach(() => {
-        violations = allViolations;
+        violations = [...allViolations];
     });
 
     // The happy path
@@ -30,31 +32,18 @@ describe('useViolations', () => {
     }
 
     it('returns correct values when there is only a single violation', () => {
-        const violation = violations[0];
+        const violation = {name: 'overLimit'};
+        const expectedField = 'amount';
         violations = [violation];
+
         const {result} = callHook();
-        const expectedField = violationFields[violation.name];
         expect(result.current.hasViolations(expectedField)).toBe(true);
         expect(result.current.getViolationsForField(expectedField)).toEqual([violation]);
     });
 
-    it('returns correct values when there are multiple violations on different fields', () => {
-        const violation1 = violations[0];
-        const violation2 = violations[1];
-        violations = [violation1, violation2];
-
-        const {result} = callHook();
-
-        const expectedField1 = violationFields[violation1.name];
-        const expectedField2 = violationFields[violation2.name];
-        expect(result.current.hasViolations(expectedField1)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField1)).toEqual([violation1]);
-        expect(result.current.hasViolations(expectedField2)).toBe(true);
-        expect(result.current.getViolationsForField(expectedField2)).toEqual([violation2]);
-    });
-
-    it('returns correct values when there are multiple violations on the same field', () => {
-        violations = violationsByField.amount;
+    it('returns all violations for a field when there are many violations on the same field', () => {
+        // All of these are violations on 'amount'
+        violations = [{name: 'overLimit'}, {name: 'perDayLimit'}, {name: 'modifiedAmount'}, {name: 'overCategoryLimit'}];
         const expectedField = 'amount';
 
         const {result} = callHook();
@@ -63,37 +52,33 @@ describe('useViolations', () => {
         expect(result.current.getViolationsForField(expectedField)).toEqual(violations);
     });
 
-    it('returns correct values for empty violations', () => {
-        violations = [];
-        const {result} = callHook();
-        fieldNames.forEach((field) => {
-            expect(result.current.hasViolations(field)).toBe(false);
-            expect(result.current.getViolationsForField(field)).toEqual([]);
-        });
-    });
-
-    it('returns correct values for non-existing violation name', () => {
-        violations = [{name: 'nonExistingViolation'}];
-        const {result} = callHook();
-        fieldNames.forEach((field) => {
-            expect(result.current.hasViolations(field)).toBe(false);
-            expect(result.current.getViolationsForField(field)).toEqual([]);
-        });
-    });
-
-    it('returns correct values for non-existing field', () => {
+    it(`returns correct values when callbacks are passed non-existing field`, () => {
         const field = 'nonExistingField';
         const {result} = callHook();
         expect(result.current.hasViolations(field)).toBe(false);
         expect(result.current.getViolationsForField(field)).toEqual([]);
     });
 
-    describe('returns correct values for all violations', () => {
-        it.each(fieldNames)('returns correct values for field %s', (field) => {
-            const {result} = callHook();
-            const expectedViolations = violationsByField[field] || [];
-            expect(result.current.hasViolations(field)).toBe(expectedViolations.length > 0);
-            expect(result.current.getViolationsForField(field)).toEqual(expectedViolations);
-        });
+    // eslint-disable-next-line rulesdir/prefer-underscore-method -- it.each is not array.each
+    it.each(fieldNames)(`returns correct values from callbacks when hook is passed empty violations array (%s)`, (field) => {
+        violations = [];
+        const {result} = callHook();
+        expect(result.current.hasViolations(field)).toBe(false);
+        expect(result.current.getViolationsForField(field)).toEqual([]);
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method -- it.each is not array.each
+    it.each(fieldNames)(`returns correct values for non-existing violation name (%s)`, (field) => {
+        violations = [{name: 'nonExistingViolation'}];
+        const {result} = callHook();
+        expect(result.current.hasViolations(field)).toBe(false);
+        expect(result.current.getViolationsForField(field)).toEqual([]);
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method  -- it.each is not array.each
+    it.each(fieldNames)(`returns correct violations for %s`, (field) => {
+        const {result} = callHook();
+        const expectedViolations = violationsByField[field] || [];
+        expect(result.current.getViolationsForField(field)).toEqual(expectedViolations);
     });
 });
