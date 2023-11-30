@@ -658,7 +658,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
 
-    // currently, in the app we only have the logic show the message when invite the members
+    // Currently, we only render messages when members are invited
     const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
 
     const originalMessage = reportAction?.originalMessage as ChangeLog;
