@@ -33,6 +33,7 @@ const defaultProps = {
 function EmojiPickerButton(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const emojiPopoverAnchor = useRef(null);
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
@@ -41,7 +42,7 @@ function EmojiPickerButton(props) {
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => {
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {

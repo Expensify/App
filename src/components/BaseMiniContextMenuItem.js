@@ -53,6 +53,7 @@ const defaultProps = {
 function BaseMiniContextMenuItem(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const theme = useTheme();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback

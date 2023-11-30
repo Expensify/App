@@ -207,10 +207,10 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const theme = useTheme();
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -273,7 +273,7 @@ function PaymentMethodList({
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, theme, onPress]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress, styles, theme]);
 
     /**
      * Render placeholder when there are no payments methods

@@ -57,6 +57,7 @@ const defaultProps = {
 function AddReactionBubble(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -89,7 +90,11 @@ function AddReactionBubble(props) {
         <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
             <PressableWithFeedback
                 ref={ref}
-                style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
+                style={({hovered, pressed}) => [
+                    styles.emojiReactionBubble,
+                    styles.userSelectNone,
+                    StyleUtils.getEmojiReactionBubbleStyle(theme, hovered || pressed, false, props.isContextMenu),
+                ]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
                 onMouseDown={(e) => {
                     // Allow text input blur when Add reaction is right clicked

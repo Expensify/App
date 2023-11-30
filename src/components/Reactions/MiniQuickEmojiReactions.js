@@ -58,6 +58,7 @@ const defaultProps = {
 function MiniQuickEmojiReactions(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const ref = useRef();
 
     const openEmojiPicker = () => {

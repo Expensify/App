@@ -8,7 +8,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withTheme from '@components/withTheme';
+import {withTheme, withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -34,6 +34,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {

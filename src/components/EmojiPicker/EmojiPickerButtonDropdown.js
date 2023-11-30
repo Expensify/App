@@ -28,6 +28,7 @@ const defaultProps = {
 function EmojiPickerButtonDropdown(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
