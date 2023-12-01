@@ -131,13 +131,23 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
+    <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
+        <% if (htmlWebpackPlugin.options.isProduction) { %>
+            <!-- Google Tag Manager - This was provided by our partner marketing agency -->
+            <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N4M3FLJZ');</script>
+            <!-- End Google Tag Manager -->
+        <% } %>
     <% } %>
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
+    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+    <% } %>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">

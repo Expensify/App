@@ -23,44 +23,54 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
-            const hasCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'categoryOutOfPolicy')));
-            const hasMissingCategoryViolation = Boolean(transactionViolations.some((violation) => Boolean(violation.name === 'missingCategory')));
-
+            const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
+            const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryViolation && transaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
-            // remove 'categoryOutOfPolicy' violation if category is in policy
-            if (hasCategoryViolation && transaction.category && isCategoryInPolicy) {
+            // Remove 'categoryOutOfPolicy' violation if category is in policy
+            if (hasCategoryOutOfPolicyViolation && transaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (isCategoryInPolicy) {
+            if (hasMissingCategoryViolation && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
-            // Add missingCategory violation if category is required and not set
-            if (!hasMissingCategoryViolation && isCategoryInPolicy && !transaction.category) {
+            // Add 'missingCategory' violation if category is required and not set
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !transaction.category) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
 
         if (policyRequiresTags) {
-            const hasTagViolation = Boolean(transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy'));
+            const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
+            const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
             const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            if (!hasTagViolation && transaction.tag && !isTagInPolicy) {
+            if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
+            // Remove 'tagOutOfPolicy' violation if tag is in policy
+            if (hasTagOutOfPolicyViolation && transaction.tag && isTagInPolicy) {
+                newTransactionViolations = reject(newTransactionViolations, {name: 'tagOutOfPolicy'});
+            }
+
             // Remove 'missingTag' violation if tag is valid according to policy
-            if (isTagInPolicy) {
+            if (hasMissingTagViolation && isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
+            }
+
+            // Add 'missingTag violation' if tag is required and not set
+            if (!hasMissingTagViolation && !transaction.tag && policyRequiresTags) {
+                newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
         }
 

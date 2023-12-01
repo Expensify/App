@@ -42,8 +42,9 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
-import {TransactionViolation, ViolationName, ViolationType} from './TransactionViolation';
+import {TransactionViolation, ViolationName} from './TransactionViolation';
 import User from './User';
+import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
@@ -53,6 +54,7 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
+    UserLocation,
     AccountData,
     AddDebitCardForm,
     BankAccount,
@@ -107,7 +109,6 @@ export type {
     User,
     UserWallet,
     ViolationName,
-    ViolationType,
     WalletAdditionalDetails,
     WalletOnfido,
     WalletStatement,
