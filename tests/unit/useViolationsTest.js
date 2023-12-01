@@ -45,9 +45,7 @@ describe('useViolations', () => {
         // All of these are violations on 'amount'
         violations = [{name: 'overLimit'}, {name: 'perDayLimit'}, {name: 'modifiedAmount'}, {name: 'overCategoryLimit'}];
         const expectedField = 'amount';
-
         const {result} = callHook();
-
         expect(result.current.hasViolations(expectedField)).toBe(true);
         expect(result.current.getViolationsForField(expectedField)).toEqual(violations);
     });
