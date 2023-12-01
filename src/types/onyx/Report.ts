@@ -118,6 +118,9 @@ type Report = {
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 
+    /** Whether the report is cancelled */
+    isCancelledIOU?: boolean;
+
     /** Whether the last message was deleted */
     isLastMessageDeletedParentAction?: boolean;
 
