@@ -2,6 +2,15 @@ import CONST from '@src/CONST';
 import AccountData from './AccountData';
 import * as OnyxCommon from './OnyxCommon';
 
+type AdditionalData = {
+    isP2PDebitCard?: boolean;
+    beneficialOwners?: string[];
+    currency?: string;
+    bankName?: string;
+    fieldsType?: string;
+    country?: string;
+};
+
 type BankAccount = {
     /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
@@ -10,6 +19,12 @@ type BankAccount = {
     description?: string;
 
     isDefault?: boolean;
+
+    /* Determines if the bank account is a savings account */
+    isSavings?: boolean;
+
+    /** Date when the 3 micro amounts for validation were supposed to reach the bank account. */
+    validateCodeExpectedDate?: string;
 
     /** string like 'bankAccount-{<bankAccountID>}' where <bankAccountID> is the bankAccountID */
     key?: string;
@@ -33,4 +48,4 @@ type BankAccount = {
 type BankAccountList = Record<string, BankAccount>;
 
 export default BankAccount;
-export type {AccountData, BankAccountList};
+export type {AccountData, AdditionalData, BankAccountList};
