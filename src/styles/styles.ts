@@ -1376,7 +1376,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumb: {
-            color: colors.darkSupportingText,
+            color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
             marginTop: (variables.fontSizeXLarge - variables.fontSizeh1) / 2,
             ...headlineFont,
