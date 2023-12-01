@@ -85,9 +85,6 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
-
-    // Take only the YYYY-MM-DD value
-    const originalCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // For now, it always defaults to the first tag of the policy
@@ -124,16 +121,16 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     }
 
     const saveCreated = useCallback(
-        ({created: newValue}) => {
+        ({created: newCreated}) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newValue === originalCreated) {
+            if (newCreated === TransactionUtils.getCreated(transaction)) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newValue);
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
             Navigation.dismissModal();
         },
-        [transaction, report, originalCreated],
+        [transaction, report],
     );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -155,7 +152,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={originalCreated}
+                defaultCreated={TransactionUtils.getCreated(transaction)}
                 onSubmit={saveCreated}
             />
         );

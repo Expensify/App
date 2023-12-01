@@ -2042,7 +2042,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
  */
 function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
-        editDistanceMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     } else {
         editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     }
@@ -3083,7 +3083,6 @@ export {
     setMoneyRequestReceipt,
     setUpDistanceTransaction,
     navigateToNextPage,
-    updateDistanceRequest,
     updateMoneyRequestDate,
     replaceReceipt,
     detachReceipt,
