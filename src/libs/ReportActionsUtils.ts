@@ -129,6 +129,10 @@ function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 }
 
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -803,6 +807,7 @@ export {
     isMemberChangeAction,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
+    isReimbursementDeQueuedAction,
 };
 
 export type {LastVisibleMessage};

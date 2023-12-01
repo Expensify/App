@@ -34,6 +34,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -134,6 +135,8 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
@@ -142,15 +145,13 @@ function ReportActionItem(props) {
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const downloadedPreviews = useRef([]);
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme.highlightBG]);
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme]);
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
     // IOUDetails only exists when we are sending money
@@ -415,6 +416,11 @@ function ReportActionItem(props) {
                     </>
                 </ReportActionItemBasicMessage>
             );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
+            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
+
+            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
@@ -672,7 +678,7 @@ function ReportActionItem(props) {
         >
             <Hoverable
                 shouldHandleScroll
-                disabled={Boolean(props.draftMessage)}
+                isDisabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
@@ -687,7 +693,7 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
+                        <View style={StyleUtils.getReportActionItemStyle(theme, styles, hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}

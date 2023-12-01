@@ -781,7 +781,8 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
 
     // Optimistically modify the transaction
     optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
+        // We need to use SET method to save updated waypoint instead MERGE method to avoid wrong update of waypoints. More detail: https://github.com/Expensify/App/issues/30290#issuecomment-1778957070
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
