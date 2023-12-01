@@ -12,7 +12,7 @@ For the receipt to be processed as a Trip, it must include the total amount of t
 
 If your company is using a travel integration from the list shown below, you can automate this process entirely:
 - [TravelPerk](https://help.expensify.com/articles/expensify-classic/integrations/travel-integrations/TravelPerk)
-- [Egencia[(https://help.expensify.com/articles/expensify-classic/integrations/travel-integrations/Egencia)
+- [Egencia](https://help.expensify.com/articles/expensify-classic/integrations/travel-integrations/Egencia)
 - [Navan](https://help.expensify.com/articles/expensify-classic/integrations/travel-integrations/Trip-Actions)
 
 # How to add a Trip to your account
