@@ -64,7 +64,7 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('next-month-arrow'));
 
-        const nextMonth = new Date().getMonth() + 1;
+        const nextMonth = (new Date().getMonth() + 1) % 12;
         expect(getByText(monthNames[nextMonth])).toBeTruthy();
     });
 
