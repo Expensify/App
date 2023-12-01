@@ -1405,7 +1405,7 @@ PODS:
     - React-Core
   - react-native-render-html (6.3.1):
     - React-Core
-  - react-native-safe-area-context (4.5.1):
+  - react-native-safe-area-context (4.7.4):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1417,6 +1417,47 @@ PODS:
     - React-Fabric
     - React-graphics
     - React-ImageManager
+    - react-native-safe-area-context/common (= 4.7.4)
+    - react-native-safe-area-context/fabric (= 4.7.4)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-safe-area-context/common (4.7.4):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-safe-area-context/fabric (4.7.4):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - react-native-safe-area-context/common
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -2447,12 +2488,12 @@ SPEC CHECKSUMS:
   react-native-key-command: b12d848a75768191fa0b06580591ee0c28fef321
   react-native-netinfo: 3005daaab9d1d79e4f83c691f86a9c9bd837dfa6
   react-native-pager-view: 6646edfa32d886a1210de8b0d7e1846bf2ed4f8e
-  react-native-pdf: a998a6581b4fc1574eacfd70d7bb28f4834a6866
+  react-native-pdf: 44085f2103e8fccbe6388278376a195658043463
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
   react-native-plaid-link-sdk: 752b5d99e5b6a3bb17231acab66fba11a1739524
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
-  react-native-safe-area-context: 2ab82c442298613a43fb06bb876a8f8e7f0b1252
+  react-native-safe-area-context: 6d15eb87e03a2578f5e276e353249c24b681bfca
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
   react-native-webview: 4d8716a63d0ff34416d793fbea1111b8e99758de
   React-nativeconfig: b91e65004863aec6b42c2f247d7af8603acf8939
@@ -2485,12 +2526,12 @@ SPEC CHECKSUMS:
   RNDateTimePicker: b7c1273e75fed7b5c95a16855ba2d5f654ecedaf
   RNDeviceInfo: 20edc6a404b24be68668c8905663b57bb18f2bf1
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
-  RNFastImage: 68b9bb1b15993863ea43968625f585630f1eb9d6
+  RNFastImage: eb90000d456b3f5cdc2d28115733091f95393c9f
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNFlashList: 3497a7dce4b8a23a8b51d5031c5b69bd123edc64
+  RNFlashList: 1ec784c99007daadc2dca5347078a74fbe1de6b2
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 38016feaff9bd5d8282c78ddce37a89b3a1d595b
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0

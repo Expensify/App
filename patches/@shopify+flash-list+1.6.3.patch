@@ -1,11 +1,12 @@
 diff --git a/node_modules/@shopify/flash-list/RNFlashList.podspec b/node_modules/@shopify/flash-list/RNFlashList.podspec
-index 636be5a..946498d 100644
+index 636be5a..b6585b6 100644
 --- a/node_modules/@shopify/flash-list/RNFlashList.podspec
 +++ b/node_modules/@shopify/flash-list/RNFlashList.podspec
-@@ -19,22 +19,15 @@ Pod::Spec.new do |s|
+@@ -18,23 +18,15 @@ Pod::Spec.new do |s|
+   s.swift_version    = '5.0'
    s.dependency "React-Core"
  
-   if fabric_enabled
+-  if fabric_enabled
 -    s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
 -    s.pod_target_xcconfig    = {
 -        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
@@ -13,22 +14,21 @@ index 636be5a..946498d 100644
 -        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
 -        'OTHER_SWIFT_FLAGS' => '-D RCT_NEW_ARCH_ENABLED',
 -    }
--
++  s.pod_target_xcconfig = {
++      'OTHER_SWIFT_FLAGS' => '-D RCT_NEW_ARCH_ENABLED',
++  }
+ 
 -    s.dependency "React-RCTFabric"
 -    s.dependency "React-Codegen"
 -    s.dependency "RCT-Folly"
 -    s.dependency "RCTRequired"
 -    s.dependency "RCTTypeSafety"
 -    s.dependency "ReactCommon/turbomodule/core"
++  if fabric_enabled
      s.ios.deployment_target = "12.4"
      s.platforms        = { :ios => '12.4', :tvos => '12.0' }
 +
 +    install_modules_dependencies(s)
-+
-+    hash = s.to_hash
-+    current_config = hash["pod_target_xcconfig"] != nil ? hash["pod_target_xcconfig"] : {}
-+    current_config['OTHER_SWIFT_FLAGS'] = '-D RCT_NEW_ARCH_ENABLED'
-+    s.pod_target_xcconfig = current_config
    else
      # Settings for non-fabric builds
      s.platforms        = { :ios => '11.0', :tvos => '12.0' }

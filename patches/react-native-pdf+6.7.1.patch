@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-pdf/react-native-pdf.podspec b/node_modules/react-native-pdf/react-native-pdf.podspec
-index fb36140..9f30bd0 100644
+index fb36140..5d5f19e 100644
 --- a/node_modules/react-native-pdf/react-native-pdf.podspec
 +++ b/node_modules/react-native-pdf/react-native-pdf.podspec
-@@ -17,24 +17,7 @@ Pod::Spec.new do |s|
+@@ -17,24 +17,11 @@ Pod::Spec.new do |s|
    s.framework    = "PDFKit"
  
    if fabric_enabled
@@ -12,11 +12,11 @@ index fb36140..9f30bd0 100644
 -      'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/boost" "$(PODS_ROOT)/boost-for-react-native"  "$(PODS_ROOT)/RCT-Folly"',
 -      "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
 -    }
--    s.platforms       = { ios: '11.0', tvos: '11.0' }
+     s.platforms       = { ios: '11.0', tvos: '11.0' }
 -    s.compiler_flags  = folly_compiler_flags + ' -DRCT_NEW_ARCH_ENABLED'
--    s.source_files    = 'ios/**/*.{h,m,mm,cpp}'
--    s.requires_arc    = true
--
+     s.source_files    = 'ios/**/*.{h,m,mm,cpp}'
+     s.requires_arc    = true
+     
 -    s.dependency "React"
 -    s.dependency "React-RCTFabric"
 -    s.dependency "React-Codegen"

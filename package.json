@@ -151,7 +151,7 @@
     "react-native-quick-sqlite": "^8.0.0-beta.2",
     "react-native-reanimated": "^3.6.0",
     "react-native-render-html": "6.3.1",
-    "react-native-safe-area-context": "4.5.1",
+    "react-native-safe-area-context": "github:th3rdwave/react-native-safe-area-context#a16ed2e174a5a6103b0d934fe98368d67c4b4656",
     "react-native-screens": "github:software-mansion/react-native-screens#8d5b728b903a27e8815ec833a93790070c375d2a",
     "react-native-svg": "github:software-mansion/react-native-svg#0f4b5ee589f549a2096b7e28755ec293b1e43408",
     "react-native-tab-view": "^3.5.2",
