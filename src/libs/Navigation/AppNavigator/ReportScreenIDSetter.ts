@@ -1,7 +1,6 @@
 import {useEffect} from 'react';
 import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,13 +30,6 @@ const getLastAccessedReportID = (
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
 ): string | undefined => {
-    // If deeplink url contains reportID params, we should show the report that has this reportID.
-    const currentRoute = Navigation.getActiveRoute();
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
-    if (reportID) {
-        return reportID;
-    }
-
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom);
     return lastReport?.reportID;
 };

@@ -509,7 +509,13 @@ function AddressSearch({
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
+                            listView: [
+                                StyleUtils.getGoogleListViewStyle(styles, displayListViewBorder),
+                                styles.overflowAuto,
+                                styles.borderLeft,
+                                styles.borderRight,
+                                !isFocused && {height: 0},
+                            ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
@@ -526,7 +532,7 @@ function AddressSearch({
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
                             predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
-                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                <View style={[StyleUtils.getGoogleListViewStyle(styles, true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={network.isOffline}
