@@ -27,7 +27,7 @@ Each month, Expensify will send a consolidated bill detailing:
 
 ## Consolidated Domain Billing
 
-If your firm wishes to consolidate all Expensify billing to a single account, the Consolidated Domain Billing feature is your go-to tool. It centralizes payment for all group policies owned by any domain member of your firm.
+If your firm wishes to consolidate all Expensify billing to a single account, the Consolidated Domain Billing feature is your go-to tool. It centralizes payment for all group workspaces owned by any domain member of your firm.
 
 ### Activating Consolidated Domain Billing:
   1. Claim and verify your firm’s domain.
