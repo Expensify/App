@@ -9,9 +9,9 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import defaultTheme from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -22,12 +22,14 @@ const propTypes = {
 };
 
 function GenericErrorPage({translate}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {resetBoundary} = useErrorBoundary();
 
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
-                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
+                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(theme, paddingBottom)]}>
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <View>
                             <View style={styles.mb5}>
@@ -35,7 +37,7 @@ function GenericErrorPage({translate}) {
                                     src={Expensicons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
-                                    fill={defaultTheme.iconSuccessFill}
+                                    fill={theme.iconSuccessFill}
                                 />
                             </View>
                             <View style={styles.mb5}>
@@ -79,7 +81,7 @@ function GenericErrorPage({translate}) {
                             <LogoWordmark
                                 height={30}
                                 width={80}
-                                fill={defaultTheme.textLight}
+                                fill={theme.textLight}
                             />
                         </View>
                     </View>

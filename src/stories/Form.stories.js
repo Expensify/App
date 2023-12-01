@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
@@ -10,6 +9,7 @@ import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -29,7 +29,6 @@ const story = {
         CheckboxWithLabel,
         Picker,
         StatePicker,
-        DatePicker,
     },
 };
 
@@ -67,12 +66,6 @@ function Template(args) {
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
-            />
-            <InputWrapper
-                InputComponent={DatePicker}
-                label="Date of birth"
-                inputID="dob"
-                containerStyles={[styles.mt4]}
             />
             <View>
                 <InputWrapper
@@ -177,28 +170,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values) => {
         const errors = {};
-        if (!values.routingNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!values.accountNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!values.street) {
+        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!values.dob) {
+        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!values.pickFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!values.pickAnotherFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.state) {
+        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!values.checkbox) {
+        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;

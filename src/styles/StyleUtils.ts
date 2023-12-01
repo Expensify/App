@@ -8,8 +8,8 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import styles from './styles';
-import themeColors from './themes/default';
+import {ThemeStyles} from './styles';
+import {ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
@@ -17,6 +17,12 @@ import variables from './variables';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+type AvatarStyle = {
+    width: number;
+    height: number;
+    borderRadius: number;
+    backgroundColor: string;
+};
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -40,7 +46,6 @@ type AvatarSizeValue = ValueOf<
     >
 >;
 type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-type EmptyAvatarSizeName = ValueOf<Pick<typeof CONST.AVATAR_SIZE, 'SMALL' | 'MEDIUM' | 'LARGE'>>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
@@ -56,10 +61,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
+    modalContainerStyleMarginTop: DimensionValue | undefined;
+    modalContainerStyleMarginBottom: DimensionValue | undefined;
+    modalContainerStylePaddingTop: DimensionValue | undefined;
+    modalContainerStylePaddingBottom: DimensionValue | undefined;
     insets: EdgeInsets;
 };
 
@@ -68,6 +73,7 @@ type AvatarBorderStyleParams = {
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
+    theme: ThemeColors;
 };
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -146,12 +152,6 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
 };
 
-const emptyAvatarStyles: Record<EmptyAvatarSizeName, ViewStyle> = {
-    [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
-    [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
-    [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
-};
-
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
@@ -186,15 +186,8 @@ function getAvatarSize(size: AvatarSizeName): number {
 /**
  * Return the height of magic code input container
  */
-function getHeightOfMagicCodeInput(): ViewStyle {
+function getHeightOfMagicCodeInput(styles: ThemeStyles): ViewStyle {
     return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
-}
-
-/**
- * Return the style from an empty avatar size constant
- */
-function getEmptyAvatarStyle(size: EmptyAvatarSizeName): ViewStyle | undefined {
-    return emptyAvatarStyles[size];
 }
 
 /**
@@ -210,13 +203,13 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: AvatarSizeName): ViewStyle {
+function getAvatarStyle(theme: ThemeColors, size: AvatarSizeName): AvatarStyle {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
         width: avatarSize,
         borderRadius: avatarSize,
-        backgroundColor: themeColors.offline,
+        backgroundColor: theme.offline,
     };
 }
 
@@ -241,7 +234,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -288,12 +281,19 @@ function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyl
     return eReceiptColorStyles[colorCode];
 }
 
+type SafeAreaPadding = {
+    paddingTop: number;
+    paddingBottom: number;
+    paddingLeft: number;
+    paddingRight: number;
+};
+
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
     return {
-        paddingTop: insets?.top,
+        paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
@@ -307,7 +307,7 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
 }
 
-function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle {
+function getZoomCursorStyle(styles: ThemeStyles, isZoomed: boolean, isDragging: boolean): ViewStyle {
     if (!isZoomed) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -388,7 +388,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns auto grow height text input style
  */
-function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number): ViewStyle {
+function getAutoGrowHeightInputStyle(styles: ThemeStyles, textInputHeight: number, maxHeight: number): ViewStyle {
     if (textInputHeight > maxHeight) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -449,7 +449,7 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: boolean): ViewStyle {
+function getSignInWordmarkWidthStyle(isSmallScreenWidth: boolean, environment: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
@@ -494,7 +494,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 /**
  * Generate a style for the background color of the Badge
  */
-function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
+function getBadgeColorStyle(styles: ThemeStyles, isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
     if (isSuccess) {
         if (isAdHoc) {
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
@@ -519,12 +519,12 @@ function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = fa
  * @param buttonState - One of {'default', 'hovered', 'pressed'}
  * @param isMenuItem - whether this button is apart of a list
  */
-function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
+function getButtonBackgroundColorStyle(theme: ThemeColors, buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
+            return {backgroundColor: theme.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -538,20 +538,20 @@ function getButtonBackgroundColorStyle(buttonState: ButtonStateName = CONST.BUTT
  * @param buttonState - One of {'default', 'hovered', 'pressed'}
  * @param isMenuIcon - whether this icon is apart of a list
  */
-function getIconFillColor(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string {
+function getIconFillColor(theme: ThemeColors, buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.iconHovered;
+            return theme.iconHovered;
         case CONST.BUTTON_STATES.COMPLETE:
-            return themeColors.iconSuccessFill;
+            return theme.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
             if (isMenuIcon) {
-                return themeColors.iconMenu;
+                return theme.iconMenu;
             }
-            return themeColors.icon;
+            return theme.icon;
     }
 }
 
@@ -567,6 +567,22 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
         width,
         height: height ?? width,
     };
+}
+
+/**
+ * Combine margin/padding with safe area inset
+ *
+ * @param modalContainerValue - margin or padding value
+ * @param safeAreaValue - safe area inset
+ * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
+ */
+function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+    // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
+    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
+        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    return modalContainerValue;
 }
 
 function getModalPaddingStyles({
@@ -586,12 +602,12 @@ function getModalPaddingStyles({
 }: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: (modalContainerStyleMarginTop ?? 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom ?? 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop ?? 0) + safeAreaPaddingTop : modalContainerStylePaddingTop ?? 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom ?? 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom ?? 0,
+        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -632,16 +648,16 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(isHovered = false): ViewStyle {
+function getReportActionItemStyle(theme: ThemeColors, styles: ThemeStyles, isHovered = false): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         display: 'flex',
         justifyContent: 'space-between',
         backgroundColor: isHovered
-            ? themeColors.hoverComponentBG
+            ? theme.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              themeColors.transparent,
+              theme.transparent,
         opacity: 1,
         ...styles.cursorInitial,
     };
@@ -650,7 +666,7 @@ function getReportActionItemStyle(isHovered = false): ViewStyle {
 /**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  */
-function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean): ViewStyle {
+function getMiniReportActionContextMenuWrapperStyle(styles: ThemeStyles, isReportActionItemGrouped: boolean): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -732,11 +748,11 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @param bgColor - theme background color
  * @returns The theme color as an RGB value.
  */
-function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
+function getThemeBackgroundColor(theme: ThemeColors, bgColor: string): string {
     const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.overlay) ?? [];
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(theme.overlay) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
@@ -841,15 +857,15 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     };
 }
 
-function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
-    let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false, theme}: AvatarBorderStyleParams): ViewStyle {
+    let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
-        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
+        borderColor = isInReportAction ? theme.highlightBG : theme.border;
     }
 
     if (isPressed) {
-        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
+        borderColor = isInReportAction ? theme.highlightBG : theme.buttonPressedBG;
     }
 
     return {borderColor};
@@ -878,9 +894,9 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
     };
 }
 
-function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
+function getErrorPageContainerStyle(theme: ThemeColors, safeAreaPaddingBottom = 0): ViewStyle {
     return {
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: theme.componentBG,
         paddingBottom: 40 + safeAreaPaddingBottom,
     };
 }
@@ -963,13 +979,13 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyRepo
 /**
  * Gets styles for AutoCompleteSuggestion row
  */
-function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] {
+function getAutoCompleteSuggestionItemStyle(theme: ThemeColors, highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
-        backgroundColor = themeColors.activeComponentBG;
+        backgroundColor = theme.activeComponentBG;
     } else if (isHovered) {
-        backgroundColor = themeColors.hoverComponentBG;
+        backgroundColor = theme.hoverComponentBG;
     }
 
     return [
@@ -1012,25 +1028,26 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
         overflow: 'hidden',
         top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
+        minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
 }
 
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
-    return {backgroundColor: isColored ? themeColors.link : undefined};
+function getColoredBackgroundStyle(theme: ThemeColors, isColored: boolean): StyleProp<TextStyle> {
+    return {backgroundColor: isColored ? theme.link : undefined};
 }
 
-function getEmojiReactionBubbleStyle(isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle {
-    let backgroundColor = themeColors.border;
+function getEmojiReactionBubbleStyle(theme: ThemeColors, isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle {
+    let backgroundColor = theme.border;
 
     if (isHovered) {
-        backgroundColor = themeColors.buttonHoveredBG;
+        backgroundColor = theme.buttonHoveredBG;
     }
 
     if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActiveBackground;
+        backgroundColor = theme.reactionActiveBackground;
     }
 
     if (isContextMenu) {
@@ -1062,12 +1079,12 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     };
 }
 
-function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
+function getEmojiReactionCounterTextStyle(theme: ThemeColors, hasUserReacted: boolean): TextStyle {
     if (hasUserReacted) {
-        return {color: themeColors.reactionActiveText};
+        return {color: theme.reactionActiveText};
     }
 
-    return {color: themeColors.text};
+    return {color: theme.text};
 }
 
 /**
@@ -1090,7 +1107,7 @@ function displayIfTrue(condition: boolean): ViewStyle {
     return {display: condition ? 'flex' : 'none'};
 }
 
-function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
+function getGoogleListViewStyle(styles: ThemeStyles, shouldDisplayBorder: boolean): ViewStyle {
     if (shouldDisplayBorder) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -1130,8 +1147,8 @@ function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: num
 /**
  * Returns style object for the user mention component based on whether the mention is ours or not.
  */
-function getMentionStyle(isOurMention: boolean): ViewStyle {
-    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+function getMentionStyle(theme: ThemeColors, isOurMention: boolean): ViewStyle {
+    const backgroundColor = isOurMention ? theme.ourMentionBG : theme.mentionBG;
     return {
         backgroundColor,
         borderRadius: variables.componentBorderRadiusSmall,
@@ -1142,8 +1159,8 @@ function getMentionStyle(isOurMention: boolean): ViewStyle {
 /**
  * Returns text color for the user mention text based on whether the mention is ours or not.
  */
-function getMentionTextColor(isOurMention: boolean): string {
-    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+function getMentionTextColor(theme: ThemeColors, isOurMention: boolean): string {
+    return isOurMention ? theme.ourMentionText : theme.mentionText;
 }
 
 /**
@@ -1195,9 +1212,9 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns link styles based on whether the link is disabled or not
  */
-function getDisabledLinkStyles(isDisabled = false): ViewStyle {
+function getDisabledLinkStyles(theme: ThemeColors, styles: ThemeStyles, isDisabled = false): ViewStyle {
     const disabledLinkStyles = {
-        color: themeColors.textSupporting,
+        color: theme.textSupporting,
         ...cursor.cursorDisabled,
     };
 
@@ -1232,12 +1249,12 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
 /**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle {
+function getCheckboxContainerStyle(theme: ThemeColors, size: number, borderRadius = 4): ViewStyle {
     return {
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: themeColors.borderLighter,
+        borderColor: theme.borderLighter,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1263,22 +1280,53 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): TextStyle {
+function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
+    const baseFontSize = variables.fontSizeXLarge;
+    const baseLineHeight = variables.lineHeightXXLarge;
 
-    if (isSmallScreenWidth) {
-        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+    const numberOfAvatar = numberOfParticipant < 4 ? numberOfParticipant : 4;
+    const differentWithMaxLength = 17 - displayAmountLength;
+
+    // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
+    if (isSmallScreenWidth && windowWidth < 420) {
+        // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
+        // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
+        const widthDifference = 420 - windowWidth;
         switch (true) {
-            case widthDifference > 450:
+            // It is very rare for native devices to have a width smaller than 350px so add a constant subtract here
+            case widthDifference > 70:
                 toSubtract = 11;
                 break;
-            case widthDifference > 400:
-                toSubtract = 8;
+            case widthDifference > 60:
+                if (18 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = numberOfAvatar * 2 - differentWithMaxLength;
+                }
                 break;
-            case widthDifference > 350:
-                toSubtract = 4;
+            case widthDifference > 50:
+                if (19 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 + 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 40:
+                if (20 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 30:
+                if (21 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 1) * 2 - 1 - differentWithMaxLength;
+                }
+                break;
+            case widthDifference > 20:
+                if (22 - numberOfAvatar * 2 < displayAmountLength) {
+                    toSubtract = (numberOfAvatar - 2) * 2 - differentWithMaxLength;
+                }
                 break;
             default:
+                if (displayAmountLength + numberOfAvatar === 21) {
+                    toSubtract = 3;
+                }
                 break;
         }
     }
@@ -1292,7 +1340,7 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+function getContainerStyles(styles: ThemeStyles, size: string, isInReportAction = false): ViewStyle[] {
     let containerStyles: ViewStyle[];
 
     switch (size) {
@@ -1325,7 +1373,7 @@ function getTransparentColor(color: string) {
 /**
  * Get the styles of the text next to dot indicators
  */
-function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+function getDotIndicatorTextStyles(styles: ThemeStyles, isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
@@ -1380,7 +1428,6 @@ export {
     getEmojiReactionBubbleStyle,
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
-    getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
     getCodeFontSize,

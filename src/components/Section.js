@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import MenuItemList from './MenuItemList';
 import menuItemPropTypes from './menuItemPropTypes';
@@ -61,6 +61,7 @@ const defaultProps = {
 };
 
 function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+    const styles = useThemeStyles();
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>

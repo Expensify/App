@@ -10,8 +10,8 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PendingMapView from './MapView/PendingMapView';
@@ -29,6 +29,8 @@ const defaultProps = {
 };
 
 function DistanceEReceipt({transaction}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
@@ -105,9 +107,10 @@ function DistanceEReceipt({transaction}) {
                         <Icon
                             width={86}
                             height={19.25}
-                            fill={themeColors.textBrand}
+                            fill={theme.textBrand}
                             src={Expensicons.ExpensifyWordmark}
                         />
+
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                     </View>
                 </View>

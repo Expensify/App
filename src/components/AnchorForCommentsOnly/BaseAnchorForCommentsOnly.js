@@ -11,8 +11,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
 
@@ -32,6 +32,7 @@ const propTypes = {
  * This is a default anchor component for regular links.
  */
 function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style = {}, onPress, ...rest}) {
+    const styles = useThemeStyles();
     useEffect(
         () => () => {
             ReportActionContextMenu.hideContextMenu();
@@ -50,11 +51,12 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
         linkProps.href = href;
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmailMarkdown(href.replace(/mailto:/i, ''));
+    const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction
             inline
+            suppressHighlighting
             style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(

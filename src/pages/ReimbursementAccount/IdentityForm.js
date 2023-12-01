@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import DatePicker from '@components/DatePicker';
+import InputWrapper from '@components/Form/InputWrapper';
+import NewDatePicker from '@components/NewDatePicker';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
@@ -130,6 +131,7 @@ const defaultProps = {
 };
 
 function IdentityForm(props) {
+    const styles = useThemeStyles();
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
@@ -141,7 +143,8 @@ function IdentityForm(props) {
         <View style={props.style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
@@ -154,7 +157,8 @@ function IdentityForm(props) {
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
@@ -167,7 +171,7 @@ function IdentityForm(props) {
                     />
                 </View>
             </View>
-            <DatePicker
+            <NewDatePicker
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
@@ -179,7 +183,8 @@ function IdentityForm(props) {
                 minDate={minDate}
                 maxDate={maxDate}
             />
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
