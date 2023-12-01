@@ -116,13 +116,10 @@ function Suggestions({
     );
 
     useEffect(() => {
-        if (!isDraggingOver) {
+        if (!(!prevIsDraggingOver && isDraggingOver)) {
             return;
         }
-
-        if (!prevIsDraggingOver && isDraggingOver) {
-            updateShouldShowSuggestionMenuToFalse();
-        }
+        updateShouldShowSuggestionMenuToFalse();
     }, [isDraggingOver, prevIsDraggingOver, updateShouldShowSuggestionMenuToFalse]);
 
     const baseProps = {
