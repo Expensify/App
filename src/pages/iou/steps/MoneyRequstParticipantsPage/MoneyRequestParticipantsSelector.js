@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -11,6 +11,7 @@ import {Info} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import refPropTypes from '@components/refPropTypes';
 import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as Report from '@libs/actions/Report';
@@ -291,7 +292,7 @@ function MoneyRequestParticipantsSelector({
                     message="iou.error.splitBillMultipleParticipantsErrorMessage"
                 />
             )}
-            <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+            <View style={[styles.pb5, styles.flexShrink0]}>
                 <PressableWithoutFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
