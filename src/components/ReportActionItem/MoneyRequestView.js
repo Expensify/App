@@ -109,6 +109,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 
@@ -133,11 +134,16 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         if (TransactionUtils.isPending(transaction)) {
             amountDescription += ` • ${translate('iou.pending')}`;
         }
+        if (isCancelled) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        }
     } else {
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (isSettled) {
+        if (isCancelled) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
             amountDescription += ` • ${translate('iou.pending')}`;
