@@ -1,22 +1,26 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import styles from '../../styles/styles';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import TextLink from '../../components/TextLink';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import ShortTermsForm from './TermsPage/ShortTermsForm';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import ShortTermsForm from './TermsPage/ShortTermsForm';
+import userWalletPropTypes from './userWalletPropTypes';
 import walletTermsPropTypes from './walletTermsPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: walletTermsPropTypes,
 
@@ -24,10 +28,12 @@ const propTypes = {
 };
 
 const defaultProps = {
+    userWallet: {},
     walletTerms: {},
 };
 
 function TermsStep(props) {
+    const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
@@ -59,7 +65,7 @@ function TermsStep(props) {
                 style={styles.flex1}
                 contentContainerStyle={styles.ph5}
             >
-                <ShortTermsForm />
+                <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
@@ -103,6 +109,7 @@ function TermsStep(props) {
                     }}
                     message={errorMessage}
                     isAlertVisible={error || Boolean(errorMessage)}
+                    isLoading={!!props.walletTerms.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

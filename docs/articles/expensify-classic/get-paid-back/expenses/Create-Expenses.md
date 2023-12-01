@@ -48,11 +48,11 @@ You can also create a number of future 'placeholder' expenses for your recurring
 # How to Edit Bulk Expenses
 Editing expenses in bulk will allow you to apply the same coding across multiple expenses and is a web-only feature. To bulk edit expenses:
 Go to the Expenses page.
-To narrow down your selection, use the filters (e.g. "Merchant" and "Open") to find the specific expenses you want to edit.
+To narrow down your selection, use the filters (e.g. "Merchant" and "Draft") to find the specific expenses you want to edit.
 Select all the expenses you want to edit.
 Click on the **Edit Multiple** button at the top of the page. 
 # How to Edit Expenses on a Report
-If you’d like to edit expenses within an Open report:
+If you’d like to edit expenses within a Draft report:
 
 1. Click on the Report containing all the expenses. 
 2. Click on **Details**.
@@ -61,8 +61,8 @@ If you’d like to edit expenses within an Open report:
 
 If you've already submitted your report, you'll need to Retract it or have it Unapproved first before you can edit the expenses.
 
-
 # FAQ
+
 ## Does Expensify account for duplicates?
 
 Yes, Expensify will account for duplicates. Expensify works behind the scenes to identify duplicate expenses before they are submitted, warning employees when they exist. If a duplicate expense is submitted, the same warning will be shown to the approver responsible for reviewing the report. 
@@ -71,6 +71,7 @@ If two expenses are SmartScanned on the same day for the same amount, they will 
 The expenses were split from a single expense, 
 The expenses were imported from a credit card, or
 Matching email receipts sent to receipts@expensify.com were received with different timestamps. 
+
 ## How do I resolve a duplicate expense?
 
 If Concierge has let you know it's flagged a receipt as a duplicate, scanning the receipt again will trigger the same duplicate flagging.Users have the ability to resolve duplicates by either deleting the duplicated transactions, merging them, or ignoring them (if they are legitimately separate expenses of the same date and amount). 
@@ -88,12 +89,13 @@ Click the **Undelete** button and you're all set. You’ll find the expense on y
 ## What are the different Expense statuses?
 
 There are a number of different expense statuses in Expensify:
-1. **Unreported**: Unreported expenses are not yet part of a report (and therefore unsubmitted) and are not viewable by anyone but the expense creator/owner.
-2. **Open**: Open expenses are on a report that's still in progress, and are unsubmitted. Your Policy Admin will be able to view them, making it a collaborative step toward reimbursement.
+1. **Personal**: Personal expenses are not yet part of a report (and therefore unsubmitted) and are not viewable by anyone but the expense creator/owner.
+2. **Draft**: Draft expenses are seen as still in progress, and are unsubmitted. Your Policy Admin will be able to view them, making this a collaborative step toward reimbursement.
 3. **Processing**: Processing expenses are submitted, but waiting for approval.
 4. **Approved**: If it's a non-reimbursable expense, the workflow is complete at this point. If it's a reimbursable expense, you're one step closer to getting paid.
 5. **Reimbursed**: Reimbursed expenses are fully settled. You can check the Report Comments to see when you'll get paid.
 6. **Closed**: Sometimes an expense accidentally ends up on your Individual Policy, falling into the Closed status. You’ll need to reopen the report and change the Policy by clicking on the **Details** tab in order to resubmit your report.
+
 ## What are Violations?
 
 Violations represent errors or discrepancies that Expensify has picked up and need to be corrected before a report can be successfully submitted. The one exception is when an expense comment is added, it will override the violation - as the user is providing a valid reason for submission.
@@ -101,8 +103,9 @@ Violations represent errors or discrepancies that Expensify has picked up and ne
 To enable or configure violations according to your policy, go to **Settings > Policies > _Policy Name_ > Expenses > Expense Violations**. Keep in mind that Expensify includes certain system mandatory violations that can't be disabled, even if your policy has violations turned off.
 
 You can spot violations by the exclamation marks (!) attached to expenses. Hovering over the symbol will provide a brief description and you can find more detailed information below the list of expenses. The two types of violations are:
-**Red**: These indicate violations directly tied to your report's Policy settings. They are clear rule violations that must be addressed before submission.
-**Yellow**: Concierge will highlight items that require attention but may not necessarily need corrective action. For example, if a receipt was SmartScanned and then the amount was modified, we’ll bring it to your attention so that it can be manually reviewed.
+1. **Red**: These indicate violations directly tied to your report's Policy settings. They are clear rule violations that must be addressed before submission.
+2. **Yellow**: Concierge will highlight items that require attention but may not necessarily need corrective action. For example, if a receipt was SmartScanned and then the amount was modified, we’ll bring it to your attention so that it can be manually reviewed.
+
 ## How to Track Attendees
 
 Attendee tracking makes it easy to track shared expenses and maintain transparency in your group spending. 
@@ -116,9 +119,10 @@ External attendees are considered users outside your group policy or domain. To 
 1. Click or tap the **Attendee** field within your expense.
 2. Type in the individual's name or email address.
 3. Tap **Add** to include the attendee.
-You can continue adding more attendees or save the Expense.
-To remove an attendee from an expense:
-Open the expense.
-Click or tap the **Attendees** field to display the list of attendees.
-From the list, de-select the attendees you'd like to remove from the expense.
+4. You can continue adding more attendees or save the Expense.
 
+To remove an attendee from an expense:
+
+1. Open the expense.
+2. Click or tap the **Attendees** field to display the list of attendees.
+3. From the list, de-select the attendees you'd like to remove from the expense.

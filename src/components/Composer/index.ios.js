@@ -1,10 +1,11 @@
-import React, {useEffect, useRef, useMemo, useCallback} from 'react';
-import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
-import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import RNTextInput from '@components/RNTextInput';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -65,6 +66,8 @@ const defaultProps = {
 
 function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
+    const styles = useThemeStyles();
+    const theme = useTheme();
 
     /**
      * Set the TextInput Ref
@@ -103,7 +106,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const styles = useMemo(() => {
+    const composerStyles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -114,17 +117,16 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
     return (
         <RNTextInput
             autoComplete="off"
-            placeholderTextColor={themeColors.placeholderText}
+            placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
-            textAlignVertical="center"
             smartInsertDelete={false}
             maxNumberOfLines={maxNumberOfLines}
-            style={styles}
+            style={[composerStyles, styles.verticalAlignMiddle]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
-            editable={!isDisabled}
+            readOnly={isDisabled}
         />
     );
 }
@@ -132,10 +134,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;
