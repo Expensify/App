@@ -106,7 +106,6 @@ function Popover(props) {
             style={[modalStyle, {zIndex: 1}]}
             ref={props.withoutOverlayRef}
         >
-            return (
             <View
                 style={{
                     ...styles.defaultModalContainer,
