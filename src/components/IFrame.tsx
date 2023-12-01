@@ -3,7 +3,15 @@ import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Session} from '@src/types/onyx';
 
-function getNewDotURL(url: string | URL) {
+type OldDotIFrameOnyxProps = {
+    session: OnyxEntry<Session>;
+};
+
+type OldDotIFrameProps = OldDotIFrameOnyxProps;
+
+type Url = string | URL;
+
+function getNewDotURL(url: Url): string {
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
     const pathname = urlObj.pathname.slice(1);
@@ -47,7 +55,7 @@ function getNewDotURL(url: string | URL) {
     return pathname;
 }
 
-function getOldDotURL(url: string | URL) {
+function getOldDotURL(url: Url): string {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     const paths = pathname.slice(1).split('/');
@@ -85,19 +93,13 @@ function getOldDotURL(url: string | URL) {
     return pathname;
 }
 
-type OldDotIFrameOnyxProps = {
-    session: OnyxEntry<Session>;
-};
-
-type OldDotIFrameProps = OldDotIFrameOnyxProps;
-
 function OldDotIFrame({session}: OldDotIFrameProps) {
     const [oldDotURL, setOldDotURL] = useState('https://staging.expensify.com');
 
     useEffect(() => {
         setOldDotURL(`https://expensify.com.dev/${getOldDotURL(window.location.href)}`);
 
-        window.addEventListener('message', (event) => {
+        window.addEventListener('message', (event: MessageEvent<string>) => {
             const url = event.data;
             // TODO: use this value to navigate to a new path
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
