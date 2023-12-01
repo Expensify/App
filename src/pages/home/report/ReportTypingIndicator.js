@@ -50,7 +50,7 @@ function ReportTypingIndicator({userTypingStatuses}) {
                 wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
                 leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
             />
-        )
+        );
     }
     return (
         <Text
