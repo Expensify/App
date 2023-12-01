@@ -919,9 +919,9 @@ function requestMoney(
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
- * @param {String} merchant
  * @param {String} category
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param {String} merchant
  *
  * @return {Object}
  */
