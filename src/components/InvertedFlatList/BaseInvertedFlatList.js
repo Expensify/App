@@ -17,16 +17,18 @@ const defaultProps = {
     data: [],
 };
 
+const maintainVisibleContentPosition = {
+    minIndexForVisible: 0,
+    autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
+};
+
 const BaseInvertedFlatList = forwardRef((props, ref) => (
     <FlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
         windowSize={15}
-        maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
-        }}
+        maintainVisibleContentPosition={maintainVisibleContentPosition}
         inverted
     />
 ));
