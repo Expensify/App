@@ -1,16 +1,15 @@
 import Str from 'expensify-common/lib/str';
-import {ImageSourcePropType} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import Login from '@src/types/onyx/Login';
+import IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
-type AvatarSource = React.FC<SvgProps> | ImageSourcePropType | string;
+type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
@@ -74,7 +73,7 @@ function hashText(text: string, range: number): number {
  * @param [accountID]
  * @returns
  */
-function getDefaultAvatar(accountID = -1): React.FC<SvgProps> | ImageSourcePropType {
+function getDefaultAvatar(accountID = -1): IconAsset {
     if (accountID <= 0) {
         return FallbackAvatar;
     }

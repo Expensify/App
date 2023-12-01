@@ -1,15 +1,13 @@
-import React from 'react';
-import {ImageSourcePropType} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import emojis, {localeEmojis} from '@assets/emojis';
 import CONST from '@src/CONST';
+import IconAsset from '@src/types/utils/IconAsset';
 import Timing from './actions/Timing';
 import Trie from './Trie';
 
 type HeaderEmoji = {
     code: string;
     header: boolean;
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+    icon: IconAsset;
 };
 
 type SimpleEmoji = {

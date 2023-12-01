@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/default';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
@@ -21,6 +22,7 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     if (!props.icons.length) {
         return null;

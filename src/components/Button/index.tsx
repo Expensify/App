@@ -1,10 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {ForwardedRef, useCallback} from 'react';
-import {ActivityIndicator, GestureResponderEvent, ImageSourcePropType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -14,6 +12,7 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
+import IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -24,7 +23,7 @@ type ButtonWithText = {
     shouldShowRightIcon?: boolean;
 
     /** The icon asset to display to the left of the text */
-    icon?: React.FC<SvgProps> | ImageSourcePropType | null;
+    icon?: IconAsset | null;
 };
 
 type ButtonProps = (ButtonWithText | ChildrenProps) & {
@@ -32,7 +31,7 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
-    iconRight?: React.FC<SvgProps>;
+    iconRight?: IconAsset;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -196,7 +195,7 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    icon && styles.textAlignLeft,
+                    Boolean(icon) && styles.textAlignLeft,
                     textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

@@ -58,7 +58,7 @@ class Icon extends PureComponent<IconProps> {
     public static defaultProps = {
         width: variables.iconSizeNormal,
         height: variables.iconSizeNormal,
-        fill: null,
+        fill: undefined,
         small: false,
         inline: false,
         additionalStyles: [],

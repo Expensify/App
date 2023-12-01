@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
@@ -51,6 +52,7 @@ type MentionSuggestionsProps = {
 const keyExtractor = (item: Mention) => item.alternateText;
 
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     /**
      * Render a suggestion menu item component.
