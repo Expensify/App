@@ -8,8 +8,8 @@ import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
@@ -147,6 +147,8 @@ function AvatarWithImagePicker({
     editorMaskImage,
     onViewPhotoPress,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
         validationError: null,
@@ -324,7 +326,7 @@ function AvatarWithImagePicker({
                                     src={Expensicons.Camera}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
-                                    fill={themeColors.textLight}
+                                    fill={theme.textLight}
                                 />
                             </View>
                         </PressableWithoutFeedback>

@@ -51,7 +51,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = StyleUtils.getContainerStyles(size);
+    const containerStyle = StyleUtils.getContainerStyles(styles, size);
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>

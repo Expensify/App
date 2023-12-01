@@ -174,7 +174,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
                             Settings_NewContactMethod: {
-                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                                path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                                 exact: true,
                             },
                             Settings_PersonalDetails_Initial: {
@@ -198,7 +198,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 exact: true,
                             },
                             Settings_TwoFactorAuth: {
-                                path: ROUTES.SETTINGS_2FA,
+                                path: ROUTES.SETTINGS_2FA.route,
                                 exact: true,
                             },
                             Settings_Share_Code: {
