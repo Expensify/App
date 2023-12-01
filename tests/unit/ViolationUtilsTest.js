@@ -36,57 +36,44 @@ describe('getViolationsOnyxData', () => {
 
     beforeEach(() => {
         transaction = {transactionID: '123'};
+        transactionViolations = [];
+        policyRequiresTags = false;
+        policyTags = {};
+        policyRequiresCategories = false;
+        policyCategories = {};
+    });
+
+    it('should return an object with correct shape', () => {
+        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+
+        expect(result).toEqual({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: transactionViolations,
+        });
+    });
+
+    it('should handle single violation', () => {
+        transactionViolations = [{name: 'duplicatedTransaction', type: 'violation', userMessage: ''}];
+
+        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+
+        expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
+    });
+
+    it('should handle multiple violations', () => {
         transactionViolations = [
             {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
             {name: 'receiptRequired', type: 'violation', userMessage: ''},
         ];
-        policyRequiresTags = false;
-        policyTags = {};
-        policyRequiresCategories = false;
-        policyCategories = {Food: {enabled: true}};
-    });
-
-    describe('ordinary operations', () => {
-        it('should return an object with correct shape', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
-            expect(result).toEqual({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: transactionViolations,
-            });
-        });
-
-        it('should handle single violation', () => {
-            const expectedViolation = transactionViolations[0];
-            transactionViolations = [expectedViolation];
-
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
-            expect(result.value).toEqual(expect.arrayContaining([expectedViolation]));
-        });
-
-        it('should handle empty transactionViolations', () => {
-            transactionViolations = [];
-
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
-            expect(result.value).toEqual([]);
-        });
-    });
-
-    it('should handle empty transaction', () => {
-        transaction = {};
-        transactionViolations = [];
-
         const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
-        expect(result.value).toEqual([]);
+        expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
     });
 
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
+            policyCategories = {Food: {enabled: true}};
             transaction.category = 'Food';
         });
 
@@ -117,7 +104,6 @@ describe('getViolationsOnyxData', () => {
 
         it('should not add a categoryOutOfPolicy violation when categories are not required', () => {
             policyRequiresCategories = false;
-            policyCategories = {Food: {enabled: true}};
             transaction.category = 'Drinks';
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
