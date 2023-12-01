@@ -65,7 +65,7 @@ const propTypes = {
     maxLength: PropTypes.number,
 
     /** Hint text to display below the TextInput */
-    hint: PropTypes.string,
+    hint: translatableTextPropTypes,
 
     /** Prefix character */
     prefixCharacter: PropTypes.string,
