@@ -38,7 +38,7 @@ The Consolidated Domain Billing tool ensures that billing takes place under a si
 
 ## Maintaining a Console of all clients:
 
-If your firm wants to have a console view of all client policies and domains, you will want to create a single, centralized login to manage all client policies and domains, such as accounting@myfirm.com. 
+If your firm wants to have a console view of all client workspaces and domains, you will want to create a single, centralized login to manage all client workspaces and domains, such as accounting@myfirm.com. 
 
   1. Create a dedicated email address that will act as the universal workspace owner, for example, accounting@myfirm.com.
   2. Register this email with Expensify or your chosen platform and ensure it is verified and secured.
