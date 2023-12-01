@@ -10,7 +10,6 @@ import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -39,11 +38,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
-
-// For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-// and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-// so we need to ensure that it is only updated after focus.
-const isMobileSafari = Browser.isMobileSafari();
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -132,10 +126,7 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-    }));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
