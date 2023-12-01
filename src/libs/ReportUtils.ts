@@ -454,10 +454,12 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
+    const parentReport = getRootParentReport(report);
+
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
@@ -2161,7 +2163,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyOb
  * Returns the root parentReport if the given report is nested.
  * Uses recursion to iterate any depth of nested reports.
  */
-function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject): OnyxEntry<Report> | EmptyObject {
     if (!report) {
         return {};
     }
