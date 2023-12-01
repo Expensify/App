@@ -120,7 +120,7 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.STATUS]: {
-            backgroundColor: colors.green700,
+            backgroundColor: colors.darkAppBackground,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {

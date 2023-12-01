@@ -18,12 +18,14 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const INPUT_IDS = {
     EMOJI_CODE: 'emojiCode',
@@ -120,6 +122,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     return (
         <ScreenWrapper
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             testID={HeaderPageLayout.displayName}
