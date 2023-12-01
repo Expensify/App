@@ -57,6 +57,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         PREFERENCES_PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
         PREFERENCES_LANGUAGE: 'Settings_Preferences_Language',
+        PREFERENCES_THEME: 'Settings_Preferences_Theme',
         CLOSE: 'Settings_Close',
         STATUS_SET: 'Settings_Status_Set',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
