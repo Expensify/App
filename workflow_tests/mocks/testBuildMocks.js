@@ -70,7 +70,7 @@ const TESTBUILD__ANDROID__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMoc
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'ANDROID',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'ANDROID');
@@ -122,7 +122,7 @@ const TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMockSte
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'IOS',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK = utils.createMockStep('Run Fastlane', 'Run Fastlane', 'IOS', [], ['S3_ACCESS_KEY', 'S3_SECRET_ACCESS_KEY', 'S3_BUCKET', 'S3_REGION']);
@@ -165,7 +165,7 @@ const TESTBUILD__DESKTOP__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMoc
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'DESKTOP',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__DESKTOP__BUILD_DESKTOP_APP_FOR_TESTING__STEP_MOCK = utils.createMockStep(
@@ -198,7 +198,7 @@ const TESTBUILD__WEB__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMockSte
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'WEB',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__WEB__BUILD_WEB_FOR_TESTING__STEP_MOCK = utils.createMockStep('Build web for testing', 'Build web for testing', 'WEB', [], []);
