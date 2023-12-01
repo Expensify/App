@@ -561,6 +561,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
         nextSteps: 'Next Steps',
+        finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
