@@ -1449,17 +1449,6 @@ function getDisplayNamesWithTooltips(
 }
 
 /**
- * Gets a joined string of display names from the list of display name with tooltip objects.
- *
- */
-function getDisplayNamesStringFromTooltips(displayNamesWithTooltips: DisplayNameWithTooltips | undefined) {
-    return displayNamesWithTooltips
-        ?.map(({displayName}) => displayName)
-        .filter(Boolean)
-        .join(', ');
-}
-
-/**
  * For a deleted parent report action within a chat report,
  * let us return the appropriate display message
  *
@@ -4330,7 +4319,6 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportNotificationPreference,
