@@ -337,14 +337,13 @@ function ReportActionsList({
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
-                if (!messageManuallyMarkedUnread) {
+                if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
                     // Check if the report type is "REPORTREVIEW" and last actor is the current user.
                     // This is to avoid displaying the new line marker when a current userrequests money.
                     shouldDisplay =
-                        shouldDisplay && ReportActionsUtils.isReportPreviewAction(reportAction)
-                            ? reportAction.childLastActorAccountID
-                            : reportAction.actorAccountID !== Report.getCurrentUserAccountID() && isWithinVisibleThreshold;
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID !== Report.getCurrentUserAccountID()) &&
+                        isWithinVisibleThreshold;
                 }
                 if (shouldDisplay) {
                     cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
