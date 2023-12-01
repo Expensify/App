@@ -1395,9 +1395,9 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                // Menu should be displayed 10px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (10px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 10),
+                // Menu should be displayed 12px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
