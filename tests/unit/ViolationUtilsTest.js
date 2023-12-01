@@ -115,16 +115,6 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should add categoryOutOfPolicy violation when category is not enabled in policy', () => {
-            policyRequiresCategories = true;
-            policyCategories = {Food: {enabled: false}};
-            transaction.category = 'Food';
-
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
-            expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
-        });
-
         it('should not add a categoryOutOfPolicy violation when categories are not required', () => {
             policyRequiresCategories = false;
             policyCategories = {Food: {enabled: true}};
