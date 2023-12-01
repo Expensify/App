@@ -887,7 +887,7 @@ function canModifyTask(taskReport, sessionAccountID) {
     const parentReport = ReportUtils.getParentReport(taskReport);
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
 
-    if (ReportUtils.isChatRoom(parentReport) && lodashGet(policy, 'role', '') !== CONST.POLICY.ROLE.ADMIN) {
+    if ((ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && lodashGet(policy, 'role', '') !== CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
