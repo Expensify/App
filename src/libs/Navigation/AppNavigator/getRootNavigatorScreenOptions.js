@@ -1,5 +1,4 @@
 import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
@@ -12,7 +11,7 @@ const commonScreenOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth) => ({
+export default (isSmallScreenWidth, styles) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
