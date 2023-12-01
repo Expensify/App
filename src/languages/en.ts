@@ -1492,6 +1492,9 @@ export default {
             benefit4: 'Customizable limits',
             addWorkEmail: 'Add work email address',
             checkingDomain: 'Hang tight! We are still working on enabling your Expensify Cards. Check back here in a few minutes.',
+            createAWorkspace: 'Create a workspace',
+            createAWorkspaceCopy: 'Manage business expenses, issue cards, send invoices, and more.',
+            createAWorkspaceCTA: 'Get Started',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
