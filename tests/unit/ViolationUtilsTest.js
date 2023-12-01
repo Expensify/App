@@ -110,6 +110,30 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual([categoryOutOfPolicyViolation]);
         });
+
+        it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
+            transaction.category = 'Bananas';
+            transactionViolations = [
+                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
+                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+            ];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+
+            expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should add missingCategory violation to existing violations if they exist', () => {
+            transaction.category = undefined;
+            transactionViolations = [
+                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
+                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+            ];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+
+            expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
     });
 
     describe('policyRequiresTags', () => {
@@ -141,13 +165,28 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
         });
 
-        it('should add tagOutOfPolicy violation when policy requires tags and tag is not enabled in the policy', () => {
-            policyRequiresTags = true;
-            policyTags = {Lunch: {enabled: false}};
+        it('should add tagOutOfPolicy violation to existing violations if they exist', () => {
+            transaction.tag = 'Bananas';
+            transactionViolations = [
+                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
+                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+            ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
-            expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
+            expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should add missingTag violation to existing violations if they exist', () => {
+            transaction.tag = undefined;
+            transactionViolations = [
+                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
+                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+            ];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+
+            expect(result.value).toEqual(expect.arrayContaining([missingTagViolation, ...transactionViolations]));
         });
     });
 });
