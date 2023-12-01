@@ -1133,7 +1133,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
-            undefined,
+            merchant,
             undefined,
             undefined,
             undefined,
