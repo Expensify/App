@@ -1191,7 +1191,7 @@ export default {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
-            website: 'Please enter a valid website',
+            website: 'Please enter a valid website. The website should be in lowercase.',
             zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
@@ -1673,6 +1673,7 @@ export default {
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
+        title: (year, monthName) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
     keyboardShortcutsPage: {
@@ -1946,19 +1947,19 @@ export default {
             buttonText1: 'Start a chat, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Start a chat with a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+            body1: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Request money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Request money from a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+            body1: `It pays to get paid! Request money from a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Send money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Send money to a new Expensify account. Get $${CONST.REFERRAL_PROGRAM.REVENUE} once they start an annual subscription with two or more active members and make the first two payments toward their Expensify bill.`,
+            body1: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Refer a friend, ',
