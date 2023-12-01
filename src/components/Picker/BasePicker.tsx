@@ -1,5 +1,5 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -7,17 +7,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useScrollContext from '@hooks/useScrollContext';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
-import type {BasePickerHandle, BasePickerProps, PickerSize} from './types';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import type {BasePickerHandle, BasePickerProps} from './types';
 
-const getDefaultPickerIcon = (iconSize: PickerSize): ReactElement => (
-    <Icon
-        src={Expensicons.DownArrow}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
-    />
-);
+type IconToRender = () => ReactElement;
 
 function BasePicker<TPickerValue>(
     {
@@ -26,6 +20,7 @@ function BasePicker<TPickerValue>(
         inputID,
         value,
         onInputChange,
+        icon,
         label = '',
         isDisabled = false,
         errorText = '',
@@ -33,13 +28,15 @@ function BasePicker<TPickerValue>(
         containerStyles,
         placeholder = {},
         size = 'normal',
-        icon = getDefaultPickerIcon,
         shouldFocusPicker = false,
         onBlur = () => {},
         additionalPickerEvents = () => {},
     }: BasePickerProps<TPickerValue>,
     ref: ForwardedRef<BasePickerHandle>,
 ) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -50,7 +47,7 @@ function BasePicker<TPickerValue>(
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: themeColors.pickerOptionsTextColor} : {};
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.pickerOptionsTextColor} : {};
 
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
@@ -86,6 +83,21 @@ function BasePicker<TPickerValue>(
     const disableHighlight = () => {
         setIsHighlighted(false);
     };
+
+    const iconToRender = useMemo((): IconToRender => {
+        if (icon) {
+            return () => icon(size);
+        }
+
+        // eslint-disable-next-line react/display-name
+        return () => (
+            <Icon
+                src={Expensicons.DownArrow}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+            />
+        );
+    }, [icon, size, styles]);
 
     useImperativeHandle(ref, () => ({
         /**
@@ -153,12 +165,12 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: themeColors.pickerOptionsTextColor}))}
+                    items={items.map((item) => ({...item, color: theme.pickerOptionsTextColor}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
                     value={value}
-                    Icon={() => icon(size)}
+                    Icon={iconToRender}
                     disabled={isDisabled}
                     fixAndroidTouchableBug
                     onOpen={enableHighlight}
