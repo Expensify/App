@@ -1,4 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -6,9 +9,28 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+const propTypes = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    ...subStepPropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft: {},
+};
 
 const validate = (values) => {
     const errors = {};
@@ -84,5 +106,14 @@ function ConfirmAgreements() {
 }
 
 ConfirmAgreements.displayName = 'ConfirmAgreements';
+ConfirmAgreements.propTypes = propTypes;
+ConfirmAgreements.defaultProps = defaultProps;
 
-export default ConfirmAgreements;
+export default withOnyx({
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+    },
+})(ConfirmAgreements);
