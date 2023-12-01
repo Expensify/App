@@ -1,7 +1,7 @@
 import React, {Component, ForwardedRef, forwardRef, useEffect} from 'react';
 import {AppState, Keyboard, TextInputProps} from 'react-native';
 import {AnimatedProps} from 'react-native-reanimated';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import BaseTextInputProps from './BaseTextInput/types';
 
@@ -10,6 +10,8 @@ const TextInput = (
     {inputStyle, disableKeyboard = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
     ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
 ) => {
+    const styles = useThemeStyles();
+
     useEffect(() => {
         if (!disableKeyboard) {
             return;
@@ -27,6 +29,7 @@ const TextInput = (
             appStateSubscription.remove();
         };
     }, [disableKeyboard]);
+
     return (
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -40,8 +43,6 @@ const TextInput = (
     );
 };
 
-// TextInput.propTypes = baseTextInputPropTypes.propTypes;
-// TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 TextInput.displayName = 'TextInput';
 
 export default forwardRef(TextInput);

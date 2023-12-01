@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -20,6 +20,8 @@ const propTypes = {
 };
 
 function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
@@ -48,7 +50,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                         {({pressed}) => (
                             <Icon
                                 src={Expensicons.Send}
-                                fill={isDisabledProp || pressed ? themeColors.icon : themeColors.textLight}
+                                fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                             />
                         )}
                     </PressableWithFeedback>

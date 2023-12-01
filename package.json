@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.0-0",
+  "version": "1.4.7-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -73,7 +73,6 @@
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-camera-roll/camera-roll": "5.4.0",
     "@react-native-clipboard/clipboard": "^1.12.1",
-    "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/geolocation": "^3.0.6",
     "@react-native-community/netinfo": "^9.3.10",
     "@react-native-firebase/analytics": "^12.3.0",
@@ -98,7 +97,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#886f90cbd5e83218fdfd7784d8356c308ef05791",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#ee14b3255da33d2b6924c357f43393251b6dc6d2",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
@@ -125,7 +124,7 @@
     "react-native-config": "^1.4.5",
     "react-native-dev-menu": "^4.1.1",
     "react-native-device-info": "^10.3.0",
-    "react-native-document-picker": "^8.0.0",
+    "react-native-document-picker": "^8.2.1",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",
@@ -139,13 +138,13 @@
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "1.0.115",
+    "react-native-onyx": "1.0.118",
     "react-native-pager-view": "^6.2.0",
-    "react-native-pdf": "^6.7.1",
+    "react-native-pdf": "^6.7.3",
     "react-native-performance": "^5.1.0",
     "react-native-permissions": "^3.9.3",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#eae05855286dc699954415cc1d629bfd8e8e47e2",
-    "react-native-plaid-link-sdk": "^10.0.0",
+    "react-native-plaid-link-sdk": "10.8.0",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-quick-sqlite": "^8.0.0-beta.2",
     "react-native-reanimated": "3.5.4",
@@ -212,7 +211,6 @@
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.195",
     "@types/mapbox-gl": "^2.7.13",
-    "@types/mock-fs": "^4.13.1",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "^18.2.12",
     "@types/react-beautiful-dnd": "^13.1.4",
@@ -260,8 +258,8 @@
     "jest-cli": "29.4.1",
     "jest-environment-jsdom": "^29.4.1",
     "jest-transformer-svg": "^2.0.1",
+    "memfs": "^4.6.0",
     "metro-react-native-babel-preset": "0.76.8",
-    "mock-fs": "^4.13.0",
     "onchange": "^7.1.0",
     "portfinder": "^1.0.28",
     "prettier": "^2.8.8",
@@ -302,7 +300,7 @@
     ]
   },
   "engines": {
-    "node": "16.15.1",
-    "npm": "8.11.0"
+    "node": "20.9.0",
+    "npm": "10.1.0"
   }
 }

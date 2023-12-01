@@ -11,7 +11,7 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import AddReactionBubble from './AddReactionBubble';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function ReportActionItemEmojiReactions(props) {
+    const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef({});
 

@@ -30,9 +30,9 @@ import withLocalize from '@components/withLocalize';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseTextInputProps from './types';
@@ -71,9 +71,12 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const initialValue = value ?? defaultValue ?? '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
+    const isMultiline = multiline || autoGrowHeight;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
@@ -219,6 +222,8 @@ function BaseTextInput(
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
+        const value = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+
         if (onInputChange) {
             onInputChange(newValue);
         }
@@ -272,7 +277,6 @@ function BaseTextInput(
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
-    const isMultiline = !!multiline || autoGrowHeight;
 
     return (
         <>
@@ -306,7 +310,7 @@ function BaseTextInput(
                         {hasLabel ? (
                             <>
                                 {/* Adding this background to the label only for multiline text input,
-                                 to prevent text overlapping with label when scrolling */}
+                to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
@@ -344,7 +348,7 @@ function BaseTextInput(
                                 {...inputProps}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
-                                placeholderTextColor={themeColors.placeholderText}
+                                placeholderTextColor={theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -357,7 +361,7 @@ function BaseTextInput(
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0),
+                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -383,7 +387,7 @@ function BaseTextInput(
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
-                                    color={themeColors.iconSuccessFill}
+                                    color={theme.iconSuccessFill}
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
@@ -396,15 +400,15 @@ function BaseTextInput(
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                     />
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
-                                        src={icon}
-                                        fill={themeColors.icon}
+                                        src={props.icon}
+                                        fill={theme.icon}
                                     />
                                 </View>
                             )}

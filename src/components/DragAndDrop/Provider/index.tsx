@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useDragAndDrop from '@hooks/useDragAndDrop';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import type {DragAndDropContextParams, DragAndDropProviderProps, SetOnDropHandlerCallback} from './types';
 
 const DragAndDropContext = React.createContext<DragAndDropContextParams>({});
@@ -13,6 +13,7 @@ function shouldAcceptDrop(event: DragEvent): boolean {
 }
 
 function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}: DragAndDropProviderProps) {
+    const styles = useThemeStyles();
     const dropZone = useRef<View>(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 

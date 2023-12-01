@@ -12,8 +12,8 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 import editedLabelStyles from '@styles/editedLabelStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import RenderCommentHTML from './RenderCommentHTML';
@@ -48,6 +48,8 @@ const defaultProps = {
 };
 
 function TextCommentFragment(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {fragment, styleAsDeleted} = props;
     const {html, text} = fragment;
 
@@ -100,7 +102,7 @@ function TextCommentFragment(props) {
                     </Text>
                     <Text
                         fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                         style={[editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...props.style]}
                     >
                         {props.translate('reportActionCompose.edited')}

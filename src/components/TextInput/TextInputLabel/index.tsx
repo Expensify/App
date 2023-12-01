@@ -1,10 +1,11 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated, Text} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import TextInputLabelProps from './types';
 
 function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
+    const styles = useThemeStyles();
     const labelRef = useRef<Text>(null);
 
     useEffect(() => {

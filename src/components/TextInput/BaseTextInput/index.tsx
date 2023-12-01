@@ -30,9 +30,9 @@ import withLocalize from '@components/withLocalize';
 import * as Browser from '@libs/Browser';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseTextInputProps from './types';
@@ -71,6 +71,8 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const initialValue = value ?? defaultValue ?? '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
@@ -271,12 +273,11 @@ function BaseTextInput(
     const isMultiline = multiline ?? autoGrowHeight;
 
     /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
-    make sure to include the `lineHeight`.
-    Reference: https://github.com/Expensify/App/issues/26735
- 
+  make sure to include the `lineHeight`.
+  Reference: https://github.com/Expensify/App/issues/26735
     For other platforms, explicitly remove `lineHeight` from single-line inputs
-    to prevent long text from disappearing once it exceeds the input space.
-    See https://github.com/Expensify/App/issues/13802 */
+  to prevent long text from disappearing once it exceeds the input space.
+  See https://github.com/Expensify/App/issues/13802 */
 
     const lineHeight = useMemo(() => {
         if ((Browser.isSafari() || Browser.isMobileChrome()) && Array.isArray(inputStyle)) {
@@ -292,7 +293,7 @@ function BaseTextInput(
     return (
         <>
             <View
-                style={styles.pointerEventsNone}
+                style={[styles.pointerEventsNone, ...props.containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
@@ -304,7 +305,6 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        containerStyles,
                     ]}
                 >
                     <View
@@ -321,7 +321,7 @@ function BaseTextInput(
                         {hasLabel ? (
                             <>
                                 {/* Adding this background to the label only for multiline text input,
-                                to prevent text overlapping with label when scrolling */}
+                to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
@@ -359,7 +359,7 @@ function BaseTextInput(
                                 {...inputProps}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
-                                placeholderTextColor={themeColors.placeholderText}
+                                placeholderTextColor={theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -378,7 +378,7 @@ function BaseTextInput(
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0),
+                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -403,7 +403,7 @@ function BaseTextInput(
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
-                                    color={themeColors.iconSuccessFill}
+                                    color={theme.iconSuccessFill}
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
@@ -416,7 +416,7 @@ function BaseTextInput(
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                     />
                                 </Checkbox>
                             )}
@@ -424,7 +424,7 @@ function BaseTextInput(
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}
-                                        fill={themeColors.icon}
+                                        fill={theme.icon}
                                     />
                                 </View>
                             )}

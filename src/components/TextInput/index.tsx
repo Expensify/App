@@ -4,7 +4,7 @@ import {AnimatedProps} from 'react-native-reanimated';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
 import BaseTextInputProps from './BaseTextInput/types';
@@ -14,6 +14,7 @@ function TextInput(
     {label = '', name = '', textInputContainerStyles, inputStyle, disableKeyboard = false, multiline = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
     ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
 ) {
+    const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement>(null);
     const removeVisibilityListenerRef = useRef<() => void>(null);
 

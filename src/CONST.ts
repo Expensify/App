@@ -218,9 +218,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -249,88 +248,9 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_SAML: 'newDotSAML',
-        PDF_META_STORE: 'pdfMetaStore',
-        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
-        SUBMIT_POLICY: 'submitPolicy',
-        ATTENDEES: 'attendees',
-        AUTO_EXPORT: 'autoExport',
-        AUTO_EXPORT_INTACCT: 'autoExportIntacct',
-        AUTO_EXPORT_QBO: 'autoExportQbo',
-        AUTO_EXPORT_XERO: 'autoExportXero',
-        AUTO_JOIN_POLICY: 'autoJoinPolicy',
-        AUTOMATED_TAX_EXEMPTION: 'automatedTaxExemption',
-        BILL_PAY: 'billPay',
-        CATEGORY_DEFAULT_TAX: 'categoryDefaultTax',
-        COLLECTABLE_DEPOSIT_ACCOUNTS: 'collectableDepositAccounts',
-        CONCIERGE_TRAVEL: 'conciergeTravel',
-        CONNECTED_CARDS: 'connectedCards',
-        DISCREPANCY: 'discrepancy',
-        DOMAIN_CONTACT_BILLING: 'domainContactBilling',
-        DOMAIN_TWO_FACTOR_AUTH: 'domainTwoFactorAuth',
-        DUPLICATE_DETECTION: 'duplicateDetection',
-        EMAIL_SUPPRESSION_BETA: 'emailSuppressionBeta',
-        EXPENSES_V2: 'expensesV2',
-        EXPENSIFY_CARD: 'expensifyCard',
-        EXPENSIFY_CARD_INTACCT_RECONCILIATION: 'expensifyCardIntacctReconciliation',
-        EXPENSIFY_CARD_NETSUITE_RECONCILIATION: 'expensifyCardNetSuiteReconciliation',
-        EXPENSIFY_CARD_QBO_RECONCILIATION: 'expensifyCardQBOReconciliation',
-        EXPENSIFY_CARD_RAPID_INCREASE_FRAUD: 'expensifyCardRapidIncreaseFraud',
-        EXPENSIFY_CARD_XERO_RECONCILIATION: 'expensifyCardXeroReconciliation',
-        EXPENSIFY_ORG: 'expensifyOrg',
-        FIX_VIOLATION_PUSH_NOTIFICATION: 'fixViolationPushNotification',
-        FREE_PLAN_FULL_LAUNCH: 'freePlanFullLaunch',
-        FREE_PLAN_SOFT_LAUNCH: 'freePlanSoftLaunch',
-        GUSTO: 'gusto',
-        INBOX_CACHE: 'inboxCache',
-        INBOX_HIDDEN_TASKS: 'inboxHiddenTasks',
-        INDIRECT_INTEGRATION_SETUP: 'indirectIntegrationSetup',
-        IOU: 'IOU',
-        JOIN_POLICY: 'joinPolicy',
-        LOAD_POLICY_ASYNC: 'loadPolicyAsync',
-        MAP_RECEIPT: 'mapReceipt',
-        MERGE_API: 'mergeAPI',
-        MOBILE_REALTIME_REPORT_COMMENTS: 'mobileRealtimeReportComments',
-        MOBILE_SECURE_RECEIPTS: 'mobileSecureReceipts',
-        MONTHLY_SETTLEMENT: 'monthlySettlement',
-        NAMES_AND_AVATARS: 'namesAndAvatars',
-        NATIVE_CHAT: 'nativeChat',
-        NEW_PRICING: 'newPricing',
-        NEWSLETTER_THREE: 'newsletterThree',
-        NEXT_STEPS: 'nextSteps',
-        OPEN_FACE_HAMBURGER: 'openFaceHamburger',
-        PER_DIEM: 'perDiem',
-        PER_DIEM_INTERNATIONAL: 'perDiemInternational',
-        PRICING_COPY_CHANGES: 'pricingCopyChanges',
-        QBO_INVOICES: 'qboInvoices',
-        QUICKBOOKS_DESKTOP_V2: 'quickbooksDesktopV2',
-        REALTIME_REPORT_COMMENTS: 'realtimeReportComments',
-        S2W_ANNOUNCEMENT: 's2wAnnouncement',
-        SCHEDULED_AUTO_REPORTING: 'scheduledAutoReporting',
-        SECURE_RECEIPTS: 'secureReceipts',
-        SECURE_RECEIPTS_REPORTS: 'secureReceiptsReports',
-        SELF_SERVICE_HARD_LAUNCH: 'selfServiceHardLaunch',
-        SEND_MONEY: 'sendMoney',
-        SMART_SCAN_USER_DISPUTES: 'smartScanUserDisputes',
-        SMS_SIGN_UP: 'smsSignUp',
-        STRIPE_CONNECT: 'stripeConnect',
-        SUMMARY_EMAIL: 'summaryEmail',
-        SWIPE_TO_WIN: 'swipeToWin',
-        TAX_FOR_MILEAGE: 'taxForMileage',
-        TWO_FACTOR_AUTH: 'twoFactorAuth',
-        VENMO_INTEGRATION: 'venmoIntegration',
-        ZENEFITS_INTEGRATION: 'zenefitsIntegration',
         VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
@@ -538,7 +458,6 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
@@ -576,7 +495,9 @@ const CONST = {
                 CREATED: 'CREATED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
                 SUBMITTED: 'SUBMITTED',
@@ -636,6 +557,7 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -679,6 +601,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPEN: 'OPEN',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },
@@ -776,6 +699,14 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
+    },
+    COLOR_SCHEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
@@ -961,6 +892,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1189,7 +1121,8 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
@@ -1231,6 +1164,10 @@ const CONST = {
             DOC: 'doc',
             DOCX: 'docx',
             SVG: 'svg',
+        },
+        RECEIPT_ERROR: 'receiptError',
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
         },
     },
 
@@ -1278,7 +1215,11 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+
+            // Often referred to as "control" workspaces
             CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
         ROLE: {
@@ -1431,7 +1372,6 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
@@ -2879,6 +2819,76 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
 } as const;
 
 export default CONST;
