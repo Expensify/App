@@ -1292,6 +1292,65 @@ describe('OptionsListUtils', () => {
             },
         ];
 
+        const smallTagsListWithParentChild = {
+            Movies: {
+                enabled: true,
+                name: 'Movies',
+            },
+            'Movies: Avengers: Endgame': {
+                enabled: true,
+                name: 'Movies: Avengers: Endgame',
+                unencodedName: 'Movies: Avengers: Endgame',
+            },
+            Places: {
+                enabled: false,
+                name: 'Places',
+            },
+            Task: {
+                enabled: true,
+                name: 'Task',
+            },
+        };
+
+        const smallResultListWithParentChild = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        text: 'Movies',
+                        keyForList: 'Movies',
+                        searchText: 'Movies',
+                        tooltipText: 'Movies',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Avengers',
+                        keyForList: 'Movies: Avengers',
+                        searchText: 'Movies: Avengers',
+                        tooltipText: 'Avengers',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '        Endgame',
+                        keyForList: 'Movies: Avengers: Endgame',
+                        searchText: 'Movies: Avengers: Endgame',
+                        tooltipText: 'Endgame',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Task',
+                        keyForList: 'Task',
+                        searchText: 'Task',
+                        tooltipText: 'Task',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+
         const smallResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, false, {}, [], true, smallTagsList);
         expect(smallResult.tagOptions).toStrictEqual(smallResultList);
 
@@ -1354,6 +1413,23 @@ describe('OptionsListUtils', () => {
             recentlyUsedTags,
         );
         expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const smallResultWithParentChild = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            [],
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            smallTagsListWithParentChild,
+        );
+        expect(smallResultWithParentChild.tagOptions).toStrictEqual(smallResultListWithParentChild);
     });
 
     it('getCategoryOptionTree()', () => {
@@ -2011,5 +2087,71 @@ describe('OptionsListUtils', () => {
         // Passing a config should override the other keys
         const formattedMembersWithRightElement = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, {rightElement: <View />}));
         expect(_.every(formattedMembersWithRightElement, (personalDetail) => Boolean(personalDetail.rightElement))).toBe(true);
+    });
+
+    it.skip('getTagListSections()', () => {
+        const tags = {
+            Movies: {
+                enabled: true,
+                name: 'Meals',
+            },
+            'Movies: Avengers': {
+                enabled: true,
+                name: 'Movies: Avengers',
+            },
+            'Movies: Avengers: Endgame': {
+                enabled: true,
+                name: 'Movies: Avengers: Endgame',
+                unencodedName: 'Movies: Avengers: Endgame',
+            },
+            Restaurant: {
+                enabled: false,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+        };
+
+        const result = [
+            {
+                text: 'Movies',
+                keyForList: 'Movies',
+                searchText: 'Movies',
+                tooltipText: 'Movies',
+                isDisabled: false,
+            },
+            {
+                text: '    Avengers',
+                keyForList: 'Movies: Avengers',
+                searchText: 'Movies: Avengers',
+                tooltipText: 'Avengers',
+                isDisabled: false,
+            },
+            {
+                text: '        Endgame',
+                keyForList: 'Movies: Avengers: Endgame',
+                searchText: 'Movies: Avengers: Endgame',
+                tooltipText: 'Endgame',
+                isDisabled: false,
+            },
+            {
+                text: 'Restaurant',
+                keyForList: 'Restaurant',
+                searchText: 'Restaurant',
+                tooltipText: 'Restaurant',
+                isDisabled: true,
+            },
+            {
+                text: 'Food',
+                keyForList: 'Food',
+                searchText: 'Food',
+                tooltipText: 'Food',
+                isDisabled: true,
+            },
+        ];
+
+        expect(OptionsListUtils.getTagsOptions(tags)).toStrictEqual(result);
     });
 });

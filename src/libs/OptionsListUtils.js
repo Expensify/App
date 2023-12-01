@@ -912,13 +912,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return getCategoryOptionTree(tags);
 }
 
 /**
@@ -1498,6 +1492,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
 ) {
+    // OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false)
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
