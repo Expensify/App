@@ -110,6 +110,7 @@ type OptimisticExpenseReport = Pick<
     | 'reportName'
     | 'state'
     | 'stateNum'
+    | 'statusNum'
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
@@ -543,6 +544,13 @@ function isReportManager(report: OnyxEntry<Report>): boolean {
  */
 function isReportApproved(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS.APPROVED;
+}
+
+/**
+ * Checks if the supplied report is an expense report in Open state and status.
+ */
+function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -1669,7 +1677,6 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
- *
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
@@ -1688,7 +1695,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (!!report?.hasOutstandingIOU || moneyRequestTotal === 0) {
+    if (!!report?.hasOutstandingIOU || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -2545,9 +2552,16 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
+    const policy = getPolicy(policyID);
 
     // The expense report is always created with the policy's output currency
-    const outputCurrency = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? CONST.CURRENCY.USD;
+    const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const isFree = policy?.type === CONST.POLICY.TYPE.FREE;
+
+    // Define the state and status of the report based on whether the policy is free or paid
+    const state = isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN;
+    const stateNum = isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE_NUM.OPEN;
+    const statusNum = isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATUS.OPEN;
 
     return {
         reportID: generateReportID(),
@@ -2560,8 +2574,9 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 
         // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
-        state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+        state,
+        stateNum,
+        statusNum,
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
@@ -4134,10 +4149,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     });
 }
 
-function isReportDraft(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
-}
-
 /**
  * Return room channel log display message
  */
@@ -4372,7 +4383,7 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
-    isReportDraft,
+    isDraftExpenseReport,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
