@@ -27,47 +27,40 @@ function ReportTypingIndicator({userTypingStatuses}) {
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
+
+    // If the user is typing on OldDot, firstUserTyping will be a string (the user's login)
     const firstUserTypingID = useMemo(
         () => (firstUserTyping && Number.isNaN(Number(firstUserTyping)) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
         [firstUserTyping],
     );
 
     // If we are offline, the user typing statuses are not up-to-date so do not show them
-    if (isOffline) {
+    if (isOffline || !firstUserTyping) {
         return null;
     }
 
     const firstUserTypingDisplayName = ReportUtils.getDisplayNameForParticipant(firstUserTypingID, false, false);
 
-    const numUsersTyping = _.size(usersTyping);
-
-    // Decide on the Text element that will hold the display based on the number of users that are typing.
-    switch (numUsersTyping) {
-        case 0:
-            return null;
-
-        case 1:
-            return (
-                <TextWithEllipsis
-                    leadingText={firstUserTypingDisplayName || translate('common.someone')}
-                    trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
-                    textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                    wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
-                    leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                />
-            );
-
-        default:
-            return (
-                <Text
-                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
-                    numberOfLines={1}
-                >
-                    {translate('reportTypingIndicator.multipleUsers')}
-                    {` ${translate('reportTypingIndicator.areTyping')}`}
-                </Text>
-            );
+    if (usersTyping.length === 1) {
+        return (
+            <TextWithEllipsis
+                leadingText={firstUserTypingDisplayName || translate('common.someone')}
+                trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
+                textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
+                leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+            />
+        )
     }
+    return (
+        <Text
+            style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
+            numberOfLines={1}
+        >
+            {translate('reportTypingIndicator.multipleUsers')}
+            {` ${translate('reportTypingIndicator.areTyping')}`}
+        </Text>
+    );
 }
 
 ReportTypingIndicator.propTypes = propTypes;
