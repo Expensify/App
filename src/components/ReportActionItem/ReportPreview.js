@@ -203,15 +203,18 @@ function ReportPreview(props) {
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
-    const shouldShowPayButton = ReportUtils.isGroupPolicyExpenseChat(props.chatReport)
-        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && !iouSettled && !iouCanceled
+    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowPayButton = isGroupPolicy
+        // In a group policy, the admin approver can pay the report directly by skipping the approval step
+        ? isPolicyAdmin && (isApproved || isCurrentUserManager) && !iouSettled && !iouCanceled
         : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
     const shouldShowApproveButton = useMemo(() => {
-        if (!_.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType)) {
+        if (!isGroupPolicy) {
             return false;
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [policyType, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
