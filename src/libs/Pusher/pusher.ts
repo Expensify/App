@@ -5,7 +5,7 @@ import {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '@src/types/onyx';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer, UserIsLeavingRoom, UserIsTyping} from '@src/types/onyx';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import TYPE from './EventType';
 import Pusher from './library';
@@ -24,11 +24,11 @@ type Args = {
 
 type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
 
-type UserIsTypingEvent = Record<string, boolean> & {
+type UserIsTypingEvent = UserIsTyping & {
     userLogin?: string;
 };
 
-type UserIsLeavingRoomEvent = Record<string, boolean> & {
+type UserIsLeavingRoomEvent = UserIsLeavingRoom & {
     userLogin?: string;
 };
 

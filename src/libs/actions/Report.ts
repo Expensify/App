@@ -28,13 +28,20 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {Route} from '@src/ROUTES';
-import {PersonalDetails, ReportActionReactions} from '@src/types/onyx';
+import {PersonalDetails, ReportActionReactions, UserIsLeavingRoom, UserIsTyping} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+
+type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
+
+type ActionSubscriber = {
+    reportID: string;
+    callback: SubscriberCallback;
+};
 
 let currentUserAccountID: number;
 Onyx.connect({
@@ -57,7 +64,7 @@ Onyx.connect({
     },
 });
 
-const allReportActions: OnyxCollection<Record<string, ReportAction>> = {};
+const allReportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (action, key) => {
@@ -127,8 +134,8 @@ function getReportChannelName(reportID: string): string {
  *
  * This method makes sure that no matter which we get, we return the "new" format
  */
-function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): Record<string, boolean> {
-    let normalizedStatus: Record<string | number, boolean>;
+function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): UserIsTyping {
+    let normalizedStatus: UserIsTyping;
 
     if (typingStatus.userLogin) {
         normalizedStatus = {[typingStatus.userLogin]: true};
@@ -172,7 +179,7 @@ function subscribeToReportTypingEvents(reportID: string) {
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            const typingStoppedStatus: Record<string, boolean> = {};
+            const typingStoppedStatus: UserIsTyping = {};
             typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
@@ -238,13 +245,6 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
-
-type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
-
-type ActionSubscriber = {
-    reportID: string;
-    callback: SubscriberCallback;
-};
 
 // New action subscriber array for report pages
 let newActionSubscribers: ActionSubscriber[] = [];
@@ -832,6 +832,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
         reportID,
         reportActionID,
     };
+
     API.read('GetOlderActions', parameters, {optimisticData, successData, failureData});
 }
 
@@ -1010,7 +1011,7 @@ function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const typingStatus: Record<number, boolean> = {
+    const typingStatus: UserIsTyping = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
@@ -1019,7 +1020,7 @@ function broadcastUserIsTyping(reportID: string) {
 /** Broadcasts to the report's private pusher channel whether a user is leaving a report */
 function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const leavingStatus: Record<number, boolean> = {
+    const leavingStatus: UserIsLeavingRoom = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
@@ -1216,18 +1217,18 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string, originalReportAction: ReportAction, textForNewComment: string) {
+function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string) {
     const parser = new ExpensiMark();
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
-    if (!originalReportID) {
+    if (!originalReportID || !originalReportAction) {
         return;
     }
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-    const originalCommentHTML = originalReportAction?.message?.[0]?.html;
+    const originalCommentHTML = originalReportAction.message?.[0]?.html;
     const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
@@ -1266,7 +1267,7 @@ function editReportComment(reportID: string, originalReportAction: ReportAction,
             message: [
                 {
                     ...originalMessage,
-                    type: '',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     isEdited: true,
                     html: htmlForNewComment,
                     text: reportComment,
@@ -2217,7 +2218,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportID: string, reportAction: ReportAction, severity: string) {
+function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction?.message?.[0];
 
@@ -2424,7 +2425,7 @@ function openRoomMembersPage(reportID: string) {
  *
  * @returns Returns true if there are errors in any of the private notes on the report
  */
-function hasErrorInPrivateNotes(report: Report): boolean {
+function hasErrorInPrivateNotes(report: OnyxEntry<Report>): boolean {
     const privateNotes = report?.privateNotes ?? {};
     return Object.values(privateNotes).some((privateNote) => !isEmpty(privateNote.errors));
 }

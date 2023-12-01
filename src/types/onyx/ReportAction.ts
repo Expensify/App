@@ -1,6 +1,7 @@
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 import {NotificationPreference} from './Report';
@@ -125,7 +126,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | Record<string, never>;
+    attachmentInfo?: File | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -139,9 +140,16 @@ type ReportActionBase = {
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
 
+    /** Whether the report action is attachment */
     isAttachment?: boolean;
+
+    /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;
+
+    /** ReportID of the report action */
     reportID?: string;
+
+    /** Metadata of the link */
     linkMetadata?: string[];
 
     /** The current user's notification preference for this report's child */

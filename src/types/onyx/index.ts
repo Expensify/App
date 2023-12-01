@@ -43,6 +43,8 @@ import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
 import User from './User';
+import UserIsLeavingRoom from './UserIsLeavingRoom';
+import UserIsTyping from './UserIsTyping';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -110,4 +112,6 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    UserIsLeavingRoom,
+    UserIsTyping,
 };
