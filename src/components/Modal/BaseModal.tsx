@@ -48,8 +48,6 @@ function BaseModal(
 
     const safeAreaInsets = useSafeAreaInsets();
 
-    console.log({safeAreaInsets});
-
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
