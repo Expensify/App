@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StatePicker from '@components/StatePicker';
@@ -14,9 +15,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -28,16 +27,12 @@ const propTypes = {
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
-    betas: [],
 };
 
 function DebitCardPage(props) {
@@ -104,10 +99,6 @@ function DebitCardPage(props) {
         return errors;
     };
 
-    if (!Permissions.canUseWallet(props.betas)) {
-        return <NotFoundPage />;
-    }
-
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
@@ -118,7 +109,7 @@ function DebitCardPage(props) {
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
                 onSubmit={PaymentMethods.addPaymentCard}
@@ -126,15 +117,17 @@ function DebitCardPage(props) {
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    ref={(ref) => (nameOnCardRef.current = ref)}
+                    ref={nameOnCardRef}
                     spellCheck={false}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
@@ -144,7 +137,8 @@ function DebitCardPage(props) {
                 />
                 <View style={[styles.flexRow, styles.mt4]}>
                     <View style={[styles.flex1, styles.mr2]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
@@ -155,7 +149,8 @@ function DebitCardPage(props) {
                         />
                     </View>
                     <View style={[styles.flex1]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
@@ -166,7 +161,8 @@ function DebitCardPage(props) {
                     </View>
                 </View>
                 <View>
-                    <AddressSearch
+                    <InputWrapper
+                        InputComponent={AddressSearch}
                         inputID="addressStreet"
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
@@ -175,7 +171,8 @@ function DebitCardPage(props) {
                         isLimitedToUSA
                     />
                 </View>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
@@ -186,11 +183,16 @@ function DebitCardPage(props) {
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker inputID="addressState" />
+                    <InputWrapper
+                        InputComponent={StatePicker}
+                        inputID="addressState"
+                    />
                 </View>
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
+                    defaultValue={false}
                     LabelComponent={() => (
                         <Text>
                             {`${translate('common.iAcceptThe')}`}
@@ -199,7 +201,7 @@ function DebitCardPage(props) {
                     )}
                     style={[styles.mt4]}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
@@ -211,8 +213,5 @@ DebitCardPage.displayName = 'DebitCardPage';
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);

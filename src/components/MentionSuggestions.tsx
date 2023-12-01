@@ -14,8 +14,11 @@ type Mention = {
     /** Display name of the user */
     text: string;
 
-    /** Email/phone number of the user */
+    /** The formatted email/phone number of the user */
     alternateText: string;
+
+    /** Email/phone number of the user */
+    login: string;
 
     /** Array of icons of the user. We use the first element of this array */
     icons: Icon[];
@@ -79,7 +82,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                         <Text
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
+                            style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsDisplayName]}
                         >
                             {text}
                         </Text>
@@ -95,7 +98,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                 <Text
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`${text}${i}`}
-                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                    style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsHandle]}
                                 >
                                     {text}
                                 </Text>
