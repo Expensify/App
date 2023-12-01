@@ -14,7 +14,7 @@ function Popover(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {onOpen, close} = React.useContext(PopoverContext);
-    const {insets} = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
         {
