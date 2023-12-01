@@ -34,7 +34,7 @@ const propTypes = {
     isChecked: PropTypes.bool,
 
     /** Called when the checkbox or label is pressed */
-    onInputChange: PropTypes.func.isRequired,
+    onInputChange: PropTypes.func,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -77,10 +77,11 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
-    value: false,
+    value: undefined,
     defaultValue: false,
     forwardedRef: () => {},
     accessibilityLabel: undefined,
+    onInputChange: () => {},
 };
 
 function CheckboxWithLabel(props) {
@@ -106,7 +107,7 @@ function CheckboxWithLabel(props) {
                     label={props.label}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
-                    forwardedRef={props.forwardedRef}
+                    ref={props.forwardedRef}
                     accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback

@@ -4,6 +4,7 @@ import type {SimpleEmoji} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';
@@ -43,6 +44,7 @@ const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}
 
 function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     /**
      * Render an emoji suggestion menu item component.
      */
@@ -60,7 +62,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
                     {styledTextArray.map(({text, isColored}) => (
                         <Text
                             key={`${text}+${isColored}`}
-                            style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                            style={StyleUtils.getColoredBackgroundStyle(theme, isColored)}
                         >
                             {text}
                         </Text>
