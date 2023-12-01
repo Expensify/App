@@ -1224,7 +1224,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}];
+    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1236,6 +1236,7 @@ function getOptions(
     _.each(excludeLogins, (login) => {
         optionsToExclude.push({login});
     });
+    console.log(optionsToExclude);
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
