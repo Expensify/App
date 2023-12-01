@@ -41,7 +41,7 @@ import SunTrustCard from '@assets/images/cardicons/suntrust.svg';
 import TdBankCard from '@assets/images/cardicons/td-bank.svg';
 import USBankCard from '@assets/images/cardicons/us-bank.svg';
 import USAACard from '@assets/images/cardicons/usaa.svg';
-import styles from '@styles/styles';
+import {ThemeStyles} from '@styles/styles';
 import variables from '@styles/variables';
 
 type BankIcon = {
@@ -50,6 +50,12 @@ type BankIcon = {
     iconHeight?: number;
     iconWidth?: number;
     iconStyles?: Array<ViewStyle | CSSProperties>;
+};
+
+type BankIconParams = {
+    themeStyles: ThemeStyles;
+    bankName?: string;
+    isCard?: boolean;
 };
 
 /**
@@ -140,7 +146,7 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 
-export default function getBankIcon(bankName: string, isCard = false): BankIcon {
+export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -152,11 +158,11 @@ export default function getBankIcon(bankName: string, isCard = false): BankIcon 
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        bankIcon.iconStyles = [themeStyles.bankIconContainer];
     } else {
         bankIcon.iconHeight = variables.bankCardHeight;
         bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconStyles = [themeStyles.assignedCardsIconContainer];
     }
 
     return bankIcon;

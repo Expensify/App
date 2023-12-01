@@ -1,4 +1,5 @@
-import {addMonths, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import {withTheme} from '@storybook/theming';
+import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -8,6 +9,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -33,6 +35,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
@@ -127,8 +130,8 @@ class CalendarPicker extends React.PureComponent {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = startOfDay(endOfMonth(new Date(this.props.maxDate))) > addMonths(new Date(this.state.currentDateView), 1);
-        const hasAvailableDatesPrevMonth = startOfDay(new Date(this.props.minDate)) < endOfMonth(subMonths(new Date(this.state.currentDateView), 1));
+        const hasAvailableDatesNextMonth = startOfDay(new Date(this.props.maxDate)) > endOfMonth(new Date(this.state.currentDateView));
+        const hasAvailableDatesPrevMonth = endOfDay(new Date(this.props.minDate)) < startOfMonth(new Date(this.state.currentDateView));
 
         return (
             <View>
@@ -219,7 +222,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
+                            const isSelected = !!day && isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
                             return (
                                 <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
@@ -236,7 +239,7 @@ class CalendarPicker extends React.PureComponent {
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
                                                 isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
-                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
+                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
                                             <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
@@ -262,4 +265,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default compose(withLocalize, withThemeStyles)(CalendarPicker);
+export default compose(withLocalize, withThemeStyles, withTheme)(CalendarPicker);
