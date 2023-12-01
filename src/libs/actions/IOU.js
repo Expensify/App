@@ -925,7 +925,7 @@ function requestMoney(
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1255,7 +1255,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  * @param {String} merchant
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant = '') {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1299,7 +1299,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} category
  * @param {String} merchant
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, merchant = '') {
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, merchant) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, '', merchant);
 
     API.write(
