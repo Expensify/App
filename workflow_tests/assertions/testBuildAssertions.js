@@ -374,20 +374,6 @@ const assertPostGithubCommentJobExecuted = (
     }
     steps.push(
         utils.createStepAssertion(
-            'maintain-comment',
-            true,
-            null,
-            'POSTGITHUBCOMMENT',
-            'maintain-comment',
-            [
-                {key: 'token', value: '***'},
-                {key: 'body-include', value: 'Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing!'},
-                {key: 'number', value: pullRequestNumber},
-                {key: 'delete', value: true},
-            ],
-            [],
-        ),
-        utils.createStepAssertion(
             'Publish links to apps for download',
             true,
             null,
