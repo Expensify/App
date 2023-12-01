@@ -5,6 +5,7 @@ import _ from 'underscore';
 import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
+import translatableTextPropTypes from './translatableTextPropTypes';
 
 const propTypes = {
     /** Text for the button */
@@ -27,7 +28,7 @@ const propTypes = {
     isMessageHtml: PropTypes.bool,
 
     /** Error message to display above button */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    message: translatableTextPropTypes,
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,

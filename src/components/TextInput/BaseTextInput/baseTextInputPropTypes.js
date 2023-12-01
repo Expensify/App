@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import translatableTextPropTypes from '@components/translatableTextPropTypes';
 
 const propTypes = {
     /** Input label */
@@ -17,7 +18,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    errorText: translatableTextPropTypes,
 
     /** Icon to display in right side of text input */
     icon: PropTypes.func,

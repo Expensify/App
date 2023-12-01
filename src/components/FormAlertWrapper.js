@@ -10,6 +10,7 @@ import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
+import translatableTextPropTypes from './translatableTextPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
@@ -27,7 +28,7 @@ const propTypes = {
     isMessageHtml: PropTypes.bool,
 
     /** Error message to display above button */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    message: translatableTextPropTypes,
 
     /** Props to detect online status */
     network: networkPropTypes.isRequired,

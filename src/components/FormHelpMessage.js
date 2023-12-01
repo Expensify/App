@@ -9,10 +9,11 @@ import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
+import translatableTextPropTypes from './translatableTextPropTypes';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    message: translatableTextPropTypes,
 
     /** Children to render next to dot indicator */
     children: PropTypes.node,

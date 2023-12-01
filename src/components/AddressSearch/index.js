@@ -9,6 +9,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
+import translatableTextPropTypes from '@components/translatableTextPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
@@ -38,7 +39,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    errorText: translatableTextPropTypes,
 
     /** Hint text to display */
     hint: PropTypes.string,
