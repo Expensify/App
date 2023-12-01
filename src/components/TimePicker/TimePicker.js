@@ -13,8 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import setSelection from './setSelection';
 
@@ -78,6 +79,8 @@ function replaceWithZeroAtPosition(originalString, position) {
 function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const value = DateUtils.extractTime12Hour(defaultValue);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -329,7 +332,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         [selectionMinute.start],
     );
 
-    const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
+    const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(theme, styles, amPmValue);
 
     const numberPad = useCallback(() => {
         if (!canUseTouchScreen) {

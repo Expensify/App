@@ -1373,9 +1373,9 @@ function getTransparentColor(color: string) {
 /**
  * Get the style for the AM and PM buttons in the TimePicker
  */
-function getStatusAMandPMButtonStyle(amPmValue: string): {styleForAM: ViewStyle; styleForPM: ViewStyle} {
-    const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: themeColors.componentBG} : {};
-    const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: themeColors.componentBG} : {};
+function getStatusAMandPMButtonStyle(theme: ThemeColors, styles: ThemeStyles, amPmValue: string): {styleForAM: ViewStyle; styleForPM: ViewStyle} {
+    const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: theme.componentBG} : {};
+    const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
     return {
         styleForAM: [styles.timePickerWidth100, computedStyleForAM] as unknown as ViewStyle,
