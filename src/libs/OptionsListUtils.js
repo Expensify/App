@@ -1247,6 +1247,11 @@ function getOptions(
                 break;
             }
 
+            // Skip notifications@expensify.com
+            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                continue;
+            }
+
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
