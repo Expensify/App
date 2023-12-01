@@ -181,9 +181,6 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
