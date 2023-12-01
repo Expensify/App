@@ -136,6 +136,7 @@ function ReportPreview(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
     const isApproved = ReportUtils.isReportApproved(props.iouReport);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
@@ -205,10 +206,14 @@ function ReportPreview(props) {
 
     const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowPayButton = isGroupPolicy
-        // In a group policy, the admin approver can pay the report directly by skipping the approval step
-        ? isPolicyAdmin && (isApproved || isCurrentUserManager) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+    const isPayer = isGroupPolicy
+        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isCurrentUserManager)
+        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+    const shouldShowPayButton = useMemo(
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
+    );
     const shouldShowApproveButton = useMemo(() => {
         if (!isGroupPolicy) {
             return false;
