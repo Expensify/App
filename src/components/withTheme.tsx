@@ -29,4 +29,4 @@ export default function withTheme<TProps extends ThemeProps, TRef>(
     return forwardRef(WithTheme);
 }
 
-export {withThemePropTypes};
+export {withThemePropTypes, type ThemeProps};
