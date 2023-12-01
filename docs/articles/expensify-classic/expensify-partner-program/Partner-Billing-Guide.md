@@ -72,7 +72,7 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 - To check your billing details, be on the lookout for your detailed billing statement sent out at the end of each month. 
 
 **Can I pass the bill to my clients?**
-- Yes, you can pass the bill on to your clients. If you retain ownership of client policies in Expensify, you can re-bill your clients. If you’d like the client to own the billing of the Expensify, they can take over billing. 
+- Yes, you can pass the bill on to your clients. If you retain ownership of client workspaces in Expensify, you can re-bill your clients. If you’d like the client to own the billing of the Expensify, they can take over billing. 
 
 **What if I don't want to use the Expensify Card?**
 - If you prefer not to use the Expensify Card, your clients will be billed at $18/seat monthly.
