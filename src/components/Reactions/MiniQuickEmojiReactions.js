@@ -12,6 +12,7 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
@@ -56,6 +57,7 @@ const defaultProps = {
  */
 function MiniQuickEmojiReactions(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const ref = useRef();
 
     const openEmojiPicker = () => {
@@ -105,7 +107,7 @@ function MiniQuickEmojiReactions(props) {
                     <Icon
                         small
                         src={Expensicons.AddReaction}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
+                        fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, false))}
                     />
                 )}
             </BaseMiniContextMenuItem>
