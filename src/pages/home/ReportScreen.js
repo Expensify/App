@@ -250,6 +250,7 @@ function ReportScreen({
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
+
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
         if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
@@ -262,6 +263,7 @@ function ReportScreen({
         if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
             return;
         }
+
         Report.openReport(reportIDFromPath);
     }, [report.reportID, route, isLoadingInitialReportActions]);
 
