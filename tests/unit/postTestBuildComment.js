@@ -9,8 +9,10 @@ const mockCreateComment = jest.fn();
 jest.mock('@actions/github', () => ({
     context: {
         repo: {
-            repo: 'repo',
+            owner: 'Expensify',
+            repo: 'App',
         },
+        runId: 1234,
     },
 }));
 
@@ -33,7 +35,12 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 | ${androidQRCode}  | ${iOSQRCode}  |
 | Desktop :computer: | Web :spider_web: |
 | ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |`;
+| ${desktopQRCode}  | ${webQRCode}  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/Expensify/App/actions/runs/1234) :eyes:
+`;
 
 describe('Post test build comments action tests', () => {
     beforeAll(() => {
@@ -55,6 +62,6 @@ describe('Post test build comments action tests', () => {
         GithubUtils.createComment.mockResolvedValue(true);
         ghAction();
         expect(GithubUtils.createComment).toBeCalledTimes(1);
-        expect(GithubUtils.createComment).toBeCalledWith('repo', 12, message);
+        expect(GithubUtils.createComment).toBeCalledWith('App', 12, message);
     });
 });

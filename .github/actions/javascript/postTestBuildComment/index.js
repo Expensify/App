@@ -42,7 +42,12 @@ function getTestBuildMessage() {
 | ${androidQRCode}  | ${iOSQRCode}  |
 | Desktop :computer: | Web :spider_web: |
 | ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |`;
+| ${desktopQRCode}  | ${webQRCode}  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) :eyes:
+`;
 
     return message;
 }
