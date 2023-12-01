@@ -23,6 +23,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import DistanceRequestFooter from './DistanceRequestFooter';
@@ -90,10 +91,25 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const transactionWasSaved = useRef(false);
 
     useEffect(() => {
         MapboxToken.init();
         return MapboxToken.stop;
+    }, []);
+
+    useEffect(() => {
+        if (isEditing) {
+            TransactionEdit.createBackupTransaction(transaction);
+        }
+
+        return () => {
+            if (transactionWasSaved.current && !isEditing) {
+                return;
+            }
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect when component is mounted
     }, []);
 
     useEffect(() => {
@@ -182,8 +198,15 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             setHasError(true);
             return;
         }
+
+        if (isEditing) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+            transactionWasSaved.current = true;
+            return;
+        }
+
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints]);
+    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditing, iouType, reportID]);
 
     const content = (
         <>
