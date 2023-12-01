@@ -128,6 +128,8 @@ function AttachmentModal(props) {
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
+    const isOverlayModalVisible = (isAttachmentReceipt && isDeleteReceiptConfirmModalVisible) || (!isAttachmentReceipt && isAttachmentInvalid);
+
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -361,7 +363,9 @@ function AttachmentModal(props) {
         const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
 
-        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+        const canEdit =
+            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT) &&
+            !TransactionUtils.isDistanceRequest(props.transaction);
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
@@ -406,7 +410,7 @@ function AttachmentModal(props) {
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={closeModal}
+                onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 backgroundColor={theme.componentBG}
                 onModalShow={() => {

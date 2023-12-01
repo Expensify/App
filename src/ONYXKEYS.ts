@@ -84,6 +84,9 @@ const ONYXKEYS = {
     /** Contains all the users settings for the Settings page and sub pages */
     USER: 'user',
 
+    /** Contains latitude and longitude of user's last known location */
+    USER_LOCATION: 'userLocation',
+
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGIN_LIST: 'loginList',
 
@@ -246,6 +249,7 @@ const ONYXKEYS = {
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
+        WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
         // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
@@ -371,6 +375,7 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER]: OnyxTypes.User;
+    [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: Record<string, OnyxTypes.Login>;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
