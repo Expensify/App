@@ -1,6 +1,6 @@
 import {ViewStyle} from 'react-native';
-import styles from '@styles/styles';
+import {ThemeStyles} from '@styles/styles';
 
-type CompactContentContainerStyles = (themeStyles: typeof styles) => ViewStyle;
+type CompactContentContainerStyles = (themeStyles: ThemeStyles) => ViewStyle;
 
 export default CompactContentContainerStyles;

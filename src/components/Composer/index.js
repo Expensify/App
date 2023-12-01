@@ -171,11 +171,10 @@ function Composer({
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
-        start: initialValue.length,
-        end: initialValue.length,
+        start: selectionProp.start,
+        end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');

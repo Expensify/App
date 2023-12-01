@@ -5,6 +5,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import CustomStatusBar from '@components/CustomStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -279,10 +281,13 @@ function SignInPage(props) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
-                <SignInPageInner
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+                <ColorSchemeWrapper>
+                    <CustomStatusBar isNested />
+                    <SignInPageInner
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </ColorSchemeWrapper>
             </ThemeStylesProvider>
         </ThemeProvider>
     );
