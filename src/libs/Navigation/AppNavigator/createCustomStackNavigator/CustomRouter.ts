@@ -1,8 +1,8 @@
 import {NavigationState, PartialState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
 import {ParamListBase} from '@react-navigation/routers';
-import {ResponsiveStackNavigatorRouterOptions} from '@navigation/AppNavigator/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 type State = NavigationState | PartialState<NavigationState>;
 

@@ -2,9 +2,9 @@ import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigati
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from '@libs/Navigation/AppNavigator/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
+import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {

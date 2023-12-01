@@ -9,6 +9,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import type {AuthScreensParamList} from '@navigation/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -35,7 +36,6 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
-import {AuthScreensStackParamList} from './types';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -111,7 +111,7 @@ Onyx.connect({
     },
 });
 
-const RootStack = createCustomStackNavigator<AuthScreensStackParamList>();
+const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
@@ -310,9 +310,6 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={screenOptions.fullScreen}
-                    // TODO: fix TS issue
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     component={NotFoundPage}
                 />
                 <RootStack.Screen

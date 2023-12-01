@@ -37,6 +37,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
         reportID: string;
+        openOnAdminRoom?: boolean;
     };
 };
 
@@ -390,6 +391,12 @@ type AuthScreensParamList = {
         reportID: string;
         source: string;
     };
+    [CONST.DEMO_PAGES.SAASTR]: {
+        name: string;
+    };
+    [CONST.DEMO_PAGES.SBE]: {
+        name: string;
+    };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
@@ -398,4 +405,15 @@ type AuthScreensParamList = {
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
 
-export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList, StateOrRoute, NavigationStateRoute, NavigationRoot};
+export type {
+    NavigationRef,
+    StackNavigationAction,
+    CentralPaneNavigatorParamList,
+    RootStackParamList,
+    StateOrRoute,
+    NavigationStateRoute,
+    NavigationRoot,
+    AuthScreensParamList,
+    RightModalNavigatorParamList,
+    PublicScreensParamList,
+};

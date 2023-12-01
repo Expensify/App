@@ -2,8 +2,8 @@ import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigati
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from '@navigation/AppNavigator/types';
 import CustomRouter from './CustomRouter';
+import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();

@@ -5,14 +5,14 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
-import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '@libs/Navigation/AppNavigator/types';
+import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
 
-const Stack = createStackNavigator<RightModalNavigatorStackParamList>();
+const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>) {
+function RightModalNavigator(props: StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
