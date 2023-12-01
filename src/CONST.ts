@@ -497,6 +497,7 @@ const CONST = {
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
                 SUBMITTED: 'SUBMITTED',
@@ -1166,6 +1167,9 @@ const CONST = {
             SVG: 'svg',
         },
         RECEIPT_ERROR: 'receiptError',
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
     },
 
     GROWL: {

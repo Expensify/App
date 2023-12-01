@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -9,27 +8,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Modal from './Modal';
 import TestToolMenu from './TestToolMenu';
 
-const propTypes = {
-    /** Details about modal */
-    modal: PropTypes.shape({
-        /** Indicates when an Alert modal is about to be visible */
-        willAlertModalBecomeVisible: PropTypes.bool,
-    }),
-
+type TestToolsModalOnyxProps = {
     /** Whether the test tools modal is open */
-    isTestToolsModalOpen: PropTypes.bool,
+    isTestToolsModalOpen: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    modal: {},
-    isTestToolsModalOpen: false,
-};
+type TestToolsModalProps = TestToolsModalOnyxProps;
 
-function TestToolsModal(props) {
+function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
     const styles = useThemeStyles();
+
     return (
         <Modal
-            isVisible={props.isTestToolsModalOpen}
+            isVisible={!!isTestToolsModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >
@@ -40,14 +31,9 @@ function TestToolsModal(props) {
     );
 }
 
-TestToolsModal.propTypes = propTypes;
-TestToolsModal.defaultProps = defaultProps;
 TestToolsModal.displayName = 'TestToolsModal';
 
-export default withOnyx({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
+export default withOnyx<TestToolsModalProps, TestToolsModalOnyxProps>({
     isTestToolsModalOpen: {
         key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
     },

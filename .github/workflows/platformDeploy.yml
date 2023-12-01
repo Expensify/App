@@ -347,6 +347,9 @@ jobs:
     if: ${{ failure() }}
     needs: [android, desktop, iOS, web]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
