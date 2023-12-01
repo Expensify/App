@@ -175,18 +175,14 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
-                    style={({pressed}) => {
-                        const s = [
-                            props.style,
-                            !props.interactive && styles.cursorDefault,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
-                            (isHovered || pressed) && props.hoverAndPressStyle,
-                            ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
-                            props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
-                        ];
-                        console.log({s, style: props.style, ws: props.wrapperStyle});
-                        return s;
-                    }}
+                    style={({pressed}) => [
+                        props.style,
+                        !props.interactive && styles.cursorDefault,
+                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
+                        (isHovered || pressed) && props.hoverAndPressStyle,
+                        ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
+                        props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
+                    ]}
                     disabled={props.disabled}
                     ref={ref}
                     role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
