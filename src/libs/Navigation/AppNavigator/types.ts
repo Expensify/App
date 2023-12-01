@@ -1,4 +1,4 @@
-import {DefaultNavigatorOptions, DefaultRouterOptions, NavigatorScreenParams, ParamListBase, StackNavigationState} from '@react-navigation/native';
+import {DefaultNavigatorOptions, NavigatorScreenParams, ParamListBase, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackScreenProps} from '@react-navigation/stack';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -70,7 +70,7 @@ type RightModalNavigatorStackParamList = Record<ValueOf<typeof SCREENS.RIGHT_MOD
 type ResponsiveStackNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
-type ResponsiveStackNavigatorRouterOptions = DefaultRouterOptions & {
+type ResponsiveStackNavigatorRouterOptions = StackRouterOptions & {
     getIsSmallScreenWidth: () => boolean;
 };
 type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &

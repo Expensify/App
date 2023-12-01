@@ -7,7 +7,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
 
 type Routes = StackNavigationState<ParamListBase>['routes'];
-
 function reduceReportRoutes(routes: Routes): Routes {
     const result: Routes = [];
     let count = 0;
