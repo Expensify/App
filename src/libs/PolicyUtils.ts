@@ -1,8 +1,9 @@
 import Str from 'expensify-common/lib/str';
+import {cloneDeep} from 'lodash';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '@src/types/onyx';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -158,7 +159,7 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
-function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
+function getTag(policyTags: OnyxCollection<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTags | undefined | EmptyObject {
     if (isEmptyObject(policyTags)) {
         return {};
     }
@@ -171,7 +172,7 @@ function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyT
 /**
  * Gets the first tag name from policy tags.
  */
-function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
+function getTagListName(policyTags: OnyxCollection<PolicyTags>) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return '';
     }
@@ -190,8 +191,17 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
+    const tags = cloneDeep(policyTags?.[policyTagKey]?.tags ?? {});
 
-    return policyTags?.[policyTagKey]?.tags ?? {};
+    // This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
+    Object.keys(tags).forEach((key) => {
+        const cleanedTagName = tags[key]?.name?.replace(/\\{1,2}:/g, ':');
+        if (cleanedTagName) {
+            tags[key].name = cleanedTagName;
+        }
+    });
+
+    return tags;
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
