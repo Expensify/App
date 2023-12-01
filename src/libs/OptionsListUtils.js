@@ -1236,7 +1236,6 @@ function getOptions(
     _.each(excludeLogins, (login) => {
         optionsToExclude.push({login});
     });
-    console.log(optionsToExclude);
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
