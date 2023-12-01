@@ -90,7 +90,6 @@ function Composer(
     const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value ?? ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
@@ -99,8 +98,10 @@ function Composer(
           }
         | undefined
     >({
-        start: initialValue.length,
-        end: initialValue.length,
+        // start: initialValue.length,
+        // end: initialValue.length,
+        start: selectionProp.start,
+        end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
