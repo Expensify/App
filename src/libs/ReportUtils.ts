@@ -31,6 +31,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
@@ -1270,7 +1271,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorAccountID = parentReportAction.actorAccountID;
-        const actorDisplayName = allPersonalDetails?.[actorAccountID ?? -1]?.displayName ?? '';
+        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails, [actorAccountID ?? -1, 'displayName']);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
@@ -1394,7 +1395,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
-    const longName = personalDetails.displayName ? personalDetails.displayName : formattedLogin;
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, 'displayName', formattedLogin);
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
 

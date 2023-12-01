@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -23,7 +24,7 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
+    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName, '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }

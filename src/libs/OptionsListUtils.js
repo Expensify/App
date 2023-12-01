@@ -200,7 +200,7 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOption(participant, personalDetails) {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
     const login = detail.login || participant.login;
-    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, 'displayName', LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail.accountID),
         login,
@@ -245,7 +245,8 @@ function getParticipantNames(personalDetailList) {
             participantNames.add(participant.lastName.toLowerCase());
         }
         if (participant.displayName) {
-            participantNames.add(participant.displayName.toLowerCase());
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(participant, 'displayName');
+            participantNames.add(displayName.toLowerCase());
         }
     });
     return participantNames;
@@ -298,7 +299,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                searchTerms = searchTerms.concat([
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName'),
+                    personalDetail.login,
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')
+                ]);
             }
         }
     }
@@ -507,7 +512,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
+        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName')}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
         if (result.isArchivedRoom) {
@@ -1429,8 +1434,8 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName || formattedLogin,
-        alternateText: formattedLogin || personalDetail.displayName,
+        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName', formattedLogin),
+        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName'),
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
