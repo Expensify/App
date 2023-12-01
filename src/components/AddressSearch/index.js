@@ -23,12 +23,12 @@ import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 /**
- * Check if it is the location by searching for the location
- * @param {String} search the string to search for a location
- * @param {Object} place the location data consisted of name, description and geometry
+ * Check if the place matches the search by the place name or description.
+ * @param {String} search The search string for a place
+ * @param {Object} place The place to check for a match on the search
  * @returns {Boolean} related or not.
  */
-function isSearchedPlace(search, place) {
+function isPlaceMatchForSearch(search, place) {
     if (!search) {
         return true;
     }
@@ -402,10 +402,9 @@ function AddressSearch({
 
     const filteredPredefinedPlaces = useMemo(() => {
         if (!network.isOffline || !searchValue) {
-            return predefinedPlaces.length < 5 ? predefinedPlaces : predefinedPlaces.slice(0, 5);
+            return predefinedPlaces;
         }
-        const filterRecentPlaces = filter(predefinedPlaces, (predefinedPlace) => isSearchedPlace(searchValue, predefinedPlace));
-        return filterRecentPlaces.length < 5 ? filterRecentPlaces : filterRecentPlaces.slice(0, 5);
+        return filter(predefinedPlaces, (predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace));
     }, [network.isOffline, predefinedPlaces, searchValue]);
 
     const listEmptyComponent = useCallback(
