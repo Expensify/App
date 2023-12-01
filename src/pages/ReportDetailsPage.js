@@ -86,7 +86,6 @@ function ReportDetailsPage(props) {
         }
 
         Report.getReportPrivateNote(props.report.reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
     }, [props.report.reportID, props.network.isOffline, isPrivateNotesFetchTriggered]);
 
     const menuItems = useMemo(() => {
