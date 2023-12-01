@@ -1,12 +1,14 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import OptionsSelector from '@components/OptionsSelector';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import refPropTypes from '@components/refPropTypes';
 import SelectionList from '@components/SelectionList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -15,12 +17,14 @@ import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -97,6 +101,7 @@ function MoneyRequestParticipantsSelector({
     isSearchingForReports,
 }) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
     const newChatOptions = useMemo(() => {
@@ -250,7 +255,6 @@ function MoneyRequestParticipantsSelector({
         maxParticipantsReached,
         _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
@@ -276,6 +280,7 @@ function MoneyRequestParticipantsSelector({
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
     const shouldShowSplitButton = isAllowedToSplit && !shouldShowSplitBillErrorMessage && participants.length > 0;
+    const referralContentType = iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
 
     const footerContent = (
         <View>
@@ -286,6 +291,41 @@ function MoneyRequestParticipantsSelector({
                     message="iou.error.splitBillMultipleParticipantsErrorMessage"
                 />
             )}
+            <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
+                    }}
+                    style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                    accessibilityLabel="referral"
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                >
+                    <Text>
+                        {translate(`referralProgram.${referralContentType}.buttonText1`)}
+                        <Text
+                            color={theme.success}
+                            style={styles.textStrong}
+                        >
+                            {translate(`referralProgram.${referralContentType}.buttonText2`)}
+                        </Text>
+                    </Text>
+                    <Icon
+                        src={Info}
+                        height={20}
+                        width={20}
+                    />
+                </PressableWithoutFeedback>
+            </View>
+
+            {shouldShowSplitButton && (
+                <Button
+                    success
+                    text={translate('iou.addToSplit')}
+                    onPress={handleConfirmSelection}
+                    pressOnEnter
+                    isDisabled={shouldShowSplitBillErrorMessage}
+                />
+            )}
         </View>
     );
 
@@ -293,8 +333,6 @@ function MoneyRequestParticipantsSelector({
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 canSelectMultiple={isAllowedToSplit}
-                showConfirmButton={shouldShowSplitButton}
-                confirmButtonText={translate('iou.addToSplit')}
                 onConfirm={handleConfirmSelection}
                 sections={sections}
                 textInputValue={searchTerm}
@@ -303,35 +341,12 @@ function MoneyRequestParticipantsSelector({
                 onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 onSelectRow={addParticipantToSelection}
-                onRowPress={addSingleParticipant}
-                footerContent={isAllowedToSplit && footerContent}
+                onRowPress={!participants.length && addSingleParticipant}
+                footerContent={footerContent}
+                headerMessage={headerMessage}
+                showLoadingPlaceholder={isSearchingForReports}
+                ref={forwardedRef}
             />
-            {/* <OptionsSelector */}
-            {/*     canSelectMultipleOptions={isAllowedToSplit} */}
-            {/*     shouldShowMultipleOptionSelectorAsButton */}
-            {/*     multipleOptionSelectorButtonText={translate('iou.split')} */}
-            {/*     onAddToSelection={addParticipantToSelection} */}
-            {/*     sections={sections} */}
-            {/*     selectedOptions={participants} */}
-            {/*     value={searchTerm} */}
-            {/*     onSelectRow={addSingleParticipant} */}
-            {/*     onChangeText={setSearchTermAndSearchInServer} */}
-            {/*     ref={forwardedRef} */}
-            {/*     headerMessage={headerMessage} */}
-            {/*     boldStyle */}
-            {/*     shouldShowConfirmButton={isAllowedToSplit} */}
-            {/*     onConfirmSelection={handleConfirmSelection} */}
-            {/*     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')} */}
-            {/*     textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''} */}
-            {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
-            {/*     shouldShowOptions={isOptionsDataReady} */}
-            {/*     shouldShowReferralCTA */}
-            {/*     referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST} */}
-            {/*     shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()} */}
-            {/*     shouldDelayFocus */}
-            {/*     footerContent={isAllowedToSplit && footerContent} */}
-            {/*     isLoadingNewOptions={isSearchingForReports} */}
-            {/* /> */}
         </View>
     );
 }

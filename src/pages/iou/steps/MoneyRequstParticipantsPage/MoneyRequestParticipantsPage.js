@@ -78,7 +78,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
             return translate('tabSelector.scan');
         }
 
-        if (iou.splitRequest) {
+        if (iou.isSplitRequest) {
             return translate('iou.split');
         }
 
