@@ -1,13 +1,11 @@
-import React, {ReactNode} from 'react';
-import {View, ViewStyle} from 'react-native';
+import React from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type ReportActionItemGroupedProps = {
-    /** Children view component for this action item */
-    children: ReactNode;
-
+type ReportActionItemGroupedProps = ChildrenProps & {
     /** Styles for the outermost View */
-    wrapperStyle?: ViewStyle;
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ReportActionItemGrouped({wrapperStyle, children}: ReportActionItemGroupedProps) {
