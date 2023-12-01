@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
@@ -30,7 +29,6 @@ const story = {
         CheckboxWithLabel,
         Picker,
         StatePicker,
-        DatePicker,
     },
 };
 
@@ -68,12 +66,6 @@ function Template(args) {
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
-            />
-            <InputWrapper
-                InputComponent={DatePicker}
-                label="Date of birth"
-                inputID="dob"
-                containerStyles={[styles.mt4]}
             />
             <View>
                 <InputWrapper
