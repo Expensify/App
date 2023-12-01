@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import refPropTypes from '@components/refPropTypes';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -14,10 +15,10 @@ const propTypes = {
     errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** A ref forwarded to the TextInput */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string,
+    inputID: PropTypes.string.isRequired,
 
     /** Callback that is called when the text input is blurred */
     onBlur: PropTypes.func,
@@ -30,6 +31,8 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    roomName: PropTypes.string,
 };
 
 const defaultProps = {
@@ -39,10 +42,10 @@ const defaultProps = {
     errorText: '',
     forwardedRef: () => {},
 
-    inputID: undefined,
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
+    roomName: '',
 };
 
 export {propTypes, defaultProps};
