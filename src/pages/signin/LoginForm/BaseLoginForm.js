@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
@@ -14,7 +15,6 @@ import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withNavigationFocus from '@components/withNavigationFocus';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
@@ -75,9 +75,6 @@ const propTypes = {
 
     isVisible: PropTypes.bool.isRequired,
 
-    /** Whether navigation is focused */
-    isFocused: PropTypes.bool.isRequired,
-
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -101,6 +98,7 @@ function LoginForm(props) {
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
+    const isFocused = useIsFocused();
 
     const {translate} = props;
 
@@ -204,10 +202,11 @@ function LoginForm(props) {
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
         // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
-        if (props.isFocused && props.isVisible) {
+
+        if (isFocused && props.isVisible) {
             Session.clearAccountMessages();
         }
-        if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
+        if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible || !isFocused) {
             return;
         }
         let focusTimeout;
@@ -346,7 +345,6 @@ const LoginFormWithRef = forwardRef((props, ref) => (
 LoginFormWithRef.displayName = 'LoginFormWithRef';
 
 export default compose(
-    withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},

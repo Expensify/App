@@ -232,7 +232,7 @@ type ActorDetails = {
  */
 function getOptionData(
     report: Report,
-    reportActions: Record<string, ReportAction[]>,
+    reportActions: Record<string, ReportAction>,
     personalDetails: Record<number, PersonalDetails>,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
