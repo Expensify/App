@@ -46,11 +46,9 @@ describe('getViolationsOnyxData', () => {
         policyCategories = {Food: {enabled: true}};
     });
 
-    const execute = () => ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
     describe('ordinary operations', () => {
         it('should return an object with correct shape', () => {
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result).toEqual({
                 onyxMethod: Onyx.METHOD.SET,
@@ -63,7 +61,7 @@ describe('getViolationsOnyxData', () => {
             const expectedViolation = transactionViolations[0];
             transactionViolations = [expectedViolation];
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([expectedViolation]));
         });
@@ -71,7 +69,7 @@ describe('getViolationsOnyxData', () => {
         it('should handle empty transactionViolations', () => {
             transactionViolations = [];
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual([]);
         });
@@ -82,7 +80,7 @@ describe('getViolationsOnyxData', () => {
         transactionViolations = [];
         policyRequiresCategories = undefined;
 
-        const result = execute();
+        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
         expect(result.value).toEqual([]);
     });
@@ -95,7 +93,7 @@ describe('getViolationsOnyxData', () => {
         it('should add missingCategory violation if no category is included', () => {
             transaction.category = null;
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
@@ -103,7 +101,7 @@ describe('getViolationsOnyxData', () => {
         it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             transaction.category = 'Bananas';
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
@@ -112,7 +110,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories = {Food: {enabled: true}};
             transaction.category = 'Food';
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
@@ -122,7 +120,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories = {Food: {enabled: false}};
             transaction.category = 'Food';
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
@@ -132,7 +130,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories = {Food: {enabled: true}};
             transaction.category = 'Drinks';
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).not.toContainEqual([categoryOutOfPolicyViolation]);
         });
@@ -145,7 +143,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should handle policyRequiresTags correctly', () => {
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(transactionViolations);
         });
@@ -153,7 +151,7 @@ describe('getViolationsOnyxData', () => {
         it('should add a missingTag violation if none is provided and policy requires tags', () => {
             transaction.tag = undefined;
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([missingTagViolation]));
         });
@@ -161,7 +159,7 @@ describe('getViolationsOnyxData', () => {
         it('should add a tagOutOfPolicy violation when tag does not exist and policy requires tags', () => {
             policyTags = {};
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
         });
@@ -170,7 +168,7 @@ describe('getViolationsOnyxData', () => {
             policyRequiresTags = true;
             policyTags = {Lunch: {enabled: false}};
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
         });
@@ -180,7 +178,7 @@ describe('getViolationsOnyxData', () => {
             policyTags = {Lunch: {enabled: true}, Dinner: {enabled: true}};
             transaction.tag = 'Dinner';
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(transactionViolations);
         });
@@ -189,7 +187,7 @@ describe('getViolationsOnyxData', () => {
             policyRequiresTags = true;
             policyTags = {Lunch: {enabled: true}};
 
-            const result = execute();
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual(transactionViolations);
         });
