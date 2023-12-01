@@ -1,16 +1,15 @@
-import React, {ReactNode} from 'react';
+import React from 'react';
+import {SvgProps} from 'react-native-svg';
 import useThemeStyles from '@styles/useThemeStyles';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Section from './Section';
 
-type WalletSectionProps = {
-    /** Contents to display inside the section */
-    children?: ReactNode;
-
+type WalletSectionProps = ChildrenProps & {
     /** The icon to display along with the title */
-    icon?: (props: unknown) => React.ReactNode;
+    icon: React.FC<SvgProps>;
 
     /** The text to display in the subtitle of the section */
-    subtitle?: string;
+    subtitle: string;
 
     /** The text to display in the title of the section */
     title: string;
