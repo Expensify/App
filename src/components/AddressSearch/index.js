@@ -1,4 +1,4 @@
-import {filter, get as lodashGet} from 'lodash';
+import {filter, get as lodashGet, some} from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
@@ -21,7 +21,29 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import isSearchedLocation from './isSearchedLocation';
+
+/**
+ * Check if it is the location by searching for the location
+ * @param {String} search the string to search for a location
+ * @param {Object} place the location data consisted of name, description and geometry
+ * @returns {Boolean} related or not.
+ */
+function isSearchedPlace(search, place) {
+    if (!search) {
+        return true;
+    }
+    if (!place) {
+        return false;
+    }
+    let result = false;
+    if (place.name) {
+        result = some(search.split(' '), (searchTerm) => place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+    }
+    if (place.description) {
+        result = result || some(search.split(' '), (searchTerm) => place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+    }
+    return result;
+}
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -243,7 +265,6 @@ function AddressSearch({
         const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
 
         const country = countryPrimary || countryFallback;
-
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
             name: lodashGet(details, 'name', ''),
@@ -383,7 +404,7 @@ function AddressSearch({
         if (!network.isOffline || !searchValue) {
             return predefinedPlaces.length < 5 ? predefinedPlaces : predefinedPlaces.slice(0, 5);
         }
-        const filterRecentPlaces = filter(predefinedPlaces, (predefinedPlace) => isSearchedLocation(searchValue, predefinedPlace));
+        const filterRecentPlaces = filter(predefinedPlaces, (predefinedPlace) => isSearchedPlace(searchValue, predefinedPlace));
         return filterRecentPlaces.length < 5 ? filterRecentPlaces : filterRecentPlaces.slice(0, 5);
     }, [network.isOffline, predefinedPlaces, searchValue]);
 
