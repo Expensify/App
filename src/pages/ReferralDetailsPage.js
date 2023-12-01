@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -58,27 +57,13 @@ function ReferralDetailsPage({route, account}) {
         return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
     }
 
-    function getFallbackRoute() {
-        const fallbackRoutes = {
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST),
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SEND),
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: ROUTES.NEW_CHAT,
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: ROUTES.SEARCH,
-        };
-
-        return fallbackRoutes[contentType];
-    }
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={ReferralDetailsPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.referral')}
-                onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
-            />
+            <HeaderWithBackButton title={translate('common.referral')} />
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.flex1]}>
                 <Icon
                     src={PaymentHands}
@@ -108,7 +93,7 @@ function ReferralDetailsPage({route, account}) {
                     success
                     style={[styles.w100]}
                     text={translate('common.buttonConfirm')}
-                    onPress={() => Navigation.goBack(getFallbackRoute())}
+                    onPress={() => Navigation.goBack()}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
