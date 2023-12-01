@@ -578,7 +578,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 function clearSignInData() {
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
-        [ONYXKEYS.CREDENTIALS]: {},
+        [ONYXKEYS.CREDENTIALS]: null,
     });
 }
 

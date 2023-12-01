@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionName} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -72,7 +73,10 @@ function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
     return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+    if (isEmptyObject(reportAction)) {
+        return false;
+    }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -103,6 +107,10 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
     );
+}
+
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
 }
 
 /**
@@ -694,4 +702,7 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isChannelLogMemberAction,
+    isReimbursementDeQueuedAction,
 };
+
+export type {LastVisibleMessage};
