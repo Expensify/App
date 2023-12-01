@@ -4,7 +4,7 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import {useTheme} from '@styles/themes/useTheme';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
