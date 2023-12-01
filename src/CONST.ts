@@ -699,6 +699,14 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    COLOR_SCHEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
+    },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
@@ -2843,6 +2851,32 @@ const CONST = {
      */
     PERFORMANCE_TESTS: {
         RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
     },
 
     /**
