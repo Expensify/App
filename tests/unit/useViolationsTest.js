@@ -5,7 +5,6 @@ import lodashMap from 'lodash/map';
 import lodashValues from 'lodash/values';
 import {useViolations, violationFields} from '@libs/Violations/useViolations';
 
-
 const violationNames = lodashKeys(violationFields);
 const fieldNames = lodashValues(violationFields);
 
