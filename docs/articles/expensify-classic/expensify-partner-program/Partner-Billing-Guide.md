@@ -78,7 +78,7 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 - If you prefer not to use the Expensify Card, your clients will be billed at $18/seat monthly.
 
 **Why use client IDs?**
-- Client IDs provide a streamlined method to identify and manage policies, especially beneficial when a client has multiple policies.
+- Client IDs provide a streamlined method to identify and manage workspaces, especially beneficial when a client has multiple workspaces.
 
 **Do I need a client ID for each Workspace?**
 - Yes, if you want to ensure seamless identification and billing processes.
