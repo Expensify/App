@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
@@ -93,6 +93,8 @@ function SignInPageLayout(props) {
         scrollPageToTop();
     }, [props.welcomeHeader, props.welcomeText, prevPreferredLocale, props.preferredLocale]);
 
+    const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
+
     return (
         <View style={containerStyles}>
             {!props.shouldShowSmallScreen ? (
@@ -152,7 +154,7 @@ function SignInPageLayout(props) {
                 </View>
             ) : (
                 <ScrollView
-                    contentContainerStyle={scrollViewContentContainerStyles}
+                    contentContainerStyle={scrollViewStyles}
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
