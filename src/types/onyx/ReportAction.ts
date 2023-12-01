@@ -134,6 +134,7 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
+    /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: string;
 
