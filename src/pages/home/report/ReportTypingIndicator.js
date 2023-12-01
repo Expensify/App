@@ -28,7 +28,6 @@ function ReportTypingIndicator({userTypingStatuses}) {
     const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
 
-    // If the user is typing on OldDot, firstUserTyping will be a string (the user's login)
     const firstUserTypingID = useMemo(
         () => (firstUserTyping && Number.isNaN(Number(firstUserTyping)) ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
         [firstUserTyping],
@@ -39,7 +38,8 @@ function ReportTypingIndicator({userTypingStatuses}) {
         return null;
     }
 
-    const firstUserTypingDisplayName = ReportUtils.getDisplayNameForParticipant(firstUserTypingID, false, false);
+    // If the user is typing on OldDot, firstUserTyping will be a string (the user's login)
+    const firstUserTypingDisplayName = ReportUtils.getDisplayNameForParticipant(firstUserTypingID, false, false) || firstUserTyping;
 
     if (usersTyping.length === 1) {
         return (
