@@ -45,7 +45,6 @@ If your firm wants to have a console view of all client workspaces and domains, 
   3. Within each client workspace settings, add your centralized email (e.g. accounting@myfirm.com) as a workspace admin.
   4. Do the same with each client domain.
 
-
 ## Applying Client IDs to a bill 
 
 Using client IDs for Optimized Billing in Expensify: A unique identifier feature for ExpensifyApproved! accountants. Streamline client Workspace recognition and make your billing process more efficient.
