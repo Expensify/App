@@ -2505,7 +2505,6 @@ function searchInServer(searchInput) {
 /**
  * @param {String} reportID
  */
-
 function updateLastVisitTime(reportID) {
     if (!ReportUtils.isValidReportIDFromPath(reportID)) {
         return;
