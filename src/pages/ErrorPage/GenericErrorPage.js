@@ -82,7 +82,7 @@ function GenericErrorPage({translate, error}) {
                                         </View>
                                     </View>
                                 </>
-                            ) : <AppDownloadLinksView />}
+                            ) : <AppDownloadLinksView rowWrapperStyle={[styles.ph0]} />}
                         </View>
                     </View>
                     <View styles={styles.alignSelfEnd}>
