@@ -26,7 +26,7 @@ function DisabledStep() {
                 <Button
                     success
                     text={translate('common.buttonConfirm')}
-                    onPress={TwoFactorAuthActions.quitAndNavigateBackToSettings}
+                    onPress={() => TwoFactorAuthActions.quitAndNavigateBack()}
                 />
             </FixedFooter>
         </StepWrapper>

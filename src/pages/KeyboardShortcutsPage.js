@@ -36,7 +36,7 @@ function KeyboardShortcutsPage() {
             key={shortcut.displayName}
             title={shortcut.displayName}
             description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
-            wrapperStyle={styles.ph0}
+            wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
         />
     );
