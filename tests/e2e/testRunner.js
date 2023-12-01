@@ -80,8 +80,8 @@ if (args.includes('--config')) {
 }
 
 // Important set app path after correct config file has been set
-let mainAppPath = config.MAIN_APP_PATH;
-let deltaAppPath = config.DELTA_APP_PATH;
+let mainAppPath = args[args.indexOf('--mainAppPath') + 1] || config.MAIN_APP_PATH;
+let deltaAppPath = args[args.indexOf('--deltaAppPath') + 1] || config.DELTA_APP_PATH;
 
 // Create some variables after the correct config file has been loaded
 const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
@@ -205,8 +205,8 @@ const runTests = async () => {
 
     let progressLog = Logger.progressInfo('Installing apps and reversing port');
 
-    await installApp('android', config.MAIN_APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
-    await installApp('android', config.DELTA_APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
+    await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
+    await installApp('android', config.DELTA_APP_PACKAGE, deltaAppPath);
     await reversePort();
     progressLog.done();
 
