@@ -134,6 +134,7 @@ function IdologyQuestions({questions, idNumber}) {
             <FormProvider
                 formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                 onSubmit={submitAnswers}
+                key={currentQuestionIndex}
                 validate={validate}
                 scrollContextEnabled
                 style={[styles.flexGrow1, styles.ph5]}

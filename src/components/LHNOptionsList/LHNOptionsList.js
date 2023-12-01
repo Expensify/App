@@ -8,6 +8,7 @@ import _ from 'underscore';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getReportActionsByReportID} from '@libs/ReportActionsUtils';
 import {getReportByID} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import stylePropTypes from '@styles/stylePropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -74,7 +75,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemParentReportActions = getReportActionsByReportID(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`);
             const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs);
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(ReportUtils.getParticipantsIDs(itemFullReport));
 
             return (
                 <OptionRowLHNData

@@ -238,7 +238,7 @@ type ActorDetails = {
  */
 function getOptionData(
     report: Report,
-    reportActions: Record<string, ReportAction[]>,
+    reportActions: Record<string, ReportAction>,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
