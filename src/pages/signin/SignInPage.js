@@ -5,6 +5,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import CustomStatusBar from '@components/CustomStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -14,6 +16,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as StyleUtils from '@styles/StyleUtils';
+import ThemeProvider from '@styles/themes/ThemeProvider';
+import ThemeStylesProvider from '@styles/ThemeStylesProvider';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -135,7 +139,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
+function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -234,7 +238,7 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
-        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0}, 1)]}>
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}>
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
@@ -269,18 +273,33 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
         </View>
     );
 }
+SignInPageInner.propTypes = propTypes;
+SignInPageInner.defaultProps = defaultProps;
+SignInPageInner.displayName = 'SignInPage';
 
-SignInPage.propTypes = propTypes;
-SignInPage.defaultProps = defaultProps;
-SignInPage.displayName = 'SignInPage';
+function SignInPage(props) {
+    return (
+        <ThemeProvider theme={CONST.THEME.DARK}>
+            <ThemeStylesProvider>
+                <ColorSchemeWrapper>
+                    <CustomStatusBar isNested />
+                    <SignInPageInner
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </ColorSchemeWrapper>
+            </ThemeStylesProvider>
+        </ThemeProvider>
+    );
+}
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
-    /** 
-  This variable is only added to make sure the component is re-rendered 
-  whenever the activeClients change, so that we call the 
-  ActiveClientManager.isClientTheLeader function 
+    /**
+  This variable is only added to make sure the component is re-rendered
+  whenever the activeClients change, so that we call the
+  ActiveClientManager.isClientTheLeader function
   everytime the leader client changes.
   We use that function to prevent repeating code that checks which client is the leader.
   */

@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
@@ -23,7 +24,6 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
@@ -61,9 +61,6 @@ const propTypes = {
         }),
     ),
 
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 };
@@ -71,7 +68,6 @@ const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
-    allPolicyMembers: {},
 };
 
 function WorkspaceNewRoomPage(props) {
@@ -95,8 +91,7 @@ function WorkspaceNewRoomPage(props) {
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
+        Report.addPolicyReport(policyID, values.roomName, visibility, writeCapability, values.welcomeMessage);
     };
 
     useEffect(() => {
@@ -187,7 +182,7 @@ function WorkspaceNewRoomPage(props) {
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
-                        <Form
+                        <FormProvider
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
                             style={[styles.mh5, styles.flexGrow1]}
@@ -205,7 +200,8 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <TextInput
+                                <InputWrapper
+                                    InputComponent={TextInput}
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
@@ -218,7 +214,8 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
-                                <ValuePicker
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
@@ -227,7 +224,8 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             {isPolicyAdmin && (
                                 <View style={styles.mhn5}>
-                                    <ValuePicker
+                                    <InputWrapper
+                                        InputComponent={ValuePicker}
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
@@ -237,7 +235,8 @@ function WorkspaceNewRoomPage(props) {
                                 </View>
                             )}
                             <View style={[styles.mb1, styles.mhn5]}>
-                                <ValuePicker
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
@@ -246,7 +245,7 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                        </Form>
+                        </FormProvider>
                         {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
@@ -270,9 +269,6 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
 )(WorkspaceNewRoomPage);

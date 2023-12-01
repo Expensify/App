@@ -29,7 +29,7 @@ type BadgeProps = {
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles, textStyles, onPress = () => {}}: BadgeProps) {
@@ -38,8 +38,8 @@ function Badge({success = false, error = false, pressable = false, text, environ
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [styles.badge, styles.ml2, success, error, environment, badgeStyles],
+        ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(styles, success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
+        [success, error, environment, badgeStyles, styles],
     );
 
     return (

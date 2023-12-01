@@ -71,7 +71,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
     isLoadingInitialReportActions: false,
@@ -213,7 +212,7 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-        if (!messageManuallyMarkedUnread && lastReadTimeRef.current && lastReadTimeRef.current < report.lastReadTime) {
+        if (!messageManuallyMarkedUnread && (lastReadTimeRef.current || '') < report.lastReadTime) {
             cacheUnreadMarkers.delete(report.reportID);
         }
         lastReadTimeRef.current = report.lastReadTime;
@@ -338,8 +337,9 @@ function ReportActionsList({
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
-                if (!messageManuallyMarkedUnread) {
-                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                if (shouldDisplay && !messageManuallyMarkedUnread) {
+                    const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
+                    shouldDisplay = reportAction.actorAccountID !== Report.getCurrentUserAccountID() && isWithinVisibleThreshold;
                 }
                 if (shouldDisplay) {
                     cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
