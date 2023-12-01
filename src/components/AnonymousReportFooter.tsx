@@ -1,51 +1,47 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
-import reportPropTypes from '@pages/reportPropTypes';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
+import {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
-const propTypes = {
+type AnonymousReportFooterProps = {
     /** The report currently being looked at */
-    report: reportPropTypes,
+    report: OnyxEntry<Report>;
 
-    isSmallSizeLayout: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    /** Whether the small screen size layout should be used */
+    isSmallSizeLayout?: boolean;
 };
 
-const defaultProps = {
-    report: {},
-    isSmallSizeLayout: false,
-};
-
-function AnonymousReportFooter(props) {
+function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousReportFooterProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     return (
-        <View style={styles.anonymousRoomFooter(props.isSmallSizeLayout)}>
+        <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
-                    report={props.report}
+                    report={report}
                     isAnonymous
                     shouldEnableDetailPageNavigation
                 />
             </View>
-            <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(props.isSmallSizeLayout)}>
-                <View style={[props.isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
-                    <View style={[props.isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
+            <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)}>
+                <View style={[isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
+                    <View style={[isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
                     </View>
-                    <Text style={styles.anonymousRoomFooterLogoTaglineText}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
+                    <Text style={styles.anonymousRoomFooterLogoTaglineText}>{translate('anonymousReportFooter.logoTagline')}</Text>
                 </View>
                 <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button
                         medium
                         success
-                        text={props.translate('common.signIn')}
+                        text={translate('common.signIn')}
                         onPress={() => Session.signOutAndRedirectToSignIn()}
                     />
                 </View>
@@ -54,8 +50,6 @@ function AnonymousReportFooter(props) {
     );
 }
 
-AnonymousReportFooter.propTypes = propTypes;
-AnonymousReportFooter.defaultProps = defaultProps;
 AnonymousReportFooter.displayName = 'AnonymousReportFooter';
 
-export default withLocalize(AnonymousReportFooter);
+export default AnonymousReportFooter;
