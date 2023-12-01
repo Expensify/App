@@ -755,7 +755,7 @@ function sortTags(tags) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getCategoryOptionTree(options, isOneLine = false) {
+function getIndentedOptionTree(options, isOneLine = false) {
     const optionCollection = new Map();
 
     _.each(options, (option) => {
@@ -823,7 +823,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getIndentedOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -837,7 +837,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(searchCategories, true),
+            data: getIndentedOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -849,7 +849,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
+            data: getIndentedOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -861,7 +861,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getIndentedOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -884,7 +884,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -897,7 +897,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getCategoryOptionTree(filteredCategories),
+        data: getIndentedOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -912,7 +912,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return getCategoryOptionTree(tags);
+    return getIndentedOptionTree(tags);
 }
 
 /**
@@ -1492,7 +1492,6 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
 ) {
-    // OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false)
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1751,7 +1750,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getCategoryOptionTree,
+    getIndentedOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };

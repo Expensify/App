@@ -1432,7 +1432,7 @@ describe('OptionsListUtils', () => {
         expect(smallResultWithParentChild.tagOptions).toStrictEqual(smallResultListWithParentChild);
     });
 
-    it('getCategoryOptionTree()', () => {
+    it('getIndentedOptionTree()', () => {
         const categories = {
             Meals: {
                 enabled: true,
@@ -1745,8 +1745,8 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(OptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(OptionsListUtils.getIndentedOptionTree(categories)).toStrictEqual(result);
+        expect(OptionsListUtils.getIndentedOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {
