@@ -140,11 +140,12 @@ function BaseModal(
                     isSmallScreenWidth,
                 },
                 theme,
+                styles,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth],
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth, styles],
     );
 
     const {

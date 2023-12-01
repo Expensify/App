@@ -38,6 +38,7 @@ function PopoverWithoutOverlay(
             isSmallScreenWidth: false,
         },
         theme,
+        styles,
         anchorPosition,
         innerContainerStyle,
         outerStyle,
