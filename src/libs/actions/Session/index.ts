@@ -359,7 +359,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
             },
         },
     ];
-    
+
     const successData = resolutionData;
     const failureData = resolutionData;
 
