@@ -76,13 +76,12 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     }, [initialIsActive]);
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const isCanvasLoading = canvasSize.width === 0 || canvasSize.height === 0;
     const isLoading = isCanvasLoading || !isImageLoaded;
 
-    const [keepInactiveFallbackVisible, setKeepInactiveFallbackVisible] = useState(isInactiveCarouselItem);
+    const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const [showFallback, setShowFallback] = useState(isInactiveCarouselItem);
-    const isFallbackVisible = showFallback || keepInactiveFallbackVisible;
+    const isFallbackVisible = showFallback;
 
     useEffect(() => {
         if (!hasSiblingCarouselItems) {
@@ -90,30 +89,17 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         }
 
         if (isActive) {
-            if (isImageLoaded) {
+            if (isImageLoaded && showFallback) {
                 // We delay hiding the fallback image while image transformer is still rendering
                 setTimeout(() => {
                     setShowFallback(false);
-                    setKeepInactiveFallbackVisible(false);
                 }, 100);
             }
         } else {
-            setKeepInactiveFallbackVisible(true);
-        }
-
-        // Show fallback when the image goes out of focus or when the image is loading
-        if (!isImageLoaded || !isActive) {
+            // Show fallback when the image goes out of focus or when the image is loading
             setShowFallback(true);
         }
-    }, [hasSiblingCarouselItems, isActive, isImageLoaded]);
-
-    // Reload image once the item has become inactive
-    useEffect(() => {
-        if (isActive) {
-            return;
-        }
-        setIsImageLoaded(false);
-    }, [isActive]);
+    }, [hasSiblingCarouselItems, isActive, isImageLoaded, showFallback]);
 
     return (
         <View
