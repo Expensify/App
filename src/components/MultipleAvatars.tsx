@@ -2,9 +2,9 @@ import React, {memo, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -63,26 +63,11 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
-const avatarSizeToStylesMap: AvatarSizeToStylesMap = {
-    [CONST.AVATAR_SIZE.SMALL]: {
-        singleAvatarStyle: styles.singleAvatarSmall,
-        secondAvatarStyles: styles.secondAvatarSmall,
-    },
-    [CONST.AVATAR_SIZE.LARGE]: {
-        singleAvatarStyle: styles.singleAvatarMedium,
-        secondAvatarStyles: styles.secondAvatarMedium,
-    },
-    [CONST.AVATAR_SIZE.DEFAULT]: {
-        singleAvatarStyle: styles.singleAvatar,
-        secondAvatarStyles: styles.secondAvatar,
-    },
-};
-
 function MultipleAvatars({
     fallbackIcon,
     icons = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle = [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
+    secondAvatarStyle: secondAvatarStyleProp,
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,
@@ -93,8 +78,31 @@ function MultipleAvatars({
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
 }: MultipleAvatarsProps) {
-    let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size]);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
+    const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
+        () => ({
+            [CONST.AVATAR_SIZE.SMALL]: {
+                singleAvatarStyle: styles.singleAvatarSmall,
+                secondAvatarStyles: styles.secondAvatarSmall,
+            },
+            [CONST.AVATAR_SIZE.LARGE]: {
+                singleAvatarStyle: styles.singleAvatarMedium,
+                secondAvatarStyles: styles.secondAvatarMedium,
+            },
+            [CONST.AVATAR_SIZE.DEFAULT]: {
+                singleAvatarStyle: styles.singleAvatar,
+                secondAvatarStyles: styles.secondAvatar,
+            },
+        }),
+        [styles],
+    );
+
+    const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
+
+    let avatarContainerStyles = StyleUtils.getContainerStyles(styles, size, isInReportAction);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
     const avatarSize = useMemo(() => {
@@ -152,7 +160,7 @@ function MultipleAvatars({
         );
     }
 
-    const oneAvatarSize = StyleUtils.getAvatarStyle(size);
+    const oneAvatarSize = StyleUtils.getAvatarStyle(theme, size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3;
 
@@ -188,6 +196,7 @@ function MultipleAvatars({
                                                 isPressed,
                                                 isInReportAction,
                                                 shouldUseCardBackground,
+                                                theme,
                                             }),
                                             StyleUtils.getAvatarBorderWidth(size),
                                         ]}
@@ -214,10 +223,11 @@ function MultipleAvatars({
                                             isPressed,
                                             isInReportAction,
                                             shouldUseCardBackground,
+                                            theme,
                                         }),
 
                                         // Set overlay background color with RGBA value so that the text will not inherit opacity
-                                        StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
+                                        StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                                         StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
                                         icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[3].type) : {},
                                     ]}

@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {ForwardedRef, useCallback} from 'react';
 import {ActivityIndicator, GestureResponderEvent, ImageSourcePropType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
@@ -9,7 +10,6 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import themeColors from '@styles/themes/default';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -111,7 +111,6 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
-    isFocused: boolean;
 };
 
 function Button(
@@ -119,7 +118,7 @@ function Button(
         allowBubble = false,
 
         iconRight = Expensicons.ArrowRight,
-        iconFill = themeColors.textLight,
+        iconFill,
         iconStyles = [],
         iconRightStyles = [],
 
@@ -150,7 +149,6 @@ function Button(
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
-        isFocused,
 
         id = '',
         accessibilityLabel = '',
@@ -160,6 +158,7 @@ function Button(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -215,7 +214,7 @@ function Button(
                             <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill || theme.textLight}
+                                    fill={iconFill ?? theme.textLight}
                                     small={small}
                                 />
                             </View>
@@ -226,7 +225,7 @@ function Button(
                         <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill || theme.textLight}
+                                fill={iconFill ?? theme.textLight}
                                 small={small}
                             />
                         </View>

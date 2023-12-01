@@ -1,7 +1,8 @@
 import React, {PureComponent} from 'react';
 import {ImageSourcePropType, StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
-import styles from '@styles/styles';
+import withTheme, {ThemeProps} from '@components/withTheme';
+import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
@@ -47,7 +48,8 @@ type IconProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFit?: string;
-};
+} & ThemeStylesProps &
+    ThemeProps;
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
@@ -69,13 +71,13 @@ class Icon extends PureComponent<IconProps> {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, this.props.additionalStyles];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, this.props.additionalStyles];
 
         if (this.props.inline) {
             return (
                 <View
                     testID={this.props.testID}
-                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
                 >
                     <View style={iconStyles}>
                         <ImageSVG
@@ -111,4 +113,4 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
-export default Icon;
+export default withTheme(withThemeStyles(Icon));

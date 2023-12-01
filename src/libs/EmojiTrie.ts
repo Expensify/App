@@ -129,4 +129,4 @@ const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev,
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
-export type {SimpleEmoji};
+export type {SimpleEmoji, SupportedLanguage};

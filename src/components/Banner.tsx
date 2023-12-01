@@ -67,7 +67,7 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={Expensicons.Exclamation}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                        fill={StyleUtils.getIconFillColor(theme, getButtonState(shouldHighlight))}
                                     />
                                 </View>
                             )}

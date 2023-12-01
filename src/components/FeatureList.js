@@ -43,6 +43,7 @@ function FeatureList({menuItems, headline, description}) {
                     iconStyles={[styles.mr3, styles.ml3]}
                     interactive={false}
                     displayInDefaultIconColor
+                    wrapperStyle={[styles.cursorAuto]}
                 />
             ))}
         </>

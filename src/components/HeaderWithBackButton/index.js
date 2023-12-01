@@ -54,6 +54,7 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlay = false,
     singleExecution = (func) => func,
+    shouldNavigateToTopMostReport = false,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -76,7 +77,12 @@ function HeaderWithBackButton({
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                onBackButtonPress();
+                                const topmostReportId = Navigation.getTopmostReportId();
+                                if (shouldNavigateToTopMostReport && topmostReportId) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+                                } else {
+                                    onBackButtonPress();
+                                }
                             }}
                             style={[styles.touchableButtonImage]}
                             role="button"
@@ -127,7 +133,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    fill={iconFill || StyleUtils.getIconFillColor(theme, getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>

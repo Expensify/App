@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const termsData = [
@@ -59,7 +59,7 @@ const termsData = [
     },
 ];
 
-const getLongTermsSections = () =>
+const getLongTermsSections = (styles) =>
     _.map(termsData, (section, index) => (
         // eslint-disable-next-line react/no-array-index-key
         <View key={section.title + index}>
@@ -78,9 +78,11 @@ const getLongTermsSections = () =>
     ));
 
 function LongTermsForm() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <>
-            <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
+            <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections(styles)}</CollapsibleSection>
 
             <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
                 {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID}{' '}
@@ -99,7 +101,7 @@ function LongTermsForm() {
 
             <View style={styles.flexRow}>
                 <Icon
-                    fill={themeColors.icon}
+                    fill={theme.icon}
                     style={styles.flex1}
                     src={Expensicons.Printer}
                 />
