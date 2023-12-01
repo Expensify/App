@@ -59,7 +59,7 @@ const defaultProps = {
     iconAdditionalStyles: [],
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
-    fill: null,
+    fill: undefined,
     fallbackIcon: Expensicons.FallbackAvatar,
     fallbackIconTestID: '',
     type: CONST.ICON_TYPE_AVATAR,
