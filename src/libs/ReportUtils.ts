@@ -3363,7 +3363,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
 }
 
 function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
@@ -3390,14 +3389,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
  * filter out the majority of reports before filtering out very specific minority of reports.
  */
-function shouldReportBeInOptionList(
-    report: OnyxEntry<Report>,
-    currentReportId: string,
-    isInGSDMode: boolean,
-    betas: Beta[],
-    policies: OnyxCollection<Policy>,
-    excludeEmptyChats = false,
-) {
+function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: string, isInGSDMode: boolean, betas: Beta[], policies: OnyxCollection<Policy>, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.

@@ -116,7 +116,7 @@ function ReportActionItemFragment(props) {
             if (props.isThreadParentMessage && props.moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.hiddenMessage')}</comment>`} />;
             }
-             
+
             if (ReportUtils.isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
