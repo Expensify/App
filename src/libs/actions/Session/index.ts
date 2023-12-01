@@ -341,25 +341,9 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        // Subsequently, we revert it back to the default value of signedInWithShortLivedAuthToken (undefined) in 'successData' to ensure the user is logged out on refresh
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                signedInWithShortLivedAuthToken: undefined,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' (undefined) in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // We are combining both success and failure data params into one const as they are identical
+    const resolutionData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -375,6 +359,9 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
             },
         },
     ];
+    
+    const successData = resolutionData;
+    const failureData = resolutionData;
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
