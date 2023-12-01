@@ -14,7 +14,6 @@ type DragAndDropParams = {
     dropZone: React.MutableRefObject<HTMLDivElement | View | null>;
     onDrop?: (event: DragEvent) => void;
     shouldAllowDrop?: boolean;
-    shouldClosePopover?: boolean;
     isDisabled?: boolean;
     shouldAcceptDrop?: (event: DragEvent) => boolean;
 };
@@ -26,14 +25,7 @@ type DragAndDropOptions = {
 /**
  * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({
-    dropZone,
-    onDrop = () => {},
-    shouldAllowDrop = true,
-    isDisabled = false,
-    shouldClosePopover = false,
-    shouldAcceptDrop = () => true,
-}: DragAndDropParams): DragAndDropOptions {
+export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
@@ -53,9 +45,15 @@ export default function useDragAndDrop({
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
 
-    const setDropEffect = useCallback(
+    const handleDragEvent = useCallback(
         (event: DragEvent) => {
-            const effect = shouldAllowDrop && shouldAcceptDrop(event) ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+            const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
+
+            if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
+                closePopover();
+            }
+
+            const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
 
             if (event.dataTransfer) {
                 // eslint-disable-next-line no-param-reassign
@@ -64,7 +62,7 @@ export default function useDragAndDrop({
                 event.dataTransfer.effectAllowed = effect;
             }
         },
-        [shouldAllowDrop, shouldAcceptDrop],
+        [shouldAllowDrop, shouldAcceptDrop, closePopover],
     );
 
     /**
@@ -81,14 +79,11 @@ export default function useDragAndDrop({
 
             switch (event.type) {
                 case DRAG_OVER_EVENT:
-                    setDropEffect(event);
+                    handleDragEvent(event);
                     break;
                 case DRAG_ENTER_EVENT:
                     dragCounter.current++;
-                    setDropEffect(event);
-                    if (shouldClosePopover) {
-                        closePopover();
-                    }
+                    handleDragEvent(event);
                     if (isDraggingOver) {
                         return;
                     }
@@ -111,7 +106,7 @@ export default function useDragAndDrop({
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop, closePopover, shouldClosePopover],
+        [isFocused, isDisabled, shouldAcceptDrop, isDraggingOver, onDrop, handleDragEvent],
     );
 
     useEffect(() => {
