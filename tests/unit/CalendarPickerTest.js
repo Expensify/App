@@ -1,5 +1,5 @@
 import {fireEvent, render, within} from '@testing-library/react-native';
-import {addYears, subYears} from 'date-fns';
+import {addMonths, addYears, subYears} from 'date-fns';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -64,20 +64,7 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('next-month-arrow'));
 
-        /**
-         * Handle edge case for last month "Decemeber" as
-         * adding a 1 to it will produce an invalid month
-         * 12 since the last index supported is 11, so we
-         * set it to 0 to represent January.
-         */
-        let nextMonth = new Date().getMonth();
-
-        if (nextMonth !== 11) {
-            nextMonth += 1;
-        } else {
-            nextMonth = 0;
-        }
-
+        const nextMonth = addMonths(new Date(), 1).getMonth();
         expect(getByText(monthNames[nextMonth])).toBeTruthy();
     });
 
