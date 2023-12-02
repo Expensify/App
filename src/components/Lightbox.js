@@ -77,11 +77,9 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const isCanvasLoading = canvasSize.width === 0 || canvasSize.height === 0;
-    const isLoading = isCanvasLoading || !isImageLoaded;
-
+    const isLoading = isActive && (isCanvasLoading || !isImageLoaded);
     const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
-    const [showFallback, setShowFallback] = useState(isInactiveCarouselItem);
-    const isFallbackVisible = showFallback;
+    const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
 
     useEffect(() => {
         if (!hasSiblingCarouselItems) {
@@ -89,17 +87,17 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         }
 
         if (isActive) {
-            if (isImageLoaded && showFallback) {
+            if (isImageLoaded && isFallbackVisible) {
                 // We delay hiding the fallback image while image transformer is still rendering
                 setTimeout(() => {
-                    setShowFallback(false);
+                    setFallbackVisible(false);
                 }, 100);
             }
         } else {
             // Show fallback when the image goes out of focus or when the image is loading
-            setShowFallback(true);
+            setFallbackVisible(true);
         }
-    }, [hasSiblingCarouselItems, isActive, isImageLoaded, showFallback]);
+    }, [hasSiblingCarouselItems, isActive, isImageLoaded, isFallbackVisible]);
 
     return (
         <View
@@ -110,7 +108,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             {!isCanvasLoading && (
                 <>
                     {isActive && (
-                        <View style={[StyleSheet.absoluteFill, {opacity: isFallbackVisible ? 0 : 1}]}>
+                        <View style={[StyleSheet.absoluteFill, {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
                             <MultiGestureCanvas
                                 isActive
                                 onScaleChanged={onScaleChanged}
