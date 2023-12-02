@@ -1540,32 +1540,9 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {String} writeCapability
- * @param {String} welcomeMessage
+ * @param {Object} policyReport
  */
-function addPolicyReport(policyID, reportName, visibility, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    const participants = [currentUserAccountID];
-    const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
-    const policyReport = ReportUtils.buildOptimisticChatReport(
-        participants,
-        reportName,
-        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policyID,
-        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        visibility,
-        writeCapability,
-
-        // The room might contain all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        parsedWelcomeMessage,
-    );
+function addPolicyReport(policyReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1587,6 +1564,11 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {[createdReportAction.reportActionID]: createdReportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: true},
+        },
     ];
     const successData = [
         {
@@ -1607,6 +1589,11 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -1618,22 +1605,26 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
 
     API.write(
         'AddWorkspaceRoom',
         {
             policyID: policyReport.policyID,
-            reportName,
-            visibility,
+            reportName: policyReport.reportName,
+            visibility: policyReport.visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
-            writeCapability,
-            welcomeMessage: parsedWelcomeMessage,
+            writeCapability: policyReport.writeCapability,
+            welcomeMessage: policyReport.welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -2512,6 +2503,13 @@ function updateLastVisitTime(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
 }
 
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -2574,4 +2572,5 @@ export {
     savePrivateNotesDraft,
     getDraftPrivateNote,
     updateLastVisitTime,
+    clearNewRoomFormError,
 };
