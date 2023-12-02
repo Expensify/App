@@ -2460,7 +2460,6 @@ export default {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE} por cada recomendación`,
             body1: 'Si conoces a alguien que dedique demasiado tiempo a los gastos (literalmente cualquiera: tu vecino, tu jefe, tu amigo de contabilidad), envíale tu enlace de invitación de Expensify:',
-            body2: `Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}. Así de fácil.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

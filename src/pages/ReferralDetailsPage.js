@@ -56,7 +56,6 @@ function ReferralDetailsPage({route, account}) {
     const contentHeader = translate(`referralProgram.${contentType}.header`);
     const contentBody = translate(`referralProgram.${contentType}.body1`);
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
-    const shouldShowBody2 = isShareCode;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
     const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account.primaryLogin)}`;
 
@@ -73,8 +72,8 @@ function ReferralDetailsPage({route, account}) {
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
         >
-            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8]}>{contentHeader}</Text>
-            <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
+            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8, styles.ph4]}>{contentHeader}</Text>
+            <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6, styles.ph4]}>{contentBody}</Text>
 
             {shouldShowClipboard && (
                 <ContextMenuItem
@@ -85,10 +84,6 @@ function ReferralDetailsPage({route, account}) {
                     successText={translate('qrCodes.copied')}
                     onPress={() => Clipboard.setString(referralLink)}
                 />
-            )}
-
-            {shouldShowBody2 && (
-                <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mv4]}>{translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.body2`)}</Text>
             )}
 
             <MenuItem

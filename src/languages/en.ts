@@ -1975,7 +1975,6 @@ export default {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE} for every referral`,
             body1: 'If you know anyone who’s spending too much time on expenses (literally anyone – your neighbor, your boss, your friend in accounting), send them your Expensify referral link:',
-            body2: `When they start an annual subscription, you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE}. Easy as that.`,
         },
         copyReferralLink: 'Copy referral link',
     },
