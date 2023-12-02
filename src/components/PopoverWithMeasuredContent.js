@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {computeHorizontalShift, computeVerticalShift} from '@styles/getPopoverWithMeasuredContentStyles';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Popover from './Popover';
 import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
@@ -61,6 +61,7 @@ const defaultProps = {
  */
 
 function PopoverWithMeasuredContent(props) {
+    const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
@@ -143,11 +144,11 @@ function PopoverWithMeasuredContent(props) {
         </Popover>
     ) : (
         /*
-            This is an invisible view used to measure the size of the popover,
-            before it ever needs to be displayed.
-            We do this because we need to know its dimensions in order to correctly animate the popover,
-            but we can't measure its dimensions without first rendering it.
-        */
+      This is an invisible view used to measure the size of the popover,
+      before it ever needs to be displayed.
+      We do this because we need to know its dimensions in order to correctly animate the popover,
+      but we can't measure its dimensions without first rendering it.
+  */
         <View
             style={styles.invisiblePopover}
             onLayout={measurePopover}

@@ -13,8 +13,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -54,9 +53,6 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
@@ -74,7 +70,6 @@ const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
     allPolicies: {},
-    betas: [],
     isLoading: false,
     innerRef: null,
     demoInfo: {},
@@ -87,6 +82,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function FloatingActionButtonAndPopover(props) {
+    const styles = useThemeStyles();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const anchorRef = useRef(null);
@@ -206,15 +202,13 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...(Permissions.canUseTasks(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Task,
-                                  text: props.translate('newTaskPage.assignTask'),
-                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                              },
-                          ]
-                        : []),
+                    ...[
+                        {
+                            icon: Expensicons.Task,
+                            text: props.translate('newTaskPage.assignTask'),
+                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                        },
+                    ],
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
@@ -238,7 +232,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
@@ -276,9 +270,6 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,

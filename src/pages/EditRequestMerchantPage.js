@@ -2,12 +2,13 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -20,6 +21,7 @@ const propTypes = {
 };
 
 function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
 
@@ -41,7 +43,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             testID={EditRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.merchant')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={onSubmit}
@@ -50,17 +52,18 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="merchant"
                         name="merchant"
                         defaultValue={defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (merchantInputRef.current = e)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

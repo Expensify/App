@@ -1,12 +1,9 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
 import {stylesGenerator} from './styles';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
 
-type ThemeStylesProviderProps = {
-    children: React.ReactNode;
-};
+type ThemeStylesProviderProps = React.PropsWithChildren;
 
 function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     const theme = useTheme();

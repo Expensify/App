@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,7 +18,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +35,9 @@ const defaultProps = {
     report: {},
 };
 
+const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
+    const styles = useThemeStyles();
     const validate = useCallback(() => ({}), []);
 
     const submit = useCallback(
@@ -93,12 +96,12 @@ function TaskDescriptionPage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="description"
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={(props.report && props.report.description) || ''}
+                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
                             ref={(el) => {
                                 if (!el) {
                                     return;
@@ -109,7 +112,7 @@ function TaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            textAlignVertical="top"
+                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
                 </FormProvider>

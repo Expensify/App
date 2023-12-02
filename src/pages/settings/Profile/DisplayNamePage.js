@@ -16,7 +16,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +44,7 @@ const updateDisplayName = (values) => {
 };
 
 function DisplayNamePage(props) {
+    const styles = useThemeStyles();
     const currentUserDetails = props.currentUserPersonalDetails || {};
 
     /**
@@ -100,8 +101,8 @@ function DisplayNamePage(props) {
                             inputID="firstName"
                             name="fname"
                             label={props.translate('common.firstName')}
-                            accessibilityLabel={props.translate('common.firstName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.firstName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
@@ -113,8 +114,8 @@ function DisplayNamePage(props) {
                             inputID="lastName"
                             name="lname"
                             label={props.translate('common.lastName')}
-                            accessibilityLabel={props.translate('common.lastName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('common.lastName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}

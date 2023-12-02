@@ -378,16 +378,11 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(
-        allSortedReportActions[report.reportID],
-        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
-    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
@@ -404,6 +399,8 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
+    } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
@@ -415,18 +412,6 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
-        // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
-                ) || {};
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-        }
     }
     return lastMessageTextFromReport;
 }
@@ -533,10 +518,10 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             });
         }
 
-        if (result.isChatRoom || result.isPolicyExpenseChat) {
-            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
-        } else if (result.isMoneyRequestReport) {
+        if (result.isThread || result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        } else if (result.isChatRoom || result.isPolicyExpenseChat) {
+            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
@@ -544,7 +529,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -745,6 +730,21 @@ function sortCategories(categories) {
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} tags
+ * @returns {Array<Object>}
+ */
+function sortTags(tags) {
+    const sortedTags = _.chain(tags)
+        .values()
+        .sortBy((tag) => tag.name)
+        .value();
+
+    return sortedTags;
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -922,7 +922,7 @@ function getTagsOptions(tags) {
 /**
  * Build the section list for tags
  *
- * @param {Object[]} tags
+ * @param {Object[]} rawTags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -932,9 +932,16 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const tags = _.map(rawTags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {...tag, name: tagName};
+    });
+    const sortedTags = sortTags(tags);
+    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 

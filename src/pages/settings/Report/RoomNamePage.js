@@ -16,7 +16,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function RoomNamePage(props) {
+    const styles = useThemeStyles();
     const policy = props.policy;
     const report = props.report;
     const reports = props.reports;

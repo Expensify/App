@@ -8,8 +8,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
@@ -25,6 +25,7 @@ const defaultProps = {
 };
 
 function EmojiPickerButtonDropdown(props) {
+    const styles = useThemeStyles();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -48,9 +49,9 @@ function EmojiPickerButtonDropdown(props) {
                 style={styles.emojiPickerButtonDropdown}
                 disabled={props.isDisabled}
                 onPress={onPress}
-                nativeID="emojiDropdownButton"
+                id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>

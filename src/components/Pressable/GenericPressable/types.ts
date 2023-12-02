@@ -1,16 +1,10 @@
 import {ElementRef, RefObject} from 'react';
 import {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
+import {Shortcut} from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
-
-type Shortcut = {
-    displayName: string;
-    shortcutKey: string;
-    descriptionKey: string;
-    modifiers: string[];
-};
 
 type RequiredAccessibilityLabel =
     | {

@@ -9,9 +9,9 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import DisplayNames from './DisplayNames';
@@ -89,6 +89,8 @@ const showActorDetails = (report, shouldEnableDetailPageNavigation = false) => {
 };
 
 function AvatarWithDisplayName(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const title = ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
@@ -99,7 +101,7 @@ function AvatarWithDisplayName(props) {
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
-    const avatarBorderColor = props.isAnonymous ? themeColors.highlightBG : themeColors.componentBG;
+    const avatarBorderColor = props.isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
@@ -108,7 +110,7 @@ function AvatarWithDisplayName(props) {
                     <PressableWithoutFeedback
                         onPress={() => showActorDetails(props.report, props.shouldEnableDetailPageNavigation)}
                         accessibilityLabel={title}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
@@ -163,7 +165,7 @@ function AvatarWithDisplayName(props) {
             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
         >
             {headerView}
         </PressableWithoutFeedback>

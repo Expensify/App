@@ -14,8 +14,8 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
@@ -53,7 +53,9 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlay = false,
     singleExecution = (func) => func,
+    shouldNavigateToTopMostReport = false,
 }) {
+    const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -73,11 +75,17 @@ function HeaderWithBackButton({
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                onBackButtonPress();
+                                const topmostReportId = Navigation.getTopmostReportId();
+                                if (shouldNavigateToTopMostReport && topmostReportId) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+                                } else {
+                                    onBackButtonPress();
+                                }
                             }}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
+                            role="button"
                             accessibilityLabel={translate('common.back')}
+                            nativeID={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
@@ -118,7 +126,7 @@ function HeaderWithBackButton({
                                     temporarilyDisableDownloadButton(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('common.download')}
                             >
                                 <Icon
@@ -134,7 +142,7 @@ function HeaderWithBackButton({
                                 disabled={shouldDisableGetAssistanceButton}
                                 onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
                                 <Icon
@@ -159,7 +167,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon

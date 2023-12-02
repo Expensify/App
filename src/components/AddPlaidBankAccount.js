@@ -9,8 +9,8 @@ import useNetwork from '@hooks/useNetwork';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -83,6 +83,8 @@ function AddPlaidBankAccount({
     allowDebit,
     isPlaidDisabled,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
@@ -166,7 +168,7 @@ function AddPlaidBankAccount({
         value: account.plaidAccountID,
         label: `${account.addressName} ${account.mask}`,
     }));
-    const {icon, iconSize, iconStyles} = getBankIcon();
+    const {icon, iconSize, iconStyles} = getBankIcon({themeStyles: styles});
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
@@ -186,7 +188,7 @@ function AddPlaidBankAccount({
                 {lodashGet(plaidData, 'isLoading') && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             size="large"
                         />
                     </View>
@@ -207,7 +209,7 @@ function AddPlaidBankAccount({
                             // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                             if (event === 'ERROR') {
                                 Log.hmmm('[PlaidLink] Error: ', metadata);
-                                if (bankAccountID && metadata.error_code) {
+                                if (bankAccountID && metadata && metadata.error_code) {
                                     BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
                                 }
                             }

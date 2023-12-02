@@ -43,7 +43,7 @@ const lightTheme = {
     hoverComponentBG: colors.lightHighlightBackground,
     activeComponentBG: colors.lightBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.lightAppBackground,
+    sidebar: colors.lightHighlightBackground,
     sidebarHover: colors.lightBorders,
     heading: colors.lightPrimaryText,
     textLight: colors.white,
@@ -85,6 +85,10 @@ const lightTheme = {
     mapAttributionText: colors.black,
     white: colors.white,
 
+    // Adding a color here will animate the status bar to the right color when the screen is opened.
+    // Note that it needs to be a screen name, not a route url.
+    // The route urls from ROUTES.ts are only used for deep linking and configuring URLs on web.
+    // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.lightHighlightBackground,
         [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,

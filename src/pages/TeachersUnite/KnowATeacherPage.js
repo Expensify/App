@@ -16,7 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ const defaultProps = {
 };
 
 function KnowATeacherPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     /**
@@ -116,7 +117,7 @@ function KnowATeacherPage(props) {
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -128,7 +129,7 @@ function KnowATeacherPage(props) {
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -140,8 +141,8 @@ function KnowATeacherPage(props) {
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
                 </View>

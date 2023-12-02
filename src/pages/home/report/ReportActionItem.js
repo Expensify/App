@@ -366,7 +366,7 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
@@ -428,7 +428,12 @@ function ReportActionItem(props) {
                                 isHidden={isHidden}
                                 style={[
                                     _.contains(
-                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        [
+                                            ..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+                                            CONST.REPORT.ACTIONS.TYPE.IOU,
+                                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                            CONST.REPORT.ACTIONS.TYPE.MOVED,
+                                        ],
                                         props.action.actionName,
                                     )
                                         ? styles.colorMuted
@@ -442,8 +447,7 @@ function ReportActionItem(props) {
                                     onPress={() => updateHiddenState(!isHidden)}
                                 >
                                     <Text
-                                        style={styles.buttonSmallText}
-                                        selectable={false}
+                                        style={[styles.buttonSmallText, styles.userSelectNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
@@ -540,7 +544,7 @@ function ReportActionItem(props) {
                 <ReportActionItemSingle
                     action={props.action}
                     showHeader={!props.draftMessage}
-                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    wrapperStyle={isWhisper ? styles.pt1 : {}}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     iouReport={props.iouReport}
@@ -552,7 +556,7 @@ function ReportActionItem(props) {
             );
         }
 
-        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
+        return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -582,7 +586,6 @@ function ReportActionItem(props) {
                             <ReportActionItemSingle
                                 action={parentReportAction}
                                 showHeader={!props.draftMessage}
-                                wrapperStyles={[styles.chatItem]}
                                 report={props.report}
                             >
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
@@ -656,8 +659,8 @@ function ReportActionItem(props) {
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
-            pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
             ref={popoverAnchorRef}
+            style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}

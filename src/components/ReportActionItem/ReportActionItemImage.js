@@ -12,13 +12,13 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** thumbnail URI for the image */
-    thumbnail: PropTypes.string,
+    thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** URI for the image or local numeric reference for the image  */
     image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -28,12 +28,16 @@ const propTypes = {
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
     transaction: transactionPropTypes,
+
+    /** whether thumbnail is refer the local file or not */
+    isLocalFile: PropTypes.bool,
 };
 
 const defaultProps = {
     thumbnail: null,
     transaction: {},
     enablePreviewModal: false,
+    isLocalFile: false,
 };
 
 /**
@@ -42,7 +46,8 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -56,7 +61,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                 <EReceiptThumbnail transactionID={transaction.transactionID} />
             </View>
         );
-    } else if (thumbnail) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -68,7 +73,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
     } else {
         receiptImageComponent = (
             <Image
-                source={{uri: image}}
+                source={{uri: thumbnail || image}}
                 style={[styles.w100, styles.h100]}
             />
         );
@@ -84,7 +89,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                             const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
                             Navigation.navigate(route);
                         }}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     >
                         {receiptImageComponent}
