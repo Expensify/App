@@ -1,8 +1,8 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -140,11 +140,12 @@ function BaseModal(
                     isSmallScreenWidth,
                 },
                 theme,
+                styles,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth],
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth, styles],
     );
 
     const {

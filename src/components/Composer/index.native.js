@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -64,10 +65,10 @@ const defaultProps = {
     style: null,
 };
 
-function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
+function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, style, ...props}) {
     const textInput = useRef(null);
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     /**
      * Set the TextInput Ref
@@ -95,7 +96,8 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         onClear();
     }, [shouldClear, onClear]);
 
-    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [isComposerFullSize, maxLines]);
+    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(styles, maxLines, isComposerFullSize), [isComposerFullSize, maxLines, styles]);
+    const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
         <RNTextInput
@@ -109,7 +111,9 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             rejectResponderTermination={false}
             smartInsertDelete
             textAlignVertical="center"
-            style={[...props.style, maxHeightStyle]}
+            style={[composerStyle, maxHeightStyle]}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
             readOnly={isDisabled}
         />
     );
