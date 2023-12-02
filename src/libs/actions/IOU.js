@@ -1264,10 +1264,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} comment
  * @param {String} currency
  * @param {String} category
- * @param {String} merchant
  * @param {String} tag
+ * @param {String} merchant
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, merchant, tag) {
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, merchant) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, '', merchant);
     API.write(
         'SplitBillAndOpenReport',
