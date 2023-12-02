@@ -19,13 +19,18 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as Constants from './Constants';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
-const DOUBLE_TAP_SCALE = 3;
-
 const SPRING_CONFIG = {
     mass: 1,
     stiffness: 1000,
     damping: 500,
 };
+
+function getCanvasFitScale({canvasSize, contentSize}) {
+    const scaleX = canvasSize.width / contentSize.width;
+    const scaleY = canvasSize.height / contentSize.height;
+
+    return {scaleX, scaleY};
+}
 
 function clamp(value, lowerBound, upperBound) {
     'worklet';
@@ -33,19 +38,10 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-function getDeepDefaultProps({contentSize: contentSizeProp = {}, contentScaling: contentScalingProp = {}, zoomRange: zoomRangeProp = {}}) {
+function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoomRangeProp = {}}) {
     const contentSize = {
-        width: contentSizeProp.width == null ? 0 : contentSizeProp.width,
-        height: contentSizeProp.height == null ? 0 : contentSizeProp.width,
-    };
-
-    const scaleX = contentScalingProp.scaleX == null ? 1 : contentScalingProp.scaleX;
-    const scaleY = contentScalingProp.scaleY == null ? 1 : contentScalingProp.scaleY;
-    const contentScaling = {
-        scaleX,
-        scaleY,
-        scaledWidth: contentScalingProp.scaledWidth == null ? contentSize.width * scaleX : contentScalingProp.scaledWidth,
-        scaledHeight: contentScalingProp.scaledHeight == null ? contentSize.height * scaleY : contentScalingProp.scaledHeight,
+        width: contentSizeProp.width == null ? 1 : contentSizeProp.width,
+        height: contentSizeProp.height == null ? 1 : contentSizeProp.height,
     };
 
     const zoomRange = {
@@ -53,12 +49,12 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, contentScaling:
         max: zoomRangeProp.max == null ? Constants.defaultZoomRange.max : zoomRangeProp.max,
     };
 
-    return {contentSize, contentScaling, zoomRange};
+    return {contentSize, zoomRange};
 }
 
 function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}) {
     const styles = useThemeStyles();
-    const {contentSize, contentScaling, zoomRange} = getDeepDefaultProps(props);
+    const {contentSize, zoomRange} = getDeepDefaultProps(props);
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
@@ -74,11 +70,15 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         ...props,
     };
 
-    const minContentScale = useMemo(() => Math.min(contentScaling.scaleX, contentScaling.scaleY), [contentScaling.scaleX, contentScaling.scaleY]);
-    const maxContentScale = useMemo(() => Math.max(contentScaling.scaleX, contentScaling.scaleY), [contentScaling.scaleX, contentScaling.scaleY]);
+    const {scaleX, scaleY} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
+    const minContentScale = useMemo(() => Math.min(scaleX, scaleY), [scaleX, scaleY]);
+    const maxContentScale = useMemo(() => Math.max(scaleX, scaleY), [scaleX, scaleY]);
+
+    const scaledWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
+    const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
     // On double tap zoom to fill, but at least 3x zoom
-    const doubleTapScale = useMemo(() => Math.max(maxContentScale / minContentScale, DOUBLE_TAP_SCALE), [maxContentScale, minContentScale]);
+    const doubleTapScale = useMemo(() => maxContentScale / minContentScale, [maxContentScale, minContentScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the content into the canvas
@@ -221,12 +221,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
 
             stopAnimation();
 
-            const canvasOffsetX = Math.max(0, (canvasSize.width - contentScaling.scaledWidth) / 2);
-            const canvasOffsetY = Math.max(0, (canvasSize.height - contentScaling.scaledHeight) / 2);
+            const canvasOffsetX = Math.max(0, (canvasSize.width - scaledWidth) / 2);
+            const canvasOffsetY = Math.max(0, (canvasSize.height - scaledHeight) / 2);
 
             const contentFocal = {
-                x: clamp(canvasFocalX - canvasOffsetX, 0, contentScaling.scaledWidth),
-                y: clamp(canvasFocalY - canvasOffsetY, 0, contentScaling.scaledHeight),
+                x: clamp(canvasFocalX - canvasOffsetX, 0, scaledWidth),
+                y: clamp(canvasFocalY - canvasOffsetY, 0, scaledHeight),
             };
 
             const canvasCenter = {
@@ -235,13 +235,13 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             };
 
             const originContentCenter = {
-                x: contentScaling.scaledWidth / 2,
-                y: contentScaling.scaledHeight / 2,
+                x: scaledWidth / 2,
+                y: scaledHeight / 2,
             };
 
             const targetContentSize = {
-                width: contentScaling.scaledWidth * doubleTapScale,
-                height: contentScaling.scaledHeight * doubleTapScale,
+                width: scaledWidth * doubleTapScale,
+                height: scaledHeight * doubleTapScale,
             };
 
             const targetContentCenter = {
@@ -273,7 +273,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScaleOffset.value = doubleTapScale;
         },
-        [contentScaling.scaledWidth, contentScaling.scaledHeight, canvasSize.width, canvasSize.height],
+        [scaledWidth, scaledHeight, canvasSize.width, canvasSize.height],
     );
 
     const reset = useWorkletCallback((animated) => {
