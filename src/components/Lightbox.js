@@ -111,7 +111,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             height: PixelRatio.roundToNearestPixel(imageSize.height * minScale),
         };
     }, [canvasSize, hasSiblingCarouselItems, imageDimensions]);
-    // const [fallbackImageSize, setFallbackImageSize] = useState(undefined);
 
     return (
         <View
@@ -160,14 +159,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 onLoad={(e) => {
                                     const width = e.nativeEvent?.width || 0;
                                     const height = e.nativeEvent?.height || 0;
-                                    // const contentSize = {width, height};
-                                    // setImageDimensions({...imageDimensions, fallbackSize: {width, height}});
-                                    // const {minContentScale} = getCanvasFitScale({canvasSize, contentSize});
-
-                                    // const scaled = {
-                                    //     width: PixelRatio.roundToNearestPixel(width * minContentScale),
-                                    //     height: PixelRatio.roundToNearestPixel(height * minContentScale),
-                                    // };
 
                                     if (imageDimensions?.contentSize != null) {
                                         return;
