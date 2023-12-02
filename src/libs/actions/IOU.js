@@ -63,34 +63,6 @@ Onyx.connect({
     },
 });
 
-let allRecentlyUsedTags = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allRecentlyUsedTags = {};
-            return;
-        }
-
-        allRecentlyUsedTags = value;
-    },
-});
-
-let allPolicyTags = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
 let userAccountID = '';
 let currentUserEmail = '';
 Onyx.connect({
@@ -508,21 +480,9 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    let optimisticPolicyRecentlyUsedCategories = [];
-    if (category) {
-        optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
-    }
+    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
 
-    const optimisticPolicyRecentlyUsedTags = {};
-    const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];
-    const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
-
-    if (policyTags) {
-        // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-        const tagListKey = _.first(_.keys(policyTags));
-        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags ? _.filter(recentlyUsedPolicyTags[tagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag) : [];
-        optimisticPolicyRecentlyUsedTags[tagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
-    }
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -920,12 +880,13 @@ function requestMoney(
  * @param {String} comment
  * @param {String} currency
  * @param {String} category
+ * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
  * @param {String} merchant
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant) {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -948,6 +909,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         undefined,
         undefined,
         category,
+        tag,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -1138,6 +1100,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             undefined,
             undefined,
             category,
+            tag,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -1186,10 +1149,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        let optimisticPolicyRecentlyUsedCategories = [];
-        if (isPolicyExpenseChat) {
-            optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
-        }
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+
+        // Add tag to optimistic policy recently used tags when a participant is a workspace
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -1202,7 +1165,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
             optimisticPolicyRecentlyUsedCategories,
-            {},
+            optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
         );
@@ -1252,10 +1215,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} comment
  * @param {String} currency
  * @param {String} category
+ * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  * @param {String} merchant
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '', merchant) {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1264,6 +1228,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         comment,
         currency,
         category,
+        tag,
         existingSplitChatReportID,
         merchant,
     );
@@ -1277,6 +1242,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             comment,
             category,
             merchant,
+            tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1299,10 +1265,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} currency
  * @param {String} category
  * @param {String} merchant
+ * @param {String} tag
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, merchant) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, '', merchant);
-
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, merchant, tag) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, '', merchant);
     API.write(
         'SplitBillAndOpenReport',
         {
@@ -1313,6 +1279,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             comment,
             category,
             merchant,
+            tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1842,16 +1809,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         updatedChatReport.lastMessageHtml = messageText;
     }
 
-    const optimisticPolicyRecentlyUsedTags = {};
-    if (_.has(transactionChanges, 'tag')) {
-        const tagListName = transactionChanges.tagListName;
-        const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
-
-        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags
-            ? _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag)
-            : [];
-        optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
-    }
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
 
     const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
 
