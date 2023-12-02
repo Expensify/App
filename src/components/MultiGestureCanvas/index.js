@@ -29,7 +29,10 @@ function getCanvasFitScale({canvasSize, contentSize}) {
     const scaleX = canvasSize.width / contentSize.width;
     const scaleY = canvasSize.height / contentSize.height;
 
-    return {scaleX, scaleY};
+    const minScale = Math.min(scaleX, scaleY);
+    const maxScale = Math.max(scaleX, scaleY);
+
+    return {scaleX, scaleY, minScale, maxScale};
 }
 
 function clamp(value, lowerBound, upperBound) {
@@ -70,10 +73,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         ...props,
     };
 
-    const {scaleX, scaleY} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
-    const minContentScale = useMemo(() => Math.min(scaleX, scaleY), [scaleX, scaleY]);
-    const maxContentScale = useMemo(() => Math.max(scaleX, scaleY), [scaleX, scaleY]);
-
+    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
     const scaledWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
@@ -601,3 +601,4 @@ MultiGestureCanvas.defaultProps = multiGestureCanvasDefaultProps;
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
+export {getCanvasFitScale};
