@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -29,6 +30,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -189,4 +191,13 @@ function TaskView(props) {
 TaskView.propTypes = propTypes;
 TaskView.displayName = 'TaskView';
 
-export default compose(withWindowDimensions, withLocalize, withCurrentUserPersonalDetails)(TaskView);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+)(TaskView);
