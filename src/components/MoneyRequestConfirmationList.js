@@ -8,6 +8,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -27,17 +28,16 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
+import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
@@ -210,6 +210,7 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
@@ -223,7 +224,6 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
-
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -239,7 +239,7 @@ function MoneyRequestConfirmationList(props) {
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
@@ -508,7 +508,6 @@ function MoneyRequestConfirmationList(props) {
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
-                shouldShowPaymentOptions
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -635,20 +634,10 @@ function MoneyRequestConfirmationList(props) {
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                    <Button
-                        small
-                        onPress={toggleShouldExpandFields}
-                        text={translate('common.showMore')}
-                        shouldShowRightIcon
-                        iconRight={Expensicons.DownArrow}
-                        iconFill={theme.icon}
-                        style={styles.mh0}
-                    />
-
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-                </View>
+                <ShowMoreButton
+                    containerStyle={styles.mt1}
+                    onPress={toggleShouldExpandFields}
+                />
             )}
             {shouldShowAllFields && (
                 <>
@@ -715,6 +704,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -727,6 +717,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
+                            rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
 

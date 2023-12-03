@@ -172,7 +172,7 @@ function MoneyRequestPreview(props) {
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
@@ -220,6 +220,8 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
+        } else if (props.iouReport.isCancelledIOU) {
+            message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
     };
@@ -280,9 +282,9 @@ function MoneyRequestPreview(props) {
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {hasFieldErrors && (
+                                {!isSettled && hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
@@ -358,15 +360,17 @@ function MoneyRequestPreview(props) {
         return childContainer;
     }
 
+    const shouldDisableOnPress = props.isBillSplit && _.isEmpty(props.transaction);
+
     return (
         <PressableWithFeedback
-            onPress={props.onPreviewPressed}
+            onPress={shouldDisableOnPress ? undefined : props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles, shouldDisableOnPress && styles.cursorDefault]}
         >
             {childContainer}
         </PressableWithFeedback>

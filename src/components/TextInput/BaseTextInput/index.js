@@ -250,7 +250,7 @@ function BaseTextInput(props) {
     return (
         <>
             <View
-                style={styles.pointerEventsNone}
+                style={[styles.pointerEventsNone, ...props.containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
@@ -261,7 +261,6 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        ...props.containerStyles,
                     ]}
                 >
                     <View
@@ -334,7 +333,7 @@ function BaseTextInput(props) {
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,

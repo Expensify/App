@@ -13,7 +13,6 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -139,8 +138,6 @@ const getNextChars = (str, cursorPos) => {
     return substr.substring(0, spaceIndex);
 };
 
-const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
-
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({
@@ -174,11 +171,10 @@ function Composer({
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
-        start: initialValue.length,
-        end: initialValue.length,
+        start: selectionProp.start,
+        end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
@@ -334,19 +330,6 @@ function Composer({
     );
 
     /**
-     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
-     * @param {Object} event native Event
-     */
-    const handleWheel = useCallback((event) => {
-        if (event.target !== document.activeElement) {
-            return;
-        }
-
-        textInput.current.scrollTop += event.deltaY;
-        event.stopPropagation();
-    }, []);
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -387,7 +370,6 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -397,11 +379,6 @@ function Composer({
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            // eslint-disable-next-line es/no-optional-chaining
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

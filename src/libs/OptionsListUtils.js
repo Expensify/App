@@ -350,11 +350,11 @@ function getAllReportErrors(report, reportActions) {
     if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
-        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
+        if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
     }
@@ -397,6 +397,8 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
+    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -529,7 +531,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -730,6 +732,21 @@ function sortCategories(categories) {
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} tags
+ * @returns {Array<Object>}
+ */
+function sortTags(tags) {
+    const sortedTags = _.chain(tags)
+        .values()
+        .sortBy((tag) => tag.name)
+        .value();
+
+    return sortedTags;
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -907,7 +924,7 @@ function getTagsOptions(tags) {
 /**
  * Build the section list for tags
  *
- * @param {Object[]} tags
+ * @param {Object[]} rawTags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -917,9 +934,16 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const tags = _.map(rawTags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {...tag, name: tagName};
+    });
+    const sortedTags = sortTags(tags);
+    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 
