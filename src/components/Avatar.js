@@ -81,10 +81,10 @@ function Avatar(props) {
 
     const imageStyle =
         props.imageStyles && props.imageStyles.length
-            ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, styles.noBorderRadius]
-            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
+            ? [StyleUtils.getAvatarStyle(theme, props.size), ...props.imageStyles, styles.noBorderRadius]
+            : [StyleUtils.getAvatarStyle(theme, props.size), styles.noBorderRadius];
 
-    const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
+    const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(theme, props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill || theme.icon;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon || Expensicons.FallbackAvatar;

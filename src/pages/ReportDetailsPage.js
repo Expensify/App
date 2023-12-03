@@ -137,13 +137,13 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, props.session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -157,7 +157,7 @@ function ReportDetailsPage(props) {
             fullTitle={chatRoomSubtitle}
             tooltipEnabled
             numberOfLines={1}
-            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
             shouldUseFullTitle
         />
     ) : null;
@@ -167,12 +167,8 @@ function ReportDetailsPage(props) {
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
+                    shouldNavigateToTopMostReport
                     onBackButtonPress={() => {
-                        const topMostReportID = Navigation.getTopmostReportId();
-                        if (topMostReportID) {
-                            Navigation.goBack(ROUTES.HOME);
-                            return;
-                        }
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
                     }}
@@ -259,6 +255,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

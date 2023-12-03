@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
-import Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -41,9 +40,6 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Popover anchor ref */
     anchorRef: refPropTypes,
 
@@ -61,13 +57,18 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-    betas: [],
     anchorRef: () => {},
     session: {},
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, betas}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
     const {translate} = useLocalize();
+
+    // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
+    // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
+    const canUseBusinessBankAccount =
+        ReportUtils.isExpenseReport(iouReport) ||
+        (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
 
     return (
         <PopoverMenu
@@ -89,7 +90,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
                           },
                       ]
                     : []),
-                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0))
+                ...(canUseBusinessBankAccount
                     ? [
                           {
                               text: translate('common.businessBankAccount'),
@@ -98,15 +99,13 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
                           },
                       ]
                     : []),
-                ...(Permissions.canUseWallet(betas)
-                    ? [
-                          {
-                              text: translate('common.debitCard'),
-                              icon: Expensicons.CreditCard,
-                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-                          },
-                      ]
-                    : []),
+                ...[
+                    {
+                        text: translate('common.debitCard'),
+                        icon: Expensicons.CreditCard,
+                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                    },
+                ],
             ]}
             withoutOverlay
         />
@@ -120,9 +119,6 @@ AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 export default compose(
     withWindowDimensions,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
