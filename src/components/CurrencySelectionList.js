@@ -50,7 +50,7 @@ function CurrencySelectionList(props) {
             const isSelectedCurrency = currencyCode === props.initiallySelectedCurrencyCode;
             return {
                 currencyName: currencyInfo.name,
-                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
                 isSelected: isSelectedCurrency,
