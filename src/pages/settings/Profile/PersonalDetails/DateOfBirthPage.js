@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
+import DatePicker from '@components/DatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
@@ -81,7 +81,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <NewDatePicker
+                    <DatePicker
                         inputID="dob"
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}

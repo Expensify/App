@@ -10,7 +10,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
+import DatePicker from '@components/DatePicker';
 import Picker from '@components/Picker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StatePicker from '@components/StatePicker';
@@ -241,7 +241,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <NewDatePicker
+                    <DatePicker
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
