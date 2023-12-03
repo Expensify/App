@@ -9,6 +9,9 @@ import Image from './Image';
 import MultiGestureCanvas, {getCanvasFitScale} from './MultiGestureCanvas';
 import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
 
+// Increase/decrease this number to change the number of concurrent lightboxes
+// The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
+// -1 means unlimited
 const NUMBER_OF_CONCURRENT_LIGHTBOXES = 3;
 
 const cachedDimensions = new Map();
