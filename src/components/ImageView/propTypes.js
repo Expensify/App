@@ -25,6 +25,12 @@ const imageViewPropTypes = {
 
     /** When "isUsedInCarousel" is set to true, determines whether there is only one item in the carousel */
     isSingleCarouselItem: PropTypes.bool,
+
+    /** The index of the carousel item */
+    carouselItemIndex: PropTypes.number,
+
+    /** The index of the currently active carousel item */
+    carouselActiveItemIndex: PropTypes.number,
 };
 
 const imageViewDefaultProps = {
@@ -33,6 +39,8 @@ const imageViewDefaultProps = {
     isFocused: true,
     isUsedInCarousel: false,
     isSingleCarouselItem: false,
+    carouselItemIndex: 0,
+    carouselActiveItemIndex: 0,
 };
 
 export {imageViewPropTypes, imageViewDefaultProps};

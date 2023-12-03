@@ -12,7 +12,22 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, isUsedInCarousel, isSingleCarouselItem, isFocused, loadComplete, onPress, onError, isImage, onScaleChanged, translate}) {
+function AttachmentViewImage({
+    source,
+    file,
+    isAuthTokenRequired,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isFocused,
+    loadComplete,
+    onPress,
+    onError,
+    isImage,
+    onScaleChanged,
+    translate,
+}) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
@@ -24,6 +39,8 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, isUsedInCarouse
             isFocused={isFocused}
             isUsedInCarousel={isUsedInCarousel}
             isSingleCarouselItem={isSingleCarouselItem}
+            carouselItemIndex={carouselItemIndex}
+            carouselActiveItemIndex={carouselActiveItemIndex}
         />
     );
 

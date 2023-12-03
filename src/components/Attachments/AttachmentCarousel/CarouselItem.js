@@ -40,8 +40,11 @@ const propTypes = {
     /** Whether there is only one element in the attachment carousel */
     isSingleItem: PropTypes.bool.isRequired,
 
-    /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+    /** The index of the carousel item */
+    index: PropTypes.number.isRequired,
+
+    /** The index of the currently active carousel item */
+    activeIndex: PropTypes.number.isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
@@ -51,7 +54,7 @@ const defaultProps = {
     onPress: undefined,
 };
 
-function CarouselItem({item, isFocused, isSingleItem, onPress}) {
+function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -101,9 +104,10 @@ function CarouselItem({item, isFocused, isSingleItem, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isFocused={isFocused}
                     isUsedInCarousel
                     isSingleCarouselItem={isSingleItem}
+                    carouselItemIndex={index}
+                    carouselActiveItemIndex={activeIndex}
                     onPress={onPress}
                     transactionID={item.transactionID}
                 />

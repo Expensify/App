@@ -11,6 +11,9 @@ const attachmentViewPropTypes = {
     /** File object can be an instance of File or Object */
     file: AttachmentsPropTypes.attachmentFilePropType,
 
+    /** Whether this view is the active screen  */
+    isFocused: PropTypes.bool,
+
     /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
     isUsedInCarousel: PropTypes.bool,
 
@@ -20,8 +23,11 @@ const attachmentViewPropTypes = {
     /** Whether this AttachmentView is shown as part of an AttachmentModal */
     isUsedInAttachmentModal: PropTypes.bool,
 
-    /** Whether this view is the active screen  */
-    isFocused: PropTypes.bool,
+    /** The index of the carousel item */
+    carouselItemIndex: PropTypes.number,
+
+    /** The index of the currently active carousel item */
+    carouselActiveItemIndex: PropTypes.number,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -35,10 +41,12 @@ const attachmentViewDefaultProps = {
     file: {
         name: '',
     },
+    isFocused: false,
     isUsedInCarousel: false,
     isSingleCarouselItem: false,
+    carouselItemIndex: 0,
+    carouselActiveItemIndex: 0,
     isSingleElement: false,
-    isFocused: false,
     isUsedInAttachmentModal: false,
     onPress: undefined,
     onScaleChanged: () => {},

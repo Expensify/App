@@ -71,9 +71,11 @@ function AttachmentView({
     onScaleChanged,
     onToggleKeyboard,
     translate,
+    isFocused,
     isUsedInCarousel,
     isSingleCarouselItem,
-    isFocused,
+    carouselItemIndex,
+    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     fallbackSource,
@@ -133,9 +135,11 @@ function AttachmentView({
                 <AttachmentViewPdf
                     source={source}
                     file={file}
+                    isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    isFocused={isFocused}
+                    carouselItemIndex={carouselItemIndex}
+                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
@@ -162,9 +166,11 @@ function AttachmentView({
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
+                isFocused={isFocused}
                 isUsedInCarousel={isUsedInCarousel}
                 isSingleCarouselItem={isSingleCarouselItem}
-                isFocused={isFocused}
+                carouselItemIndex={carouselItemIndex}
+                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}

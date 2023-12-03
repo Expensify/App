@@ -27,7 +27,7 @@ const defaultProps = {
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError, isFocused, isUsedInCarousel, isSingleCarouselItem}) {
+function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError, isUsedInCarousel, isSingleCarouselItem, carouselItemIndex, carouselActiveItemIndex}) {
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
 
     return (
@@ -38,7 +38,8 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zo
             onScaleChanged={onScaleChanged}
             onPress={onPress}
             onError={onError}
-            isActive={isFocused}
+            index={carouselItemIndex}
+            activeIndex={carouselActiveItemIndex}
             hasSiblingCarouselItems={hasSiblingCarouselItems}
             style={style}
         />

@@ -24,10 +24,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [isReceipt, setIsReceipt] = useState(false);
+    const [activeSource, setActiveSource] = useState(source);
 
     const compareImage = useCallback(
         (attachment) => {
@@ -105,15 +105,17 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item, isActive}) => (
+        ({item, index}) => (
             <CarouselItem
                 item={item}
                 isSingleItem={attachments.length === 1}
-                isFocused={isActive && activeSource === item.source}
+                index={index}
+                activeIndex={page}
+                isFocused={activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, attachments.length, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
