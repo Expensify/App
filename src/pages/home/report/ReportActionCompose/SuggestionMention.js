@@ -200,13 +200,26 @@ function SuggestionMention({
             const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
+            const secondToLastWord = words[words.length - 3];
 
             let atSignIndex;
+            let suggestionWord;
+            let prefix;
+
+            // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
                 atSignIndex = leftString.lastIndexOf(lastWord);
-            }
+                suggestionWord = lastWord;
 
-            const prefix = lastWord.substring(1);
+                prefix = suggestionWord.substring(1);
+            } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
+                atSignIndex = leftString.lastIndexOf(secondToLastWord);
+                suggestionWord = `${secondToLastWord} ${lastWord}`;
+
+                prefix = suggestionWord.substring(1);
+            } else {
+                prefix = lastWord.substring(1);
+            }
 
             const nextState = {
                 suggestedMentions: [],
@@ -214,10 +227,11 @@ function SuggestionMention({
                 mentionPrefix: prefix,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
 
-            if (!isCursorBeforeTheMention && isMentionCode(lastWord)) {
+            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
+
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !_.isEmpty(suggestions);
             }
