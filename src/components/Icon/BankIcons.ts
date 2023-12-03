@@ -95,7 +95,11 @@ function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgPr
 }
 
 function getBankNameKey(bankName: string): BankNameKey {
-    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => value?.toLowerCase() === bankName);
+    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => {
+       const condensedValue = value.replace(/\s/g, '');
+       return bankName === value || bankName.includes(value) || bankName.startsWith(value) ||
+              bankName === condensedValue || bankName.includes(condensedValue) || bankName.startsWith(condensedValue);
+    });
     return (bank?.[0] as BankNameKey) ?? '';
 }
 
