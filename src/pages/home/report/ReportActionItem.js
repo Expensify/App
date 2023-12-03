@@ -153,6 +153,7 @@ function ReportActionItem(props) {
 
     const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme]);
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
@@ -193,8 +194,8 @@ function ReportActionItem(props) {
         [props.action.reportActionID, reactionListRef],
     );
 
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
     useEffect(() => {
+        // We need to hide EmojiPicker when this is a deleted parent action
         if (!isDeletedParentAction || !EmojiPickerAction.isActive(props.action.reportActionID)) {
             return;
         }
