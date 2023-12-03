@@ -105,13 +105,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item, index}) => (
+        ({item, index, isActive}) => (
             <CarouselItem
                 item={item}
                 isSingleItem={attachments.length === 1}
                 index={index}
                 activeIndex={page}
-                isFocused={activeSource === item.source}
+                isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),

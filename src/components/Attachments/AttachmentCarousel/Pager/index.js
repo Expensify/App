@@ -147,7 +147,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
                         key={item.source}
                         style={styles.flex1}
                     >
-                        {renderItem({item, index})}
+                        {renderItem({item, index, isActive: index === activePage})}
                     </View>
                 ))}
             </AnimatedPagerView>
