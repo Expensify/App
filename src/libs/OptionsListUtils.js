@@ -747,7 +747,7 @@ function sortTags(tags) {
 }
 
 /**
- * Builds the options for the category tree hierarchy via indents
+ * Builds the options for the tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
