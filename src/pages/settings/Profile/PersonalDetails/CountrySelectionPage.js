@@ -51,7 +51,7 @@ function CountrySelectionPage({route, navigation}) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countries)
+    const searchResults = searchCountryOptions(searchValue, countries);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(

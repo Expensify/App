@@ -28,7 +28,7 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
         // Prioritize matches at the beginning of the string
         // e.g. For the search term "Bar" "Barbados" should be prioritized over Antigua & Barbuda
         // The first two characters are the country code, so we start at index 2
-        // and end at the length of the search term 
+        // and end at the length of the search term
         const countryNameASubstring = a.searchValue.toLowerCase().substring(2, trimmedSearchValue.length + 2);
         const countryNameBSubstring = b.searchValue.toLowerCase().substring(2, trimmedSearchValue.length + 2);
         if (countryNameASubstring === trimmedSearchValue.toLowerCase()) {
@@ -38,24 +38,20 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
             return 1;
         }
         return 0;
-    })
+    });
 
     let fullSorted;
 
     if (trimmedSearchValue !== searchValue.toLowerCase()) {
         // Diacritic detected, prioritize diacritic matches
         // We search for diacritic matches by using the unsanitized country name and search term
-        fullSorted = halfSorted.sort((a,b) => {
-            const unsanitizedCountryNameA = a.text.toLowerCase()
-            const unsanitizedCountryNameB = b.text.toLowerCase()
-            if (
-                unsanitizedCountryNameA.includes(searchValue.toLowerCase())
-            ) {
-                return -1
-            } 
-            if (
-                unsanitizedCountryNameB.includes(searchValue.toLowerCase())
-            ) {
+        fullSorted = halfSorted.sort((a, b) => {
+            const unsanitizedCountryNameA = a.text.toLowerCase();
+            const unsanitizedCountryNameB = b.text.toLowerCase();
+            if (unsanitizedCountryNameA.includes(searchValue.toLowerCase())) {
+                return -1;
+            }
+            if (unsanitizedCountryNameB.includes(searchValue.toLowerCase())) {
                 return 1;
             }
             return 0;
@@ -73,7 +69,7 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
             return 0;
         });
     }
-    return fullSorted
+    return fullSorted;
 }
 
 export default searchCountryOptions;
