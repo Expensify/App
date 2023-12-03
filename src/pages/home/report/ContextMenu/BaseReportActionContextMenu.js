@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
 import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
 import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,9 +52,10 @@ const defaultProps = {
 };
 function BaseReportActionContextMenu(props) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth, theme);
+    const wrapperStyle = getReportActionContextMenuStyles(styles, props.isMini, props.isSmallScreenWidth, theme);
     const {isOffline} = useNetwork();
 
     const reportAction = useMemo(() => {
