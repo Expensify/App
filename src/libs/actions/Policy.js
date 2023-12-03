@@ -91,6 +91,27 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
+let allPolicyTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+let allRecentlyUsedTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedTags = val),
+});
+
 let networkStatus = {};
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -1433,6 +1454,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
 
 /**
  * @param {String} policyID
+ * @param {String} message
+ */
+function setWorkspaceInviteMessageDraft(policyID, message) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
+}
+
+/**
+ * @param {String} policyID
  */
 function clearErrors(policyID) {
     setWorkspaceErrors(policyID, {});
@@ -1461,6 +1490,27 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
 
     return lodashUnion([category], policyRecentlyUsedCategories);
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} tag
+ * @returns {Object}
+ */
+function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
+    if (!policyID || !tag) {
+        return {};
+    }
+
+    const policyTags = lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
+    const tagListKey = _.first(_.keys(policyTags));
+    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {});
+
+    return {
+        ...policyRecentlyUsedTags,
+        [tagListKey]: lodashUnion([tag], lodashGet(policyRecentlyUsedTags, [tagListKey], [])),
+    };
 }
 
 /**
@@ -1812,7 +1862,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -1892,5 +1942,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
+    setWorkspaceInviteMessageDraft,
 };
