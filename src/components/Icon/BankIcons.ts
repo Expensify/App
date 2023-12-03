@@ -62,6 +62,9 @@ function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgPr
         [CONST.BANK_NAMES.HUNTINGTON_BANK]: isCard
             ? (require('@assets/images/cardicons/huntington-bank.svg').default as React.FC<SvgProps>)
             : (require('@assets/images/bankicons/huntington-bank.svg').default as React.FC<SvgProps>),
+        [CONST.BANK_NAMES.HUNTINGTON_NATIONAL]: isCard
+            ? (require('@assets/images/cardicons/huntington-bank.svg').default as React.FC<SvgProps>)
+            : (require('@assets/images/bankicons/huntington-bank.svg').default as React.FC<SvgProps>),
         [CONST.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: isCard
             ? (require('@assets/images/cardicons/navy-federal-credit-union.svg').default as React.FC<SvgProps>)
             : (require('@assets/images/bankicons/navy-federal-credit-union.svg').default as React.FC<SvgProps>),
