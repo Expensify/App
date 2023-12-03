@@ -8,6 +8,7 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
+import useScrollBarVisible from '@hooks/useScrollBarVisible';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
@@ -180,6 +181,7 @@ function Composer({
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const isScrollBarVisible = useScrollBarVisible(textInput, value);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -418,18 +420,26 @@ function Composer({
         </View>
     );
 
-    const inputStyleMemo = useMemo(
-        () => [
+    const scrollStyleMemo = useMemo(() => {
+        if (Browser.isMobileSafari()) {
+            return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
+        }
+        return [
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
+        ];
+    }, [isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
+    const inputStyleMemo = useMemo(
+        () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            scrollStyleMemo,
         ],
 
-        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
+        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
     return (
