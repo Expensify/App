@@ -152,8 +152,9 @@ function MoneyRequestPreview(props) {
 
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    const sortedParticipantAvatars = _.sortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && props.isBillSplit) {
-        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
@@ -296,7 +297,7 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
+                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
@@ -315,7 +316,7 @@ function MoneyRequestPreview(props) {
                                 {props.isBillSplit && (
                                     <View style={styles.moneyRequestPreviewBoxAvatar}>
                                         <MultipleAvatars
-                                            icons={participantAvatars}
+                                            icons={sortedParticipantAvatars}
                                             shouldStackHorizontally
                                             size="small"
                                             isHovered={props.isHovered}
