@@ -148,8 +148,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const listStyle = useMemo(() => [isLoading ? styles.flexShrink1 : styles.flex1], [isLoading]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => [styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}], [insets]);
 
     return (
@@ -183,7 +181,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             </View>
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
-                    style={listStyle}
+                    style={styles.flex1}
                     contentContainerStyles={contentContainerStyles}
                     data={optionListItems}
                     onSelectRow={showReportPage}
