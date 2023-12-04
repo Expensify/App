@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -86,7 +86,7 @@ test('getOrderedReportIDs on 5k reports', async () => {
                 },
             ],
         ]),
-    ) as unknown as Record<string, ReportAction[]>;
+    ) as unknown as OnyxCollection<ReportAction[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
