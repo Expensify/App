@@ -14,7 +14,7 @@ You can swipe your Expensify Card like you would with any other card. As you mak
 
 If your organization doesn't require itemized receipts, you can rely on eReceipts instead. As long as the expense isn't lodging-related, Expensify will automatically generate an IRS-compliant eReceipt for every transaction.
 
-You can report and submit Expensify Card expenses just like any other expenses. As they’re approved, your Smart Limit will be refreshed accordingly, allowing you to keep making purchases.
+You can report and submit Expensify Card expenses just like any other expenses. As they're approved, your Smart Limit will be refreshed accordingly, allowing you to keep making purchases.
 
 ## Enable Notifications
 Download the Expensify mobile app and enable push notifications to stay current on your spending activity. Your card is connected to your Expensify account, so each transaction on your card will trigger a push notification. We'll also send you a push notification if we detect potentially fraudulent activity and allow you to confirm your purchase. 
@@ -27,17 +27,17 @@ Follow the steps below to enable real-time alerts on your mobile device.
 3. Accept the confirmation dialogue to go to your iPhone's notification settings for Expensify. Turn on Allow Notifications, and choose the notification types you’d like!
 
 **If you have an Android**:
-1. Go to Settings and open ‘Apps and Notifications’.
+1. Go to Settings and open 'Apps and Notifications'.
 2. Find and open Expensify and enable notifications.
 3. Customize your alerts. Depending on your phone model, you may have extra options to customize the types of notifications you receive.
 
 ## Your virtual card
-Once you’re assigned a limit, you’ll be able to use your virtual card immediately. You can view your virtual card details via **Settings > Account > Credit Card Import > Show Details**. Keep in mind that your virtual card and physical card share a limit.
+Once you're assigned a limit, you'll be able to use your virtual card immediately. You can view your virtual card details via **Settings > Account > Credit Card Import > Show Details**. Keep in mind that your virtual card and physical card share a limit.
 
 The virtual Expensify Card includes a card number, expiration date, and security code (CVC). You can use the virtual card for online purchases, in-app transactions, and in-person payments once it's linked to a mobile wallet (Apple Pay or Google Pay).
 
 ## How to access your virtual card details
-Here’s how to access your virtual card details via the Expensify mobile app:
+Here's how to access your virtual card details via the Expensify mobile app:
 1. Tap the three-bar icon in the upper-left corner 
 2. Tap **Settings > Connected Cards**
 3. Under **Virtual Card**, tap **Show Details**
