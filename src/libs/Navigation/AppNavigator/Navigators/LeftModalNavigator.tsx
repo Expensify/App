@@ -1,32 +1,29 @@
-import {createStackNavigator} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
-import React from 'react';
+import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
+import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
 
-const Stack = createStackNavigator();
+type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const propTypes = {
-    /* Navigation functions provided by React Navigation */
-    navigation: PropTypes.shape({
-        goBack: PropTypes.func.isRequired,
-    }).isRequired,
-};
+const Stack = createStackNavigator<LeftModalNavigatorParamList>();
 
-function LeftModalNavigator(props) {
+function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
+            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
             <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={RHPScreenOptions}>
+                <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
@@ -37,7 +34,6 @@ function LeftModalNavigator(props) {
     );
 }
 
-LeftModalNavigator.propTypes = propTypes;
 LeftModalNavigator.displayName = 'RightModalNavigator';
 
 export default LeftModalNavigator;
