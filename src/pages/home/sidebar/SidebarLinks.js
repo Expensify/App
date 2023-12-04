@@ -178,31 +178,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-            <View style={[styles.mh5, styles.mb3]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: 'Chats',
-                        },
-                    ]}
-                />
-            </View>
-            <View style={[styles.mh5, styles.mb3]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            text: 'Cathy`s Croissants',
-                            type: CONST.BREADCRUMB_TYPE.STRONG,
-                        },
-                        {
-                            text: 'Settings',
-                        },
-                    ]}
-                />
-            </View>
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
