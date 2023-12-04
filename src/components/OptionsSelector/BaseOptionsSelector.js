@@ -270,9 +270,8 @@ class BaseOptionsSelector extends Component {
 
     handleFocusIn() {
         const activeElement = document.activeElement;
-        console.log(activeElement.role);
         this.setState({
-            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role)
+            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role)
 
         })
     }
