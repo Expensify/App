@@ -507,10 +507,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     />
                                 )}
                                 <Button
-                                    onPress={() => {
-                                        setShouldShowDefaultDeleteMenu(false);
-                                        setShowConfirmDeleteModal(true);
-                                    }}
+                                    onPress={() => setShowConfirmDeleteModal(true)}
                                     style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                     text={translate('common.delete')}
                                     danger
