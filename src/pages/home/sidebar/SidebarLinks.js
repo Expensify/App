@@ -9,7 +9,9 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -179,6 +181,24 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
 
+            <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
+                <Text
+                    style={styles.label}
+                    color={theme.textSupporting}
+                >
+                    Workspace
+                </Text>
+                <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
+                    {({hovered}) => (
+                        <Icon
+                            src={Expensicons.Plus}
+                            width={12}
+                            height={12}
+                            additionalStyles={[styles.highlightBG, styles.borderRadiusNormal, styles.p2, hovered && styles.bordersBG]}
+                        />
+                    )}
+                </PressableWithFeedback>
+            </View>
             <WorkspaceCardCreateAWorkspace />
 
             <View style={[styles.pRelative, styles.flex1]}>
