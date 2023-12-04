@@ -16,9 +16,9 @@ type SpacerViewProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function SpacerView({shouldShow = true, style = []}: SpacerViewProps) {
-    const marginVertical = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
-    const borderBottomWidth = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
+function SpacerView({shouldShow, style}: SpacerViewProps) {
+    const marginVertical = useSharedValue<number>(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
+    const borderBottomWidth = useSharedValue<number>(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
     const prevShouldShow = usePrevious(shouldShow);
     const duration = CONST.ANIMATED_TRANSITION;
     const animatedStyles = useAnimatedStyle(() => ({
@@ -45,4 +45,5 @@ function SpacerView({shouldShow = true, style = []}: SpacerViewProps) {
 }
 
 SpacerView.displayName = 'SpacerView';
+
 export default SpacerView;
