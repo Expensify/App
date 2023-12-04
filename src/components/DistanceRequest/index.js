@@ -99,12 +99,12 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     }, []);
 
     useEffect(() => {
-        if (isEditing) {
+        if (isEditing || isEditingRequest) {
             TransactionEdit.createBackupTransaction(transaction);
         }
 
         return () => {
-            if (transactionWasSaved.current && !isEditing) {
+            if (transactionWasSaved.current || (!isEditing && !isEditingRequest)) {
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
@@ -199,14 +199,16 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return;
         }
 
-        if (isEditing) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        if (isEditing || isEditingRequest) {
             transactionWasSaved.current = true;
-            return;
+            if (isEditing) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+                return;
+            }
         }
 
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditing, iouType, reportID]);
+    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditing, iouType, reportID, isEditingRequest]);
 
     const content = (
         <>
