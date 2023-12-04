@@ -12,7 +12,7 @@ function AppNavigator(props) {
     const initUrl = useContext(InitialUrlContext);
 
     useEffect(() => {
-        if (NativeModules.ReactNativeModule) {
+        if (NativeModules?.ReactNativeModule) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(initUrl);
             });

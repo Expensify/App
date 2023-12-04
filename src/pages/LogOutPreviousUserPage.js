@@ -39,7 +39,7 @@ function LogOutPreviousUserPage(props) {
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = props.session.email;
-            const transitionUrl = NativeModules.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
+            const transitionUrl = NativeModules?.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {
