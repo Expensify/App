@@ -125,7 +125,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             }
             FormActions.setErrorFields(formID, null);
 
-            const validateErrors = validate(values) || {};
+            const validateErrors = validate(trimmedStringValues) || {};
 
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -154,6 +154,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                         }
                     }
                 }
+
+                if (isMatch && leadingSpaceIndex === -1) {
+                    return;
+                }
+
                 // Add a validation error here because it is a string value that contains HTML characters
                 validateErrors[inputID] = 'common.error.invalidCharacter';
             });
