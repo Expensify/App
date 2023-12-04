@@ -26,6 +26,8 @@ import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
  * Check if the place matches the search by the place name or description.
  * @param {String} search The search string for a place
  * @param {Object} place The place to check for a match on the search
+ * @param {String} place.name The name of the place
+ * @param {String} place.description The description of the place
  * @returns {Boolean} related or not.
  */
 function isPlaceMatchForSearch(search, place) {
