@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -22,7 +23,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import OnyxUtils from 'react-native-onyx/lib/utils';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
