@@ -1169,8 +1169,6 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): IconAsset {
 
 /**
  * Helper method to return the default avatar testID associated with the given login
- * @param {String} [workspaceName]
- * @returns {String}
  */
 function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
     if (!workspaceName) {
