@@ -13,7 +13,7 @@ function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspac
     return (
         <Section
             title={translate('workspace.card.createAWorkspace')}
-            icon={Illustrations.CreditCardsNew}
+            icon={Illustrations.HotDogStand}
             iconPosition="top"
             subtitle={translate('workspace.card.createAWorkspaceCopy')}
             subtitleMuted
