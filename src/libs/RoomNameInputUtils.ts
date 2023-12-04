@@ -3,14 +3,14 @@ import CONST from '@src/CONST';
 /**
  * Replaces spaces with dashes
  */
-function modifyRoomName(roomName: string): string {
+function modifyRoomName(roomName: string, skipPolicyPrefix?: boolean): string {
     const modifiedRoomNameWithoutHash = roomName
         .replace(/ /g, '-')
 
         // Replaces the smart dash on iOS devices with two hyphens
         .replace(/—/g, '--');
 
-    return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
+    return skipPolicyPrefix ? modifiedRoomNameWithoutHash : `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
 }
 
 export {

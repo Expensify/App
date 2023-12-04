@@ -43,6 +43,9 @@ const propTypes = {
         /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    /** policyID of the workspace where user is setting up bank account */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -73,7 +76,7 @@ const filterInput = (amount) => {
     return value;
 };
 
-function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
     const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -146,7 +149,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 >
                     <View style={[styles.mb2]}>
                         <Text style={[styles.mb5]}>{translate('validationStep.description')}</Text>
@@ -180,7 +183,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     </View>
                     {!requiresTwoFactorAuth && (
                         <View style={[styles.mln5, styles.mrn5]}>
-                            <Enable2FAPrompt />
+                            <Enable2FAPrompt policyID={policyID} />
                         </View>
                     )}
                 </Form>
@@ -211,7 +214,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         />
                     </Section>
                     {reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
-                    {!requiresTwoFactorAuth && <Enable2FAPrompt />}
+                    {!requiresTwoFactorAuth && <Enable2FAPrompt policyID={policyID} />}
                 </ScrollView>
             )}
         </ScreenWrapper>
