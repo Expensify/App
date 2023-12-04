@@ -1,3 +1,5 @@
+import * as Browser from '@libs/Browser';
+
 /**
  * Place the cursor at the end of the value (if there is a value in the input).
  *
@@ -8,15 +10,23 @@
  * See https://github.com/Expensify/App/issues/20836 for more details.
  *
  * @param {Object} input the input element
+ * @param {boolean} shouldAutoFocus
  */
-export default function updateMultilineInputRange(input) {
+export default function updateMultilineInputRange(input, shouldAutoFocus = true) {
     if (!input) {
         return;
     }
 
     if (input.value && input.setSelectionRange) {
         const length = input.value.length;
-        input.setSelectionRange(length, length);
+
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
+        const shouldSetSelection = !(Browser.isMobileSafari() && !shouldAutoFocus);
+        if (shouldSetSelection) {
+            input.setSelectionRange(length, length);
+        }
         // eslint-disable-next-line no-param-reassign
         input.scrollTop = input.scrollHeight;
     }

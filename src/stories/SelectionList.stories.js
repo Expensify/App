@@ -1,10 +1,10 @@
 import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
-import SelectionList from '../components/SelectionList';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import Text from '../components/Text';
+import _ from 'underscore';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -148,7 +148,7 @@ WithTextInput.args = {
     textInputLabel: 'Option list',
     textInputPlaceholder: 'Search something...',
     textInputMaxLength: 4,
-    keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
+    inputMode: CONST.INPUT_MODE.NUMERIC,
     initiallyFocusedOptionKey: 'option-2',
     onSelectRow: () => {},
     onChangeText: () => {},

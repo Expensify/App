@@ -11,5 +11,5 @@ outputs:
     NEW_VERSION:
         description: The new semver version of the application, updated in the JS and native layers.
 runs:
-    using: 'node16'
+    using: 'node20'
     main: './index.js'

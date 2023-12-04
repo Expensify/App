@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import _ from 'underscore';
-import CONST from '../../../CONST';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import reportPropTypes from '../../reportPropTypes';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import CONST from '@src/CONST';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 import reportActionPropTypes from './reportActionPropTypes';

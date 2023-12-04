@@ -1,6 +1,5 @@
-import {StyleProp, ViewStyle} from 'react-native';
-import styles from '../styles';
+import ContainerComposeStyles from './types';
 
-const containerComposeStyles: StyleProp<ViewStyle> = [styles.textInputComposeSpacing];
+const containerComposeStyles: ContainerComposeStyles = (styles) => [styles.textInputComposeSpacing];
 
 export default containerComposeStyles;

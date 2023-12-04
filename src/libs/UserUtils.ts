@@ -1,12 +1,15 @@
+import Str from 'expensify-common/lib/str';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
+import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import CONST from '@src/CONST';
+import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
-import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import Login from '../types/onyx/Login';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
+
+type AvatarSource = React.FC<SvgProps> | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
@@ -31,9 +34,8 @@ type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | ''
  *      }
  * }}
  */
-function hasLoginListError(loginList: Login): boolean {
-    const errorFields = loginList?.errorFields ?? {};
-    return Object.values(errorFields).some((field) => Object.keys(field ?? {}).length > 0);
+function hasLoginListError(loginList: Record<string, Login>): boolean {
+    return Object.values(loginList).some((loginData) => Object.values(loginData.errorFields ?? {}).some((field) => Object.keys(field ?? {}).length > 0));
 }
 
 /**
@@ -41,15 +43,15 @@ function hasLoginListError(loginList: Login): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: Login): boolean {
-    return !loginList.validatedDate;
+function hasLoginListInfo(loginList: Record<string, Login>): boolean {
+    return !Object.values(loginList).every((field) => field.validatedDate);
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: Login): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: Record<string, Login>): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -103,22 +105,22 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
 
 /**
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
- * @param [avatarURL] - the avatar source from user's personalDetails
+ * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarURL?: string): boolean {
-    if (typeof avatarURL === 'string') {
-        if (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default')) {
+function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
+    if (typeof avatarSource === 'string') {
+        if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
         }
 
         // We use a hardcoded "default" Concierge avatar
-        if (avatarURL === CONST.CONCIERGE_ICON_URL_2021 || avatarURL === CONST.CONCIERGE_ICON_URL) {
+        if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
     }
 
-    if (!avatarURL) {
-        // If null URL, we should also use a default avatar
+    if (!avatarSource) {
+        // If null source, we should also use a default avatar
         return true;
     }
 
@@ -126,14 +128,14 @@ function isDefaultAvatar(avatarURL?: string): boolean {
 }
 
 /**
- * Provided a source URL, if source is a default avatar, return the associated SVG.
- * Otherwise, return the URL pointing to a user-uploaded avatar.
+ * Provided an avatar source, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL or SVG pointing to the user-uploaded avatar.
  *
- * @param avatarURL - the avatar source from user's personalDetails
+ * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
+function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID) : avatarSource;
 }
 
 /**
@@ -151,8 +153,8 @@ function getAvatarUrl(avatarURL: string, accountID: number): string {
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
-    const source = getAvatar(avatarURL, accountID);
+function getFullSizeAvatar(avatarSource: AvatarSource, accountID: number): AvatarSource {
+    const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
     }
@@ -163,8 +165,8 @@ function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgPr
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
-    const source = getAvatar(avatarURL, accountID);
+function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
+    const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
     }
@@ -189,6 +191,14 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
+/**
+ * Gets the secondary phone login number
+ */
+function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+    return parsedLoginList.find((login) => Str.isValidPhone(login));
+}
+
 export {
     hashText,
     hasLoginListError,
@@ -202,4 +212,6 @@ export {
     getSmallSizeAvatar,
     getFullSizeAvatar,
     generateAccountID,
+    getSecondaryPhoneLogin,
 };
+export type {AvatarSource};

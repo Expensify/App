@@ -1,3 +1,4 @@
+import {ReportAction} from '@src/types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -42,15 +43,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -106,21 +107,25 @@ type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
 type SplitAmountParams = {amount: number};
 
+type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
+
 type AmountEachParams = {amount: number};
 
-type PayerOwesAmountParams = {payer: string; amount: number};
+type PayerOwesAmountParams = {payer: string; amount: number | string};
 
 type PayerOwesParams = {payer: string};
 
-type PayerPaidAmountParams = {payer: string; amount: number};
+type PayerPaidAmountParams = {payer: string; amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
 type PayerPaidParams = {payer: string};
 
-type PayerSettledParams = {amount: number};
+type PayerSettledParams = {amount: number | string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
+
+type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -166,7 +171,7 @@ type UntilTimeParams = {time: string};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberOfWorkspaceParams = {login: string; workspace: string};
+type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
@@ -186,9 +191,13 @@ type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: str
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
+type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
@@ -236,6 +245,7 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
@@ -265,6 +275,7 @@ export type {
     RequestAmountParams,
     RequestedAmountMessageParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -273,6 +284,7 @@ export type {
     ManagerApprovedParams,
     PayerSettledParams,
     WaitingOnBankAccountParams,
+    CanceledRequestParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
@@ -295,7 +307,7 @@ export type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -309,5 +321,7 @@ export type {
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     TagSelectionParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     WalletProgramParams,
 };

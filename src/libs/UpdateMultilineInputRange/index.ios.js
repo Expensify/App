@@ -8,8 +8,9 @@
  * See https://github.com/Expensify/App/issues/20836 for more details.
  *
  * @param {Object} input the input element
+ * @param {boolean} shouldAutoFocus
  */
-export default function updateMultilineInputRange(input) {
+export default function updateMultilineInputRange(input, shouldAutoFocus = true) {
     if (!input) {
         return;
     }
@@ -19,5 +20,7 @@ export default function updateMultilineInputRange(input) {
      * Issue: does not scroll multiline input when text exceeds the maximum number of lines
      * For more details: https://github.com/Expensify/App/pull/27702#issuecomment-1728651132
      */
-    input.focus();
+    if (shouldAutoFocus) {
+        input.focus();
+    }
 }
