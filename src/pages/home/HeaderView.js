@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
+import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SubscriptAvatar from '@components/SubscriptAvatar';
@@ -43,6 +44,9 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** Onyx Props */
     parentReport: reportPropTypes,
 
@@ -65,6 +69,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    personalDetails: {},
     report: null,
     guideCalendarLink: null,
     parentReport: {},
@@ -80,7 +85,7 @@ function HeaderView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const participants = lodashGet(props.report, 'participantAccountIDs', []);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatThread = ReportUtils.isChatThread(props.report);
@@ -178,7 +183,7 @@ function HeaderView(props) {
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = ReportUtils.getIcons(reportHeaderData);
+    const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
@@ -305,6 +310,9 @@ export default memo(
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
             selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     })(HeaderView),
 );

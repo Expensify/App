@@ -6,6 +6,7 @@ import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
@@ -15,7 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -81,24 +81,24 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(actorAccountID);
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
-    const delegateDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(props.action.delegateAccountID);
 
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && delegateDetails) {
+    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
+        const delegateDetails = personalDetails[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
@@ -111,8 +111,8 @@ function ReportActionItemSingle(props) {
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
-        const secondaryUserDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(secondaryAccountId) || {};
-        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),

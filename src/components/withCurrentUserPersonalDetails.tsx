@@ -1,10 +1,11 @@
 import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {getPersonalDetailsByAccountID} from '@libs/PersonalDetailsUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Session} from '@src/types/onyx';
+import {usePersonalDetails} from './OnyxProvider';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 
@@ -32,8 +33,9 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
+        const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
         const accountID = props.session?.accountID ?? 0;
-        const accountPersonalDetails: PersonalDetails = getPersonalDetailsByAccountID(accountID);
+        const accountPersonalDetails = personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
             () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}),
             [accountPersonalDetails, accountID],
