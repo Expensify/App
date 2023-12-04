@@ -9,14 +9,12 @@ type OldDotIFrameOnyxProps = {
 
 type OldDotIFrameProps = OldDotIFrameOnyxProps;
 
-type Url = string | URL;
-
-function getNewDotURL(url: Url): string {
+function getNewDotURL(url: string): string {
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
     const pathname = urlObj.pathname.slice(1);
 
-    let params;
+    let params: Record<string, string>;
     try {
         params = JSON.parse(paramString);
     } catch {
@@ -55,7 +53,7 @@ function getNewDotURL(url: Url): string {
     return pathname;
 }
 
-function getOldDotURL(url: Url): string {
+function getOldDotURL(url: string): string {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     const paths = pathname.slice(1).split('/');
