@@ -34,7 +34,7 @@ Follow the steps below to enable real-time alerts on your mobile device.
 ## Your virtual card
 Once you’re assigned a limit, you’ll be able to use your virtual card immediately. You can view your virtual card details via **Settings > Account > Credit Card Import > Show Details**. Keep in mind that your virtual card and physical card share a limit.
 
-The virtual Expensify Card includes a card number, expiration date, and security code (CVC). You can use the virtual card for online purchases, in-app transactions, and in-person payments once it’s linked to a mobile wallet (Apple Pay or Google Pay).
+The virtual Expensify Card includes a card number, expiration date, and security code (CVC). You can use the virtual card for online purchases, in-app transactions, and in-person payments once it's linked to a mobile wallet (Apple Pay or Google Pay).
 
 ## How to access your virtual card details
 Here’s how to access your virtual card details via the Expensify mobile app:
