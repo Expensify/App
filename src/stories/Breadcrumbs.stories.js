@@ -35,7 +35,7 @@ const FirstBreadcrumbStrong = Template.bind({});
 FirstBreadcrumbStrong.args = {
     breadcrumbs: [
         {
-            text: 'Cathy`s Croissants',
+            text: "Cathy's Croissants",
             type: CONST.BREADCRUMB_TYPE.STRONG,
         },
         {
