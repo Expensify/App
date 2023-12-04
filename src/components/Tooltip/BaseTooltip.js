@@ -167,6 +167,16 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         setIsVisible(false);
     }, []);
 
+    const updateTargetPositionOnMouseEnter = useCallback(
+        (e) => {
+            updateTargetAndMousePosition(e);
+            if (children.props.onMouseEnter) {
+                children.props.onMouseEnter(e);
+            }
+        },
+        [children.props, updateTargetAndMousePosition],
+    );
+
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
     if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
@@ -205,7 +215,9 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
                 >
-                    {children}
+                    {React.cloneElement(children, {
+                        onMouseEnter: updateTargetPositionOnMouseEnter,
+                    })}
                 </Hoverable>
             </BoundsObserver>
         </>
