@@ -29,8 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as OnyxTypes from '@src/types/onyx';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
-import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -60,20 +59,20 @@ const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
 
-let timezone: Timezone | null;
-let currentAccountID: number;
-let isLoadingApp: boolean;
+let timezone: Timezone | null | undefined;
+let currentAccountID: number | undefined;
+let isLoadingApp: boolean | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
+    callback: (value) => {
         // When signed out, val hasn't accountID
-        if (!val?.accountID) {
+        if (!(value && 'accountID' in value)) {
             timezone = null;
             return;
         }
 
-        currentAccountID = val.accountID;
+        currentAccountID = value.accountID;
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
             Navigation.dismissModal();
@@ -84,12 +83,12 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        if (!val || timezone) {
+    callback: (value) => {
+        if (!value || timezone) {
             return;
         }
 
-        timezone = val?.[currentAccountID]?.timezone ?? {};
+        timezone = value?.[currentAccountID ?? -1]?.timezone ?? {};
         const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -106,8 +105,8 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_APP,
-    callback: (val) => {
-        isLoadingApp = !!val;
+    callback: (value) => {
+        isLoadingApp = !!value;
     },
 });
 
@@ -126,7 +125,7 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient = null, session = {email: undefined}, lastOpenedPublicRoomID = null, demoInfo = null}: AuthScreensProps) {
+function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}: AuthScreensProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
@@ -142,8 +141,8 @@ function AuthScreens({isUsingMemoryOnlyKeys = null, lastUpdateIDAppliedToClient 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session?.email ?? '');
-        const shouldGetAllData = isUsingMemoryOnlyKeys ?? SessionUtils.didUserLogInDuringSession() ?? isLoggingInAsNewUser;
+        const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
