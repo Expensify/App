@@ -34,20 +34,10 @@ platforms:
         icon: /assets/images/money-wings.svg
         description: Here is where you can review Expensify's billing and subscription options, plan types, and payment methods.
 
-      - href: expense-and-report-features
-        title: Expense & Report Features
-        icon: /assets/images/money-receipt.svg
-        description: From enabling automatic expense auditing to tracking attendees, here is where you can review tips and tutorials to streamline expense management.
-
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore how the Expensify Card combines convenience and security to enhance everyday business transactions. Discover how to apply for, oversee, and maximize your card perks here.
-
-      - href: expensify-partner-program
-        title: Expensify Partner Program
-        icon: /assets/images/handshake.svg
-        description: Discover how to get the most out of Expensify as an ExpensifyApproved! accountant partner. Learn how to set up your clients, receive CPE credits, and take advantage of your partner discount.
 
       - href: get-paid-back
         title: Get Paid Back
@@ -107,11 +97,6 @@ platforms:
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore how the Expensify Card combines convenience and security to enhance everyday business transactions. Discover how to apply for, oversee, and maximize your card perks here.
-      
-      - href: expensify-partner-program
-        title: Expensify Partner Program
-        icon: /assets/images/handshake.svg
-        description: Discover how to get the most out of Expensify as an ExpensifyApproved! accountant partner. Learn how to set up your clients, receive CPE credits, and take advantage of your partner discount.
 
       - href: get-paid-back
         title: Get Paid Back
