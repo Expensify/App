@@ -121,7 +121,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
+                                path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.ADD_DEBIT_CARD]: {
@@ -294,15 +294,15 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
                         screens: {
-                            NewChat_Root: {
+                            [SCREENS.NEW_CHAT.ROOT]: {
                                 path: ROUTES.NEW,
                                 exact: true,
                                 screens: {
-                                    chat: {
+                                    [SCREENS.NEW_CHAT.NEW_CHAT]: {
                                         path: ROUTES.NEW_CHAT,
                                         exact: true,
                                     },
-                                    room: {
+                                    [SCREENS.NEW_CHAT.NEW_ROOM]: {
                                         path: ROUTES.NEW_ROOM,
                                         exact: true,
                                     },
@@ -310,7 +310,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
+                    [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                         screens: {
                             [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK,
                             [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: ROUTES.NEW_TASK_ASSIGNEE,

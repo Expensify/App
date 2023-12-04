@@ -200,7 +200,7 @@ const SCREENS = {
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
     SEARCH_ROOT: 'Search_Root',
-    NEW_CHAT_ROOT: 'NewChat_Root',
+    NEW_CHAT: {ROOT: 'NewChat_Root', NEW_CHAT: 'chat', NEW_ROOM: 'room'},
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
