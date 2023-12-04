@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,9 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
@@ -59,9 +63,10 @@ const defaultProps = {
     },
     anchorRef: () => {},
     session: {},
+    iou: iouDefaultProps,
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, iou}) {
     const {translate} = useLocalize();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
@@ -69,6 +74,8 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
     const canUseBusinessBankAccount =
         ReportUtils.isExpenseReport(iouReport) ||
         (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
+
+    const canUsePersonalBankAccount = iou.id === CONST.IOU.TYPE.SEND;
 
     return (
         <PopoverMenu
@@ -79,7 +86,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
             anchorRef={anchorRef}
             onItemSelected={onClose}
             menuItems={[
-                ...(ReportUtils.isIOUReport(iouReport)
+                ...(canUsePersonalBankAccount
                     ? [
                           {
                               text: translate('common.personalBankAccount'),
@@ -121,6 +128,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
         },
     }),
 )(AddPaymentMethodMenu);
