@@ -177,7 +177,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation, ...transactionViolations]));
         });
 
-        it('should add missingTag violation to existing violations if they exist', () => {
+        it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
             transaction.tag = undefined;
             transactionViolations = [
                 {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
