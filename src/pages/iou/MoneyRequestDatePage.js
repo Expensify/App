@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -99,7 +99,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <NewDatePicker
+                <DatePicker
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={iou.created}

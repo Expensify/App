@@ -219,6 +219,8 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
+        } else if (props.iouReport.isCancelledIOU) {
+            message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
     };
@@ -279,9 +281,9 @@ function MoneyRequestPreview(props) {
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {hasFieldErrors && (
+                                {!isSettled && hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
