@@ -11,10 +11,10 @@ type NotificationDataMap = {
 type NotificationData = ReportCommentNotificationData;
 
 type ReportCommentNotificationData = {
-    title?: string;
-    type?: typeof NotificationType.REPORT_COMMENT;
-    reportID?: number;
-    reportActionID?: string;
+    title: string;
+    type: typeof NotificationType.REPORT_COMMENT;
+    reportID: number;
+    reportActionID: string;
     shouldScrollToLastUnread?: boolean;
     roomName?: string;
     onyxData?: OnyxServerUpdate[];
