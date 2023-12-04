@@ -16,7 +16,7 @@ Expensify has four different support teams. Let's go over how each of them opera
 - Concierge is available 24/7 and is the first line of support
 - Users can access Concierge through the Expensify app or via email at concierge@expensify.com
 - Provides quick responses, usually within minutes
-- Don’t be your team’s tech support - refer your users to Concierge for all their Expensify product questions
+- Don't be your team's tech support - refer your users to Concierge for all their Expensify product questions
 
 **Setup Specialists:**
 - Dedicated onboarding experts to assist users in getting started with Expensify
