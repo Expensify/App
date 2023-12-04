@@ -28,6 +28,7 @@ function BaseTextInput(props) {
     const styles = useThemeStyles();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
+    const isMultiline = props.multiline || props.autoGrowHeight;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
@@ -172,10 +173,12 @@ function BaseTextInput(props) {
     /**
      * Set Value & activateLabel
      *
-     * @param {String} value
+     * @param {String} val
      * @memberof BaseTextInput
      */
-    const setValue = (value) => {
+    const setValue = (val) => {
+        const value = isMultiline ? val : val.replace(/\n/g, ' ');
+
         if (props.onInputChange) {
             props.onInputChange(value);
         }
@@ -184,7 +187,7 @@ function BaseTextInput(props) {
 
         if (value && value.length > 0) {
             hasValueRef.current = true;
-            // When the componment is uncontrolled, we need to manually activate the label:
+            // When the component is uncontrolled, we need to manually activate the label
             if (props.value === undefined) {
                 activateLabel();
             }
@@ -227,7 +230,6 @@ function BaseTextInput(props) {
         (props.hasError || props.errorText) && styles.borderColorDanger,
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
-    const isMultiline = props.multiline || props.autoGrowHeight;
 
     return (
         <>
@@ -310,7 +312,7 @@ function BaseTextInput(props) {
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,

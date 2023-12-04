@@ -6,6 +6,8 @@ import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import TooltipProps from './types';
 
 type TooltipRenderedOnPageBodyProps = {
@@ -42,8 +44,8 @@ type TooltipRenderedOnPageBodyProps = {
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
 function TooltipRenderedOnPageBody({
-    windowWidth,
     animation,
+    windowWidth,
     xOffset,
     yOffset,
     targetWidth,
@@ -64,6 +66,9 @@ function TooltipRenderedOnPageBody({
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
 
+    const theme = useTheme();
+    const styles = useThemeStyles();
+
     useEffect(() => {
         if (!renderTooltipContent || !text) {
             return;
@@ -80,21 +85,23 @@ function TooltipRenderedOnPageBody({
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
-            getTooltipStyles(
-                rootWrapper.current,
-                animation,
+            getTooltipStyles({
+                tooltip: rootWrapper.current,
+                currentSize: animation,
                 windowWidth,
                 xOffset,
                 yOffset,
-                targetWidth,
-                targetHeight,
+                tooltipTargetWidth: targetWidth,
+                tooltipTargetHeight: targetHeight,
                 maxWidth,
-                contentMeasuredWidth,
-                wrapperMeasuredHeight,
-                shiftHorizontal,
-                shiftVertical,
-            ),
-        [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
+                tooltipContentWidth: contentMeasuredWidth,
+                tooltipWrapperHeight: wrapperMeasuredHeight,
+                theme,
+                themeStyles: styles,
+                manualShiftHorizontal: shiftHorizontal,
+                manualShiftVertical: shiftVertical,
+            }),
+        [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical, theme, styles],
     );
 
     let content;
