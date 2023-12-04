@@ -5,18 +5,22 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from "@src/SCREENS";
 import useThemeStyles from "@styles/useThemeStyles";
 import useTheme from '@styles/themes/useTheme';
 import useWindowDimensions from "@hooks/useWindowDimensions";
-import {View} from "react-native";
-import IllustratedHeaderPageLayout from "./IllustratedHeaderPageLayout";
+import {View, StyleSheet} from "react-native";
 import LottieAnimations from "./LottieAnimations";
 import Text from "./Text";
 import MenuItemList from "./MenuItemList";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import * as Expensicons from './Icon/Expensicons';
+import Lottie from "@components/Lottie";
+import * as Illustrations from '@components/Icon/Illustrations';
+import HeaderWithBackButton from "@components/HeaderWithBackButton";
+import Image from "@components/Image";
+import * as StyleUtils from "@styles/StyleUtils";
+import SCREENS from "@src/SCREENS";
 
 const propTypes = {
 
@@ -82,14 +86,22 @@ function PurposeForUsingExpensifyModal() {
             fullscreen
             onClose={() => setIsModalOpen(false)}
         >
-            <IllustratedHeaderPageLayout
-                backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
-                illustration={LottieAnimations.Hands}
-                shouldShowCloseButton
-                shouldShowBackButton={false}
-                onCloseButtonPress={() => setIsModalOpen(false)}
-            >
-                <View style={[styles.w100, styles.ph5, styles.pb5]}>
+            <View>
+                <HeaderWithBackButton
+                    shouldShowCloseButton
+                    shouldShowBackButton={false}
+                    onCloseButtonPress={() => setIsModalOpen(false)}
+                />
+                <View style={StyleSheet.absoluteFillObject}>
+                    <Lottie
+                        source={LottieAnimations.Hands}
+                        style={styles.w100}
+                        webStyle={styles.w100}
+                        autoPlay
+                        loop
+                    />
+                </View>
+                <View style={[styles.w100, styles.ph5, styles.pb5, {marginTop: 350}]}>
                     <Text
                         style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                         numberOfLines={2}
@@ -102,7 +114,7 @@ function PurposeForUsingExpensifyModal() {
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </IllustratedHeaderPageLayout>
+            </View>
         </Modal>
     );
 }
