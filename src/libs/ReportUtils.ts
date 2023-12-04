@@ -1966,7 +1966,7 @@ function getReportPreviewMessage(
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
+    if (isReportApproved(report) && isGroupPolicy(report)) {
         return `approved ${formattedAmount}`;
     }
 
