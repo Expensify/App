@@ -2644,6 +2644,7 @@ function submitReport(expenseReport) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                hasOutstandingIOU: true,
                 lastMessageText: lodashGet(optimisticSubmittedReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticSubmittedReportAction, 'message.0.html', ''),
                 state: CONST.REPORT.STATE.SUBMITTED,
