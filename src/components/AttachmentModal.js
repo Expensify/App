@@ -46,7 +46,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
