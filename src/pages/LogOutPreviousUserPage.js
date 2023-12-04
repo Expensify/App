@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect} from 'react';
+import React, {NativeModules, useContext, useEffect} from 'react';
 import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -39,7 +39,7 @@ function LogOutPreviousUserPage(props) {
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = props.session.email;
-            const transitionUrl = url || CONST.DEEPLINK_BASE_URL + initUrl;
+            const transitionUrl = NativeModules.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {

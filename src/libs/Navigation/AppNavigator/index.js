@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect} from 'react';
+import React, {NativeModules, useContext, useEffect} from 'react';
 import {InitialUrlContext} from '@src/InitialUrlContext';
 import Navigation from '../Navigation';
 
@@ -12,9 +12,11 @@ function AppNavigator(props) {
     const initUrl = useContext(InitialUrlContext);
 
     useEffect(() => {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(initUrl);
-        });
+        if (NativeModules.ReactNativeModule) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(initUrl);
+            });
+        }
     }, [initUrl]);
 
     if (props.authenticated) {
