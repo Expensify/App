@@ -6,14 +6,8 @@ import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 type State = NavigationState | PartialState<NavigationState>;
 
-/**
- * @param state - react-navigation state
- */
 const isAtLeastOneCentralPaneNavigatorInState = (state: State): boolean => !!state.routes.find((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
-/**
- * @param state - react-navigation state
- */
 const getTopMostReportIDFromRHP = (state: State): string => {
     if (!state) {
         return '';
@@ -59,9 +53,8 @@ const addCentralPaneNavigatorRoute = (state: State) => {
         },
     };
     state.routes.splice(1, 0, centralPaneNavigatorRoute);
-    // @ts-expect-error Updating read only property
-    // noinspection JSConstantReassignment
-    state.index = state.routes.length - 1; // eslint-disable-line
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
+    (state.index as number) = state.routes.length - 1;
 };
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
@@ -74,9 +67,8 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
 
-                // @ts-expect-error Updating read only property
-                // noinspection JSConstantReassignment
-                partialState.stale = true; // eslint-disable-line
+                // eslint-disable-next-line no-param-reassign
+                (partialState.stale as boolean) = true;
                 addCentralPaneNavigatorRoute(partialState);
             }
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
