@@ -1,6 +1,7 @@
 import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
+import {isEmpty} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
@@ -14,7 +15,7 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -114,6 +115,7 @@ type OptimisticExpenseReport = Pick<
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
+    | 'lastVisibleActionCreated'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -269,6 +271,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'lastVisibleActionCreated'
 >;
 
 type TransactionDetails =
@@ -307,6 +310,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'statusNum'
+    | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -645,7 +649,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is a Policy Expense chat.
  */
 function isPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
 /** Wether the provided report belongs to a Control policy and is an epxense chat
@@ -1489,6 +1493,16 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 }
 
 /**
+ * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
+ */
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
+    const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
+
+    return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
+}
+
+/**
  * Returns the last visible message for a given report after considering the given optimistic actions
  *
  * @param reportID - the report for which last visible message has to be fetched
@@ -1691,6 +1705,10 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
+    if (report?.isCancelledIOU) {
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.canceled')}`;
+    }
+
     if (hasNonReimbursableTransactions(report?.reportID)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
@@ -1865,7 +1883,8 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     if (!isNotEmptyObject(transaction)) {
-        return '';
+        // Transaction data might be empty on app's first load, if so we fallback to Request
+        return Localize.translateLocal('iou.request');
     }
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
@@ -2534,6 +2553,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -2580,6 +2600,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3269,6 +3290,7 @@ function buildOptimisticTaskReport(
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -4227,6 +4249,21 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+/**
+ * Navigates to the appropriate screen based on the presence of a private note for the current user.
+ */
+function navigateToPrivateNotes(report: Report, session: Session) {
+    if (isEmpty(report) || isEmpty(session)) {
+        return;
+    }
+    const currentUserPrivateNote = report.privateNotes?.[String(session.accountID)]?.note ?? '';
+    if (isEmpty(currentUserPrivateNote)) {
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, String(session.accountID)));
+        return;
+    }
+    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4387,10 +4424,12 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
+    navigateToPrivateNotes,
     canEditWriteCapability,
 };
 
