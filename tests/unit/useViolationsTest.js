@@ -3,7 +3,7 @@ import lodashForEach from 'lodash/forEach';
 import lodashKeys from 'lodash/keys';
 import lodashMap from 'lodash/map';
 import lodashValues from 'lodash/values';
-import {useViolations, violationFields} from '@libs/Violations/useViolations';
+import {useViolations, violationFields} from '@hooks/useViolations';
 
 const violationNames = lodashKeys(violationFields);
 const fieldNames = lodashValues(violationFields);
