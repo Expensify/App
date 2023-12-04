@@ -8,6 +8,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
+    CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -534,6 +535,7 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
@@ -564,6 +566,8 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+            `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} pagó ${amount} de otra forma`,
@@ -2432,19 +2436,19 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Inicia un chat con una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Pide dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Envía dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Envía dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Recomienda a un amigo y ',
