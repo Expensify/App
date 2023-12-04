@@ -63,7 +63,6 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
-    betas: [],
     hasDraft: false,
 };
 

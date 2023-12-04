@@ -44,11 +44,16 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
         /**
          * Schedules the callback to run when the main thread is idle.
          */
-        const callbackID = requestIdleCallback(() => {
+        let callbackID;
+        if ('requestIdleCallback' in window) {
+            callbackID = requestIdleCallback(() => {
+                updateComment(comment);
+            });
+        } else {
             updateComment(comment);
-        });
+        }
 
-        return cancelIdleCallback(callbackID);
+        return callbackID && cancelIdleCallback(callbackID);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
