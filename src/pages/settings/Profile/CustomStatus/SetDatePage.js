@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
+import DatePicker from '@components/DatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as User from '@libs/actions/User';
@@ -58,7 +58,7 @@ function SetDatePage({translate, customStatus}) {
                 enabledWhenOffline
                 shouldUseDefaultValue
             >
-                <NewDatePicker
+                <DatePicker
                     inputID="dateTime"
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
