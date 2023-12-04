@@ -44,195 +44,196 @@ function createModalStackNavigator(screens) {
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
-    Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
-    Money_Request_Amount: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
-    Money_Request_Participants: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default,
-    Money_Request_Confirmation: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default,
-    Money_Request_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
-    Money_Request_Date: () => require('../../../pages/iou/MoneyRequestDatePage').default,
-    Money_Request_Description: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default,
-    Money_Request_Category: () => require('../../../pages/iou/MoneyRequestCategoryPage').default,
-    Money_Request_Tag: () => require('../../../pages/iou/MoneyRequestTagPage').default,
-    Money_Request_Merchant: () => require('../../../pages/iou/MoneyRequestMerchantPage').default,
-    IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
-    IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
-    IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
-    Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
-    Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
-    Money_Request_Distance: () => require('../../../pages/iou/NewDistanceRequestPage').default,
-    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
+    [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
+    [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
+    [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default,
+    [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default,
+    [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default,
+    [SCREENS.MONEY_REQUEST.DATE]: () => require('../../../pages/iou/MoneyRequestDatePage').default,
+    [SCREENS.MONEY_REQUEST.DESCRIPTION]: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default,
+    [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default,
+    [SCREENS.MONEY_REQUEST.TAG]: () => require('../../../pages/iou/MoneyRequestTagPage').default,
+    [SCREENS.MONEY_REQUEST.MERCHANT]: () => require('../../../pages/iou/MoneyRequestMerchantPage').default,
+    [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default,
+    [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
+    [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
+    [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
+    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
+    [SCREENS.MONEY_REQUEST.DISTANCE]: () => require('../../../pages/iou/NewDistanceRequestPage').default,
+    [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
-    SplitDetails_Root: () => require('../../../pages/iou/SplitBillDetailsPage').default,
-    SplitDetails_Edit_Request: () => require('../../../pages/EditSplitBillPage').default,
-    SplitDetails_Edit_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
+    [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default,
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default,
+    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator({
-    Details_Root: () => require('../../../pages/DetailsPage').default,
+    [SCREENS.DETAILS_ROOT]: () => require('../../../pages/DetailsPage').default,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator({
-    Profile_Root: () => require('../../../pages/ProfilePage').default,
+    [SCREENS.PROFILE_ROOT]: () => require('../../../pages/ProfilePage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator({
-    Report_Details_Root: () => require('../../../pages/ReportDetailsPage').default,
-    Report_Details_Share_Code: () => require('../../../pages/home/report/ReportDetailsShareCodePage').default,
+    [SCREENS.REPORT_DETAILS.ROOT]: () => require('../../../pages/ReportDetailsPage').default,
+    [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require('../../../pages/home/report/ReportDetailsShareCodePage').default,
 });
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator({
-    Report_Settings_Root: () => require('../../../pages/settings/Report/ReportSettingsPage').default,
-    Report_Settings_Room_Name: () => require('../../../pages/settings/Report/RoomNamePage').default,
-    Report_Settings_Notification_Preferences: () => require('../../../pages/settings/Report/NotificationPreferencePage').default,
-    Report_Settings_Write_Capability: () => require('../../../pages/settings/Report/WriteCapabilityPage').default,
+    [SCREENS.REPORT_SETTINGS.ROOT]: () => require('../../../pages/settings/Report/ReportSettingsPage').default,
+    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default,
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default,
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator({
-    Task_Title: () => require('../../../pages/tasks/TaskTitlePage').default,
-    Task_Description: () => require('../../../pages/tasks/TaskDescriptionPage').default,
-    Task_Assignee: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default,
+    [SCREENS.TASK.TITLE]: () => require('../../../pages/tasks/TaskTitlePage').default,
+    [SCREENS.TASK.DESCRIPTION]: () => require('../../../pages/tasks/TaskDescriptionPage').default,
+    [SCREENS.TASK.ASSIGNEE]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default,
 });
 
 const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator({
-    Report_WelcomeMessage_Root: () => require('../../../pages/ReportWelcomeMessagePage').default,
+    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: () => require('../../../pages/ReportWelcomeMessagePage').default,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator({
-    ReportParticipants_Root: () => require('../../../pages/ReportParticipantsPage').default,
+    [SCREENS.REPORT_PARTICIPANTS_ROOT]: () => require('../../../pages/ReportParticipantsPage').default,
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator({
-    RoomMembers_Root: () => require('../../../pages/RoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS_ROOT]: () => require('../../../pages/RoomMembersPage').default,
 });
 
 const RoomInviteModalStackNavigator = createModalStackNavigator({
-    RoomInvite_Root: () => require('../../../pages/RoomInvitePage').default,
+    [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../pages/RoomInvitePage').default,
 });
 
 const SearchModalStackNavigator = createModalStackNavigator({
-    Search_Root: () => require('../../../pages/SearchPage').default,
+    [SCREENS.SEARCH_ROOT]: () => require('../../../pages/SearchPage').default,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator({
-    NewChat_Root: () => require('../../../pages/NewChatSelectorPage').default,
+    [SCREENS.NEW_CHAT_ROOT]: () => require('../../../pages/NewChatSelectorPage').default,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator({
-    NewTask_Root: () => require('../../../pages/tasks/NewTaskPage').default,
-    NewTask_TaskAssigneeSelector: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default,
-    NewTask_TaskShareDestinationSelector: () => require('../../../pages/tasks/TaskShareDestinationSelectorModal').default,
-    NewTask_Details: () => require('../../../pages/tasks/NewTaskDetailsPage').default,
-    NewTask_Title: () => require('../../../pages/tasks/NewTaskTitlePage').default,
-    NewTask_Description: () => require('../../../pages/tasks/NewTaskDescriptionPage').default,
+    [SCREENS.NEW_TASK.ROOT]: () => require('../../../pages/tasks/NewTaskPage').default,
+    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default,
+    [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: () => require('../../../pages/tasks/TaskShareDestinationSelectorModal').default,
+    [SCREENS.NEW_TASK.DETAILS]: () => require('../../../pages/tasks/NewTaskDetailsPage').default,
+    [SCREENS.NEW_TASK.TITLE]: () => require('../../../pages/tasks/NewTaskTitlePage').default,
+    [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../pages/tasks/NewTaskDescriptionPage').default,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default,
-    I_Know_A_Teacher: () => require('../../../pages/TeachersUnite/KnowATeacherPage').default,
-    Intro_School_Principal: () => require('../../../pages/TeachersUnite/ImTeacherPage').default,
-    I_Am_A_Teacher: () => require('../../../pages/TeachersUnite/ImTeacherPage').default,
+    [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../pages/TeachersUnite/KnowATeacherPage').default,
+    [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default,
+    [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default,
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default,
-    Settings_Share_Code: () => require('../../../pages/ShareCodePage').default,
+    [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default,
-    Settings_Profile: () => require('../../../pages/settings/Profile/ProfilePage').default,
-    Settings_Pronouns: () => require('../../../pages/settings/Profile/PronounsPage').default,
-    Settings_Display_Name: () => require('../../../pages/settings/Profile/DisplayNamePage').default,
-    Settings_Timezone: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default,
-    Settings_Timezone_Select: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default,
-    Settings_PersonalDetails_Initial: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default,
-    Settings_PersonalDetails_LegalName: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default,
-    Settings_PersonalDetails_DateOfBirth: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default,
-    Settings_PersonalDetails_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
-    Settings_PersonalDetails_Address_Country: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default,
-    Settings_ContactMethods: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default,
-    Settings_ContactMethodDetails: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
-    Settings_NewContactMethod: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
+    [SCREENS.SETTINGS.PROFILE]: () => require('../../../pages/settings/Profile/ProfilePage').default,
+    [SCREENS.SETTINGS.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default,
+    [SCREENS.SETTINGS.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default,
+    [SCREENS.SETTINGS.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default,
+    [SCREENS.SETTINGS.TIMEZONE_SELECT]: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default,
+    [SCREENS.SETTINGS.PERSONAL_DETAILS_INITIAL]: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default,
+    [SCREENS.SETTINGS.PERSONAL_DETAILS_LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default,
+    [SCREENS.SETTINGS.PERSONAL_DETAILS_DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default,
+    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
+    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default,
+    [SCREENS.SETTINGS.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default,
+    [SCREENS.SETTINGS.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
+    [SCREENS.SETTINGS.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
     [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default,
-    Settings_Preferences_PriorityMode: () => require('../../../pages/settings/Preferences/PriorityModePage').default,
-    Settings_Preferences_Language: () => require('../../../pages/settings/Preferences/LanguagePage').default,
+    [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default,
+    [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default,
     // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // Settings_Preferences_Theme: () => require('../../../pages/settings/Preferences/ThemePage').default,
-    Settings_Close: () => require('../../../pages/settings/Security/CloseAccountPage').default,
+    // [SCREENS.SETTINGS.PREFERENCES_THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default,
+    [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default,
-    Settings_About: () => require('../../../pages/settings/AboutPage/AboutPage').default,
-    Settings_App_Download_Links: () => require('../../../pages/settings/AppDownloadLinks').default,
-    Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
-    Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
-    Settings_Wallet_Cards_Digital_Details_Update_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
-    Settings_Wallet_DomainCard: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
-    Settings_Wallet_ReportVirtualCardFraud: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
-    Settings_Wallet_Card_Activate: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
+    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default,
+    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default,
+    [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
+    [SCREENS.SETTINGS.WALLET]: () => require('../../../pages/settings/Wallet/WalletPage').default,
+    [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
+    [SCREENS.SETTINGS.WALLET_DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
+    [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardName').default,
     [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardPhone').default,
     [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardAddress').default,
     [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardConfirm').default,
-    Settings_Wallet_Transfer_Balance: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
-    Settings_Wallet_Choose_Transfer_Account: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
-    Settings_Wallet_EnablePayments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
-    Settings_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
-    Settings_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
+    [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
+    [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
+    [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
+    [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default,
-    Settings_Status_Set: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default,
-    Workspace_Initial: () => require('../../../pages/workspace/WorkspaceInitialPage').default,
-    Workspace_Settings: () => require('../../../pages/workspace/WorkspaceSettingsPage').default,
-    Workspace_Settings_Currency: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default,
-    Workspace_Card: () => require('../../../pages/workspace/card/WorkspaceCardPage').default,
-    Workspace_Reimburse: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default,
-    Workspace_RateAndUnit: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default,
-    Workspace_Bills: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default,
-    Workspace_Invoices: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
-    Workspace_Travel: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default,
-    Workspace_Members: () => require('../../../pages/workspace/WorkspaceMembersPage').default,
-    Workspace_Invite: () => require('../../../pages/workspace/WorkspaceInvitePage').default,
-    Workspace_Invite_Message: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default,
-    ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
-    GetAssistance: () => require('../../../pages/GetAssistancePage').default,
-    Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
-    Settings_ReportCardLostOrDamaged: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
-    KeyboardShortcuts: () => require('../../../pages/KeyboardShortcutsPage').default,
+    [SCREENS.SETTINGS.STATUS_SET]: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default,
+    [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default,
+    [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default,
+    [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default,
+    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default,
+    [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default,
+    [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default,
+    [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
+    [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default,
+    [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default,
+    [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default,
+    [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default,
+    [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
+    [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default,
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
+    [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator({
-    EnablePayments_Root: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
+    [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
 });
 
 const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator({
-    AddPersonalBankAccount_Root: () => require('../../../pages/AddPersonalBankAccountPage').default,
+    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: () => require('../../../pages/AddPersonalBankAccountPage').default,
 });
 
 const ReimbursementAccountModalStackNavigator = createModalStackNavigator({
-    ReimbursementAccount_Root: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
 });
 
 const WalletStatementStackNavigator = createModalStackNavigator({
-    WalletStatement_Root: () => require('../../../pages/wallet/WalletStatementPage').default,
+    [SCREENS.WALLET_STATEMENT_ROOT]: () => require('../../../pages/wallet/WalletStatementPage').default,
 });
 
 const FlagCommentStackNavigator = createModalStackNavigator({
-    FlagComment_Root: () => require('../../../pages/FlagCommentPage').default,
+    [SCREENS.FLAG_COMMENT_ROOT]: () => require('../../../pages/FlagCommentPage').default,
 });
 
 const EditRequestStackNavigator = createModalStackNavigator({
-    EditRequest_Root: () => require('../../../pages/EditRequestPage').default,
-    EditRequest_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
+    [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default,
+    [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default,
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator({
-    PrivateNotes_View: () => require('../../../pages/PrivateNotes/PrivateNotesViewPage').default,
-    PrivateNotes_List: () => require('../../../pages/PrivateNotes/PrivateNotesListPage').default,
-    PrivateNotes_Edit: () => require('../../../pages/PrivateNotes/PrivateNotesEditPage').default,
+    [SCREENS.PRIVATE_NOTES.VIEW]: () => require('../../../pages/PrivateNotes/PrivateNotesViewPage').default,
+    [SCREENS.PRIVATE_NOTES.LIST]: () => require('../../../pages/PrivateNotes/PrivateNotesListPage').default,
+    [SCREENS.PRIVATE_NOTES.EDIT]: () => require('../../../pages/PrivateNotes/PrivateNotesEditPage').default,
 });
 
 const SignInModalStackNavigator = createModalStackNavigator({
-    SignIn_Root: () => require('../../../pages/signin/SignInModal').default,
+    [SCREENS.SIGN_IN_ROOT]: () => require('../../../pages/signin/SignInModal').default,
 });
+
 const ReferralModalStackNavigator = createModalStackNavigator({
-    Referral_Details: () => require('../../../pages/ReferralDetailsPage').default,
+    [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default,
 });
 
 export {
