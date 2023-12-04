@@ -527,14 +527,10 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        const changeInputToLTR = (inputValue) => {
-            if (inputValue === '') {
-                setValue(convertToLTR(inputValue));
-            }
-            return true;
-        };
-
-        return changeInputToLTR(value);
+        if (value !== '') {
+            return;
+        }
+        setValue(convertToLTR(value));
     }, [value]);
 
     return (
