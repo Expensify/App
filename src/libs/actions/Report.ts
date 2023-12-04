@@ -46,21 +46,21 @@ type ActionSubscriber = {
 let currentUserAccountID: number;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
+    callback: (value) => {
         // When signed out, val is undefined
-        if (!val?.accountID) {
+        if (!value?.accountID) {
             return;
         }
 
-        currentUserAccountID = val.accountID;
+        currentUserAccountID = value.accountID;
     },
 });
 
 let preferredSkinTone: number;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (val) => {
-        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(val);
+    callback: (value) => {
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
     },
 });
 
@@ -91,16 +91,16 @@ Onyx.connect({
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        isNetworkOffline = val?.isOffline ?? false;
+    callback: (value) => {
+        isNetworkOffline = value?.isOffline ?? false;
     },
 });
 
 let allPersonalDetails: OnyxCollection<PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        allPersonalDetails = val ?? {};
+    callback: (value) => {
+        allPersonalDetails = value ?? {};
     },
 });
 
@@ -1948,7 +1948,7 @@ function toggleEmojiReaction(
     reportID: string,
     reportAction: ReportAction,
     reactionObject: Emoji,
-    existingReactions: OnyxCollection<ReportActionReactions>,
+    existingReactions: ReportActionReactions | undefined,
     paramSkinTone: number = preferredSkinTone,
 ) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -1971,7 +1971,7 @@ function toggleEmojiReaction(
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject?.users, skinTone)) {
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }

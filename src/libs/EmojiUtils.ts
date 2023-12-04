@@ -8,7 +8,7 @@ import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import {ReportActionReaction, UserReactions} from '@src/types/onyx/ReportActionReactions';
+import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
@@ -426,9 +426,9 @@ function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONS
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (val: string | number | null): number => {
-    if (val !== null && Number.isInteger(Number(val))) {
-        return Number(val);
+const getPreferredSkinToneIndex = (value: string | number | null): number => {
+    if (value !== null && Number.isInteger(Number(value))) {
+        return Number(value);
     }
 
     return CONST.EMOJI_DEFAULT_SKIN_TONE;
@@ -457,7 +457,7 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string 
  * array of emoji codes, that represents all used variations of the
  * emoji, sorted by the reaction timestamp.
  */
-const getUniqueEmojiCodes = (emojiAsset: Emoji, users: Record<number, UserReactions>): string[] => {
+const getUniqueEmojiCodes = (emojiAsset: Emoji, users: UsersReactions): string[] => {
     const emojiCodes: Record<string, string> = Object.values(users ?? {}).reduce((result: Record<string, string>, userSkinTones) => {
         Object.keys(userSkinTones?.skinTones ?? {}).forEach((skinTone) => {
             const createdAt = userSkinTones.skinTones[Number(skinTone)];
@@ -479,7 +479,7 @@ const getUniqueEmojiCodes = (emojiAsset: Emoji, users: Record<number, UserReacti
 const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiName: string): ReportActionReaction => {
     let oldestEmojiTimestamp: string | null = null;
 
-    const usersWithTimestamps: Record<string, UserReactions> = {};
+    const usersWithTimestamps: UsersReactions = {};
     Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
         const userTimestamps = Object.values(user?.skinTones ?? {});
         const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (curr < min ? curr : min), userTimestamps[0]);
@@ -510,7 +510,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  * Uses the NEW FORMAT for "emojiReactions"
  * @param usersReactions - all the users reactions
  */
-function hasAccountIDEmojiReacted(accountID: number, usersReactions: Record<number, UserReactions>, skinTone?: number) {
+function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
         return Boolean(usersReactions[accountID]);
     }

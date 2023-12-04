@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type UserReactions = {
+type UserReaction = {
     /** ID of user reaction */
     id: string;
 
@@ -11,6 +11,8 @@ type UserReactions = {
     oldestTimestamp: string;
 };
 
+type UsersReactions = Record<string, UserReaction>;
+
 type ReportActionReaction = {
     /** The time the emoji was added */
     createdAt: string;
@@ -19,7 +21,7 @@ type ReportActionReaction = {
     oldestTimestamp: string;
 
     /** All the users who have added this emoji */
-    users: Record<number, UserReactions>;
+    users: UsersReactions;
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
@@ -29,4 +31,4 @@ type ReportActionReactions = Record<string, ReportActionReaction>;
 
 export default ReportActionReactions;
 
-export type {UserReactions, ReportActionReaction};
+export type {UsersReactions, ReportActionReaction};
