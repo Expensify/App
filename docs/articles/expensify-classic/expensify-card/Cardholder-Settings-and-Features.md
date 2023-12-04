@@ -17,7 +17,7 @@ If your organization doesn’t require itemized receipts, you can rely on eRecei
 You can report and submit Expensify Card expenses just like any other expenses. As they’re approved, your Smart Limit will be refreshed accordingly, allowing you to keep making purchases.
 
 ## Enable Notifications
-Download the Expensify mobile app and enable push notifications to stay current on your spending activity. Your card is connected to your Expensify account, so each transaction on your card will trigger a push notification. We’ll also send you a push notification if we detect potentially fraudulent activity and allow you to confirm your purchase. 
+Download the Expensify mobile app and enable push notifications to stay current on your spending activity. Your card is connected to your Expensify account, so each transaction on your card will trigger a push notification. We'll also send you a push notification if we detect potentially fraudulent activity and allow you to confirm your purchase. 
 
 Follow the steps below to enable real-time alerts on your mobile device.
 
