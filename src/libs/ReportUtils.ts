@@ -3089,7 +3089,6 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-        originalMessage: undefined,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [

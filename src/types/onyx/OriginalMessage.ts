@@ -119,7 +119,7 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
-    originalMessage: unknown;
+    originalMessage?: unknown;
 };
 
 type OriginalMessageRenamed = {

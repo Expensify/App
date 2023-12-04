@@ -54,6 +54,37 @@ type Message = {
     taskReportID?: string;
 };
 
+type ImageMetadata = {
+    /**  The height of the image. */
+    height?: number;
+
+    /**  The width of the image. */
+    width?: number;
+
+    /**  The URL of the image. */
+    url?: string;
+};
+
+type LinkMetadata = {
+    /**  The URL of the link. */
+    url?: string;
+
+    /**  A description of the link. */
+    description?: string;
+
+    /**  The title of the link. */
+    title?: string;
+
+    /**  The publisher of the link. */
+    publisher?: string;
+
+    /**  The image associated with the link. */
+    image?: ImageMetadata;
+
+    /**  The provider logo associated with the link. */
+    logo?: ImageMetadata;
+};
+
 type Person = {
     type?: string;
     style?: string;
@@ -151,7 +182,7 @@ type ReportActionBase = {
     reportID?: string;
 
     /** Metadata of the link */
-    linkMetadata?: string[];
+    linkMetadata?: LinkMetadata[];
 
     /** The current user's notification preference for this report's child */
     childReportNotificationPreference?: NotificationPreference;

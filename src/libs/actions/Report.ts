@@ -96,7 +96,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxCollection<PersonalDetails> = {};
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
