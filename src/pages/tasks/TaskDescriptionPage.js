@@ -15,6 +15,7 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -42,9 +43,14 @@ function TaskDescriptionPage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call Task.editTaskReport
-            // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, {description: values.description});
+            // props.report.description might contain CRLF from the server
+            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(props.report.description)) {
+                // Set the description of the report in the store and then call EditTask API
+                // to update the description of the report on the server
+                Task.editTask(props.report, {description: values.description});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );
