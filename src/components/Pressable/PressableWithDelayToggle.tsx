@@ -9,6 +9,7 @@ import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import PressableProps from './GenericPressable/types';
@@ -67,6 +68,7 @@ function PressableWithDelayToggle(
     ref: ForwardedRef<RNText | View>,
 ) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
@@ -120,7 +122,7 @@ function PressableWithDelayToggle(
                                 {icon && (
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                        fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}

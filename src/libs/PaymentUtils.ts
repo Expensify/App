@@ -1,5 +1,5 @@
 import getBankIcon from '@components/Icon/BankIcons';
-import styles from '@styles/styles';
+import {ThemeStyles} from '@styles/styles';
 import CONST from '@src/CONST';
 import BankAccount from '@src/types/onyx/BankAccount';
 import Fund from '@src/types/onyx/Fund';
@@ -40,7 +40,7 @@ function getPaymentMethodDescription(accountType: AccountType, account: BankAcco
 /**
  * Get the PaymentMethods list
  */
-function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund>, themeStyles: typeof styles): PaymentMethod[] {
+function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund>, themeStyles: ThemeStyles): PaymentMethod[] {
     const combinedPaymentMethods: PaymentMethod[] = [];
 
     Object.values(bankAccountList).forEach((bankAccount) => {
@@ -50,7 +50,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         }
 
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
-            bankName: bankAccount?.accountData?.additionalData?.bankName ?? '',
+            bankName: bankAccount?.accountData?.additionalData?.bankName,
             isCard: false,
             themeStyles,
         });
@@ -66,7 +66,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank ?? '', isCard: true, themeStyles});
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, themeStyles});
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
