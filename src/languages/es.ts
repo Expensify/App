@@ -8,6 +8,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
+    CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -205,6 +206,8 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
+        personalBankAccount: 'Cuenta bancaria personal',
+        businessBankAccount: 'Cuenta bancaria comercial',
         join: 'Unirse',
         leave: 'Salir',
         decline: 'Rechazar',
@@ -258,6 +261,8 @@ export default {
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
         required: 'Obligatorio',
+        showing: 'Mostrando',
+        of: 'de',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -530,6 +535,7 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
@@ -560,6 +566,8 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+            `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} pagó ${amount} de otra forma`,
@@ -578,8 +586,8 @@ export default {
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
-        categorySelection: 'Seleccione una categoría para organizar mejor tu dinero',
+        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
+        categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -902,6 +910,8 @@ export default {
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
             thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+            throttled:
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
     },
     // TODO: add translation
@@ -1202,7 +1212,7 @@ export default {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
-            website: 'Por favor, introduce un sitio web válido',
+            website: 'Por favor, introduce un sitio web válido. El sitio web debe estar en minúsculas.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
@@ -1691,6 +1701,7 @@ export default {
         genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
     },
     statementPage: {
+        title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
@@ -2425,25 +2436,31 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Inicia un chat con una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Pide dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Envía dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Envía dinero a una cuenta nueva de Expensify. Obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} una vez que configuren una suscripción anual con dos o más miembros activos y realicen los dos primeros pagos de su factura Expensify.`,
+            body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Recomienda a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            body1: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
+            buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE} por cada recomendación`,
+            body1: 'Si conoces a alguien que dedique demasiado tiempo a los gastos (literalmente cualquiera: tu vecino, tu jefe, tu amigo de contabilidad), envíale tu enlace de invitación de Expensify:',
+            body2: `Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}. Así de fácil.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

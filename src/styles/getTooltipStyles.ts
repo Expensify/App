@@ -1,8 +1,8 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import styles from './styles';
-import themeColors from './themes/default';
+import {ThemeStyles} from './styles';
+import {ThemeColors} from './themes/types';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
@@ -101,6 +101,24 @@ type TooltipStyles = {
     pointerStyle: ViewStyle;
 };
 
+type TooltipParams = {
+    tooltip: View | HTMLDivElement;
+    currentSize: number;
+    windowWidth: number;
+    xOffset: number;
+    yOffset: number;
+    tooltipTargetWidth: number;
+    tooltipTargetHeight: number;
+    maxWidth: number;
+    tooltipContentWidth: number;
+    tooltipWrapperHeight: number;
+    theme: ThemeColors;
+    themeStyles: ThemeStyles;
+    manualShiftHorizontal?: number;
+    manualShiftVertical?: number;
+    forceRenderingBelow?: boolean;
+};
+
 /**
  * Generate styles for the tooltip component.
  *
@@ -122,21 +140,23 @@ type TooltipStyles = {
  * @param [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
-export default function getTooltipStyles(
-    tooltip: View | HTMLDivElement,
-    currentSize: number,
-    windowWidth: number,
-    xOffset: number,
-    yOffset: number,
-    tooltipTargetWidth: number,
-    tooltipTargetHeight: number,
-    maxWidth: number,
-    tooltipContentWidth: number,
-    tooltipWrapperHeight: number,
+export default function getTooltipStyles({
+    tooltip,
+    currentSize,
+    windowWidth,
+    xOffset,
+    yOffset,
+    tooltipTargetWidth,
+    tooltipTargetHeight,
+    maxWidth,
+    tooltipContentWidth,
+    tooltipWrapperHeight,
+    theme,
+    themeStyles,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
     forceRenderingBelow = false,
-): TooltipStyles {
+}: TooltipParams): TooltipStyles {
     const tooltipVerticalPadding = spacing.pv1;
 
     // We calculate tooltip width based on the tooltip's content width
@@ -227,7 +247,7 @@ export default function getTooltipStyles(
         //      at the center of the hovered component.
         pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2);
 
-        pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
+        pointerAdditionalStyle = shouldShowBelow ? themeStyles.flipUpsideDown : {};
     }
 
     return {
@@ -239,7 +259,7 @@ export default function getTooltipStyles(
         },
         rootWrapperStyle: {
             ...positioning.pFixed,
-            backgroundColor: themeColors.heading,
+            backgroundColor: theme.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
@@ -250,11 +270,11 @@ export default function getTooltipStyles(
             left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
-            ...styles.userSelectNone,
-            ...styles.pointerEventsNone,
+            ...themeStyles.userSelectNone,
+            ...themeStyles.pointerEventsNone,
         },
         textStyle: {
-            color: themeColors.textReversed,
+            color: theme.textReversed,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             overflow: 'hidden',
@@ -269,14 +289,14 @@ export default function getTooltipStyles(
         pointerStyle: {
             width: 0,
             height: 0,
-            backgroundColor: themeColors.transparent,
+            backgroundColor: theme.transparent,
             borderStyle: 'solid',
             borderLeftWidth: POINTER_WIDTH / 2,
             borderRightWidth: POINTER_WIDTH / 2,
             borderTopWidth: POINTER_HEIGHT,
-            borderLeftColor: themeColors.transparent,
-            borderRightColor: themeColors.transparent,
-            borderTopColor: themeColors.heading,
+            borderLeftColor: theme.transparent,
+            borderRightColor: theme.transparent,
+            borderTopColor: theme.heading,
             ...pointerAdditionalStyle,
         },
     };
