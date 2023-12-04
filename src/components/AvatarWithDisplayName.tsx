@@ -1,15 +1,17 @@
-import React from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
@@ -37,68 +39,75 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
-};
 
-const showActorDetails = (report: OnyxEntry<Report>, shouldEnableDetailPageNavigation = false) => {
-    // We should navigate to the details page if the report is a IOU/expense report
-    if (shouldEnableDetailPageNavigation) {
-        return ReportUtils.navigateToDetailsPage(report);
-    }
-
-    if (ReportUtils.isExpenseReport(report) && report?.ownerAccountID) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
-        return;
-    }
-
-    if (ReportUtils.isIOUReport(report) && report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
-        return;
-    }
-
-    if (ReportUtils.isChatThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const actorAccountID = parentReportAction?.actorAccountID ?? -1;
-        // in an ideal situation account ID won't be 0
-        if (actorAccountID > 0) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID));
-            return;
-        }
-    }
-
-    if (report?.reportID) {
-        // report detail route is added as fallback but based on the current implementation this route won't be executed
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
-    }
+    /* Onyx Props */
+    /** All of the actions of the report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 function AvatarWithDisplayName({
-    personalDetails,
-    policy,
-    report,
-    isAnonymous = false,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldEnableDetailPageNavigation = false,
-}: AvatarWithDisplayNameProps) {
+                                   personalDetails,
+                                   policy,
+                                   report,
+                                   parentReportActions,
+                                   isAnonymous = false,
+                                   size = CONST.AVATAR_SIZE.DEFAULT,
+                                   shouldEnableDetailPageNavigation = false,
+                               }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const title = ReportUtils.getReportName(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
-    const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
+    const icons = ReportUtils.getIcons(report, personalDetails, policy);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([report.ownerAccountID], personalDetails);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
+
+    const actorAccountID = useRef(null);
+    useEffect(() => {
+        const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID], {});
+        actorAccountID.current = lodashGet(parentReportAction, 'actorAccountID', -1);
+    }, [parentReportActions, report]);
+
+    const showActorDetails = useCallback(() => {
+        // We should navigate to the details page if the report is a IOU/expense report
+        if (shouldEnableDetailPageNavigation) {
+            return ReportUtils.navigateToDetailsPage(report);
+        }
+
+        if (ReportUtils.isExpenseReport(report)) {
+            Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
+            return;
+        }
+
+        if (ReportUtils.isIOUReport(report)) {
+            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+            return;
+        }
+
+        if (ReportUtils.isChatThread(report)) {
+            // In an ideal situation account ID won't be 0
+            if (actorAccountID.current > 0) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
+                return;
+            }
+        }
+
+        // Report detail route is added as fallback but based on the current implementation this route won't be executed
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+    }, [report, shouldEnableDetailPageNavigation]);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
-                        onPress={() => showActorDetails(report, shouldEnableDetailPageNavigation)}
+                        onPress={showActorDetails}
                         accessibilityLabel={title}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
@@ -164,4 +173,9 @@ function AvatarWithDisplayName({
 
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
-export default AvatarWithDisplayName;
+export default withOnyx({
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        canEvict: false,
+    },
+})(AvatarWithDisplayName);

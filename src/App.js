@@ -6,8 +6,10 @@ import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBar from './components/CustomStatusBar';
+import CustomStatusBarContextProvider from './components/CustomStatusBar/CustomStatusBarContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
@@ -66,11 +68,14 @@ function App() {
                     ThemeProvider,
                     ThemeStylesProvider,
                     ThemeIllustrationsProvider,
+                    CustomStatusBarContextProvider,
                 ]}
             >
                 <CustomStatusBar />
                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
+                    <ColorSchemeWrapper>
+                        <Expensify />
+                    </ColorSchemeWrapper>
                 </ErrorBoundary>
             </ComposeProviders>
         </GestureHandlerRootView>
