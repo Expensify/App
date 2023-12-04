@@ -185,11 +185,9 @@ function Tooltip(
     }, []);
 
     const updateTargetPositionOnMouseEnter = useCallback(
-        (e) => {
+        (e: MouseEvent) => {
             updateTargetAndMousePosition(e);
-            if (children.props.onMouseEnter) {
-                children.props.onMouseEnter(e);
-            }
+            children.props.onMouseEnter?.(e);
         },
         [children.props, updateTargetAndMousePosition],
     );
@@ -227,7 +225,6 @@ function Tooltip(
                 ref={ref}
             >
                 <Hoverable
-                    onMouseEnter={updateTargetAndMousePosition}
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
