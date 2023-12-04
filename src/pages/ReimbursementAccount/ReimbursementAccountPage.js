@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@styles/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
@@ -20,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -448,7 +448,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 />
-                <View style={[styles.m5, styles.mv3, styles.flex1}>
+                <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
                 </View>
             </ScreenWrapper>
