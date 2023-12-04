@@ -1,15 +1,22 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
-const linkStyles = [styles.textExtraSmallSupporting, styles.link];
-
 function Terms(props) {
+    const styles = useThemeStyles();
+    const [linkStyles, containerStyles] = useMemo(
+        () => [
+            [styles.textExtraSmallSupporting, styles.link],
+            [styles.textExtraSmallSupporting, styles.mb4],
+        ],
+        [styles],
+    );
+
     return (
-        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
+        <Text style={containerStyles}>
             {props.translate('termsOfUse.phrase1')}
             <TextLink
                 style={linkStyles}
