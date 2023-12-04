@@ -110,7 +110,7 @@ function createTaskAndNavigate(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {[optimisticTaskCreatedAction.reportActionID ?? '']: optimisticTaskCreatedAction},
+            value: {[optimisticTaskCreatedAction.reportActionID ?? '']: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
         },
     ];
 
@@ -258,7 +258,7 @@ function completeTask(taskReport: OnyxTypes.Report) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
+            value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction as OnyxTypes.ReportAction},
         },
     ];
 
@@ -331,7 +331,7 @@ function reopenTask(taskReport: OnyxTypes.Report) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
+            value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction as OnyxTypes.ReportAction},
         },
     ];
 
@@ -381,7 +381,7 @@ function reopenTask(taskReport: OnyxTypes.Report) {
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail ?? '');
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title ?? report?.reportName).trim();
@@ -393,7 +393,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction as OnyxTypes.ReportAction},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -457,7 +457,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
 function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxTypes.Report | null = null) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail ?? string);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail ?? '');
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -477,7 +477,7 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction as OnyxTypes.ReportAction},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -724,24 +724,24 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
-
+    const optimisticReportAction = {
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        previousMessage: parentReportAction.message,
+        message: [
+            {
+                translationKey: '',
+                type: 'COMMENT',
+                html: '',
+                text: '',
+                isEdited: true,
+                isDeletedParentAction: true,
+            },
+        ],
+        errors: undefined,
+        linkMetaData: [],
+    };
     const optimisticReportActions = {
-        [parentReportAction.reportActionID]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            previousMessage: parentReportAction.message,
-            message: [
-                {
-                    translationKey: '',
-                    type: 'COMMENT',
-                    html: '',
-                    text: '',
-                    isEdited: true,
-                    isDeletedParentAction: true,
-                },
-            ],
-            errors: null,
-            linkMetaData: [],
-        },
+        [parentReportAction.reportActionID]: optimisticReportAction,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -760,15 +760,17 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID, optimisticReportActions).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID, optimisticReportActions) ?? 'created',
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '', optimisticReportActions as unknown as OnyxTypes.ReportActions).lastMessageText ?? '',
+                lastVisibleActionCreated:
+                    ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '', optimisticReportActions as unknown as OnyxTypes.ReportActions)?.childLastVisibleActionCreated ??
+                    'created',
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
-                [optimisticReportActionID]: optimisticCancelReportAction,
+                [optimisticReportActionID]: optimisticCancelReportAction as OnyxTypes.ReportAction,
             },
         },
         {
@@ -806,7 +808,7 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
             value: {
                 stateNum: originalStateNum,
                 statusNum: originalStatusNum,
-            },
+            } as OnyxTypes.Report,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

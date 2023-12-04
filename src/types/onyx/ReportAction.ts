@@ -5,6 +5,48 @@ import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 import {Receipt} from './Transaction';
 
+type Image = {
+    /**  The height of the image. */
+    height?: number;
+
+    /**  The width of the image. */
+    width?: number;
+
+    /**  The URL of the image. */
+    url?: string;
+};
+
+type Logo = {
+    /**  The height of the logo. */
+    height?: number;
+
+    /**  The width of the logo. */
+    width?: number;
+
+    /**  The URL of the logo. */
+    url?: string;
+};
+
+type LinkMetaData = {
+    /**  The URL of the link. */
+    url?: string;
+
+    /**  A description of the link. */
+    description?: string;
+
+    /**  The title of the link. */
+    title?: string;
+
+    /**  The publisher of the link. */
+    publisher?: string;
+
+    /**  The image associated with the link. */
+    image: Image;
+
+    /**  The provider logo associated with the link. */
+    logo: Logo;
+};
+
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
@@ -79,6 +121,9 @@ type ReportActionBase = {
     /** report action message */
     message?: Message[];
 
+    /** report action previous message */
+    previousMessage?: Message[];
+
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
@@ -138,6 +183,7 @@ type ReportActionBase = {
     isAttachment?: boolean;
     childRecentReceiptTransactionIDs?: Record<string, string>;
     reportID?: string;
+    linkMetaData?: LinkMetaData[];
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
