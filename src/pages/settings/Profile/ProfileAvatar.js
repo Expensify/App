@@ -1,12 +1,14 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import participantPropTypes from '@components/participantPropTypes';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -34,7 +36,15 @@ const defaultProps = {
 function ProfileAvatar(props) {
     const personalDetail = props.personalDetails[props.route.params.accountID];
     const avatarURL = lodashGet(personalDetail, 'avatar', '');
-    const accountID = lodashGet(personalDetail, 'accountID', '');
+    const accountID = lodashGet(props.route.params, 'accountID', '');
+    const isLoading = lodashGet(personalDetail, 'isLoading', false) || (props.isLoadingApp && _.isEmpty(props.personalDetails));
+
+    useEffect(() => {
+        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) || !!avatarURL) {
+            return;
+        }
+        PersonalDetails.openPublicProfilePage(accountID);
+    }, [accountID, avatarURL]);
 
     return (
         <AttachmentModal
@@ -45,7 +55,8 @@ function ProfileAvatar(props) {
                 Navigation.goBack();
             }}
             originalFileName={lodashGet(personalDetail, 'originalFileName', '')}
-            isLoading={props.isLoadingApp && _.isEmpty(props.personalDetails)}
+            isLoading={isLoading}
+            shouldShowNotFoundPage={!avatarURL}
         />
     );
 }
