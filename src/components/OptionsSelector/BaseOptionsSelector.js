@@ -80,11 +80,15 @@ class BaseOptionsSelector extends Component {
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
+        this.handleFocusIn = this.handleFocusIn.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
+        const platform = getPlatform();
+        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         this.state = {
             sections,
@@ -94,11 +98,13 @@ class BaseOptionsSelector extends Component {
             shouldShowReferralModal: false,
             errorMessage: '',
             paginationPage: 1,
+            disableEnterShortCut: isNative ? false : this.handleFocusIn(),
         };
     }
 
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
+        this.subscribeActiveElement();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
@@ -116,6 +122,11 @@ class BaseOptionsSelector extends Component {
             } else {
                 this.unSubscribeFromKeyboardShortcut();
             }
+        }
+
+        if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
+            this.unSubscribeFromKeyboardShortcut();
+            this.subscribeToKeyboardShortcut();
         }
 
         // Screen coming back into focus, for example
@@ -181,6 +192,7 @@ class BaseOptionsSelector extends Component {
         }
 
         this.unSubscribeFromKeyboardShortcut();
+        this.unSubscribeActiveElement();
     }
 
     /**
@@ -256,11 +268,36 @@ class BaseOptionsSelector extends Component {
         this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        console.log(activeElement.role);
+        this.setState({
+            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role)
+
+        })
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false
+        })
+    }
+
+    subscribeActiveElement() {
+        document.addEventListener('focusin', this.handleFocusIn);
+        document.addEventListener('focusout', this.handleFocusOut);
+    }
+
+    unSubscribeActiveElement() {
+        document.removeEventListener('focusin', this.handleFocusIn);
+        document.removeEventListener('focusout', this.handleFocusOut);
+    }
+
     subscribeToKeyboardShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            this.selectFocusedOption,
+            !this.state.disableEnterShortCut ? this.selectFocusedOption: undefined,
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
