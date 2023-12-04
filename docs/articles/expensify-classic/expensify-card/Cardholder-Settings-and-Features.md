@@ -59,7 +59,7 @@ To use the Expensify Card for contactless payment, add it to your digital wallet
 4. Complete the remaining steps
 
 ## Expensify Card declines
-As long as you’ve enabled 'Receive real-time alerts,' you’ll get a notification explaining the reason for each decline. You can enable alerts in the mobile app by clicking on the three-bar icon in the upper-left corner > **Settings** > toggle **Receive real-time alerts**. 
+As long as you've enabled 'Receive real-time alerts', you'll get a notification explaining the reason for each decline. You can enable alerts in the mobile app by clicking on the three-bar icon in the upper-left corner > **Settings** > toggle **Receive real-time alerts**. 
 
 Here are some reasons an Expensify Card transaction might be declined:
 
