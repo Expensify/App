@@ -105,28 +105,34 @@ const init: Init = () => {
  * Register this device for push notifications for the given notificationID.
  */
 const register: Register = (notificationID) => {
-    // @ts-expect-error FIXME: This condition will never satisfy because Airship.contact.getNamedUserId() returns a promise.
-    if (Airship.contact.getNamedUserId() === notificationID.toString()) {
-        // No need to register again for this notificationID.
-        return;
-    }
+    Airship.contact
+        .getNamedUserId()
+        .then((userID) => {
+            if (userID === notificationID.toString()) {
+                // No need to register again for this notificationID.
+                return;
+            }
 
-    // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    Airship.push.enableUserNotifications().then((isEnabled) => {
-        if (isEnabled) {
-            return;
-        }
+            // Get permissions to display push notifications (prompts user on iOS, but not Android)
+            Airship.push.enableUserNotifications().then((isEnabled) => {
+                if (isEnabled) {
+                    return;
+                }
 
-        Log.info('[PushNotification] User has disabled visible push notifications for this app.');
-    });
+                Log.info('[PushNotification] User has disabled visible push notifications for this app.');
+            });
 
-    // Register this device as a named user in AirshipAPI.
-    // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    Log.info(`[PushNotification] Subscribing to notifications`);
-    Airship.contact.identify(notificationID.toString());
+            // Register this device as a named user in AirshipAPI.
+            // Regardless of the user's opt-in status, we still want to receive silent push notifications.
+            Log.info(`[PushNotification] Subscribing to notifications`);
+            Airship.contact.identify(notificationID.toString());
 
-    // Refresh notification opt-in status NVP for the new user.
-    refreshNotificationOptInStatus();
+            // Refresh notification opt-in status NVP for the new user.
+            refreshNotificationOptInStatus();
+        })
+        .catch((error) => {
+            Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
+        });
 };
 
 /**
