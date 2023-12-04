@@ -67,7 +67,7 @@ Here are some reasons an Expensify Card transaction might be declined:
      - If a transaction exceeds your Expensify Card's available limit, the transaction will be declined. You can see the remaining limit in the mobile app under **Settings > Connected Cards** or in the web app under **Settings > Account > Credit Card Import**. 
      - Submitting expenses and getting them approved will free up your limit for more spending.
 
-- Your card isn’t active yet or it was disabled by your Domain Admin
+- Your card isn't active yet or it was disabled by your Domain Admin
 - Your card information was entered incorrectly with the merchant. Entering incorrect card information, such as the CVC, ZIP, or expiration date, will also lead to declines. 
 There was suspicious activity
 - If Expensify detects unusual or suspicious activity, we may block transactions as a security measure
