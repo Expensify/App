@@ -55,6 +55,9 @@ const CONST = {
         ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
+    // This is limit set on servers, do not update without wider internal discussion
+    API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
