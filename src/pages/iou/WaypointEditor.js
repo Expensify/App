@@ -144,6 +144,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 lat: null,
                 lng: null,
                 address: waypointValue,
+                name: null,
             };
             saveWaypoint(waypoint);
         }
@@ -163,7 +164,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
-            name: values.name,
+            name: values.name || null,
         };
         saveWaypoint(waypoint);
 
