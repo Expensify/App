@@ -1545,11 +1545,11 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
         return false;
     }
 
-    if (isOption(option)) {
-        if (isUnreadWithMention(option)) {
-            return true;
-        }
+    if (isUnreadWithMention(option)) {
+        return true;
+    }
 
+    if (isOption(option)) {
         if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
             return true;
         }
