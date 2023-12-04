@@ -71,7 +71,7 @@ They will actively monitor open technical issues and be proactive with recommend
 
 If you are a Workspace admin or domain admin, you will hear from your Account Manager as soon as one is assigned to your company.
 
-Unlike Concierge, an Account Manager’s support will not be real-time, 24 hours a day. Your Account Manager will be as responsive as possible when online, but anything sent when they’re offline will not be responded to until they’re working again.
+Unlike Concierge, an Account Manager's support will not be real-time, 24 hours a day. Your Account Manager will be as responsive as possible when online, but anything sent when they're offline will not be responded to until they're working again.
 
 You can contact your Account Manager while logged into your Expensify account by clicking **Support** on the left-hand menu and then selecting **Account Manager**.
 
