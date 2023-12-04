@@ -87,6 +87,7 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
     /** Scroll view styles */
     scrollViewStyle: stylePropTypes,
 
