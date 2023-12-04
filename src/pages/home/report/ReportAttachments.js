@@ -23,7 +23,8 @@ const propTypes = {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const report = ReportUtils.getReport(reportID);
-    const source = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const source = Number(decodedSource) || decodedSource;
 
     const onCarouselAttachmentChange = useCallback(
         (attachment) => {
