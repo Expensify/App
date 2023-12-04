@@ -180,27 +180,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-
-            <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
-                <Text
-                    style={styles.label}
-                    color={theme.textSupporting}
-                >
-                    Workspace
-                </Text>
-                <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
-                    {({hovered}) => (
-                        <Icon
-                            src={Expensicons.Plus}
-                            width={12}
-                            height={12}
-                            additionalStyles={[styles.highlightBG, styles.borderRadiusNormal, styles.p2, hovered && styles.bordersBG]}
-                        />
-                    )}
-                </PressableWithFeedback>
-            </View>
-            <WorkspaceCardCreateAWorkspace />
-
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
