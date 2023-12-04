@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -42,6 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {transactionViolationsPropTypes} from '@src/types/onyx/TransactionViolation';
 import ReportActionItemImage from './ReportActionItemImage';
+
 
 const propTypes = {
     /** The report currently being looked at */
@@ -131,7 +132,9 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-    const {hasViolations, getViolationsForField} = useViolations(transactionViolations);
+    const {getViolationsForField} = useViolations(transactionViolations);
+
+    const hasViolations = useCallback((field) => Boolean(getViolationsForField(field).length > 0), [getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
