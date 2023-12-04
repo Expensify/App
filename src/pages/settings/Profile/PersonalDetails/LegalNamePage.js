@@ -16,7 +16,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +46,7 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
@@ -102,8 +103,8 @@ function LegalNamePage(props) {
                             inputID="legalFirstName"
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
-                            accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalFirstName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
@@ -115,8 +116,8 @@ function LegalNamePage(props) {
                             inputID="legalLastName"
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
-                            accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalLastName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}

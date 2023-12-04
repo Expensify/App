@@ -1,10 +1,11 @@
 import React, {forwardRef, useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
 
 const TextInput = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     useEffect(() => {
         if (!props.disableKeyboard) {
             return;

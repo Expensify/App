@@ -5,9 +5,9 @@ import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -82,7 +82,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: undefined,
     showSelectedState: false,
     shouldShowSelectedStateAsButton: false,
     selectedStateButtonText: 'Select',
@@ -102,6 +102,8 @@ const defaultProps = {
 };
 
 function OptionRow(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 
@@ -132,7 +134,10 @@ function OptionRow(props) {
     );
     const contentContainerStyles = [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : props.backgroundColor;
+    const hoveredBackgroundColor =
+        (props.hoverStyle || styles.sidebarLinkHover) && (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            ? (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
     const defaultSubscriptSize = props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -142,7 +147,7 @@ function OptionRow(props) {
         (props.option.participantsList || (props.option.accountID ? [props.option] : [])).slice(0, 10),
         isMultipleParticipant,
     );
-    let subscriptColor = themeColors.appBG;
+    let subscriptColor = theme.appBG;
     if (props.optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
@@ -181,16 +186,16 @@ function OptionRow(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
+                            !props.isDisabled && styles.cursorPointer,
                             props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             props.shouldHaveOptionSeparator && styles.borderTop,
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
-                            props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={props.hoverStyle}
+                        hoverStyle={props.hoverStyle || styles.sidebarLinkHover}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
                         onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                     >
@@ -246,7 +251,7 @@ function OptionRow(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={themeColors.danger}
+                                            fill={theme.danger}
                                         />
                                     </View>
                                 )}
@@ -263,7 +268,7 @@ function OptionRow(props) {
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />
@@ -275,7 +280,7 @@ function OptionRow(props) {
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
@@ -303,6 +308,7 @@ function OptionRow(props) {
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
 export default React.memo(
     withLocalize(OptionRow),

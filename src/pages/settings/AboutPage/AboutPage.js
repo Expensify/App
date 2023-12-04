@@ -17,7 +17,7 @@ import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -41,6 +41,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
+    const styles = useThemeStyles();
     const {translate} = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();
@@ -106,16 +107,13 @@ function AboutPage(props) {
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
-                            <View style={styles.pageWrapper}>
+                            <View style={[styles.pageWrapper, styles.pv3]}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
                                     <Logo
                                         height={80}
                                         width={80}
                                     />
-                                    <Text
-                                        selectable
-                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
-                                    >
+                                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}>
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>

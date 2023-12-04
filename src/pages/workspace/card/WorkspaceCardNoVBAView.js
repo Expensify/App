@@ -7,7 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function WorkspaceCardNoVBAView(props) {
+    const styles = useThemeStyles();
     return (
         <Section
             title={props.translate('workspace.card.header')}

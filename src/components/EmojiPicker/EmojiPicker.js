@@ -6,8 +6,8 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
@@ -21,6 +21,7 @@ const propTypes = {
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -134,6 +135,9 @@ const EmojiPicker = forwardRef((props, ref) => {
             });
         });
         return () => {
+            if (!emojiPopoverDimensionListener) {
+                return;
+            }
             emojiPopoverDimensionListener.remove();
         };
     }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);

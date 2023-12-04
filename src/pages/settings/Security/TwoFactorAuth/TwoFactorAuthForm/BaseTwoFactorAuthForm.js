@@ -88,7 +88,7 @@ function BaseTwoFactorAuthForm(props) {
             autoComplete={props.autoComplete}
             textContentType="oneTimeCode"
             label={props.translate('common.twoFactorCode')}
-            nativeID="twoFactorAuthCode"
+            id="twoFactorAuthCode"
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}

@@ -12,9 +12,10 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,10 +60,11 @@ const getAllParticipants = (report, personalDetails, translate) =>
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail, 'displayName');
 
             return {
                 alternateText: userLogin,
-                displayName: userPersonalDetail.displayName,
+                displayName,
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
@@ -74,15 +76,16 @@ const getAllParticipants = (report, personalDetails, translate) =>
                 ],
                 keyForList: `${index}-${userLogin}`,
                 login: userLogin,
-                text: userPersonalDetail.displayName,
+                text: displayName,
                 tooltipText: userLogin,
-                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
 
 function ReportParticipantsPage(props) {
+    const styles = useThemeStyles();
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
         ...participant,
         isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
@@ -106,10 +109,7 @@ function ReportParticipantsPage(props) {
                                 : 'common.details',
                         )}
                     />
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.containerWithSpaceBetween]}
-                    >
+                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         {Boolean(participants.length) && (
                             <OptionsList
                                 sections={[

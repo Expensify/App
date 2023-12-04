@@ -56,7 +56,7 @@ type Transaction = {
     created: string;
     currency: string;
     errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'route'>;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
     merchant: string;
@@ -66,12 +66,12 @@ type Transaction = {
     modifiedMerchant?: string;
     modifiedWaypoints?: WaypointCollection;
     pendingAction: OnyxCommon.PendingAction;
-    receipt: Receipt;
+    receipt?: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;
     tag: string;
-    pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 
     /** Card Transactions */
 

@@ -1,6 +1,7 @@
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
+import PersonalDetails from './PersonalDetails';
 
 type Report = {
     /** The specific type of chat */
@@ -18,26 +19,53 @@ type Report = {
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
     /** The text of the last message on the report */
     lastMessageText?: string;
 
+    /** The timestamp of the last message on the report */
+    lastMessageTimestamp?: number;
+
     /** The time of the last message on the report */
     lastVisibleActionCreated?: string;
+
+    /** The time of the last read of the report */
+    lastReadCreated?: string;
 
     /** The last time the report was visited */
     lastReadTime?: string;
 
+    /** The sequence number of the last report visit */
+    lastReadSequenceNumber?: number;
+
+    /** The time of the last mention of the report */
+    lastMentionedTime?: string | null;
+
     /** The current user's notification preference for this report */
     notificationPreference?: string | number;
+
+    /** The policy name to use */
+    policyName?: string | null;
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
 
-    /** The email address of the report owner */
-    ownerEmail?: string;
+    /** Whether the report has parent access */
+    hasParentAccess?: boolean;
+
+    /** Description of the report */
+    description?: string;
+
+    /** Whether the parent action was deleted */
+    isDeletedParentAction?: boolean;
+
+    /** PayPalMe address of the submitter */
+    submitterPayPalMeAddress?: string;
 
     /** Linked policy's ID */
     policyID?: string;
@@ -47,6 +75,12 @@ type Report = {
 
     /** ID of the report */
     reportID: string;
+
+    /** ID of the chat report */
+    chatReportID?: string;
+
+    /** The state of the report */
+    state?: ValueOf<typeof CONST.REPORT.STATE>;
 
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -59,6 +93,12 @@ type Report = {
 
     /** The report type */
     type?: string;
+
+    /** The report visibility */
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
+
+    /** Report cached total */
+    cachedTotal?: string;
 
     lastMessageTranslationKey?: string;
     parentReportID?: string;
@@ -75,9 +115,14 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    parentReportActionIDs?: number[];
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
+
+    /** Whether the report is cancelled */
+    isCancelledIOU?: boolean;
 
     /** Whether the last message was deleted */
     isLastMessageDeletedParentAction?: boolean;
@@ -96,6 +141,11 @@ type Report = {
 
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
+    isHidden?: boolean;
+    isChatRoom?: boolean;
+    participantsList?: Array<Partial<PersonalDetails>>;
+    text?: string;
+    privateNotes?: Record<string, {note: string}>;
 };
 
 export default Report;

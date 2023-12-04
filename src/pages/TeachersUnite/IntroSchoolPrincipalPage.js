@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function IntroSchoolPrincipalPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     /**
@@ -106,7 +107,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -118,7 +119,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -130,8 +131,8 @@ function IntroSchoolPrincipalPage(props) {
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
                 </View>

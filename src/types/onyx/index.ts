@@ -8,7 +8,7 @@ import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
 import Download from './Download';
-import Form, {AddDebitCardForm} from './Form';
+import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import Fund from './Fund';
 import IOU from './IOU';
@@ -36,12 +36,14 @@ import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
 import Request from './Request';
+import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
 import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
 import User from './User';
+import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
@@ -51,58 +53,61 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
-    Request,
-    Credentials,
-    IOU,
-    Modal,
-    Network,
-    CustomStatusDraft,
-    PersonalDetails,
-    PrivatePersonalDetails,
-    Task,
-    Currency,
-    ScreenShareRequest,
-    User,
-    Login,
-    Session,
+    UserLocation,
+    AccountData,
+    AddDebitCardForm,
+    BankAccount,
     Beta,
     BlockedFromConcierge,
-    PlaidData,
-    UserWallet,
-    WalletOnfido,
-    WalletAdditionalDetails,
-    WalletTerms,
-    BankAccount,
     Card,
-    Fund,
-    WalletStatement,
-    PersonalBankAccount,
-    ReimbursementAccount,
-    ReimbursementAccountDraft,
-    FrequentlyUsedEmoji,
-    WalletTransfer,
-    MapboxAccessToken,
+    Credentials,
+    Currency,
+    CustomStatusDraft,
+    DateOfBirthForm,
     Download,
-    PolicyMember,
+    Form,
+    FrequentlyUsedEmoji,
+    Fund,
+    IOU,
+    Login,
+    MapboxAccessToken,
+    Modal,
+    Network,
+    OnyxUpdateEvent,
+    OnyxUpdatesFromServer,
+    PersonalBankAccount,
+    PersonalDetails,
+    PlaidData,
     Policy,
     PolicyCategory,
-    Report,
-    ReportMetadata,
-    ReportAction,
-    ReportActions,
-    ReportActionsDrafts,
-    ReportActionReactions,
-    SecurityGroup,
-    Transaction,
-    Form,
-    AddDebitCardForm,
-    OnyxUpdatesFromServer,
-    RecentWaypoint,
-    OnyxUpdateEvent,
-    RecentlyUsedCategories,
-    RecentlyUsedTags,
+    PolicyMember,
+    PolicyMembers,
     PolicyTag,
     PolicyTags,
-    PolicyMembers,
-    AccountData,
+    PrivatePersonalDetails,
+    RecentlyUsedCategories,
+    RecentlyUsedTags,
+    RecentWaypoint,
+    ReimbursementAccount,
+    ReimbursementAccountDraft,
+    Report,
+    ReportAction,
+    ReportActionReactions,
+    ReportActions,
+    ReportActionsDrafts,
+    ReportMetadata,
+    Request,
+    Response,
+    ScreenShareRequest,
+    SecurityGroup,
+    Session,
+    Task,
+    Transaction,
+    User,
+    UserWallet,
+    WalletAdditionalDetails,
+    WalletOnfido,
+    WalletStatement,
+    WalletTerms,
+    WalletTransfer,
 };
