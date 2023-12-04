@@ -24,7 +24,6 @@ describe('useViolations', () => {
         violations = [...allViolations];
     });
 
-    // The happy path
     function callHook() {
         const {result, rerender} = renderHook(() => useViolations(violations));
         return {result, rerender};
