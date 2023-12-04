@@ -5,10 +5,10 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -230,7 +230,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <NewDatePicker
+                    <DatePicker
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}

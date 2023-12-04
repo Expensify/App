@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -103,15 +102,9 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     const isSAMLRequired = Boolean(account.isSAMLRequired);
     const hasEmailDeliveryFailure = Boolean(account.hasEmailDeliveryFailure);
 
-    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
-    let shouldShowChooseSSOOrMagicCode = false;
-    let shouldInitiateSAMLLogin = false;
-    const platform = getPlatform();
-    if (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
-        // True if the user has SAML required and we haven't already initiated SAML for their account
-        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
-        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
-    }
+    // True if the user has SAML required and we haven't already initiated SAML for their account
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -167,6 +160,19 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         }
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
+    useEffect(() => {
+        if (credentials.login) {
+            return;
+        }
+
+        // If we don't have a login set, reset the user's SAML login preferences
+        if (isUsingMagicCode) {
+            setIsUsingMagicCode(false);
+        }
+        if (hasInitiatedSAMLLogin) {
+            setHasInitiatedSAMLLogin(false);
+        }
+    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
@@ -231,7 +237,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
-    } else if (!shouldInitiateSAMLLogin) {
+    } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
 
@@ -261,7 +267,6 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                             <ValidateCodeForm
                                 isUsingRecoveryCode={isUsingRecoveryCode}
                                 setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                                setIsUsingMagicCode={setIsUsingMagicCode}
                             />
                         )}
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}

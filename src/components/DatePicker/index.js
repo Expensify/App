@@ -44,7 +44,7 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
     const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
@@ -99,8 +99,8 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
     );
 }
 
-NewDatePicker.propTypes = propTypes;
-NewDatePicker.defaultProps = datePickerDefaultProps;
-NewDatePicker.displayName = 'NewDatePicker';
+DatePicker.propTypes = propTypes;
+DatePicker.defaultProps = datePickerDefaultProps;
+DatePicker.displayName = 'DatePicker';
 
-export default withLocalize(NewDatePicker);
+export default withLocalize(DatePicker);

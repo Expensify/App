@@ -113,9 +113,7 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
-                        inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
