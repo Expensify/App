@@ -23,6 +23,9 @@ const propTypes = {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const report = ReportUtils.getReport(reportID);
+
+    // Native file has source is number, but decodeURI return a string. 
+    // So we need to cast the source as a number here to make the compare function work well in the carousel
     const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
     const source = Number(decodedSource) || decodedSource;
 
