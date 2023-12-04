@@ -19,6 +19,9 @@ type Report = {
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
