@@ -12,7 +12,7 @@ It's crucial to continuously submit your expenses promptly, as that'll ensure th
 
 You can swipe your Expensify Card like you would with any other card. As you make purchases, you'll get instant alerts on your phone letting you know if you need to SmartScan receipts. Any SmartScanned receipts should merge with the card expense automatically.
 
-If your organization doesn’t require itemized receipts, you can rely on eReceipts instead. As long as the expense isn’t lodging-related, Expensify will automatically generate an IRS-compliant eReceipt for every transaction.
+If your organization doesn't require itemized receipts, you can rely on eReceipts instead. As long as the expense isn't lodging-related, Expensify will automatically generate an IRS-compliant eReceipt for every transaction.
 
 You can report and submit Expensify Card expenses just like any other expenses. As they’re approved, your Smart Limit will be refreshed accordingly, allowing you to keep making purchases.
 
