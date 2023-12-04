@@ -44,7 +44,7 @@ Here’s how to access your virtual card details via the Expensify mobile app:
 
 From there, you can view your virtual card's number, CVV, expiration date, and billing address. 
 
-Here’s how to access your virtual card details via the Expensify web app:
+Here's how to access your virtual card details via the Expensify web app:
 1. Head to **Settings > Account > Credit Card Import**
 2. Under **Virtual Card**, click **Show Details**
 
