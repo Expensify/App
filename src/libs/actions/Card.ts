@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -8,6 +8,36 @@ import type {Response} from '@src/types/onyx';
 type Reason = 'damaged' | 'stolen';
 
 function reportVirtualExpensifyCardFraud(cardID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
     type ReportVirtualExpensifyCardFraudParams = {
         cardID: number;
     };
@@ -16,35 +46,7 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         cardID,
     };
 
-    API.write('ReportVirtualExpensifyCardFraud', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: true,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-    });
+    API.write('ReportVirtualExpensifyCardFraud', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -53,6 +55,37 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
  * @param reason - reason for replacement
  */
 function requestReplacementExpensifyCard(cardId: number, reason: Reason) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
     type RequestReplacementExpensifyCardParams = {
         cardId: number;
         reason: string;
@@ -63,42 +96,50 @@ function requestReplacementExpensifyCard(cardId: number, reason: Reason) {
         reason,
     };
 
-    API.write('RequestReplacementExpensifyCard', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: true,
-                    errors: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-    });
+    API.write('RequestReplacementExpensifyCard', parameters, {optimisticData, successData, failureData});
 }
 
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  */
 function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    errors: null,
+                    isLoading: true,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
     type ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits: string;
         cardID: number;
@@ -109,42 +150,7 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    API.write('ActivatePhysicalExpensifyCard', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        errors: null,
-                        isLoading: true,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        isLoading: false,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        isLoading: false,
-                    },
-                },
-            },
-        ],
-    });
+    API.write('ActivatePhysicalExpensifyCard', parameters, {optimisticData, successData, failureData});
 }
 
 /**
