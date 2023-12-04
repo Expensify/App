@@ -87,6 +87,8 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+    /** Scroll view styles */
+    scrollViewStyle: stylePropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -104,6 +106,7 @@ const defaultProps = {
     shouldValidateOnBlur: true,
     footerContent: null,
     style: [],
+    scrollViewStyle: [],
     submitButtonStyles: [],
     validate: () => ({}),
 };
@@ -519,7 +522,7 @@ function Form(props) {
             {({safeAreaPaddingBottomStyle}) =>
                 props.scrollContextEnabled ? (
                     <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1]}
+                        style={[styles.w100, styles.flex1, ...props.scrollViewStyle]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
@@ -528,7 +531,7 @@ function Form(props) {
                     </ScrollViewWithContext>
                 ) : (
                     <ScrollView
-                        style={[styles.w100, styles.flex1]}
+                        style={[styles.w100, styles.flex1, ...props.scrollViewStyle]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}

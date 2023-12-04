@@ -180,6 +180,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
+            style={[styles.overflowHidden]}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -210,6 +211,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 />
                 <Form
                     style={[styles.flexGrow1, styles.mh5]}
+                    scrollViewStyle={[styles.overflowHidden]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
