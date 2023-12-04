@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -55,11 +56,12 @@ const defaultProps = {
 
 function EmojiReactionBubble(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     return (
         <PressableWithSecondaryInteraction
             style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
+                StyleUtils.getEmojiReactionBubbleStyle(theme, hovered || pressed, props.hasUserReacted, props.isContextMenu),
                 props.shouldBlockReactions && styles.cursorDisabled,
                 styles.userSelectNone,
             ]}
@@ -88,7 +90,7 @@ function EmojiReactionBubble(props) {
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
-            {props.count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
+            {props.count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(theme, props.hasUserReacted)]}>{props.count}</Text>}
         </PressableWithSecondaryInteraction>
     );
 }

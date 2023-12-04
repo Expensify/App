@@ -19,6 +19,9 @@ type Report = {
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
@@ -118,6 +121,9 @@ type Report = {
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 
+    /** Whether the report is cancelled */
+    isCancelledIOU?: boolean;
+
     /** Whether the last message was deleted */
     isLastMessageDeletedParentAction?: boolean;
 
@@ -139,6 +145,7 @@ type Report = {
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
+    privateNotes?: Record<string, {note: string}>;
 };
 
 export default Report;

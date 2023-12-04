@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -61,6 +61,8 @@ function NewContactMethodPage(props) {
     const styles = useThemeStyles();
     const loginInputRef = useRef(null);
 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
+
     const validate = React.useCallback(
         (values) => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
@@ -89,6 +91,14 @@ function NewContactMethodPage(props) {
         [],
     );
 
+    const onBackButtonPress = useCallback(() => {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
+    }, [navigateBackTo]);
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
@@ -104,7 +114,7 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}

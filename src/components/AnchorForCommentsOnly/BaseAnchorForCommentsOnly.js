@@ -51,7 +51,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
         linkProps.href = href;
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmailMarkdown(href.replace(/mailto:/i, ''));
+    const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction

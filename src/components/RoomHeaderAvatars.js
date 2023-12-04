@@ -65,7 +65,7 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>

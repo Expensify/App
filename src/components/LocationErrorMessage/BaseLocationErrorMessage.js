@@ -44,14 +44,14 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedback.textContainer}>
                 {isPermissionDenied ? (
                     <Text>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(styles)]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink
                             onPress={onAllowLocationLinkPress}
                             style={styles.locationErrorLinkText}
                         >
                             {` ${translate('location.allowPermission')} `}
                         </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{translate('location.tryAgain')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(styles)]}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>

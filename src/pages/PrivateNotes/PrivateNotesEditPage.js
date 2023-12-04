@@ -18,6 +18,7 @@ import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -94,9 +95,9 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
 
     const savePrivateNote = () => {
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
-
+        let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
+            editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
             Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         }
 
@@ -104,9 +105,11 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-
-        // Take user back to the PrivateNotesView page
-        Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID));
+        if (!_.some({...report.privateNotes, [route.params.accountID]: {note: editedNote}}, (item) => item.note)) {
+            ReportUtils.navigateToDetailsPage(report);
+        } else {
+            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+        }
     };
 
     return (
@@ -117,7 +120,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                subtitle={translate('privateNotes.myNote')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID))}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}

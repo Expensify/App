@@ -10,10 +10,10 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
+import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
@@ -262,6 +262,7 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
+        const styles = this.props.themeStyles;
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -323,6 +324,7 @@ class PDFView extends Component {
     }
 
     render() {
+        const styles = this.props.themeStyles;
         return this.props.onPress ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
@@ -344,6 +346,7 @@ PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withThemeStyles,
     withOnyx({
         maxCanvasArea: {
             key: ONYXKEYS.MAX_CANVAS_AREA,
