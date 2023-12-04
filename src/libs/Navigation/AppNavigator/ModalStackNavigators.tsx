@@ -1,4 +1,4 @@
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
@@ -10,14 +10,14 @@ type Screens = Record<string, () => React.ComponentType>;
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  */
-function createModalStackNavigator(screens: Screens): () => React.JSX.Element {
+function createModalStackNavigator(screens: Screens): React.ComponentType {
     const ModalStackNavigator = createStackNavigator();
 
     function ModalStack() {
         const styles = useThemeStyles();
 
         const defaultSubRouteOptions = useMemo(
-            () => ({
+            (): StackNavigationOptions => ({
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
                 cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,

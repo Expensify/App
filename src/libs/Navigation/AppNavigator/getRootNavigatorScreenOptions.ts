@@ -5,6 +5,8 @@ import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 
+type ScreenOptions = Record<string, StackNavigationOptions>;
+
 const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
     gestureDirection: 'horizontal',
@@ -13,7 +15,7 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
+export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): ScreenOptions => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
@@ -29,7 +31,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
             // Excess space should be on the left so we need to position from right.
             right: 0,
         },
-    } as StackNavigationOptions,
+    },
 
     homeScreen: {
         title: CONFIG.SITE_TITLE,
@@ -44,7 +46,8 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
             transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
             ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
         },
-    } as StackNavigationOptions,
+    },
+
     fullScreen: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
@@ -54,7 +57,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
             // This is necessary to cover whole screen. Including translated sidebar.
             marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
         },
-    } as StackNavigationOptions,
+    },
 
     centralPaneNavigator: {
         title: CONFIG.SITE_TITLE,
@@ -66,5 +69,5 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles) => ({
             ...getNavigationModalCardStyle(),
             paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
         },
-    } as StackNavigationOptions,
+    },
 });

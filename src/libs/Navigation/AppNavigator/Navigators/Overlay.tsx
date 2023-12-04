@@ -7,6 +7,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 type OverlayProps = {
+    /* Callback to close the modal */
     onPress: () => void;
 };
 

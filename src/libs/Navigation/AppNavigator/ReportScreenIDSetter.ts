@@ -35,18 +35,18 @@ const getLastAccessedReportID = (
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation}: ReportScreenIDSetterProps): null {
+function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTimeNewExpensifyUser = false}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
-        if (route?.params?.reportID ?? null) {
+        if (route?.params?.reportID) {
             App.confirmReadyToOpenApp();
             return;
         }
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
-        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reports?.params?.openOnAdminRoom ?? false);
+        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, !!reports?.params?.openOnAdminRoom);
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
