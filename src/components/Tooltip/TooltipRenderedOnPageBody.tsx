@@ -4,10 +4,10 @@ import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
-import textRef from '@src/types/utils/textRef';
-import viewRef from '@src/types/utils/viewRef';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import textRef from '@src/types/utils/textRef';
+import viewRef from '@src/types/utils/viewRef';
 import TooltipProps from './types';
 
 type TooltipRenderedOnPageBodyProps = {
