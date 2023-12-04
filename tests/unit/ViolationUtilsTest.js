@@ -43,7 +43,7 @@ describe('getViolationsOnyxData', () => {
         policyCategories = {};
     });
 
-    it('should return an object with correct shape', () => {
+    it('should return an object with correct shape and with empty transactionViolations array', () => {
         const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
         expect(result).toEqual({
@@ -79,26 +79,18 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingCategory violation if no category is included', () => {
             transaction.category = null;
-
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
         it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             transaction.category = 'Bananas';
-
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
-            policyCategories = {Food: {enabled: true}};
-            transaction.category = 'Food';
-
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
@@ -165,7 +157,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
         });
 
-        it('should add tagOutOfPolicy violation to existing violations if they exist', () => {
+        it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
             transaction.tag = 'Bananas';
             transactionViolations = [
                 {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
