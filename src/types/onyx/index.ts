@@ -35,6 +35,7 @@ import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
+import ReportUserIsTyping from './ReportUserIsTyping';
 import Request from './Request';
 import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
@@ -43,8 +44,6 @@ import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
 import User from './User';
-import UserIsLeavingRoom from './UserIsLeavingRoom';
-import UserIsTyping from './UserIsTyping';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -112,6 +111,5 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
-    UserIsLeavingRoom,
-    UserIsTyping,
+    ReportUserIsTyping,
 };

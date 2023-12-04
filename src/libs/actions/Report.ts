@@ -28,7 +28,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {Route} from '@src/ROUTES';
-import {PersonalDetails, ReportActionReactions, UserIsLeavingRoom, UserIsTyping} from '@src/types/onyx';
+import {PersonalDetails, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -134,8 +134,8 @@ function getReportChannelName(reportID: string): string {
  *
  * This method makes sure that no matter which we get, we return the "new" format
  */
-function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): UserIsTyping {
-    let normalizedStatus: UserIsTyping;
+function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): ReportUserIsTyping {
+    let normalizedStatus: ReportUserIsTyping;
 
     if (typingStatus.userLogin) {
         normalizedStatus = {[typingStatus.userLogin]: true};
@@ -179,7 +179,7 @@ function subscribeToReportTypingEvents(reportID: string) {
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            const typingStoppedStatus: UserIsTyping = {};
+            const typingStoppedStatus: ReportUserIsTyping = {};
             typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
@@ -1011,7 +1011,7 @@ function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const typingStatus: UserIsTyping = {
+    const typingStatus: Pusher.UserIsTypingEvent = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
@@ -1020,7 +1020,7 @@ function broadcastUserIsTyping(reportID: string) {
 /** Broadcasts to the report's private pusher channel whether a user is leaving a report */
 function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const leavingStatus: UserIsLeavingRoom = {
+    const leavingStatus: Pusher.UserIsLeavingRoomEvent = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
@@ -1612,12 +1612,12 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     ];
 
     type AddWorkspaceRoomParameters = {
+        reportID: string;
+        createdReportActionID: string;
         policyID?: string;
         reportName?: string;
         visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
-        reportID: string;
-        createdReportActionID: string;
-        writeCapability: WriteCapability;
+        writeCapability?: WriteCapability;
         welcomeMessage?: string;
     };
 
