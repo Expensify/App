@@ -539,7 +539,7 @@ function AddressSearch({
                         styles={{
                             textInputContainer: [styles.flexColumn],
                             listView: [
-                                StyleUtils.getGoogleListViewStyle(displayListViewBorder),
+                                StyleUtils.getGoogleListViewStyle(styles, displayListViewBorder),
                                 styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
