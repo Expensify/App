@@ -1,7 +1,7 @@
-import React, {ForwardedRef, forwardRef, useContext, useEffect} from 'react';
+import React, {ForwardedRef, forwardRef, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {PopoverContext} from '@components/PopoverProvider';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -71,10 +71,6 @@ function PopoverWithoutOverlay(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    if (!isVisible) {
-        return null;
-    }
-
     const {
         paddingTop: safeAreaPaddingTop,
         paddingBottom: safeAreaPaddingBottom,
@@ -82,21 +78,43 @@ function PopoverWithoutOverlay(
         paddingRight: safeAreaPaddingRight,
     } = StyleUtils.getSafeAreaPadding(insets);
 
-    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-        safeAreaPaddingTop,
-        safeAreaPaddingBottom,
-        safeAreaPaddingLeft,
-        safeAreaPaddingRight,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaPadding,
-        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-        insets,
-    });
+    const modalPaddingStyles = useMemo(
+        () =>
+            StyleUtils.getModalPaddingStyles({
+                safeAreaPaddingTop,
+                safeAreaPaddingBottom,
+                safeAreaPaddingLeft,
+                safeAreaPaddingRight,
+                shouldAddBottomSafeAreaMargin,
+                shouldAddTopSafeAreaMargin,
+                shouldAddBottomSafeAreaPadding,
+                shouldAddTopSafeAreaPadding,
+                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                insets,
+            }),
+        [
+            insets,
+            modalContainerStyle.marginBottom,
+            modalContainerStyle.marginTop,
+            modalContainerStyle.paddingBottom,
+            modalContainerStyle.paddingTop,
+            safeAreaPaddingBottom,
+            safeAreaPaddingLeft,
+            safeAreaPaddingRight,
+            safeAreaPaddingTop,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
+    );
+
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <View
