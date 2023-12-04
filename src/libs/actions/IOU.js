@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
 import * as Report from './Report';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 
 let allPersonalDetails;
 Onyx.connect({
@@ -491,10 +492,7 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     const existingTransaction = existingTransactionID && TransactionUtils.getTransaction(existingTransactionID);
     if (existingTransaction) {
-        optimisticTransaction = {
-            ...optimisticTransaction,
-            ...existingTransaction,
-        };
+        optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
