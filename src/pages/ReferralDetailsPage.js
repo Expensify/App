@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -52,6 +53,17 @@ function ReferralDetailsPage({route, account}) {
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowBody2 = isShareCode;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
+
+    const fallBackRoute = useMemo(() => {
+        const fallbackRoutes = {
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SEND),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: ROUTES.NEW_CHAT,
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: ROUTES.SEARCH,
+        };
+
+        return fallbackRoutes[contentType];
+    }, [contentType]);
 
     function generateReferralURL(email) {
         return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
@@ -93,7 +105,7 @@ function ReferralDetailsPage({route, account}) {
                     success
                     style={[styles.w100]}
                     text={translate('common.buttonConfirm')}
-                    onPress={() => Navigation.goBack()}
+                    onPress={() => Navigation.goBack(fallBackRoute)}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
