@@ -111,14 +111,12 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         // cancels out of the modal without saving changes, the original transaction is restored from the backup.
 
         // On mount, create the backup transaction.
-        if (isEditingNewRequest || isEditingRequest) {
-            TransactionEdit.createBackupTransaction(transaction);
-        }
+        TransactionEdit.createBackupTransaction(transaction);
 
         return () => {
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
-            if (transactionWasSaved.current || (!isEditingNewRequest && !isEditingRequest)) {
+            if (transactionWasSaved.current) {
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
