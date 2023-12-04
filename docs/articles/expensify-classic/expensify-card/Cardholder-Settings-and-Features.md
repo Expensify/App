@@ -8,7 +8,7 @@ Once you receive your card, you can start using it right away.
 
 First, you'll want to take note of the Smart Limit tied to your card – this is listed in your card settings via **Settings > Account > Credit Card Import**. This limit represents the total amount of unapproved expenses you can have on the card.
 
-It’s crucial to continuously submit your expenses promptly, as that’ll ensure they can be approved and restore your full limit. You can always chat with your admin if you need your limit adjusted.
+It's crucial to continuously submit your expenses promptly, as that'll ensure they can be approved and restore your full limit. You can always chat with your admin if you need your limit adjusted.
 
 You can swipe your Expensify Card like you would with any other card. As you make purchases, you’ll get instant alerts on your phone letting you know if you need to SmartScan receipts. Any SmartScanned receipts should merge with the card expense automatically.
 
