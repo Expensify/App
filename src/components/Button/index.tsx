@@ -64,13 +64,13 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     onLongPress?: (event?: GestureResponderEvent) => void;
 
     /** A function that is called when the button is pressed */
-    onPressIn?: () => void;
+    onPressIn?: (event: GestureResponderEvent) => void;
 
     /** A function that is called when the button is released */
-    onPressOut?: () => void;
+    onPressOut?: (event: GestureResponderEvent) => void;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter?: boolean;
