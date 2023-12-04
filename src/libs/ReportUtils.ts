@@ -416,6 +416,19 @@ Onyx.connect({
     },
 });
 
+let allTransactions: OnyxCollection<Transaction> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
+    },
+});
+
 function getPolicyTags(policyID: string) {
     return allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
@@ -4241,9 +4254,10 @@ function hasRequestError(reportActions: ReportAction[]) {
             return false;
         }
         const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(ReportActionsUtils.getIOUReportIDFromReportActionPreview(action));
-        const isSplitBillError =
-            ReportActionsUtils.isSplitBillAction(action) &&
-            TransactionUtils.hasMissingSmartscanFields(TransactionUtils.getTransaction((action.originalMessage as IOUMessage).IOUTransactionID ?? '0') as Transaction);
+        const transactionID = (action.originalMessage as IOUMessage).IOUTransactionID ?? '0';
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+        const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
+
         return isReportPreviewError || isSplitBillError;
     });
 }
