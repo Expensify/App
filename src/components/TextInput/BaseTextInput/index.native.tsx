@@ -222,17 +222,17 @@ function BaseTextInput(
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        const value = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+        const formattedValue = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
 
         if (onInputChange) {
-            onInputChange(newValue);
+            onInputChange(formattedValue);
         }
 
         if (inputProps.onChangeText) {
-            Str.result(inputProps.onChangeText, newValue);
+            Str.result(inputProps.onChangeText, formattedValue);
         }
 
-        if (newValue && newValue.length > 0) {
+        if (formattedValue && formattedValue.length > 0) {
             hasValueRef.current = true;
             // When the componment is uncontrolled, we need to manually activate the label:
             if (value === undefined) {
@@ -361,7 +361,7 @@ function BaseTextInput(
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight),
+                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0),
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -395,7 +395,9 @@ function BaseTextInput(
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
-                                    onMouseDown={(e) => e.preventDefault()}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                    }}
                                     accessibilityLabel={inputProps.translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
@@ -407,7 +409,7 @@ function BaseTextInput(
                             {!inputProps.secureTextEntry && icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
-                                        src={props.icon}
+                                        src={icon}
                                         fill={theme.icon}
                                     />
                                 </View>

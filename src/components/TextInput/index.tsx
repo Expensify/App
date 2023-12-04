@@ -6,7 +6,6 @@ import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
 import BaseTextInputProps from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
@@ -80,7 +79,5 @@ function TextInput(
 }
 
 TextInput.displayName = 'TextInput';
-TextInput.propTypes = baseTextInputPropTypes.propTypes;
-TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default React.forwardRef(TextInput);
