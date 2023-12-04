@@ -1967,7 +1967,10 @@ function getReportPreviewMessage(
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && isGroupPolicy(report)) {
-        return `approved ${formattedAmount}`;
+        return Localize.translateLocal('iou.managerApprovedAmount', {
+            manager: payerName ?? '',
+            amount: formattedAmount,
+        });
     }
 
     if (isNotEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
