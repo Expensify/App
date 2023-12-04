@@ -525,11 +525,16 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
-    // eslint-disable-next-line rulesdir/prefer-early-return
+
     useEffect(() => {
-        if (value === '') {
-            setValue(convertToLTR(value));
-        }
+        const changeInputToLTR = (inputValue) => {
+            if (inputValue === '') {
+                setValue(convertToLTR(inputValue));
+            }
+            return true;
+        };
+
+        return changeInputToLTR(value);
     }, [value]);
 
     return (
