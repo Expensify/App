@@ -123,7 +123,7 @@ type SettingsNavigatorParamList = {
 };
 
 type NewChatNavigatorParamList = {
-    [SCREENS.NEW_CHAT_ROOT]: undefined;
+    [SCREENS.NEW_CHAT.ROOT]: undefined;
 };
 
 type SearchNavigatorParamList = {

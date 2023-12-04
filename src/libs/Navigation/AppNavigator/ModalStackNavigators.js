@@ -116,7 +116,7 @@ const SearchModalStackNavigator = createModalStackNavigator({
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator({
-    [SCREENS.NEW_CHAT_ROOT]: () => require('../../../pages/NewChatSelectorPage').default,
+    [SCREENS.NEW_CHAT.ROOT]: () => require('../../../pages/NewChatSelectorPage').default,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator({
