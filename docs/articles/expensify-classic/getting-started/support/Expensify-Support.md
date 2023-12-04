@@ -97,7 +97,7 @@ Members who have 10 or more active users, or clients of ExpensifyApproved! Accou
 
 To be assigned an Account Manager immediately, log into your Expensify account and go to **Settings > Workspaces > Group**, then click **Subscription** and increase your subscription size to 10 or more.
 
-## What if I’m unable to reach my Account Manager?
+## What if I'm unable to reach my Account Manager?
 If you're unable to reach your account manager, then you can always reach out to Concierge for assistance. Your account manager will always reply once they're online again.
 
 ## Can I schedule a call with my Account Manager?
