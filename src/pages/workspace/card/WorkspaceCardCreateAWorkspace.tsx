@@ -14,6 +14,7 @@ function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspac
         <Section
             title={translate('workspace.card.createAWorkspace')}
             icon={Illustrations.CreditCardsNew}
+            iconPosition='top'
             subtitle={translate('workspace.card.createAWorkspaceCopy')}
             containerStyles={[styles.highlightBG]}
         >

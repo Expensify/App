@@ -23,6 +23,8 @@ const propTypes = {
     /** Icon component */
     IconComponent: PropTypes.func,
 
+    iconPosition: PropTypes.oneOf(['top', 'right']),
+
     /** Contents to display inside the section */
     children: PropTypes.node,
 
@@ -47,11 +49,18 @@ const propTypes = {
     iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
+const iconSectionPropTypes = {
+    icon: propTypes.icon,
+    IconComponent: propTypes.IconComponent,
+    iconContainerStyles: propTypes.iconContainerStyles,
+};
+
 const defaultProps = {
     menuItems: null,
     children: null,
     icon: null,
     IconComponent: null,
+    iconPosition: 'right',
     containerStyles: [],
     iconContainerStyles: [],
     titleStyles: [],
@@ -60,29 +69,57 @@ const defaultProps = {
     subtitle: null,
 };
 
-function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+const defaultIconSectionPropTypes = {
+    icon: null,
+    IconComponent: null,
+    iconContainerStyles: [],
+};
+
+function IconSection({icon, IconComponent, iconContainerStyles}) {
     const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...iconContainerStyles]}>
+            {Boolean(icon) && (
+                <Icon
+                    src={icon}
+                    height={68}
+                    width={68}
+                />
+            )}
+            {Boolean(IconComponent) && <IconComponent />}
+        </View>
+    );
+}
+
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconPosition, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+    const styles = useThemeStyles();
+
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, ...titleStyles]}>
+                {iconPosition === 'top' && (
+                    <IconSection
+                        icon={icon}
+                        IconComponent={IconComponent}
+                        iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
+                    />
+                )}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mh1, ...titleStyles]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
                     </View>
-                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...iconContainerStyles]}>
-                        {Boolean(icon) && (
-                            <Icon
-                                src={icon}
-                                height={68}
-                                width={68}
-                            />
-                        )}
-                        {Boolean(IconComponent) && <IconComponent />}
-                    </View>
+                    {iconPosition === 'right' && (
+                        <IconSection
+                            icon={icon}
+                            IconComponent={IconComponent}
+                            iconContainerStyles={iconContainerStyles}
+                        />
+                    )}
                 </View>
 
                 {Boolean(subtitle) && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, ...subtitleStyles]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, styles.mh1, ...subtitleStyles]}>
                         <Text style={styles.textNormal}>{subtitle}</Text>
                     </View>
                 )}
@@ -94,7 +131,9 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
         </>
     );
 }
-
+IconSection.displayName = 'IconSection';
+IconSection.propTypes = iconSectionPropTypes;
+IconSection.defaultProps = defaultIconSectionPropTypes;
 Section.displayName = 'Section';
 Section.propTypes = propTypes;
 Section.defaultProps = defaultProps;
