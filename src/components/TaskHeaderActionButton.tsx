@@ -4,19 +4,20 @@ import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Session} from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 
 type TaskHeaderActionButtonOnyxProps = {
     /** Current user session */
-    session: OnyxEntry<Session>;
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
     /** The report currently being looked at */
-    report: Report;
+    report: OnyxTypes.Report;
 };
 
 function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
@@ -30,7 +31,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
                 isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report))}
+                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
                 style={styles.flex1}
             />
         </View>
