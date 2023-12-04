@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
-import Breadcrumbs from '@components/Breadcrumbs';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
