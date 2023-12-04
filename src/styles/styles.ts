@@ -1493,7 +1493,7 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 8,
             paddingRight: 8,
             marginHorizontal: 12,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         sidebarLinkText: {
