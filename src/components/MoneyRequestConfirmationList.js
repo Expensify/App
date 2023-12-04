@@ -496,7 +496,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
+        const shouldDisableButton = selectedParticipants.length === 0 || (props.isPolicyExpenseChat && !props.iouMerchant);
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -543,6 +543,8 @@ function MoneyRequestConfirmationList(props) {
     }, [
         props.isReadOnly,
         props.iouType,
+        props.isPolicyExpenseChat,
+        props.iouMerchant,
         props.bankAccountRoute,
         props.iouCurrencyCode,
         props.policyID,
@@ -690,7 +692,11 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
+                            error={
+                                (props.isPolicyExpenseChat && !props.iouMerchant) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
+                                    ? translate('common.error.enterMerchant')
+                                    : ''
+                            }
                         />
                     )}
                     {shouldShowCategories && (
