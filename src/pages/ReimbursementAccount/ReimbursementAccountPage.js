@@ -524,6 +524,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             <ValidationStep
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={goBack}
+                policyID={policyID}
             />
         );
     }
