@@ -1,6 +1,6 @@
-type ForegroundNotifications = {
+type ForegroundNotificationsModule = {
     configureForegroundNotifications: () => void;
     disableForegroundNotifications: () => void;
 };
 
-export default ForegroundNotifications;
+export default ForegroundNotificationsModule;
