@@ -229,7 +229,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
                 )}
-                {videoConstraints && (
+                {!_.isEmpty(videoConstraints) && (
                     <NavigationAwareCamera
                         onUserMedia={() => setCameraPermissionState('granted')}
                         onUserMediaError={() => setCameraPermissionState('denied')}
