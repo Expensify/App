@@ -145,7 +145,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                     style={[styles.mb3]}
                 >
                     <InputWrapper
-                        InputComponent={_.isFunction(withCodePaste) ? withCodePaste(TextInput) : TextInput}
+                        InputComponent={withCodePaste(TextInput)}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="privateNotes"
                         label={translate('privateNotes.composerLabel')}
