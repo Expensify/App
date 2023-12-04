@@ -1393,7 +1393,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumbLogo: {
-            marginTop: 4,
+            paddingTop: 1, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
