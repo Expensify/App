@@ -448,7 +448,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 />
-                <View style={[styles.m5, styles.flex1]}>
+                <View style={[styles.m5, styles.mv3, styles.flex1}>
                     <Text>{errorText}</Text>
                 </View>
             </ScreenWrapper>
