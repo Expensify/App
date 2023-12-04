@@ -224,7 +224,12 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 inputValues[inputID] = propsToParse.defaultValue;
             } else if (_.isUndefined(inputValues[inputID])) {
                 // We want to initialize the input value if it's undefined
-                inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
+                const initialValue = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
+
+                inputValues[inputID] = _.isFunction(propsToParse.valueParser) ? propsToParse.valueParser(initialValue) : initialValue;
+                if (_.isFunction(propsToParse.displayParser)) {
+                    inputValues[`${inputID}ToDisplay`] = propsToParse.displayParser(initialValue);
+                }
             }
 
             const errorFields = lodashGet(formState, 'errorFields', {});
