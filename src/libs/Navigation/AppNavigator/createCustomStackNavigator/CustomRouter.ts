@@ -18,6 +18,7 @@ const getTopMostReportIDFromRHP = (state: State): string => {
     if (!state) {
         return '';
     }
+
     const topmostRightPane = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR).at(-1);
 
     if (topmostRightPane?.state) {

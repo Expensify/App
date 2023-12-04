@@ -27,11 +27,6 @@ const SCREENS = {
         DISPLAY_NAME: 'Settings_Display_Name',
         TIMEZONE: 'Settings_Timezone',
         TIMEZONE_SELECT: 'Settings_Timezone_Select',
-        PERSONAL_DETAILS_INITIAL: 'Settings_PersonalDetails_Initial',
-        PERSONAL_DETAILS_LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-        PERSONAL_DETAILS_DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-        PERSONAL_DETAILS_ADDRESS: 'Settings_PersonalDetails_Address',
-        PERSONAL_DETAILS_ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
         CONTACT_METHODS: 'Settings_ContactMethods',
         CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
         NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
@@ -39,6 +34,13 @@ const SCREENS = {
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         LOUNGE_ACCESS: 'Settings_Lounge_Access',
+
+        PERSONAL_DETAILS_INITIAL: 'Settings_PersonalDetails_Initial',
+        PERSONAL_DETAILS_LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
+        PERSONAL_DETAILS_DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
+        PERSONAL_DETAILS_ADDRESS: 'Settings_PersonalDetails_Address',
+        PERSONAL_DETAILS_ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
+
         WALLET: 'Settings_Wallet',
         WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
         WALLET_CARD_GET_PHYSICAL: {
@@ -53,6 +55,7 @@ const SCREENS = {
         WALLET_CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
         WALLET_REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
         WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         PREFERENCES_PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
@@ -182,14 +185,6 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
-    REFERRAL_DETAILS: 'Referral_Details',
-
-    SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
-        EDIT_REQUEST: 'SplitDetails_Edit_Request',
-        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
-    },
-
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
@@ -199,9 +194,16 @@ const SCREENS = {
     SEARCH_ROOT: 'Search_Root',
     NEW_CHAT_ROOT: 'NewChat_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
+
+    SPLIT_DETAILS: {
+        ROOT: 'SplitDetails_Root',
+        EDIT_REQUEST: 'SplitDetails_Edit_Request',
+        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
-
+    REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
 } as const;
 
