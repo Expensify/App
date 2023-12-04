@@ -22,9 +22,9 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 import * as Policy from './Policy';
 import * as Report from './Report';
-import OnyxUtils from 'react-native-onyx/lib/utils';
 
 let allPersonalDetails;
 Onyx.connect({
