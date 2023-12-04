@@ -83,5 +83,5 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 **Do I need a client ID for each Workspace?**
 - Yes, if you want to ensure seamless identification and billing processes.
 
-** Where can I see the Billing Receipts?**
+**Where can I see the Billing Receipts?**
 - All billing owners receive an emailed PDF of their monthly billing receipt, but a CSV version can also be downloaded from the platform.
