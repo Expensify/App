@@ -1,20 +1,9 @@
 import React from 'react';
-import type {DimensionValue} from 'react-native';
-import {EdgeInsets, SafeAreaInsetsContext} from 'react-native-safe-area-context';
+// eslint-disable-next-line no-restricted-imports
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import StatusBar from '@libs/StatusBar';
 import * as StyleUtils from '@styles/StyleUtils';
-
-type ChildrenProps = {
-    paddingTop?: DimensionValue;
-    paddingBottom?: DimensionValue;
-    insets?: EdgeInsets;
-    safeAreaPaddingBottomStyle: {
-        paddingBottom?: DimensionValue;
-    };
-};
-
-type SafeAreaConsumerProps = {
-    children: React.FC<ChildrenProps>;
-};
+import SafeAreaConsumerProps from './types';
 
 /**
  * This component is a light wrapper around the SafeAreaInsetsContext.Consumer. There are several places where we
@@ -24,11 +13,23 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
     return (
         <SafeAreaInsetsContext.Consumer>
             {(insets) => {
-                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+                const insetsWithDefault = insets ?? {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                };
+
+                const androidInsets = {
+                    ...insetsWithDefault,
+                    top: StatusBar.currentHeight ?? insetsWithDefault.top,
+                };
+
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(androidInsets ?? undefined);
                 return children({
                     paddingTop,
                     paddingBottom,
-                    insets: insets ?? undefined,
+                    insets: androidInsets ?? undefined,
                     safeAreaPaddingBottomStyle: {paddingBottom},
                 });
             }}
