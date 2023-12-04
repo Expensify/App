@@ -40,6 +40,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     subtitleStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether the subtitle should have a muted style */
+    subtitleMuted: PropTypes.boolean,
+
     /** Customize the Section container */
     // eslint-disable-next-line react/forbid-prop-types
     childrenStyles: PropTypes.arrayOf(PropTypes.object),
@@ -65,6 +68,7 @@ const defaultProps = {
     iconContainerStyles: [],
     titleStyles: [],
     subtitleStyles: [],
+    subtitleMuted: false,
     childrenStyles: [],
     subtitle: null,
 };
@@ -92,7 +96,21 @@ function IconSection({icon, IconComponent, iconContainerStyles}) {
     );
 }
 
-function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconPosition, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+function Section({
+    children,
+    childrenStyles,
+    containerStyles,
+    icon,
+    IconComponent,
+    iconPosition,
+    iconContainerStyles,
+    menuItems,
+    subtitle,
+    subtitleStyles,
+    subtitleMuted,
+    title,
+    titleStyles,
+}) {
     const styles = useThemeStyles();
 
     return (
@@ -120,7 +138,7 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
 
                 {Boolean(subtitle) && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, styles.mh1, ...subtitleStyles]}>
-                        <Text style={styles.textNormal}>{subtitle}</Text>
+                        <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
                     </View>
                 )}
 
