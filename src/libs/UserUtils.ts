@@ -100,8 +100,14 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): React.FC<SvgProps
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
+
+    // When we create a chat with a new user, an optimistic ID is used, and the avatar is generated based on it.
+    // When the response is received from the backend, the optimistic ID is replaced with the actual user ID.
+    // However, the avatar link returned by the backend still matches the one generated using the optimistic ID.
+    // Therefore, we cannot directly use the actual user ID to retrieve the SVG image number for the avatar.
+    // Instead, we extract it from the avatar link returned by the backend.
     let accountIDHashBucket: AvatarRange;
-    if (avatarURL && /images\/avatars\/default-avatar_\d+\./.test(avatarURL)) {
+    if (avatarURL) {
         const match = avatarURL.match(/(?<=default-avatar_)\d+(?=\.)/);
         const lastDigit = match && parseInt(match[0], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
@@ -118,6 +124,8 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = true): 
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
+    // To ensure that the avatar remains unchanged and matches the one returned by the backend,
+    // utilize an optimistic ID generated from the email instead of directly using the user ID.
     let email; let originAccountID;
     if (allPersonalDetails?.[accountID]) {
         if (allPersonalDetails[accountID].login) {
@@ -169,7 +177,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource: AvatarSource, accountID: number): AvatarSource {
+function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
     return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource as string) : avatarSource;
 }
 
