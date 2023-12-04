@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as UserUtils from '@libs/UserUtils';
@@ -9,38 +8,33 @@ import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
 
-const propTypes = {
+type AvatarWithIndicatorProps = {
     /** URL for the avatar */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    source: UserUtils.AvatarSource;
 
     /** To show a tooltip on hover */
-    tooltipText: PropTypes.string,
+    tooltipText?: string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    fallbackIcon?: UserUtils.AvatarSource;
 
     /** Indicates whether the avatar is loaded or not  */
-    isLoading: PropTypes.bool,
+    isLoading?: boolean;
 };
 
-const defaultProps = {
-    tooltipText: '',
-    fallbackIcon: Expensicons.FallbackAvatar,
-    isLoading: true,
-};
-
-function AvatarWithIndicator(props) {
+function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
+
     return (
-        <Tooltip text={props.tooltipText}>
+        <Tooltip text={tooltipText}>
             <View style={[styles.sidebarAvatar]}>
-                {props.isLoading ? (
+                {isLoading ? (
                     <AvatarSkeleton />
                 ) : (
                     <>
                         <Avatar
-                            source={UserUtils.getSmallSizeAvatar(props.source)}
-                            fallbackIcon={props.fallbackIcon}
+                            source={UserUtils.getSmallSizeAvatar(source)}
+                            fallbackIcon={fallbackIcon}
                         />
                         <Indicator />
                     </>
@@ -50,8 +44,6 @@ function AvatarWithIndicator(props) {
     );
 }
 
-AvatarWithIndicator.defaultProps = defaultProps;
-AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default AvatarWithIndicator;

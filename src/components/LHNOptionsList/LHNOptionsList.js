@@ -112,7 +112,9 @@ function LHNOptionsList({
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(ReportUtils.getParticipantsIDs(itemFullReport));
+            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
+
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
 
             return (
                 <OptionRowLHNData
