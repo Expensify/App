@@ -287,7 +287,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
-    const shouldShowSplitBillErrorMessage = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+    const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const handleConfirmSelection = useCallback(() => {
