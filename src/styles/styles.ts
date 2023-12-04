@@ -1475,9 +1475,7 @@ const styles = (theme: ThemeColors) =>
 
         sidebarLinkLHN: {
             textDecorationLine: 'none',
-            marginLeft: 12,
-            marginRight: 12,
-            borderRadius: 8,
+            paddingHorizontal: 12,
         },
 
         sidebarLinkInner: {
@@ -1488,10 +1486,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkInnerLHN: {
-            alignItems: 'center',
-            flexDirection: 'row',
-            paddingLeft: 8,
-            paddingRight: 8,
+            paddingHorizontal: 8,
         },
 
         sidebarLinkText: {
@@ -1506,7 +1501,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkHoverLHN: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.sidebarHover,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         sidebarLinkActive: {
