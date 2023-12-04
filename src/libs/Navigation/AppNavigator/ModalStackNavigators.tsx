@@ -1,5 +1,33 @@
+import {ParamListBase} from '@react-navigation/routers';
 import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import type {
+    AddPersonalBankAccountNavigatorParamList,
+    DetailsNavigatorParamList,
+    EditRequestNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    MoneyRequestNavigatorParamList,
+    NewChatNavigatorParamList,
+    NewTaskNavigatorParamList,
+    ParticipantsNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    ProfileNavigatorParamList,
+    ReferralDetailsNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    ReportWelcomeMessageNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    SearchNavigatorParamList,
+    SettingsNavigatorParamList,
+    SignInNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    WalletStatementNavigatorParamList,
+} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 
@@ -10,8 +38,8 @@ type Screens = Record<string, () => React.ComponentType>;
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  */
-function createModalStackNavigator(screens: Screens): React.ComponentType {
-    const ModalStackNavigator = createStackNavigator();
+function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens): React.ComponentType {
+    const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
         const styles = useThemeStyles();
@@ -43,7 +71,7 @@ function createModalStackNavigator(screens: Screens): React.ComponentType {
     return ModalStack;
 }
 
-const MoneyRequestModalStackNavigator = createModalStackNavigator({
+const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
     [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
@@ -63,63 +91,63 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default as React.ComponentType,
 });
 
-const SplitDetailsModalStackNavigator = createModalStackNavigator({
+const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
-const DetailsModalStackNavigator = createModalStackNavigator({
+const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
     [SCREENS.DETAILS_ROOT]: () => require('../../../pages/DetailsPage').default as React.ComponentType,
 });
 
-const ProfileModalStackNavigator = createModalStackNavigator({
+const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
     [SCREENS.PROFILE_ROOT]: () => require('../../../pages/ProfilePage').default as React.ComponentType,
 });
 
-const ReportDetailsModalStackNavigator = createModalStackNavigator({
+const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
     [SCREENS.REPORT_DETAILS.ROOT]: () => require('../../../pages/ReportDetailsPage').default as React.ComponentType,
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require('../../../pages/home/report/ReportDetailsShareCodePage').default as React.ComponentType,
 });
 
-const ReportSettingsModalStackNavigator = createModalStackNavigator({
+const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require('../../../pages/settings/Report/ReportSettingsPage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
 });
 
-const TaskModalStackNavigator = createModalStackNavigator({
+const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
     [SCREENS.TASK.TITLE]: () => require('../../../pages/tasks/TaskTitlePage').default as React.ComponentType,
     [SCREENS.TASK.DESCRIPTION]: () => require('../../../pages/tasks/TaskDescriptionPage').default as React.ComponentType,
     [SCREENS.TASK.ASSIGNEE]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default as React.ComponentType,
 });
 
-const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator({
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator<ReportWelcomeMessageNavigatorParamList>({
     [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: () => require('../../../pages/ReportWelcomeMessagePage').default as React.ComponentType,
 });
 
-const ReportParticipantsModalStackNavigator = createModalStackNavigator({
+const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
     [SCREENS.REPORT_PARTICIPANTS_ROOT]: () => require('../../../pages/ReportParticipantsPage').default as React.ComponentType,
 });
 
-const RoomMembersModalStackNavigator = createModalStackNavigator({
+const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
     [SCREENS.ROOM_MEMBERS_ROOT]: () => require('../../../pages/RoomMembersPage').default as React.ComponentType,
 });
 
-const RoomInviteModalStackNavigator = createModalStackNavigator({
+const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNavigatorParamList>({
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const SearchModalStackNavigator = createModalStackNavigator({
+const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParamList>({
     [SCREENS.SEARCH_ROOT]: () => require('../../../pages/SearchPage').default as React.ComponentType,
 });
 
-const NewChatModalStackNavigator = createModalStackNavigator({
+const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT_ROOT]: () => require('../../../pages/NewChatSelectorPage').default as React.ComponentType,
 });
 
-const NewTaskModalStackNavigator = createModalStackNavigator({
+const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
     [SCREENS.NEW_TASK.ROOT]: () => require('../../../pages/tasks/NewTaskPage').default as React.ComponentType,
     [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default as React.ComponentType,
     [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: () => require('../../../pages/tasks/TaskShareDestinationSelectorModal').default as React.ComponentType,
@@ -128,14 +156,14 @@ const NewTaskModalStackNavigator = createModalStackNavigator({
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
 });
 
-const NewTeachersUniteNavigator = createModalStackNavigator({
+const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
-const SettingsModalStackNavigator = createModalStackNavigator({
+const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
@@ -197,42 +225,42 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default as React.ComponentType,
 });
 
-const EnablePaymentsStackNavigator = createModalStackNavigator({
+const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
     [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
 });
 
-const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator({
+const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator<AddPersonalBankAccountNavigatorParamList>({
     [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
 });
 
-const ReimbursementAccountModalStackNavigator = createModalStackNavigator({
+const ReimbursementAccountModalStackNavigator = createModalStackNavigator<ReimbursementAccountNavigatorParamList>({
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
 });
 
-const WalletStatementStackNavigator = createModalStackNavigator({
+const WalletStatementStackNavigator = createModalStackNavigator<WalletStatementNavigatorParamList>({
     [SCREENS.WALLET_STATEMENT_ROOT]: () => require('../../../pages/wallet/WalletStatementPage').default as React.ComponentType,
 });
 
-const FlagCommentStackNavigator = createModalStackNavigator({
+const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigatorParamList>({
     [SCREENS.FLAG_COMMENT_ROOT]: () => require('../../../pages/FlagCommentPage').default as React.ComponentType,
 });
 
-const EditRequestStackNavigator = createModalStackNavigator({
+const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
-const PrivateNotesModalStackNavigator = createModalStackNavigator({
+const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
     [SCREENS.PRIVATE_NOTES.VIEW]: () => require('../../../pages/PrivateNotes/PrivateNotesViewPage').default as React.ComponentType,
     [SCREENS.PRIVATE_NOTES.LIST]: () => require('../../../pages/PrivateNotes/PrivateNotesListPage').default as React.ComponentType,
     [SCREENS.PRIVATE_NOTES.EDIT]: () => require('../../../pages/PrivateNotes/PrivateNotesEditPage').default as React.ComponentType,
 });
 
-const SignInModalStackNavigator = createModalStackNavigator({
+const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParamList>({
     [SCREENS.SIGN_IN_ROOT]: () => require('../../../pages/signin/SignInModal').default as React.ComponentType,
 });
 
-const ReferralModalStackNavigator = createModalStackNavigator({
+const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
