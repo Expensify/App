@@ -45,7 +45,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, pageIndex, backTo},
+        params: {iouType, reportID, transactionID, backTo},
     },
 }) {
     const theme = useTheme();
@@ -209,7 +209,7 @@ function IOURequestStepScan({
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
-                    cameraTabIndex={pageIndex}
+                    cameraTabIndex={1}
                 />
             </View>
 
