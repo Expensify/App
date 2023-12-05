@@ -3,6 +3,7 @@ import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
+import lodashTimes from 'lodash/times';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -28,6 +29,8 @@ import * as UserUtils from './UserUtils';
 type PersonalDetailsCollection = Record<number, PersonalDetails | {accountID: number; login: string; avatar: string}>;
 
 type Tag = {enabled: boolean; name: string};
+
+type Option = {text: string; keyForList: string; searchText: string; tooltipText: string; isDisabled: boolean};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -128,7 +131,7 @@ function addSMSDomainIfPhoneNumber(login: string): string {
 /**
  * Returns avatar data for a list of user accountIDs
  */
-function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection, defaultValues: Record<string, number> = {}) {
+function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection, defaultValues: Record<string, number> = {}): OnyxCommon.Icon[] {
     const reversedDefaultValues: Record<number, string> = {};
 
     Object.entries(defaultValues).forEach((item) => {
@@ -142,7 +145,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: Personal
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login,
+            name: userPersonalDetail.login ?? '',
         };
     });
 }
@@ -151,7 +154,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: Personal
  * Returns the personal details for an array of accountIDs
  * @returns  keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection) {
+function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection): Record<number, Partial<PersonalDetails>> {
     const personalDetailsForAccountIDs: Record<number, Partial<PersonalDetails>> = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
@@ -189,14 +192,14 @@ function isPersonalDetailsReady(personalDetails: PersonalDetailsCollection): boo
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: Participant & {searchText?: string}, personalDetails: PersonalDetailsCollection) {
+function getParticipantsOption(participant: ReportUtils.Participant & {searchText?: string}, personalDetails: PersonalDetailsCollection): ReportUtils.Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
     const login = detail.login ?? participant.login ?? '';
     const displayName = detail.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
     return {
         keyForList: String(detail.accountID),
         login,
-        accountID: detail.accountID,
+        accountID: detail.accountID ?? 0,
         text: displayName,
         firstName: detail.firstName ?? '',
         lastName: detail.lastName ?? '',
@@ -313,7 +316,7 @@ function getSearchText(report: Report, reportName: string, personalDetailList: A
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
@@ -354,7 +357,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>) {
+function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
     const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
@@ -403,7 +406,7 @@ function createOption(
     report: OnyxEntry<Report>,
     reportActions: Record<string, ReportAction>,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
-) {
+): ReportUtils.OptionData {
     const result: ReportUtils.OptionData = {
         text: undefined,
         alternateText: null,
@@ -529,7 +532,7 @@ function createOption(
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report & {selected?: boolean; searchText?: string}) {
+function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
@@ -603,17 +606,28 @@ function hasEnabledOptions(options: Record<string, PolicyCategory>): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
+type Category = {
+    name: string;
+    enabled: boolean;
+};
+
+type DynamicKey<Key extends string> = {
+    [K in Key]?: Hierarchy | undefined;
+};
+
+type Hierarchy = Record<string, Category & DynamicKey<string>>;
+
 /**
  * Sorts categories using a simple object.
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, PolicyCategory>) {
+function sortCategories(categories: Record<string, PolicyCategory>): Category[] {
     // Sorts categories alphabetically by name.
     const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
-    const hierarchy = {};
+    const hierarchy: Hierarchy = {};
 
     /**
      * Iterates over all categories to set each category in a proper place in hierarchy
@@ -639,32 +653,28 @@ function sortCategories(categories: Record<string, PolicyCategory>) {
             name: category.name,
         });
     });
-    console.log(sortedCategories, hierarchy);
+
     /**
      * A recursive function to convert hierarchy into an array of category objects.
      * The category object contains base 2 properties: "name" and "enabled".
      * It iterates each key one by one. When a category has subcategories, goes deeper into them. Also, sorts subcategories alphabetically.
-     *
-     * @param {Object} initialHierarchy
-     * @returns {Array<Object>}
      */
-    const flatHierarchy = (initialHierarchy) =>
-        initialHierarchy.reduce((acc, category) => {
+    const flatHierarchy = (initialHierarchy: Hierarchy) =>
+        Object.values(initialHierarchy).reduce((acc: Category[], category) => {
             const {name, ...subcategories} = category;
-
-            if (!_.isEmpty(name)) {
+            if (name) {
                 const categoryObject = {
                     name,
-                    enabled: lodashGet(categories, [name, 'enabled'], false),
+                    enabled: categories.name.enabled ?? false,
                 };
 
                 acc.push(categoryObject);
             }
 
-            if (!_.isEmpty(subcategories)) {
+            if (isNotEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
-                acc.push(..._.sortBy(nestedCategories, 'name'));
+                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
             }
 
             return acc;
@@ -675,15 +685,15 @@ function sortCategories(categories: Record<string, PolicyCategory>) {
 
 /**
  * Sorts tags alphabetically by name.
- *
- * @param {Object<String, {name: String, enabled: Boolean}>} tags
- * @returns {Array<Object>}
  */
-function sortTags(tags) {
-    const sortedTags = _.chain(tags)
-        .values()
-        .sortBy((tag) => tag.name)
-        .value();
+function sortTags(tags: Record<string, Tag> | Tag[]) {
+    let sortedTags;
+
+    if (Array.isArray(tags)) {
+        sortedTags = tags.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+        sortedTags = Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     return sortedTags;
 }
@@ -691,16 +701,13 @@ function sortTags(tags) {
 /**
  * Builds the options for the tree hierarchy via indents
  *
- * @param {Object[]} options - an initial object array
- * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
- * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
- * @returns {Array<Object>}
+ * @param options - an initial object array
+ * @param} [isOneLine] - a flag to determine if text should be one line
  */
-function getIndentedOptionTree(options, isOneLine = false) {
-    const optionCollection = new Map();
+function getIndentedOptionTree(options: Category[], isOneLine = false): Option[] {
+    const optionCollection = new Map<string, Option>();
 
-    _.each(options, (option) => {
+    options.forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
                 return;
@@ -718,7 +725,7 @@ function getIndentedOptionTree(options, isOneLine = false) {
         }
 
         option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
-            const indents = _.times(index, () => CONST.INDENTS).join('');
+            const indents = lodashTimes(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
 
@@ -738,24 +745,23 @@ function getIndentedOptionTree(options, isOneLine = false) {
 
     return Array.from(optionCollection.values());
 }
+type CategorySection = {title: string; shouldShow: boolean; indexOffset: number; data: Option[]};
 
 /**
  * Builds the section list for categories
- *
- * @param {Object<String, {name: String, enabled: Boolean}>} categories
- * @param {String[]} recentlyUsedCategories
- * @param {Object[]} selectedOptions
- * @param {String} selectedOptions[].name
- * @param {String} searchInputValue
- * @param {Number} maxRecentReportsToShow
- * @returns {Array<Object>}
  */
-function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getCategoryListSections(
+    categories: Record<string, PolicyCategory>,
+    recentlyUsedCategories: string[],
+    selectedOptions: Category[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+): CategorySection[] {
     const sortedCategories = sortCategories(categories);
-    const enabledCategories = _.filter(sortedCategories, (category) => category.enabled);
+    const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
-    const categorySections = [];
-    const numberOfCategories = _.size(enabledCategories);
+    const categorySections: CategorySection[] = [];
+    const numberOfCategories = enabledCategories.length;
 
     let indexOffset = 0;
 
@@ -771,8 +777,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(enabledCategories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+    if (searchInputValue) {
+        const searchCategories = enabledCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -797,7 +803,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (!_.isEmpty(selectedOptions)) {
+    if (selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -809,16 +815,15 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         indexOffset += selectedOptions.length;
     }
 
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
-        .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = recentlyUsedCategories
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && (categories[categoryName].enabled ?? false))
         .map((categoryName) => ({
             name: categoryName,
-            enabled: lodashGet(categories, [categoryName, 'enabled'], false),
-        }))
-        .value();
+            enabled: categories[categoryName].enabled ?? false,
+        }));
 
-    if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+    if (filteredRecentlyUsedCategories.length > 0) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
         categorySections.push({
@@ -832,7 +837,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -854,28 +859,18 @@ function getTagsOptions(tags: Tag[]) {
 
 /**
  * Build the section list for tags
- *
- * @param {Object[]} rawTags
- * @param {String} tags[].name
- * @param {Boolean} tags[].enabled
- * @param {String[]} recentlyUsedTags
- * @param {Object[]} selectedOptions
- * @param {String} selectedOptions[].name
- * @param {String} searchInputValue
- * @param {Number} maxRecentReportsToShow
- * @returns {Array<Object>}
  */
-function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
-    const tags = _.map(rawTags, (tag) => {
+    const tags = rawTags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+        const tagName = tag.name?.replace(/\\{1,2}:/g, ':');
 
         return {...tag, name: tagName};
     });
     const sortedTags = sortTags(tags);
-    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
-    const numberOfTags = _.size(enabledTags);
+    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
@@ -951,7 +946,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
         indexOffset += selectedOptions.length;
     }
 
-    if (!_.isEmpty(filteredRecentlyUsedTags)) {
+    if (filteredRecentlyUsedTags.length > 0) {
         const cutRecentlyUsedTags = filteredRecentlyUsedTags.slice(0, maxRecentReportsToShow);
 
         tagSections.push({
@@ -976,6 +971,35 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     return tagSections;
 }
 
+type GetOptionsConfig = {
+    reportActions?: Record<string, ReportAction>;
+    betas?: Beta[];
+    selectedOptions?: Category[];
+    maxRecentReportsToShow?: number;
+    excludeLogins?: string[];
+    includeMultipleParticipantReports?: boolean;
+    includePersonalDetails?: boolean;
+    includeRecentReports?: boolean;
+    sortByReportTypeInSearch?: boolean;
+    searchInputValue?: string;
+    showChatPreviewLine?: boolean;
+    sortPersonalDetailsByAlphaAsc?: boolean;
+    forcePolicyNamePreview?: boolean;
+    includeOwnedWorkspaceChats?: boolean;
+    includeThreads?: boolean;
+    includeTasks?: boolean;
+    includeMoneyRequests?: boolean;
+    excludeUnknownUsers?: boolean;
+    includeP2P?: boolean;
+    includeCategories?: boolean;
+    categories?: Record<string, PolicyCategory>;
+    recentlyUsedCategories?: string[];
+    includeTags?: boolean;
+    tags?: Record<string, Tag>;
+    recentlyUsedTags?: string[];
+    canInviteUser?: boolean;
+    includeSelectedOptions?: boolean;
+};
 /**
  * Build the options
  */
@@ -1011,7 +1035,7 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
-    },
+    }: GetOptionsConfig,
 ) {
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
@@ -1051,13 +1075,13 @@ function getOptions(
     }
 
     let recentReportOptions = [];
-    let personalDetailsOptions: Option[] = [];
+    let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
     const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = Object.values(reports).filter((report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
+    const filteredReports = Object.values(reports).filter((report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId() ?? '', false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -1071,7 +1095,7 @@ function getOptions(
     });
     orderedReports.reverse();
 
-    const allReportOptions: Option[] = [];
+    const allReportOptions: ReportUtils.OptionData[] = [];
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1147,7 +1171,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Array<Partial<ReportUtils.OptionData>> = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1232,20 +1256,19 @@ function getOptions(
 
     let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
     if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
-        currentUserOption = null;
+        currentUserOption = undefined;
     }
 
-    let userToInvite = null;
+    let userToInvite: ReportUtils.OptionData | null = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(
-        personalDetailsOptions.concat(recentReportOptions),
-        (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
-    );
+    const noOptionsMatchExactly = !personalDetailsOptions
+        .concat(recentReportOptions)
+        .find((option) => option.login === addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
     if (
         searchValue &&
         (noOptions || noOptionsMatchExactly) &&
-        !isCurrentUser({login: searchValue}) &&
+        !isCurrentUser({login: searchValue} as PersonalDetails) &&
         selectedOptions.every((option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
@@ -1290,7 +1313,7 @@ function getOptions(
             recentReportOptions,
             [
                 (option) => {
-                    if (option.isChatRoom || option.isArchivedRoom) {
+                    if (!!option.isChatRoom || option.isArchivedRoom) {
                         return 3;
                     }
                     if (!option.login) {
@@ -1309,7 +1332,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
+        personalDetails: personalDetailsOptions.filter((personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1342,10 +1365,10 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Pers
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
-        text: personalDetail.displayName || formattedLogin,
+        text: personalDetail.displayName ? personalDetail.displayName : formattedLogin,
         alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
@@ -1364,7 +1387,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Option[], amountText: string) {
+function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string) {
     return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,

@@ -345,6 +345,7 @@ type OptionData = {
     isExpenseReport?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
+    isOptimisticAccount?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -4439,4 +4440,4 @@ export {
     canEditWriteCapability,
 };
 
-export type {OptionData};
+export type {OptionData, Participant};

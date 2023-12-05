@@ -147,6 +147,7 @@ type Report = {
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
     privateNotes?: Record<string, {note: string}>;
+    selected?: boolean;
 };
 
 export default Report;
