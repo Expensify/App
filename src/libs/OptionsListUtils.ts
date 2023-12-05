@@ -689,7 +689,7 @@ function sortTags(tags) {
 }
 
 /**
- * Builds the options for the category tree hierarchy via indents
+ * Builds the options for the tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -697,7 +697,7 @@ function sortTags(tags) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getCategoryOptionTree(options, isOneLine = false) {
+function getIndentedOptionTree(options, isOneLine = false) {
     const optionCollection = new Map();
 
     _.each(options, (option) => {
@@ -765,7 +765,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getIndentedOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -779,7 +779,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(searchCategories, true),
+            data: getIndentedOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -791,7 +791,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
+            data: getIndentedOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -803,7 +803,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getIndentedOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -826,7 +826,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -839,7 +839,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getCategoryOptionTree(filteredCategories),
+        data: getIndentedOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -849,13 +849,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * Transforms the provided tags into objects with a specific structure.
  */
 function getTagsOptions(tags: Tag[]) {
-    return tags.map((tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return getIndentedOptionTree(tags);
 }
 
 /**
@@ -1153,7 +1147,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}];
+    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1171,6 +1165,11 @@ function getOptions(
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
+            }
+
+            // Skip notifications@expensify.com
+            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                continue;
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
@@ -1644,7 +1643,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getCategoryOptionTree,
+    getIndentedOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };
