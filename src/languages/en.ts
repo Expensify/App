@@ -610,6 +610,8 @@ export default {
         confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
         confirmPay: 'Confirm what to pay',
         confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        payOnly: 'Pay only',
+        approveOnly: 'Approve only'
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

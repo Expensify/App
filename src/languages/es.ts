@@ -604,6 +604,8 @@ export default {
         confirmApprovalAmount: 'Aprobar el total del informe completo o solo el monto no retenido.',
         confirmPay: 'Confirmar que pagar',
         confirmPayAmount: 'Pague todos los gastos de bolsillo o solo el monto no retenido.',
+        payOnly: 'Paga solo',
+        approveOnly: 'Aprobar sólo'
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
