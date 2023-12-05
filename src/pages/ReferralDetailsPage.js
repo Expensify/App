@@ -54,7 +54,7 @@ function ReferralDetailsPage({route, account}) {
     }
 
     const contentHeader = translate(`referralProgram.${contentType}.header`);
-    const contentBody = translate(`referralProgram.${contentType}.body1`);
+    const contentBody = translate(`referralProgram.${contentType}.body`);
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
     const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account.primaryLogin)}`;
