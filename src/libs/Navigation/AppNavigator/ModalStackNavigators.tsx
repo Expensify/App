@@ -30,8 +30,9 @@ import type {
 } from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 
-type Screens = Record<string, () => React.ComponentType>;
+type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
@@ -55,11 +56,11 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 
         return (
             <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
-                {Object.keys(screens).map((name) => (
+                {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
                         name={name}
-                        getComponent={screens[name]}
+                        getComponent={(screens as Required<Screens>)[name as Screen]}
                     />
                 ))}
             </ModalStackNavigator.Navigator>
